@@ -1,58 +1,43 @@
-; Sonic 2 Beta By Esrael L. G. Neto
-;                    Sonic 2 Alpha              Sonic 2 Beta   
-; Level Id $00       Green Hill (Sonic 1)    -> Emerald Hill (Green Hill) 
-; Level Id $01       Labyrinth (Sonic 1)     -> (Labyrinth lefover cleaned now Empty)
-; Level Id $02       Chemical Plant          -> (Moved to Id $0d now Wood
-; Level Id $03       Emerald Hill            -> (Moved to Id $00 now Empty)
-; Level Id $04       Hidden Palace           -> (Moved to Id $08 now Metropolis)
-; Level Id $05       Hill Top                -> (Moved to Id $07 now Metropolis)
-; Level Id $06       Sonic 1 Ending Sequence -> (Sonic 1 Ending Sequence cleaned now Empty) 
-;
-; Rom Start             
-                dc.l    $FFFFFE00, EntryPoint, BusError, AddressError                  
-                dc.l    IllegalInstr, ZeroDivide, ChkInstr, TrapvInstr
-                dc.l    PrivilegeViolation, Trace, Line1010Emu, Line1111Emu
-                dc.l    ErrorException, ErrorException, ErrorException, ErrorException
-                dc.l    ErrorException, ErrorException, ErrorException, ErrorException
-                dc.l    ErrorException, ErrorException, ErrorException, ErrorException
-                dc.l    ErrorException, ErrorTrap, ErrorTrap, ErrorTrap
-                dc.l    VBlank, ErrorTrap, HBlank, ErrorTrap
-                dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
-                dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
-                dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
-                dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
-                dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
-                dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
-                dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
-                dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap 
-Console:
-                dc.b    'SEGA MEGA DRIVE (C)'
-Date:                
-                dc.b    'SEGA 1991.APR'
-Title_Local:                
-                dc.b    'SONIC THE             HEDGEHOG 2                '
-Title_International:                
-                dc.b    'SONIC THE             HEDGEHOG 2                '
-Serial:                
-                dc.b    'GM 00004049-01'
-Checksum: ; Offset_0x00018E:                
-                dc.w    $AFC7
-IOSupport:                
-                dc.b    'J               '
-ROMStart:                
-                dc.l    $00000000
-ROMEnd:   ; Offset_0x0001A4:                 
-                dc.l    $0007FFFF
-RAMStart:                
-                dc.l    $00FF0000
-RAMEnd:                
-                dc.l    $00FFFFFF
-SRAMSupport:               
-                dc.b    '                '
-Notes:                
-                dc.b    '                                                '
-Region:                
-                dc.b    'JUE             ' 
+; Sonic the Hedgehog 2 (Simon Wai prototype) disassembly
+; Originally created by Esrael L.G. Neto around 2008
+
+StartOfRom:      
+Vectors:
+	dc.l    $FFFFFE00, EntryPoint, BusError, AddressError                  
+	dc.l    IllegalInstr, ZeroDivide, ChkInstr, TrapvInstr
+	dc.l    PrivilegeViolation, Trace, Line1010Emu, Line1111Emu
+	dc.l    ErrorException, ErrorException, ErrorException, ErrorException
+	dc.l    ErrorException, ErrorException, ErrorException, ErrorException
+	dc.l    ErrorException, ErrorException, ErrorException, ErrorException
+	dc.l    ErrorException, ErrorTrap, ErrorTrap, ErrorTrap
+	dc.l    HBlank, ErrorTrap, VBlank, ErrorTrap
+	dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
+	dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
+	dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
+	dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
+	dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
+	dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
+	dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
+	dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
+
+Header:
+	dc.b "SEGA MEGA DRIVE " ; Console name
+	dc.b "(C)SEGA 1991.APR" ; Copyright holder and release date (generally year, leftover from Sonic 1)
+	dc.b "SONIC THE             HEDGEHOG 2                " ; Domestic title
+	dc.b "SONIC THE             HEDGEHOG 2                " ; International title
+	dc.b "GM 00004049-01"	; Serial number (leftover from Sonic 1)
+Checksum:
+	dc.w $AFC7		; Checksum (leftover from Sonic 1)
+	dc.b "J               " ; I/O support
+	dc.l StartOfRom		; Start address of ROM
+RomEndLoc:
+	dc.l $7FFFF		; End address of ROM (leftover from Sonic 1)
+	dc.l $FF0000		; Start address of RAM
+	dc.l $FFFFFF		; End address of RAM
+	dc.b "                " ; Backup RAM
+	dc.b "                                                " ; notes (can be anything, but must be 52 bytes)
+	dc.b "JUE             " ; Country code 
+
 ErrorTrap: ; Offset_0x000200: 
                 nop 
                 nop  
@@ -130,60 +115,72 @@ InitValues: ; Offset_0x000294:
                 dc.w    $1127, $0021, $2600, $F977, $EDB0, $DDE1, $FDE1, $ED47
                 dc.w    $ED4F, $D1E1, $F108, $D9C1, $D1E1, $F1F9, $F3ED, $5636
                 dc.w    $E9E9, $8104, $8F02, $C000, $0000, $4000, $0010, $9FBF
-                dc.w    $DFFF  
-GameProgram: ; Offset_0x000300:
-                tst.w   ($00C00004) 
-                btst    #$06, ($00A1000D)
-                beq.s   ChecksumCheck           ; Offset_0x00031C
-                cmpi.l  #'init', ($FFFFFFFC).w
-                beq     AlreadyInit             ; Offset_0x00036A
-ChecksumCheck: ; Offset_0x00031C:
-                move.l  #ErrorTrap, A0          ; Offset_0x000200
-                move.l  #ROMEnd, A1             ; Offset_0x0001A4
-                move.l  (A1), D0  
-                move.l  #$0007FFFF, D0
-                moveq   #$00, D1 
-ChksumChkLoop: ; Offset_0x000332:                
-                add.w   (A0)+, D1
-                cmp.l   A0, D0 
-                bcc.s   ChksumChkLoop           ; Offset_0x000332 
-                move.l  #Checksum, A1           ; Offset_0x00018E
-                cmp.w   (A1), D1
-                nop
-                nop
-                lea     ($FFFFFE00).w, A6
-                moveq   #$00, D7 
-                move.w  #$007F, D6
-ClearSomeRAMLoop: ; Offset_0x00034E:                 
-                move.l  D7, (A6)+
-;Offset_0x000350:  
-                dbra    D6, ClearSomeRAMLoop    ; Offset_0x00034E  
-                move.b  ($00A10001), D0  
-                andi.b  #$C0, D0
-                move.b  D0, ($FFFFFFF8).w  
-                move.l  #'init', ($FFFFFFFC).w
-AlreadyInit: ; Offset_0x00036A:                  
-                lea     ($00FF0000), A6 
-                moveq   #$00, D7 
-                move.w  #$3F7F, D6 
-ClearRemainingRAMLoop: ; Offset_0x000376:                
-                move.l  D7, (A6)+ 
-                dbra    D6, ClearRemainingRAMLoop ; Offset_0x000376 
-                bsr     VDPRegSetup             ; Offset_0x001368  
-                bsr     SoundDriverLoad         ; Offset_0x0014B8 
-                bsr     JoypadInit              ; Offset_0x0012FC 
-                move.b  #$04, ($FFFFF600).w ; Boot from Game Intro / Title Screen
-MainGameLoop: ; Offset_0x00038E:                
-                move.b  ($FFFFF600).w, D0
-                andi.w  #$001C, D0
-                jsr     GameModeArray(PC, D0)   ; Offset_0x00039C
-                bra.s   MainGameLoop            ; Offset_0x00038E
-GameModeArray: ; Offset_0x00039C:   
-                bra     SegaScreen       ; SEGA Logo ; Offset_0x00360C   
-                bra     TitleScreen      ; Game Intro / Title Screen ; Offset_0x003738
-                bra     Level            ; Demo Mode         ; Offset_0x004150
-                bra     Level            ; Normal Game Play  ; Offset_0x004150 
-                bra     SpecialStage     ; Special Stage     ; Offset_0x005200
+                dc.w    $DFFF
+; ===========================================================================
+; loc_300:
+GameProgram:
+		tst.w	($C00004) 
+		btst	#6,($A1000D)
+		beq.s	ChecksumTest
+		cmpi.l	#'init',($FFFFFFFC).w
+		beq.w	GameInit
+; loc_31C:
+ChecksumTest:
+		move.l	#ErrorTrap,a0
+		move.l	#RomEndLoc,a1
+		move.l	(a1),d0  
+		move.l	#$7FFFF,d0
+		moveq	#0,d1 
+; loc_332:
+ChecksumLoop:
+		add.w	(a0)+,d1
+		cmp.l	a0,d0
+		bcc.s	ChecksumLoop
+		move.l	#Checksum,a1
+		cmp.w	(a1),d1
+		nop
+		nop
+		lea	($FFFFFE00).w,a6
+		moveq	#0,d7 
+		move.w	#$7F,d6
+; loc_34E:
+GameClrStack:               
+		move.l	d7,(a6)+
+		dbf	d6,GameClrStack
+		move.b	($A10001),d0
+		andi.b	#$C0,d0
+		move.b	d0,($FFFFFFF8).w
+		move.l	#'init',($FFFFFFFC).w
+; loc_36A:
+GameInit:              
+		lea	($FF0000),a6 
+		moveq	#0,d7 
+		move.w	#$3F7F,d6
+; loc_376: 
+GameClrRAM:                
+		move.l	d7,(a6)+
+		dbf	d6,GameClrRAM
+
+		bsr.w	VDPRegSetup
+		bsr.w	SoundDriverLoad
+		bsr.w	JoypadInit
+		; strangely, this loads the title screen, and not the Sega screen,
+		; and the August 21st prototype suggests this was NOT done by the pirates...
+		move.b	#4,($FFFFF600).w
+; loc_38E:
+MainGameLoop:
+		move.b	($FFFFF600).w,d0
+		andi.w	#$1C,d0
+		jsr	GameModesArray(pc,d0.w)
+		bra.s	MainGameLoop
+; ===========================================================================
+; loc_39C:
+GameModesArray:
+		bra.w	SegaScreen
+		bra.w	TitleScreen
+		bra.w	Level
+		bra.w	Level
+		bra.w	SpecialStage
 ;===============================================================================
 ;
 ; ChecksumError
@@ -341,7 +338,7 @@ Error_WaitForC: ; Offset_0x0005D8:
                 rts 
 Art_Menu_Text: ; Offset_0x0005E8:
                 incbin   'data\sprites\art_menu.dat'
-HBlank: ; Offset_0x000B08:                  
+VBlank: ; Offset_0x000B08:                  
                 movem.l D0-A6, -(A7) 
                 tst.b	($FFFFF62A).w
                 beq     Offset_0x000B82 
@@ -731,11 +728,11 @@ Offset_0x001124:
                 jsr     Offset_0x0012AC
                 move.w	#$0000, ($00A11100)
                 rts
-VBlank: ; Offset_0x00117C:                
+HBlank: ; Offset_0x00117C:                
                 tst.w   ($FFFFF644).w
                 beq     Offset_0x001226
                 tst.w   ($FFFFFFD8).w   
-                beq     VBlank_Not2pMode        ; Offset_0x001228
+                beq     HBlank_Not2pMode        ; Offset_0x001228
                 move.w  #$0000, ($FFFFF644).w 
                 move.l  A5, -(A7)
                 move.l  D0, -(A7)
@@ -772,7 +769,7 @@ Offset_0x001208:
                 move.l  (A7)+, A5
 Offset_0x001226:
                 rte
-VBlank_Not2pMode: ; Offset_0x001228:  
+HBlank_Not2pMode: ; Offset_0x001228:  
                 move    #$2700, SR 
                 move.w  #$0000, ($FFFFF644).w  
                 movem.l A0-A1, -(A7)
@@ -971,19 +968,52 @@ ClearScreen_ClearBuffer2: ; Offset_0x0014A8:
                 dbra    D1, ClearScreen_ClearBuffer2 ; Offset_0x0014A8                 
                 move.w  #$0000, ($00A11100)
                 rts
-SoundDriverLoad: ; Offset_0x0014B8:
-                nop
-                jmp     Sound_Driver            ; Offset_0x0EC000
-Play_Music: ; Offset_0x0014C0: 
-                move.b  D0, ($FFFFFFE0).w     
-                rts 
-Play_Sfx: ; Offset_0x0014C6:  
-                move.b  D0, ($FFFFFFE1).w     
-                rts 
-;Play_Unknow: ;Offset_0x0014CC: ;  
-                move.b  D0, ($FFFFFFE2).w     
-                rts   
-Pause: ; Offset_0x0014D2: 
+
+; loc_14B8:
+SoundDriverLoad: ; JmpTo
+		nop
+		jmp	(Sound_Driver).l
+
+; ---------------------------------------------------------------------------
+; Sound queues; they are used interchangably, but have been labelled
+; based on what they're most used for
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_14C0:
+PlayMusic:
+		move.b	d0,($FFFFFFE0).w
+		rts 
+; End of function PlayMusic
+
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_14C6:
+PlaySound:
+                move.b	d0,($FFFFFFE1).w
+		rts 
+; End of function PlaySound
+
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+; Unreferenced sound queue, doesn't even work due to a bug
+; sub_14CC:
+PlaySound2:
+		move.b	d0,($FFFFFFE2).w
+		rts 
+; End of function PlaySound2
+
+
+; ---------------------------------------------------------------------------
+; Subroutine to pause the game
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_14D2:
+Pause:
                 nop 
                 tst.b   ($FFFFFE12).w
                 beq     Unpause                 ; Offset_0x001536
@@ -3230,7 +3260,7 @@ AngleData: ; Offset_0x003508:
 ;===============================================================================                 
 SegaScreen: ; Offset_0x00360C: ; SEGA Logo
                 move.b  #$FD, D0
-                bsr     Play_Music              ; Offset_0x0014C0
+                bsr     PlayMusic              ; Offset_0x0014C0
                 bsr     ClearPLC                ; Offset_0x00179A
                 bsr     Pal_FadeFrom            ; Offset_0x00263A 
                 lea     ($00C00004), A6
@@ -3287,7 +3317,7 @@ Sega_WaitPalette: ; Offset_0x0036F0:
                 bsr     PalCycle_Sega           ; Offset_0x0027F0 ; Load "Sega" rotating palette
                 bne.s   Sega_WaitPalette        ; Offset_0x0036F0 
                 move.b  #$FA, D0                ; Load "Sega" sound
-                bsr     Play_Sfx                ; Offset_0x0014C6
+                bsr     PlaySound                ; Offset_0x0014C6
                 move.b  #$02, ($FFFFF62A).w
                 bsr     DelayProgram            ; Offset_0x0031D8
                 move.w  #$00B4, ($FFFFF614).w
@@ -3311,7 +3341,7 @@ Sega_GoToTitleScreen: ; Offset_0x003730:
 ;===============================================================================                   
 TitleScreen: ; Offset_0x003738: ; Game Intro / Title Screen
                 move.b  #$FD, D0   
-                bsr     Play_Music              ; Offset_0x0014C0
+                bsr     PlayMusic              ; Offset_0x0014C0
                 bsr     ClearPLC                ; Offset_0x00179A
                 bsr     Pal_FadeFrom            ; Offset_0x00263A  
                 move    #$2700, SR
@@ -3412,7 +3442,7 @@ Offset_0x003818:
                 moveq   #$01, D0                ; Load Title Screen Palette
                 bsr     PalLoad1                ; Offset_0x0028E2      
                 move.b  #$99, D0                ; Load Title Screen Music
-                bsr     Play_Music              ; Offset_0x0014C0
+                bsr     PlayMusic              ; Offset_0x0014C0
                 move.b  #$00, ($FFFFFFFA).w
                 move.w  #$0000, ($FFFFFFD8).w
                 move.w  #$0178, ($FFFFF614).w
@@ -3474,7 +3504,7 @@ Level_Select_Cheat_Test: ;  Offset_0x00397A:
 Title_Cheat_PlayRing: ; Offset_0x0039B0:
                 move.b  #$01, $00(A0, D1)
                 move.b  #$B5, D0
-                bsr     Play_Sfx                ; Offset_0x0014C6
+                bsr     PlaySound                ; Offset_0x0014C6
                 bra.s   Title_Cheat_CountC      ; Offset_0x0039D2
 Title_Cheat_NoMatch: ; Offset_0x0039C0:                
                 tst.b   D0
@@ -3498,7 +3528,7 @@ Offset_0x0039F2:
                 btst    #6, ($FFFFF604).w
                 beq     PlayLevel               ; Offset_0x003B12
                 move.b  #$8A, D0                ; Load Level Select Menu Music
-                bsr     Play_Music              ; Offset_0x0014C0
+                bsr     PlayMusic              ; Offset_0x0014C0
                 moveq   #$02, D0
                 bsr     PalLoad2                ; Offset_0x0028FE
                 lea     ($FFFFE000).w, A1
@@ -3537,7 +3567,7 @@ Offset_0x003A7C:
                 bne.s   LevelSelect_Loop        ; Offset_0x003A48
                 move.w  ($FFFFFF84).w, D0
                 addi.w  #$0080, D0
-                bsr     Play_Sfx                ; Offset_0x0014C6
+                bsr     PlaySound                ; Offset_0x0014C6
                 bra.s   LevelSelect_Loop        ; Offset_0x003A48
 Offset_0x003A9C:
                 add.w   D0, D0               
@@ -3586,7 +3616,7 @@ PlayLevel: ; Offset_0x003B12:
                 move.b  D0, ($FFFFFE18).w
                 move.l  #$00001388, ($FFFFFFC0).w
                 move.b  #$E0, D0
-                bsr     Play_Sfx                ; Offset_0x0014C6
+                bsr     PlaySound                ; Offset_0x0014C6
                 rts  
 Level_Select_Code_US: ; Offset_0x003B52:
                 dc.b    $01, $02, $02, $02, $02, $01, $00, $FF  ; Code sequence  
@@ -3611,7 +3641,7 @@ Run_Demo_Mode: ; Offset_0x003B8E:
                 tst.w   ($FFFFF614).w
                 bne     Offset_0x003B68
                 move.b  #$E0, D0
-                bsr     Play_Sfx                ; Offset_0x0014C6
+                bsr     PlaySound                ; Offset_0x0014C6
                 move.w  ($FFFFFFF2).w, D0
                 andi.w  #$0007, D0
                 add.w   D0, D0
@@ -3913,7 +3943,7 @@ Level: ; Offset_0x004150: ; Demo Mode / Normal Game Play
                 tst.w   ($FFFFFFF0).w
                 bmi.s   Level_Init              ; Offset_0x004164
                 move.b  #$F9, D0
-                bsr     Play_Sfx                ; Offset_0x0014C6
+                bsr     PlaySound                ; Offset_0x0014C6
 Level_Init: ; Offset_0x004164:                
                 bsr     ClearPLC                ; Offset_0x00179A
                 bsr     Pal_FadeFrom            ; Offset_0x00263A 
@@ -4046,7 +4076,7 @@ LevelInit_NoUndewaterPalette: ; Offset_0x004300:
                 move.b  ($FFFFFE10).w, D0
                 lea     PlayList(PC), A1        ; Offset_0x004140
                 move.b  $00(A1, D0), D0
-                bsr     Play_Music              ; Offset_0x0014C0
+                bsr     PlayMusic              ; Offset_0x0014C0
                 move.b  #$34, ($FFFFB080).w     ; Load Title Cards Object
 LevelInit_TitleCard: ; Offset_0x00431E:                
                 move.b  #$0C, ($FFFFF62A).w
@@ -4377,7 +4407,7 @@ Offset_0x004766:
                 andi.b  #$3F, D0
                 bne.s   Offset_0x00479E
                 move.w  #$00D0, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x00479E:
                 tst.b   ($FFFFF7C9).w
                 bne     Offset_0x00481A
@@ -4465,7 +4495,7 @@ Offset_0x0048A8:
                 andi.b  #$1F, D0
                 bne.s   Offset_0x0048CC
                 move.w  #$00D0, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x0048CC:
                 rts  
 Offset_0x0048CE:
@@ -4846,7 +4876,7 @@ JumpToDynamic_Art_Cues: ;  Offset_0x0051F8:
 ;===============================================================================                                 
 SpecialStage: ; Offset_0x005200:       
                 move.w  #$00CA, D0
-                bsr     Play_Sfx                ; Offset_0x0014C6
+                bsr     PlaySound                ; Offset_0x0014C6
                 bsr     Pal_MakeFlash           ; Offset_0x002762
                 move    #$2700, SR
                 lea     ($00C00004), A6
@@ -4909,7 +4939,7 @@ Offset_0x0052B0:
                 clr.w   ($FFFFF750).w
                 move.w  #$0040, ($FFFFF752).w
                 move.w  #$0089, D0
-                bsr     Play_Music              ; Offset_0x0014C0
+                bsr     PlayMusic              ; Offset_0x0014C0
                 move.w  #$0000, ($FFFFF790).w
                 lea     (Demo_Index), A1        ; Offset_0x0049F2
                 moveq   #$06, D0
@@ -4997,7 +5027,7 @@ Offset_0x0053F8:
                 mulu.w  #$000A, D0
                 move.w  D0, ($FFFFF7D4).w
                 move.w  #$008E, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 lea     ($FFFFB000).w, A1
                 moveq   #$00, D0
                 move.w  #$07FF, D1
@@ -5017,7 +5047,7 @@ Offset_0x005480:
                 tst.l   ($FFFFF680).w
                 bne.s   Offset_0x005480
                 move.w  #$00CA, D0
-                bsr     Play_Sfx                ; Offset_0x0014C6
+                bsr     PlaySound                ; Offset_0x0014C6
                 bsr     Pal_MakeFlash           ; Offset_0x002762
                 rts
 Offset_0x0054B8:
@@ -8420,7 +8450,7 @@ Offset_0x007A64:
                 move.w  #$0426, $000C(A1)
 Offset_0x007A9E:
                 move.w  #$008E, D0
-                bsr     Play_Music              ; Offset_0x0014C0
+                bsr     PlayMusic              ; Offset_0x0014C0
                 move.b  #$01, ($FFFFF7AA).w
                 moveq   #$28, D0
                 bra     LoadPLC                 ; Offset_0x00173C
@@ -10429,7 +10459,7 @@ Offset_0x009424:
 Offset_0x009428:                
                 bsr     DisplaySprite           ; Offset_0x00D3C2
                 move.w  #$00B9, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x009436:                
                 dc.b    $1C, $18, $14, $10, $1A, $16, $12, $0E, $0A, $06, $18, $14, $10, $0C, $08, $04
                 dc.b    $16, $12, $0E, $0A, $06, $02, $14, $10, $0C                    
@@ -11163,7 +11193,7 @@ Offset_0x00A024:
                 move.b  #$09, $001E(A0)
                 move.b  #$00, $001A(A0)
                 move.w  #$00A5, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x00A068:
                 subq.b  #$01, $001E(A0)
                 bpl.s   Offset_0x00A082
@@ -11211,7 +11241,7 @@ Offset_0x00A0BC:
                 move.b  #$07, $001E(A0)
                 move.b  #$00, $001A(A0)
                 move.w  #$00C1, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x00A100:
                 subq.b  #$01, $001E(A0)
                 bpl.s   Offset_0x00A11A
@@ -11249,7 +11279,7 @@ Offset_0x00A130:
                 move.b  #$07, $001E(A0)
                 move.b  #$00, $001A(A0)
                 move.w  #$00C4, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6                   
+                jmp     (PlaySound)              ; Offset_0x0014C6                   
 ;=============================================================================== 
 ; Object 0x3F
 ; [ End ]
@@ -12115,7 +12145,7 @@ Offset_0x00AD50:
                 addq.b  #$01, ($FFFFFE1C).w
                 move.w  #$0088, D0           ; +1UP Sound - Sonic 1 LeftOver
 Offset_0x00AD5C:
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 ;=============================================================================== 
 ; Object 0x25 - Rings  
 ; [ End ]
@@ -12192,7 +12222,7 @@ Offset_0x00AE22:
                 move.b  #$80, ($FFFFFE1D).w
                 move.b  #$00, ($FFFFFE1B).w
                 move.w  #$00C6, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x00AE3E:
                 move.b  ($FFFFFEC7).w, $001A(A0)
                 bsr     SpeedToPos              ; Offset_0x00D27A
@@ -12290,7 +12320,7 @@ Offset_0x00AF38:
                 bset    #$00, $0001(A1)
 Offset_0x00AF70:
                 move.w  #$00C3, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 bra.s   Offset_0x00AF1A
 Offset_0x00AF7C:
                 bra     DeleteObject            ; Offset_0x00D3B4
@@ -12669,12 +12699,12 @@ Monitor_SonicLife: ; Offset_0x00B50C:
                 addq.b  #$01, ($FFFFFE12).w
                 addq.b  #$01, ($FFFFFE1C).w
                 move.w  #$0098, D0
-                jmp     (Play_Music)            ; Offset_0x0014C0
+                jmp     (PlayMusic)            ; Offset_0x0014C0
 Monitor_TailsLife: ; Offset_0x00B51E:
                 addq.b  #$01, ($FFFFFE12).w
                 addq.b  #$01, ($FFFFFE1C).w
                 move.w  #$0098, D0
-                jmp     (Play_Music)            ; Offset_0x0014C0
+                jmp     (PlayMusic)            ; Offset_0x0014C0
 Monitor_Rings: ; Offset_0x00B530:
                 addi.w  #$000A, ($FFFFFE20).w
                 ori.b   #$01, ($FFFFFE1D).w
@@ -12688,7 +12718,7 @@ Monitor_Rings: ; Offset_0x00B530:
                 beq     Monitor_SonicLife       ; Offset_0x00B50C
 Offset_0x00B560:
                 move.w  #$00B5, D0
-                jmp     (Play_Music)            ; Offset_0x0014C0
+                jmp     (PlayMusic)            ; Offset_0x0014C0
 Monitor_Shoes: ; Offset_0x00B56A:
                 move.b  #$01, ($FFFFFE2E).w
                 move.w  #$04B0, ($FFFFB034).w
@@ -12696,12 +12726,12 @@ Monitor_Shoes: ; Offset_0x00B56A:
                 move.w  #$0018, ($FFFFF762).w
                 move.w  #$0080, ($FFFFF764).w
                 move.w  #$00FB, D0
-                jmp     (Play_Music)            ; Offset_0x0014C0
+                jmp     (PlayMusic)            ; Offset_0x0014C0
 Monitor_Shield: ; Offset_0x00B592:
                 move.b  #$01, ($FFFFFE2C).w
                 move.b  #$38, ($FFFFB180).w
                 move.w  #$00AF, D0
-                jmp     (Play_Music)            ; Offset_0x0014C0
+                jmp     (PlayMusic)            ; Offset_0x0014C0
 Monitor_Invincibility: ; Offset_0x00B5A8:
                 move.b  #$01, ($FFFFFE2D).w
                 move.w  #$04B0, ($FFFFB032).w
@@ -12711,13 +12741,13 @@ Monitor_Invincibility: ; Offset_0x00B5A8:
                 cmpi.w  #$000C, ($FFFFFE14).w
                 bls.s   Offset_0x00B5D2
                 move.w  #$0095, D0
-                jmp     (Play_Music)            ; Offset_0x0014C0
+                jmp     (PlayMusic)            ; Offset_0x0014C0
 Offset_0x00B5D2:
                 rts
 Monitor_SuperSonic: ; Offset_0x00B5D4:
                 move.b  #$01, ($FFFFF65F).w
                 move.w  #$00AF, D0
-                jmp     (Play_Music)            ; Offset_0x0014C0
+                jmp     (PlayMusic)            ; Offset_0x0014C0
 Offset_0x00B5E4:
                 subq.w  #$01, $001E(A0)
                 bmi     DeleteObject            ; Offset_0x00D3B4
@@ -13357,7 +13387,7 @@ Offset_0x00BF32:
                 tst.w   D0
                 bne.s   Offset_0x00BF4C
                 move.w  #$00C5, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 addq.b  #$02, $0024(A0)
                 move.w  #$00B4, $001E(A0)
 Offset_0x00BF4A:                
@@ -13368,7 +13398,7 @@ Offset_0x00BF4C:
                 andi.b  #$03, D0
                 bne.s   Offset_0x00BF4A
                 move.w  #$00CD, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x00BF66:
                 moveq   #$00, D0
                 move.b  ($FFFFFE10).w, D0
@@ -13415,7 +13445,7 @@ Offset_0x00C004:
                 addq.b  #$02, $0024(A0)
                 clr.b   ($FFFFF7CC).w
                 move.w  #$009A, D0
-                jmp     (Play_Music)            ; Offset_0x0014C0
+                jmp     (PlayMusic)            ; Offset_0x0014C0
                 addq.w  #$02, ($FFFFEECA).w
                 cmpi.w  #$2100, ($FFFFEECA).w
                 beq     DeleteObject            ; Offset_0x00D3B4
@@ -13526,10 +13556,10 @@ Offset_0x00C14A:
                 andi.b  #$03, D0
                 bne.s   Offset_0x00C1A2
                 move.w  #$00CD, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x00C17C:
                 move.w  #$00C5, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 addq.b  #$02, $0024(A0)
                 move.w  #$00B4, $001E(A0)
                 cmpi.w  #$0032, ($FFFFFE20).w
@@ -13545,7 +13575,7 @@ Offset_0x00C1AE:
                 move.b  #$04, ($FFFFB6DA).w
                 move.b  #$14, ($FFFFB6E4).w
                 move.w  #$00BF, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 addq.b  #$02, $0024(A0)
                 move.w  #$0168, $001E(A0)
                 bra     DisplaySprite           ; Offset_0x00D3C2
@@ -14025,7 +14055,7 @@ Offset_0x00CB3E:
                 tst.b   $0001(A0)
                 bpl.s   Offset_0x00CB9E
                 move.w  #$00B6, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 bra.s   Offset_0x00CB9E
 Offset_0x00CB5C:
                 tst.w   $0036(A0)
@@ -14238,7 +14268,7 @@ Offset_0x00CE7E:
                 dbra    D1, Offset_0x00CE76
 Offset_0x00CEBA:
                 move.w  #$00CB, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x00CEC4:
                 dc.w    $0400, $FB00, $0600, $FF00, $0600, $0100, $0400, $0500
                 dc.w    $0600, $FA00, $0800, $FE00, $0800, $0200, $0600, $0600                
@@ -14301,7 +14331,7 @@ Offset_0x00D010:
                 dbra    D7, Offset_0x00D000
                 rts
 Offset_0x00D01A: ; Object List Array
-                dc.l    Obj_0x01_Sonic                    ; Offset_0x00FC48 
+		dc.l	Obj01			; Sonic
                 dc.l    Obj_0x02_Tails                    ; Offset_0x010E38
                 dc.l    Obj_0x03_Layer_Switch             ; Offset_0x0144B0
                 dc.l    Obj_0x04                          ; Offset_0x015090 
@@ -16785,7 +16815,7 @@ Offset_0x00E9A2:
                 move.b  #$0F, $003F(A1)
 Offset_0x00E9B4:
                 move.w  #$00CC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6    
+                jmp     (PlaySound)              ; Offset_0x0014C6    
 Offset_0x00E9BE:
                 move.w  #$0013, D1
                 move.w  #$000E, D2
@@ -16879,7 +16909,7 @@ Offset_0x00EAFA:
                 bclr    #$06, $0022(A0)
                 bclr    #$05, $0022(A1)
                 move.w  #$00CC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6  
+                jmp     (PlaySound)              ; Offset_0x0014C6  
 Offset_0x00EB16:
                 cmpi.b  #$03, $001C(A0)
                 beq     Offset_0x00EBCE
@@ -17006,7 +17036,7 @@ Offset_0x00ECA0:
                 bclr    #$03, $0022(A1)
                 move.b  #$02, $0024(A1)
                 move.w  #$00CC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6   
+                jmp     (PlaySound)              ; Offset_0x0014C6   
 Offset_0x00ECBC:
                 move.w  #$001B, D1
                 move.w  #$0010, D2
@@ -17091,7 +17121,7 @@ Offset_0x00EDD6:
                 move.b  #$0F, $003F(A1)
 Offset_0x00EDE8:
                 move.w  #$00CC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6     
+                jmp     (PlaySound)              ; Offset_0x0014C6     
 Offset_0x00EDF2:
                 move.w  #$001B, D1
                 move.w  #$0010, D2
@@ -17162,7 +17192,7 @@ Offset_0x00EEE2:
                 move.b  #$0F, $003F(A1)
 Offset_0x00EEF4:
                 move.w  #$00CC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6 
+                jmp     (PlaySound)              ; Offset_0x0014C6 
 Offset_0x00EEFE:   
                 dc.b    $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $0E, $0C, $0A, $08
                 dc.b    $06, $04, $02, $00, $FE, $FC, $FC, $FC, $FC, $FC, $FC, $FC
@@ -17356,7 +17386,7 @@ End_Panel_Sub_02: ; Offset_0x00F256:
                 cmpi.w  #$0020, D0
                 bcc.s   Offset_0x00F27E
                 move.w  #$00CF, D0
-                jsr     (Play_Music)            ; Offset_0x0014C0
+                jsr     (PlayMusic)            ; Offset_0x0014C0
                 clr.b   ($FFFFFE1E).w
                 move.w  ($FFFFEECA).w, ($FFFFEEC8).w
                 addq.b  #$02, $0024(A0)
@@ -17446,7 +17476,7 @@ Offset_0x00F398:
                 mulu.w  #$000A, D0
                 move.w  D0, ($FFFFF7D4).w
                 move.w  #$009A, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x00F3B6:
                 rts
 Offset_0x00F3B8:
@@ -18232,15 +18262,19 @@ Offset_0x00FC34:
 Offset_0x00FC44:
                 moveq   #$00, D4
                 rts
-;=============================================================================== 
-; Object 0x01 - Sonic 
-; [ Begin ]
-;===============================================================================               
-Obj_0x01_Sonic: ; Offset_0x00FC48: 
-                tst.w   ($FFFFFE08).w
-                beq.s   Sonic_Normal ; Offset_0x00FC54
-                jmp     Debug_Mode ; Offset_0x023B70
-Sonic_Normal: ; Offset_0x00FC54:
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Object 01 - Sonic
+; ---------------------------------------------------------------------------            
+; Sprite_FC48: Obj_0x01_Sonic:
+Obj01:
+		tst.w	($FFFFFE08).w
+		beq.s	Sonic_Normal
+		jmp	(Debug_Mode).l
+; ---------------------------------------------------------------------------
+; loc_FC54:
+Sonic_Normal:
                 moveq   #$00, D0
                 move.b  $0024(A0), D0
                 move.w  Sonic_Index(PC, D0), D1 ; Offset_0x00FC62
@@ -18347,7 +18381,7 @@ Offset_0x00FD8A:
                 move.b  ($FFFFFE10).w, D0
                 lea     Sonic_PlayList(PC), A1  ; Offset_0x00FD66
                 move.b  $00(A1, D0), D0
-                jsr     (Play_Music)            ; Offset_0x0014C0
+                jsr     (PlayMusic)            ; Offset_0x0014C0
 Offset_0x00FDBE:
                 move.b  #$00, ($FFFFFE2D).w
 Offset_0x00FDC4:
@@ -18362,7 +18396,7 @@ Offset_0x00FDC4:
                 move.w  #$0080, ($FFFFF764).w
                 move.b  #$00, ($FFFFFE2E).w
                 move.w  #$00FC, D0
-                jmp     (Play_Music)            ; Offset_0x0014C0                   
+                jmp     (PlayMusic)            ; Offset_0x0014C0                   
 Offset_0x00FDF8:
                 rts
 ;=============================================================================== 
@@ -18433,7 +18467,7 @@ Sonic_InLevelWithWater: ; Offset_0x00FE56:
                 beq.s   Offset_0x00FE54
                 move.b  #$08, ($FFFFB300).w
                 move.w  #$00AA, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 ;===============================================================================                 
 Sonic_NotInWater: ; Offset_0x00FEA8:                  
                 bclr    #$06, $0022(A0)
@@ -18450,7 +18484,7 @@ Sonic_NotInWater: ; Offset_0x00FEA8:
                 move.w  #$F000, $0012(A0)
 Offset_0x00FEE2:                
                 move.w  #$00AA, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Sonic_MdNormal: ; Offset_0x00FEEC:
                 bsr     Sonic_Spindash          ; Offset_0x010560
                 bsr     Sonic_Jump              ; Offset_0x010476
@@ -18690,7 +18724,7 @@ Offset_0x01016C:
                 move.b  #$0D, $001C(A0)
                 bclr    #$00, $0022(A0)
                 move.w  #$00A4, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x01019A:
                 rts
 ;=============================================================================== 
@@ -18736,7 +18770,7 @@ Offset_0x0101D8:
                 move.b  #$0D, $001C(A0)
                 bset    #$00, $0022(A0)
                 move.w  #$00A4, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x010206:
                 rts
 ;=============================================================================== 
@@ -19005,7 +19039,7 @@ Sonic_DoRoll: ; Offset_0x010442:
                 move.b  #$02, $001C(A0)
                 addq.w  #$05, $000C(A0)
                 move.w  #$00BE, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 tst.w   $0014(A0)
                 bne.s   Offset_0x010474
                 move.w  #$0200, $0014(A0)
@@ -19051,7 +19085,7 @@ Offset_0x0104A8:
                 move.b  #$01, $003C(A0)
                 clr.b   $0038(A0)
                 move.w  #$00A0, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 move.b  #$13, $0016(A0)
                 move.b  #$09, $0017(A0)
                 btst    #$02, $0022(A0)
@@ -19116,7 +19150,7 @@ Sonic_Spindash: ; Offset_0x010560:
                 beq     Offset_0x010592
                 move.b  #$09, $001C(A0)
                 move.w  #$00BE, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 addq.l  #$04, A7
                 move.b  #$01, $0039(A0)
 Offset_0x010592:
@@ -19588,7 +19622,7 @@ Sonic_GameOver: ; Offset_0x010A1A:
                 clr.b   ($FFFFFE1A).w
 Offset_0x010A5E:                
                 move.w  #$009B, D0
-                jsr     (Play_Music)            ; Offset_0x0014C0
+                jsr     (PlayMusic)            ; Offset_0x0014C0
                 moveq   #$03, D0
                 jmp     LoadPLC                 ; Offset_0x00173C   
 Offset_0x010A70:
@@ -20032,7 +20066,7 @@ Offset_0x010F26:
                 move.b  ($FFFFFE10).w, D0
                 lea     Tails_PlayList(PC), A1  ; Offset_0x010F02
                 move.b  $00(A1, D0), D0
-                jsr     (Play_Music)            ; Offset_0x0014C0
+                jsr     (PlayMusic)            ; Offset_0x0014C0
 Offset_0x010F5A:
                 move.b  #$00, ($FFFFFE2D).w
 Offset_0x010F60:
@@ -20047,7 +20081,7 @@ Offset_0x010F60:
                 move.w  #$0080, ($FFFFF764).w
                 move.b  #$00, ($FFFFFE2E).w
                 move.w  #$00FC, D0
-                jmp     (Play_Music)            ; Offset_0x0014C0
+                jmp     (PlayMusic)            ; Offset_0x0014C0
 Offset_0x010F94:
                 rts  
 ;=============================================================================== 
@@ -20381,7 +20415,7 @@ Offset_0x0112F0:
                 move.b  #$0D, $001C(A0)
                 bclr    #$00, $0022(A0)
                 move.w  #$00A4, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x01131E:
                 rts
 ;=============================================================================== 
@@ -20427,7 +20461,7 @@ Offset_0x01135C:
                 move.b  #$0D, $001C(A0)
                 bset    #$00, $0022(A0)
                 move.w  #$00A4, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x01138A:
                 rts
 ;=============================================================================== 
@@ -20688,7 +20722,7 @@ Offset_0x0115B4:
                 move.b  #$02, $001C(A0)
                 addq.w  #$05, $000C(A0)
                 move.w  #$00BE, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 tst.w   $0014(A0)
                 bne.s   Offset_0x0115E6
                 move.w  #$0200, $0014(A0)
@@ -20734,7 +20768,7 @@ Offset_0x01161A:
                 move.b  #$01, $003C(A0)
                 clr.b   $0038(A0)
                 move.w  #$00A0, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 move.b  #$0F, $0016(A0)
                 move.b  #$09, $0017(A0)
                 btst    #$02, $0022(A0)
@@ -20799,7 +20833,7 @@ Tails_Spindash: ; Offset_0x0116D2:
                 beq     Offset_0x011704
                 move.b  #$09, $001C(A0)
                 move.w  #$00BE, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 addq.l  #$04, A7
                 move.b  #$01, $0039(A0)
 Offset_0x011704:
@@ -21878,7 +21912,7 @@ Offset_0x01230C:
                 bhi.s   Offset_0x012390
                 bne.s   Offset_0x012372
                 move.w  #$008A, D0
-                jsr     (Play_Music)            ; Offset_0x0014C0
+                jsr     (PlayMusic)            ; Offset_0x0014C0
 Offset_0x012372:
                 subq.b  #$01, $0032(A0)
                 bpl.s   Offset_0x012390
@@ -21887,14 +21921,14 @@ Offset_0x012372:
                 bra.s   Offset_0x012390
 Offset_0x012386:
                 move.w  #$00C2, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x012390:
                 subq.w  #$01, ($FFFFFE14).w
                 bcc     Offset_0x01241A
                 bsr     ResumeMusic             ; Offset_0x0124FE
                 move.b  #$81, ($FFFFB02A).w
                 move.w  #$00B2, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 move.b  #$0A, $0034(A0)
                 move.w  #$0001, $0036(A0)
                 move.w  #$0078, $002C(A0)
@@ -21997,7 +22031,7 @@ Offset_0x012514:
                 beq.s   Offset_0x01251E
                 move.w  #$008C, D0
 Offset_0x01251E:
-                jsr     (Play_Music)            ; Offset_0x0014C0
+                jsr     (PlayMusic)            ; Offset_0x0014C0
 Offset_0x012524:
                 move.w  #$001E, ($FFFFFE14).w
                 clr.b   ($FFFFB372).w
@@ -23749,7 +23783,7 @@ Offset_0x013C0E:
                 cmpi.w  #$0068, D0
                 bcc.s   Offset_0x013C56
                 move.w  #$00A1, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 addq.b  #$02, $0024(A0)
                 bsr     Lamp_Post_Save_Info     ; Offset_0x013C6A
                 lea     ($FFFFFC00).w, A2
@@ -23886,7 +23920,7 @@ Offset_0x013E0E:
                 move.b  $0028(A0), $001A(A0)
                 move.w  #$0077, $0030(A0)
                 move.w  #$00C9, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 moveq   #$00, D0
                 move.b  $0028(A0), D0
                 add.w   D0, D0
@@ -23991,7 +24025,7 @@ Offset_0x013F6C:
                 clr.b   $003C(A1)
                 move.b  #$01, $001C(A0)
                 move.w  #$00B4, D0
-                jsr     Play_Sfx                ; (Offset_0x0014C6)
+                jsr     PlaySound                ; (Offset_0x0014C6)
                 lea     ($FFFFFC00).w, A2
                 moveq   #$00, D0
                 move.b  $0023(A0), D0
@@ -24106,7 +24140,7 @@ Offset_0x01410A:
                 beq.s   Offset_0x014196
                 bsr     ResumeMusic             ; Offset_0x0124FE
                 move.w  #$00AD, D0
-                jsr     Play_Sfx                ; (Offset_0x0014C6)
+                jsr     PlaySound                ; (Offset_0x0014C6)
                 lea     ($FFFFB000).w, A1
                 clr.w   $0010(A1)
                 clr.w   $0012(A1)
@@ -24481,7 +24515,7 @@ Offset_0x01462E:
                 tst.w   ($FFFFFFFA).w
                 beq.s   Offset_0x014644
                 move.w  #$00A1, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x014644:
                 swap.w  D0
                 andi.w  #$7FFF, D5
@@ -24570,7 +24604,7 @@ Offset_0x014752:
                 tst.w   ($FFFFFFFA).w
                 beq.s   Offset_0x014768
                 move.w  #$00A1, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x014768:
                 swap.w  D0
                 andi.w  #$7FFF, D5
@@ -26039,7 +26073,7 @@ Offset_0x015E90:
                 move.b  #$10, $001C(A2)
                 move.b  #$02, $0024(A2)
                 move.w  #$00CC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x015EC0:                
                 dc.w    $FFF8, $FFE4, $FFD1, $FFE4, $FFF8
 Offset_0x015ECA:
@@ -26526,7 +26560,7 @@ Offset_0x016562:
                 bclr    #$06, $0022(A0)
                 bclr    #$05, $0022(A1)
                 move.w  #$00CC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Speed_Booster_Mappings:                
 Offset_0x01658A:
                 dc.w    Offset_0x016590-Offset_0x01658A
@@ -26615,7 +26649,7 @@ Offset_0x01667E:
                 addq.b  #$02, $0024(A0)
                 move.w  #$003B, $0032(A0)
                 move.w  #$00AE, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x016698:
                 bra     J_MarkObjGone_02        ; Offset_0x016710
 Offset_0x01669C:
@@ -26785,7 +26819,7 @@ Offset_0x016860:
                 move.w  #$0800, D2
                 bsr     Offset_0x016A80
                 move.w  #$00BE, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x016896:
                 rts
 Offset_0x016898:
@@ -26839,7 +26873,7 @@ Offset_0x016924:
                 move.b  #$06, (A4)
                 clr.b   $002A(A1)
                 move.w  #$00BC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x01693C:
                 dc.b    $02, $01, $00, $00, $FF, $03, $00, $00, $04, $FE, $00, $00, $FD, $FC, $00, $00
                 dc.b    $FB, $FB, $00, $00, $07, $06, $00, $00, $F9, $FA, $00, $00, $08, $09, $00, $00
@@ -26882,7 +26916,7 @@ Offset_0x0169D6:
                 andi.w  #$07FF, $000C(A1)
                 clr.b   (A4)
                 move.w  #$00BC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x0169E8:
                 move.w  $002A(A0), D2
                 move.w  $0008(A1), D0
@@ -26931,7 +26965,7 @@ Offset_0x016A62:
                 move.w  #$0800, D2
                 bsr     Offset_0x016A80
                 move.w  #$00BE, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 addq.b  #$02, (A4)
                 rts
 Offset_0x016A80:
@@ -27246,7 +27280,7 @@ Offset_0x017200:
                 bset    #$00, $0001(A1)
 Offset_0x017222:
                 move.w  #$00AE, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 addq.b  #$02, $0024(A0)
 Offset_0x017230:
                 lea     (Offset_0x0173B2), A1
@@ -28089,7 +28123,7 @@ Offset_0x017EA8:
                 bclr    #$03, $0022(A1)
                 move.b  #$00, $002A(A1)
                 move.w  #$00CC, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x017EDE:
                 rts
 Offset_0x017EE0:
@@ -28447,7 +28481,7 @@ Offset_0x018304:
                 move.b  #$0F, $003F(A1)
 Offset_0x018316:
                 move.w  #$00CC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x018320:
                 rts
 Offset_0x018322:
@@ -28632,7 +28666,7 @@ Offset_0x018562:
                 bclr    #$05, $0022(A1)
                 move.b  #$01, $001D(A1)
                 move.w  #$00CC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x018578:
                 rts 
 Offset_0x01857A:   ; Unused Obj Conf
@@ -29090,7 +29124,7 @@ Offset_0x018E24:
                 tst.b   (A3)
                 bne.s   Offset_0x018E32
                 move.w  #$00CD, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x018E32:
                 bset    D3, (A3)
                 move.b  #$01, $001A(A0)
@@ -29276,7 +29310,7 @@ Offset_0x019014:
                 andi.w  #$007F, D0
                 move.b  D0, $003D(A1)
                 move.w  #$00BE, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x019090:
                 rts
 Offset_0x019092:
@@ -29329,7 +29363,7 @@ Offset_0x019116:
                 move.b  #$06, (A4)
                 clr.b   $002A(A1)
                 move.w  #$00BC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6     
+                jmp     (PlaySound)              ; Offset_0x0014C6     
 Offset_0x01912E:
                 dc.w    $FC00, $FC00, $FE00, $FC00, $0200, $FC00, $0400, $FC00
                 dc.w    $FC40, $FE00, $FE40, $FE00, $01C0, $FE00, $03C0, $FE00
@@ -29476,7 +29510,7 @@ Offset_0x01934A:
                 bset    #$03, $0022(A1)
                 move.b  $003F(A0), $001A(A0)
                 move.w  #$00BE, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x0193AE:
                 rts
 Offset_0x0193B0:
@@ -29713,7 +29747,7 @@ Offset_0x01973C:
                 neg.w   $0010(A0)
 Offset_0x019776:
                 move.w  #$00AE, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x019780:
                 bsr     J_SpeedToPos_07         ; Offset_0x01984A
                 btst    #$00, $0022(A0)
@@ -30060,7 +30094,7 @@ Offset_0x019BE6:
                 dbra    D1, Offset_0x019BDE
 Offset_0x019C26:
                 move.w  #$00CB, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6  
+                jmp     (PlaySound)              ; Offset_0x0014C6  
 Breakable_Pillar_Mappings:                                             
 Offset_0x019C30:
                 dc.w    Offset_0x019C4C-Offset_0x019C30
@@ -30523,7 +30557,7 @@ Offset_0x01A4CA:
                 move.b  #$0F, $003F(A1)
 Offset_0x01A4DC:
                 move.w  #$00CC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6   
+                jmp     (PlaySound)              ; Offset_0x0014C6   
 Offset_0x01A4E6:
                 dc.b    $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
                 dc.b    $00, $00, $00, $00, $00, $00, $00, $00, $01, $01, $01, $01, $01, $01, $01, $01
@@ -30714,7 +30748,7 @@ Offset_0x01A7B0:
                 move.b  #$0F, $003F(A1)
 Offset_0x01A7C2:
                 move.w  #$00CC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x01A7CC:
                 subq.b  #$01, $001E(A0)
                 bpl.s   Offset_0x01A7FA
@@ -31390,7 +31424,7 @@ Offset_0x01B068:
                 bclr    #$06, $0022(A0)
                 bclr    #$05, $0022(A1)
                 move.w  #$00CC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Spring_Wall_Mappings:                   
 Offset_0x01B084:
                 dc.w    Offset_0x01B088-Offset_0x01B084
@@ -31485,7 +31519,7 @@ Offset_0x01B156:
                 move.w  $000C(A0), $000C(A1)
                 clr.b   $0001(A4)
                 move.w  #$00BE, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 move.w  #$0100, $001C(A0)
 Offset_0x01B1C6:
                 rts
@@ -31502,7 +31536,7 @@ Offset_0x01B1C8:
                 bsr     Offset_0x01B278
                 addq.b  #$02, (A4)
                 move.w  #$00BC, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x01B1FA:
                 rts
 Offset_0x01B1FC:
@@ -31851,7 +31885,7 @@ Offset_0x01B656:
                 tst.b   $0001(A0)
                 bpl.s   Offset_0x01B67A
                 move.w  #$00B6, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x01B67A:
                 tst.w   $0036(A0)
                 beq.s   Offset_0x01B6B6
@@ -33967,7 +34001,7 @@ Offset_0x01D23C:
                 tst.b   $0001(A0)
                 bpl.s   Offset_0x01D270
                 move.w  #$00BB, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x01D270:
                 lea     (Offset_0x01D2D0), A1
                 jsr     AnimateSprite           ; (Offset_0x00D412)
@@ -34498,7 +34532,7 @@ Offset_0x01D8EC:
                 move.b  #$0F, $003F(A1)
 Offset_0x01D8FE:
                 move.w  #$00CC, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6    
+                jmp     (PlaySound)              ; Offset_0x0014C6    
 Offset_0x01D908:
                 dc.w    Offset_0x01D910-Offset_0x01D908
                 dc.w    Offset_0x01D913-Offset_0x01D908
@@ -36961,7 +36995,7 @@ Offset_0x01FBA8:
                 bne.s   Offset_0x01FBD2
                 move.b  #$20, $003E(A0)
                 move.w  #$00AC, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x01FBD2:
                 lea     ($FFFFFB22).w, A1
                 moveq   #$00, D0
@@ -38339,7 +38373,7 @@ Hurt_ChkSpikes: ; Offset_0x0213F0:
                 bne.s   Offset_0x021410
                 move.w  #$00A6, D0
 Offset_0x021410:
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 moveq   #$FFFFFFFF, D0
                 rts
 Hurt_NoRings: ; Offset_0x02141A:
@@ -38372,7 +38406,7 @@ KillSonic: ; Offset_0x021422:
                 bne.s   Offset_0x021470
                 move.w  #$00A6, D0   
 Offset_0x021470:
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Kill_NoDeath ; Offset_0x021476:                
                 moveq   #$FFFFFFFF, D0
                 rts
@@ -38788,7 +38822,7 @@ Offset_0x02198E:
                 clr.l   $0004(A0)
                 move.b  #$04, ($FFFFB024).w
                 move.w  #$00A8, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x0219C6:
                 rts
 Offset_0x0219C8:
@@ -39313,7 +39347,7 @@ SonicInSS_Jump: ; Offset_0x021F16:
                 move.w  D0, $0012(A0)
                 bset    #$01, $0022(A0)
                 move.w  #$00A0, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
 Offset_0x021F58:
                 rts
 ;=============================================================================== 
@@ -39539,7 +39573,7 @@ Offset_0x022160:
                 bne.s   Offset_0x022184
                 addq.b  #$01, ($FFFFFE18).w
                 move.w  #$00BF, D0
-                jsr     (Play_Music)            ; Offset_0x0014C0
+                jsr     (PlayMusic)            ; Offset_0x0014C0
 Offset_0x022184:
                 moveq   #$00, D4
                 rts
@@ -39554,7 +39588,7 @@ Offset_0x02219C:
                 addq.b  #$01, ($FFFFFE12).w
                 addq.b  #$01, ($FFFFFE1C).w
                 move.w  #$0088, D0
-                jsr     (Play_Music)            ; Offset_0x0014C0
+                jsr     (PlayMusic)            ; Offset_0x0014C0
                 moveq   #$00, D4
                 rts
 Offset_0x0221B2:
@@ -39577,7 +39611,7 @@ Offset_0x0221CC:
                 addq.b  #$01, ($FFFFFE57).w
 Offset_0x0221EA:
                 move.w  #$0093, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 moveq   #$00, D4
                 rts
 Offset_0x0221F8:
@@ -39666,13 +39700,13 @@ Offset_0x02226E:
                 move.l  D0, $0004(A2)
 Offset_0x0222DC:
                 move.w  #$00B4, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x0222E6:
                 cmpi.b  #$27, D0
                 bne.s   Offset_0x0222FC
                 addq.b  #$02, $0024(A0)
                 move.w  #$00A8, D0
-                jsr     (Play_Sfx)              ; Offset_0x0014C6
+                jsr     (PlaySound)              ; Offset_0x0014C6
                 rts
 Offset_0x0222FC:
                 cmpi.b  #$29, D0
@@ -39688,7 +39722,7 @@ Offset_0x0222FC:
                 move.b  #$2A, (A1)
 Offset_0x022326:
                 move.w  #$00A9, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x022330:
                 cmpi.b  #$2A, D0
                 bne.s   Offset_0x022364
@@ -39703,7 +39737,7 @@ Offset_0x022330:
                 move.b  #$29, (A1)
 Offset_0x02235A:
                 move.w  #$00A9, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x022364:
                 cmpi.b  #$2B, D0
                 bne.s   Offset_0x02239A
@@ -39719,7 +39753,7 @@ Offset_0x022364:
 Offset_0x02238C:
                 neg.w   ($FFFFF752).w
                 move.w  #$00A9, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x02239A:
                 cmpi.b  #$2D, D0
                 beq.s   Offset_0x0223B2
@@ -39745,7 +39779,7 @@ Offset_0x0223D2:
                 move.b  D0, $0004(A2)
 Offset_0x0223D6:
                 move.w  #$00BA, D0
-                jmp     (Play_Sfx)              ; Offset_0x0014C6
+                jmp     (PlaySound)              ; Offset_0x0014C6
 Offset_0x0223E0:
                 rts
 ;=============================================================================== 
@@ -40504,7 +40538,7 @@ Offset_0x022FE8:
                 addq.b  #$01, ($FFFFFE12).w
                 addq.b  #$01, ($FFFFFE1C).w
                 move.w  #$0088, D0           ; +1UP Sound - Sonic 1 LeftOver
-                jmp     (Play_Music)            ; Offset_0x0014C0
+                jmp     (PlayMusic)            ; Offset_0x0014C0
 Offset_0x023010:
                 rts
 HudUpdate: ; Offset_0x023012:
