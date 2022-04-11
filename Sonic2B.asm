@@ -975,8 +975,8 @@ SoundDriverLoad: ; JmpTo
 		jmp	(Sound_Driver).l
 
 ; ---------------------------------------------------------------------------
-; Sound queues; they are used interchangably, but have been labelled
-; based on what they're most used for
+; Sound queues; they're used interchangably, however symbol tables in
+; the Nick Arcade build confirm they are specific to music and sfx
 ; ---------------------------------------------------------------------------
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
