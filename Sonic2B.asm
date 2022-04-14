@@ -5,11 +5,11 @@ StartOfRom:
 Vectors:
 	dc.l    $FFFFFE00, EntryPoint, BusError, AddressError                  
 	dc.l    IllegalInstr, ZeroDivide, ChkInstr, TrapvInstr
-	dc.l    PrivilegeViolation, Trace, Line1010Emu, Line1111Emu
-	dc.l    ErrorException, ErrorException, ErrorException, ErrorException
-	dc.l    ErrorException, ErrorException, ErrorException, ErrorException
-	dc.l    ErrorException, ErrorException, ErrorException, ErrorException
-	dc.l    ErrorException, ErrorTrap, ErrorTrap, ErrorTrap
+	dc.l    PrivilegeViol, Trace, Line1010Emu, Line1111Emu
+	dc.l    ErrorExcept, ErrorExcept, ErrorExcept, ErrorExcept
+	dc.l    ErrorExcept, ErrorExcept, ErrorExcept, ErrorExcept
+	dc.l    ErrorExcept, ErrorExcept, ErrorExcept, ErrorExcept
+	dc.l    ErrorExcept, ErrorTrap, ErrorTrap, ErrorTrap
 	dc.l    HBlank, ErrorTrap, VBlank, ErrorTrap
 	dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
 	dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
@@ -43,10 +43,11 @@ ErrorTrap: ; Offset_0x000200:
                 nop  
                 bra.s   ErrorTrap               ; Offset_0x000200
 EntryPoint: ; Offset_0x000206:                
-                tst.l   $00A10008 
-                bne.s   PortA_OK                ; Offset_0x000214 
-                tst.w   $00A1000C   
-PortA_OK: ; Offset_0x000214:
+		tst.l	($A10008).l
+		bne.s	PortA_OK
+		tst.w	($A1000C).l
+; loc_214:
+PortA_OK:
                 bne.s   PortC_OK                ; Offset_0x000292
                 lea     InitValues(PC), A5      ; Offset_0x000294
                 movem.w (A5)+, D5-D7 
@@ -119,8 +120,8 @@ InitValues: ; Offset_0x000294:
 ; ===========================================================================
 ; loc_300:
 GameProgram:
-		tst.w	($C00004) 
-		btst	#6,($A1000D)
+		tst.w	($C00004).l
+		btst	#6,($A1000D).l
 		beq.s	ChecksumTest
 		cmpi.l	#'init',($FFFFFFFC).w
 		beq.w	GameInit
@@ -147,13 +148,13 @@ ChecksumLoop:
 GameClrStack:               
 		move.l	d7,(a6)+
 		dbf	d6,GameClrStack
-		move.b	($A10001),d0
+		move.b	($A10001).l,d0
 		andi.b	#$C0,d0
 		move.b	d0,($FFFFFFF8).w
 		move.l	#'init',($FFFFFFFC).w
 ; loc_36A:
 GameInit:              
-		lea	($FF0000),a6 
+		lea	($FF0000).l,a6 
 		moveq	#0,d7 
 		move.w	#$3F7F,d6
 ; loc_376: 
@@ -162,7 +163,7 @@ GameClrRAM:
 		dbf	d6,GameClrRAM
 
 		bsr.w	VDPRegSetup
-		bsr.w	SoundDriverLoad
+		bsr.w	JmpTo_SoundDriverLoad
 		bsr.w	JoypadInit
 		; strangely, this loads the title screen, and not the Sega screen,
 		; and the August 21st prototype suggests this was NOT done by the pirates...
@@ -181,23 +182,20 @@ GameModesArray:
 		bra.w	Level
 		bra.w	Level
 		bra.w	SpecialStage
-;===============================================================================
-;
-; ChecksumError
-;
-; Leftover subroutine from Sonic 1 showing a red
-;  screen when the checksum was	wrong
-;
-;===============================================================================                
-ChecksumError:                  
-                bsr     VDPRegSetup      ; Offset_0x001368 
-                move.l  #$C0000000, ($00C00004)   
-                moveq   #$3F, D7  
-ChksumErr_RedFill: ; Offset_0x0003C0:                  
-                move.w  #$000E, ($00C00000) 
-                dbra    D7, ChksumErr_RedFill   ; Offset_0x0003C0 
-ChksumErr_InfLoop: ; Offset_0x0003CC:
-                bra.s   ChksumErr_InfLoop       ; Offset_0x0003CC             
+; ===========================================================================
+; leftover from Sonic 1, turned the screen red if the checksum ever failed
+ChecksumError:
+		bsr.w	VDPRegSetup
+		move.l	#$C0000000,($C00004).l	; write to CRAM
+		moveq	#$3F,d7
+; loc_3C0:
+Checksum_Red:
+		move.w	#$E,($C00000).l		; color a line red
+		dbf	d7,Checksum_Red		; repeat $3F times
+; loc_3CC:
+Checksum_Loop:
+		bra.s	Checksum_Loop
+; ===========================================================================
 BusError: ; Offset_0x0003CE:
                 move.b  #$02, ($FFFFFC44).w
                 bra.s   ErrorMsg_TwoAddresses   ; Offset_0x000432
@@ -217,7 +215,7 @@ ChkInstr: ; Offset_0x0003F2:
 TrapvInstr: ; Offset_0x0003FA:                
                 move.b  #$0C, ($FFFFFC44).w
                 bra.s   ErrorMessage            ; Offset_0x00045A             
-PrivilegeViolation: ; Offset_0x000402:
+PrivilegeViol: ; Offset_0x000402:
                 move.b  #$0E, ($FFFFFC44).w
                 bra.s   ErrorMessage            ; Offset_0x00045A  
 Trace: ; Offset_0x00040A:
@@ -231,7 +229,7 @@ Line1111Emu: ; Offset_0x00041E:
                 move.b  #$14, ($FFFFFC44).w
                 addq.l  #$02, $0002(A7)
                 bra.s   ErrorMessage            ; Offset_0x00045A 
-ErrorException: ; Offset_0x00042A:
+ErrorExcept: ; Offset_0x00042A:
                 move.b  #$00, ($FFFFFC44).w
                 bra.s   ErrorMessage            ; Offset_0x00045A 
 ErrorMsg_TwoAddresses: ; Offset_0x000432: 
@@ -256,63 +254,59 @@ ErrorMsg_Wait: ; Offset_0x000470:
                 bsr     Error_WaitForC          ; Offset_0x0005D8 
                 movem.l ($FFFFFC00).w, D0-A7  
                 move    #$2300, SR
-                rte        
-ShowErrorMsg: ; Offset_0x000480:
-                lea     ($00C00000), A6  
-                move.l  #$78000003, ($00C00004)
-                lea     (Art_Menu_Text), A0     ; Offset_0x0005E8
-                move.w  #$027F, D1
-Error_LoadGfx: ; Offset_0x00049A:                
-                move.w  (A0)+, (A6)
-                dbra    D1, Error_LoadGfx       ; Offset_0x00049A                 
-                moveq   #$00, D0
-                move.b ($FFFFFC44).w, D0
-                move.w  Error_Text(PC, D0), D0  ; Offset_0x0004CA
-                lea     Error_Text(PC, D0), A0  ; Offset_0x0004CA
-                move.l  #$46040003, ($00C00004)
-                moveq   #$12, D1
-Offset_0x0004BA:                 
-                moveq   #$00, D0
-                move.b (A0)+, D0
-                addi.w  #$0790, D0
-                move.w  D0, (A6)
-                dbra    D1, Offset_0x0004BA
-                rts
-Error_Text: ; Offset_0x0004CA:
-                dc.w    ErrTxt_Exception-Error_Text  
-                dc.w    ErrTxt_BusError-Error_Text  
-                dc.w    ErrTxt_AddressError-Error_Text  
-                dc.w    ErrTxt_IllegalInstruction-Error_Text  
-                dc.w    ErrTxt_ZeroDivide-Error_Text 
-                dc.w    ErrTxt_ChkIntruction-Error_Text
-                dc.w    ErrTxt_TrapvInstructuion-Error_Text
-                dc.w    ErrTxt_PrivilegeViolation-Error_Text
-                dc.w    ErrTxt_Trace-Error_Text
-                dc.w    ErrTxt_Line1010Emulator-Error_Text
-                dc.w    ErrTxt_Line1111Emulator-Error_Text
-ErrTxt_Exception: ; Offset_0x0004E0: 
-                dc.b    'ERROR EXCEPTION    '
-ErrTxt_BusError: ; Offset_0x0004F3: 
-                dc.b    'BUS ERROR          ' 
-ErrTxt_AddressError: ; Offset_0x000506: 
-                dc.b    'ADDRESS ERROR      '   
-ErrTxt_IllegalInstruction: ; Offset_0x000519: 
-                dc.b    'ILLEGAL INSTRUCTION' 
-ErrTxt_ZeroDivide: ; Offset_0x00052C: 
-                dc.b    '@ERO DIVIDE        ' 
-ErrTxt_ChkIntruction: ; Offset_0x00053F:                 
-                dc.b    'CHK INSTRUCTION    '
-ErrTxt_TrapvInstructuion: ; Offset_0x000552:                
-                dc.b    'TRAPV INSTRUCTION  '
-ErrTxt_PrivilegeViolation: ; Offset_0x000565:                 
-                dc.b    'PRIVILEGE VIOLATION'
-ErrTxt_Trace: ; Offset_0x000578:                 
-                dc.b    'TRACE              '
-ErrTxt_Line1010Emulator: ; Offset_0x00058B:                
-                dc.b    'LINE 1010 EMULATOR '
-ErrTxt_Line1111Emulator: ;Offset_0x00059E:                 
-                dc.b    'LINE 1111 EMULATOR ' 
-                dc.b    $00                           ; Filler                                                  
+                rte
+; ===========================================================================
+; loc_480:
+ShowErrorMsg:
+		lea	($C00000).l,a6
+		move.l	#$78000003,($C00004).l
+		lea	(Art_Text),a0
+		move.w	#$27F,d1
+; loc_49A;
+Error_LoadGfx:
+		move.w	(a0)+,(a6)
+		dbf	d1,Error_LoadGfx
+		moveq	#0,d0
+		move.b	($FFFFFC44).w,d0	; load error code
+		move.w	ErrorTextTbl(pc,d0.w),d0
+		lea	ErrorTextTbl(pc,d0.w),a0
+		move.l	#$46040003,($C00004).l	; position on screen
+		moveq	#$12,d1			; number of characters
+; loc_4BA:
+Error_LoopChars:
+		moveq	#0,d0
+		move.b	(a0)+,d0
+		addi.w	#$790,d0
+		move.w	d0,(a6)
+		dbf	d1,Error_LoopChars	; repeat for number of characters
+		rts
+; End of function ShowErrorMsg
+
+; ===========================================================================
+ErrorTextTbl:	dc.w ErrTxt_Except-ErrorTextTbl
+		dc.w ErrTxt_BusError-ErrorTextTbl
+		dc.w ErrTxt_AddressError-ErrorTextTbl
+		dc.w ErrTxt_IllegalInstr-ErrorTextTbl
+		dc.w ErrTxt_ZeroDivide-ErrorTextTbl 
+		dc.w ErrTxt_ChkInstr-ErrorTextTbl
+		dc.w ErrTxt_TrapvInstr-ErrorTextTbl
+		dc.w ErrTxt_PrivilegeViol-ErrorTextTbl
+		dc.w ErrTxt_Trace-ErrorTextTbl
+		dc.w ErrTxt_Line1010Emu-ErrorTextTbl
+		dc.w ErrTxt_Line1111Emu-ErrorTextTbl
+ErrTxt_Except:		dc.b "ERROR EXCEPTION    "
+ErrTxt_BusError:	dc.b "BUS ERROR          "
+ErrTxt_AddressError:	dc.b "ADDRESS ERROR      "
+ErrTxt_IllegalInstr:	dc.b "ILLEGAL INSTRUCTION"
+ErrTxt_ZeroDivide:	dc.b "@ERO DIVIDE        " ; '@' displays as 'Z' in-game
+ErrTxt_ChkInstr:	dc.b "CHK INSTRUCTION    "
+ErrTxt_TrapvInstr:	dc.b "TRAPV INSTRUCTION  "
+ErrTxt_PrivilegeViol:	dc.b "PRIVILEGE VIOLATION"
+ErrTxt_Trace:		dc.b "TRACE              "
+ErrTxt_Line1010Emu:	dc.b "LINE 1010 EMULATOR "
+ErrTxt_Line1111Emu:	dc.b "LINE 1111 EMULATOR "
+		even
+
 ShowErrAddress: ; Offset_0x0005B2:
                 move.w  #$07CA, (A6)
                 moveq   #$07, D2 
@@ -336,8 +330,8 @@ Error_WaitForC: ; Offset_0x0005D8:
                 cmpi.b  #$20, ($FFFFF605).w
                 bne     Error_WaitForC          ; Offset_0x0005D8
                 rts 
-Art_Menu_Text: ; Offset_0x0005E8:
-                incbin   'data\sprites\art_menu.dat'
+Art_Text:	incbin	"data\sprites\art_menu.dat"
+		even
 VBlank: ; Offset_0x000B08:                  
                 movem.l D0-A6, -(A7) 
                 tst.b	($FFFFF62A).w
@@ -970,9 +964,9 @@ ClearScreen_ClearBuffer2: ; Offset_0x0014A8:
                 rts
 
 ; loc_14B8:
-SoundDriverLoad: ; JmpTo
+JmpTo_SoundDriverLoad: ; JmpTo
 		nop
-		jmp	(Sound_Driver).l
+		jmp	(SoundDriverLoad).l
 
 ; ---------------------------------------------------------------------------
 ; Sound queues; they're used interchangably, however symbol tables in
@@ -3398,7 +3392,7 @@ Offset_0x0037C4:
                 bsr     NemesisDec              ; Offset_0x0015FC
                 lea     ($00C00000), A6
                 move.l  #$50000003, $0004(A6)
-                lea     (Art_Menu_Text), A5     ; Offset_0x0005E8
+                lea     (Art_Text), A5     ; Offset_0x0005E8
                 move.w  #$028F, D1
 Offset_0x003818:
                 move.w  (A5)+, (A6)
@@ -48503,248 +48497,169 @@ Neo_Green_Hill_8x8_Incomplete_Tiles_Previous_Builder: ; Offset_0x0E504A:
                 incbin  'data\sprites\nghz_8.nem'                                
 Nghz_Init_Sprites_Dyn_Reload_3: ; Offset_0x0E57E6: ; Waterfalls  ; Left over
                 incbin  'data\nghz\init_spr.nem'
-                
-Uncompiled_Asm: ; Offset_0x0E5946:                 
-Cr              equ     $0D
-Lf              equ     $0A
-Tab             equ     $09    
-                dc.b    $3B, $20, $88, $B3, $8F, $6B, $91, $4F
-                dc.b    ' $8000  ', $88, $B3, $8F, $6B, $8C, $E3
-                dc.b    ' $2c00  ', $88, $B3, $8F, $6B, $97, $A6
-                dc.b    ' 34.4%  ', $83, $5A, $83, $8B, $90, $94
-                dc.b    ' 1024', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$1d,$7f,$00,$ff,$f8,$7e,$04,$01,$fb,$02,$00,$03,$04,$05,$04,$80', Cr, Lf 
-                dc.b    Tab, 'dc.b', Tab,'$ff,$fa,$ff,$07,$54,$0b,$54,$0a,$50,$0c,$50,$ff,$8f,$0d,$54,$0f', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$54,$0e,$50,$10,$50,$11,$52,$19,$52,$18,$ff,$ff,$fc,$1a,$52,$1b', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$51,$8a,$51,$8b,$52,$1c,$02,$1e,$02,$1f,$02,$2a,$9f,$ff,$02,$2b', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$01,$8c,$01,$8d,$f4,$1d,$02,$2c,$02,$2d,$01,$ff,$f4,$88,$01,$89', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$01,$8e,$01,$8f,$02,$1a,$e4,$02,$2e,$02,$46,$c0,$2f,$e0,$ff,$1b', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$ec,$fc,$dc,$00,$70,$02,$c4,$d4,$ee,$18,$02,$19,$01,$3f,$f6,$fd', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$e4,$e6,$04,$2e,$04,$2d,$04,$9d,$fe,$77,$bd,$00,$be,$f9,$50,$31', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$54,$30,$54,$2f,$7f,$f8,$56,$03,$56,$02,$56,$01,$05,$ff,$f0,$52', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$1d,$52,$1e,$e1,$9f,$52,$1f,$fc,$50,$3e,$54,$3c,$56,$04,$54,$36', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$09,$e0,$c4,$9c,$f8,$ea,$1a,$50,$48,$24,$41,$ba,$a4,$b2,$fc,$fc', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$21,$9a,$f2,$80,$f6,$9c,$fc,$1d,$5e,$92,$68,$01,$8a,$01,$8b,$ee', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$fc,$68,$f2,$fd,$d5,$fd,$ce,$f7,$f7,$80,$fd,$f0,$f8,$0f,$04,$35', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f0,$f8,$0d,$54,$3f,$54,$39,$7f,$fe,$54,$38,$01,$ff,$02,$00,$06', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$00,$60,$1a,$54,$43,$54,$ff,$f3,$42,$55,$fe,$55,$fd,$55,$fc,$55', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$fb,$54,$46,$a4,$1c,$ff,$11,$50,$49,$54,$44,$54,$52,$50,$51,$54', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$50,$80,$b2,$12,$8e,$8f,$4e,$06,$fc,$f2,$f2,$3c,$90,$fa,$58,$5c', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$80,$f8,$20,$60,$f8,$20,$40,$f3,$02,$0a,$02,$2c,$3c,$0b,$70,$40', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f6,$86,$2a,$54,$29,$52,$f4,$62,$f8,$11,$c0,$f1,$2a,$52,$2b,$bc', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f4,$fc,$1a,$62,$f1,$72,$6e,$f2,$f2,$78,$00,$16,$bd,$fe,$00,$17', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$fc,$f8,$0c,$18,$00,$19,$fc,$f8,$0c,$e0,$f8,$2e,$54,$06,$54,$04', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$50,$fb,$be,$08,$50,$09,$f8,$fe,$50,$12,$50,$13,$fc,$f8,$0b,$00', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$14,$00,$15,$f7,$fc,$fc,$f8,$0c,$1e,$00,$1f,$fc,$f8,$0c,$20,$00', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$21,$fc,$f4,$50,$f5,$f7,$07,$50,$f6,$50,$f7,$e8,$fe,$50,$f8,$50', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$87,$52,$1b,$3c,$1f,$fd,$e0,$fc,$50,$f9,$50,$85,$40,$ae,$f1,$50', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$fa,$50,$fb,$07,$e1,$50,$fc,$50,$8b,$f6,$86,$f1,$2a,$1c,$50,$2f', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$b2,$8c,$50,$8d,$50,$8e,$24,$f1,$24,$ee,$0a,$24,$9a,$eb,$92,$f3', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$7c,$f2,$0a,$f2,$e0,$ec,$af,$9f,$dc,$05,$6d,$ae,$ef,$60,$f2,$1a', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$06,$25,$01,$89,$45,$94,$e4,$4e,$ed,$e0,$e8,$2a,$f3,$11,$ae,$e0', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f0,$c0,$28,$02,$29,$38,$f6,$00,$8c,$c0,$fd,$ce,$e4,$a0,$59,$44', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$c0,$8d,$ce,$00,$ea,$bc,$e0,$0b,$a8,$d6,$fc,$1b,$dc,$e2,$f8,$f0', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$68,$ec,$ea,$bd,$f8,$e5,$20,$f0,$15,$a0,$e8,$09,$20,$f0,$16,$50', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$54,$0d,$20,$f5,$1b,$52,$1c,$92,$a0,$dc,$e4,$60,$e5,$a8,$6e,$e2', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$80,$6e,$e4,$82,$28,$12,$fc,$4e,$e2,$80,$6e,$e2,$44,$ee,$e7,$fa', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$00,$66,$8e,$fe,$56,$25,$51,$8c,$c0,$c2,$e4,$bc,$f0,$fe,$38,$02', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$15,$d8,$80,$fc,$06,$f8,$9d,$59,$f0,$12,$02,$11,$02,$10,$80,$fc', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f6,$5a,$30,$fe,$e0,$ee,$13,$80,$2e,$52,$2f,$f9,$6d,$7f,$f5,$05', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f9,$02,$16,$00,$23,$00,$24,$e4,$f3,$f2,$f1,$80,$ea,$50,$2b,$20', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$8c,$50,$76,$5a,$f3,$84,$51,$89,$40,$a0,$5c,$58,$60,$6e,$00,$f9', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$11,$95,$ae,$f5,$1b,$5a,$f6,$6a,$e3,$6a,$fc,$02,$82,$e8,$10,$96', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$ee,$ea,$47,$0f,$ce,$f2,$13,$02,$14,$76,$b2,$f2,$16,$02,$17,$44', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$8c,$ee,$e4,$88,$ea,$33,$fa,$d4,$04,$23,$f2,$e4,$e6,$fc,$54,$27', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$54,$4f,$e4,$94,$54,$93,$04,$92,$e0,$ea,$e4,$f2,$54,$af,$af,$85', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$54,$97,$04,$98,$c6,$fd,$52,$f3,$54,$87,$54,$99,$bc,$fc,$ff,$ff', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$00,$e8,$39,$50,$6b,$50,$6c,$50,$6d,$50,$73,$50,$74,$50,$75,$50', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$76,$50,$ff,$8f,$77,$50,$78,$50,$79,$50,$15,$50,$7a,$50,$7b,$50', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$7c,$5e,$51,$f8,$20,$ee,$12,$00,$13,$fc,$f8,$0c,$00,$e8,$0e,$08', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$6e,$e2,$4d,$d2,$fc,$f2,$bc,$d2,$8a,$32,$ee,$f6,$60,$04,$f0,$fa', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$22,$fa,$00,$23,$06,$5c,$32,$fc,$80,$f1,$26,$54,$25,$67,$c1,$50', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$27,$f6,$58,$20,$80,$f2,$20,$60,$d1,$51,$55,$f1,$6d,$d8,$80,$f3', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$cc,$f3,$28,$f1,$80,$f0,$09,$12,$dc,$2d,$a3,$04,$e1,$d8,$ea,$18', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$84,$d6,$a0,$d8,$4f,$41,$80,$f4,$02,$25,$01,$24,$ae,$05,$c0,$80', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f4,$88,$23,$f0,$25,$92,$12,$05,$fa,$ab,$02,$d6,$e0,$ff,$92,$f3', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$e0,$fc,$8a,$f1,$e0,$86,$a7,$88,$10,$88,$01,$f9,$01,$fa,$80,$5d', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$21,$05,$fa,$60,$fc,$50,$28,$80,$fe,$e0,$e9,$fc,$2d,$1b,$94,$84', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$bc,$c9,$52,$86,$c0,$ce,$64,$ea,$2a,$7c,$74,$19,$fa,$e9,$76,$d2', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$58,$55,$05,$48,$01,$5d,$f9,$5e,$f2,$fc,$f4,$57,$05,$52,$85,$e9', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$1b,$05,$49,$f4,$fe,$02,$d5,$ff,$f2,$f4,$f8,$09,$ff,$f8,$32,$32', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$d6,$96,$ca,$ff,$d8,$38,$50,$39,$50,$3f,$a2,$49,$a2,$4a,$fc,$54', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$ea,$fe,$7f,$af,$02,$0d,$02,$0e,$02,$0f,$06,$0d,$cc,$f8,$0a,$c1', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$00,$c2,$bc,$f8,$0c,$d2,$f9,$f0,$f8,$2c,$c0,$e1,$f0,$07,$04,$05', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f1,$07,$51,$bf,$aa,$75,$50,$c1,$50,$c2,$54,$31,$a0,$c6,$ac,$da', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$ee,$f5,$46,$f2,$aa,$20,$60,$f3,$e4,$f3,$dc,$de,$d2,$cc,$6e,$de', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$d4,$52,$d8,$0c,$b2,$ac,$e2,$e8,$5c,$f3,$d8,$c8,$e2,$82,$b2,$20', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$de,$34,$f3,$ec,$1a,$f2,$84,$db,$b8,$84,$6a,$e8,$fe,$c4,$b8,$c0', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$b8,$49,$20,$fc,$c0,$b8,$10,$1b,$2d,$e8,$08,$f3,$00,$f1,$51,$fc', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$da,$8a,$f2,$bd,$ae,$d7,$97,$01,$73,$06,$99,$fc,$fe,$98,$f6,$e4', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$04,$0a,$fc,$f6,$f4,$9b,$7f,$46,$f6,$06,$9f,$02,$e2,$0a,$98,$0a', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f4,$e6,$38,$e9,$fe,$e3,$04,$00,$fa,$f4,$fc,$50,$f5,$93,$43,$e2', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$06,$91,$02,$fe,$92,$f8,$f0,$07,$84,$98,$06,$96,$02,$fe,$b0,$f8', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$91,$20,$06,$95,$f0,$c4,$fe,$9a,$8d,$87,$f8,$06,$9c,$f0,$e4,$02', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$e5,$aa,$08,$fe,$02,$bc,$f8,$fa,$eb,$32,$50,$33,$50,$34,$9f,$ff', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$50,$b4,$50,$b5,$50,$b6,$fc,$b7,$50,$b8,$50,$b9,$54,$e1,$fb,$b9', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f0,$fe,$ba,$f0,$bb,$f0,$bc,$68,$d2,$06,$19,$fc,$ff,$f4,$ae,$fc', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$ad,$fc,$ac,$fc,$ab,$fc,$aa,$f0,$fc,$a6,$fc,$fb,$8b,$a5,$fc,$a4', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$48,$d6,$30,$be,$3c,$a3,$3c,$a2,$38,$d0,$09,$c5,$56,$f0,$a1,$58', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$c0,$0b,$f0,$a0,$f0,$f8,$0e,$9f,$40,$b0,$52,$58,$d5,$b5,$6e,$80', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f7,$58,$d5,$80,$f0,$0d,$f1,$72,$cc,$80,$f7,$01,$6d,$c0,$f8,$1e', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$58,$45,$fd,$48,$f6,$bc,$fc,$c0,$c0,$ee,$9c,$ea,$18,$a1,$6d,$01', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$4b,$f8,$48,$05,$55,$8e,$cc,$a6,$f0,$52,$05,$57,$d1,$a0,$05,$56', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$ec,$38,$ea,$88,$a0,$32,$cb,$c0,$fe,$ec,$fe,$c6,$f0,$ec,$fe,$01', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$1f,$02,$5d,$01,$ff,$bf,$0f,$01,$10,$02,$45,$02,$30,$02,$31,$c1', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$da,$c2,$33,$c2,$32,$ff,$cf,$d2,$e2,$02,$34,$02,$35,$02,$32,$c1', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$db,$c2,$3c,$02,$3d,$7f,$00,$f0,$47,$02,$36,$02,$37,$c1,$dc,$e0', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$ea,$0e,$ff,$f0,$44,$ce,$c5,$d8,$c1,$d9,$02,$40,$02,$f0,$ff,$41', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f0,$c1,$d4,$c1,$d5,$c1,$d6,$c1,$d7,$02,$3e,$02,$ff,$3f,$3f,$02', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$46,$c0,$c1,$c0,$c2,$c2,$3a,$c2,$3b,$02,$38,$02,$39,$01,$02,$d8', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f0,$d0,$c8,$02,$7e,$c0,$c4,$f8,$30,$01,$29,$01,$2a,$02,$44,$92', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$d6,$aa,$c0,$a3,$aa,$80,$d3,$8b,$2e,$ca,$d3,$a0,$c9,$9a,$d2,$a4', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$cd,$aa,$eb,$80,$cf,$a4,$cd,$66,$d2,$a8,$ce,$80,$d6,$04,$5e,$72', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$ce,$60,$d5,$5d,$97,$f6,$54,$61,$54,$60,$e4,$fc,$ea,$52,$1c,$e0', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$a9,$63,$54,$ff,$da,$62,$54,$67,$54,$66,$54,$65,$54,$64,$f2,$bc', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$e0,$ac,$54,$e0,$a9,$7f,$e1,$51,$fb,$51,$fc,$51,$fd,$51,$fe,$80', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$e8,$0f,$fc,$50,$ba,$5b,$50,$50,$bb,$50,$80,$e8,$14,$0c,$80,$e8', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$0c,$f0,$80,$e8,$7b,$e0,$d8,$3f,$fd,$ef,$ec,$e9,$9a,$f2,$1e,$54', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$9d,$54,$9c,$54,$90,$54,$8f,$92,$b7,$1c,$1f,$d5,$54,$8e,$54,$8d', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$50,$50,$e0,$e8,$ba,$b2,$9e,$80,$9a,$aa,$aa,$1d,$9c,$bb,$c4,$da', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$7c,$ea,$ba,$b2,$36,$db,$f8,$9d,$00,$be,$aa,$f4,$a0,$c8,$09,$8e', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$a6,$0e,$a3,$92,$c6,$c0,$9a,$d4,$04,$24,$00,$c2,$ff,$5a,$32,$f0', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$09,$e6,$54,$4f,$54,$4e,$54,$4d,$54,$4c,$54,$d5,$7e,$59,$54,$9c', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$c3,$a8,$b1,$00,$ea,$1c,$80,$99,$57,$54,$56,$54,$5f,$11,$55,$60', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$ff,$aa,$ea,$80,$9a,$a0,$fe,$06,$bc,$95,$54,$68,$d6,$5c,$d6,$12', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$9c,$56,$dc,$e4,$9a,$ea,$84,$c4,$8f,$3f,$5c,$ac,$51,$09,$83,$f2', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$62,$02,$63,$01,$88,$05,$7c,$a2,$f6,$51,$00,$91,$09,$24,$f2,$fc', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$10,$25,$05,$64,$91,$f0,$96,$b2,$ee,$61,$1d,$92,$c1,$f2,$50,$91', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$a8,$c2,$fc,$fe,$f0,$96,$ac,$b0,$f0,$48,$b1,$8d,$64,$e1,$20,$c3', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f0,$00,$9e,$8c,$aa,$92,$95,$78,$f2,$60,$f8,$09,$8e,$93,$92,$f3', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$d1,$f5,$72,$90,$09,$1f,$36,$44,$ef,$00,$53,$40,$b1,$fa,$f1,$50', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$4a,$ff,$ff,$50,$4b,$50,$4c,$50,$4d,$50,$4e,$50,$4f,$50,$55,$50', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$56,$50,$57,$3d,$48,$50,$3d,$f8,$f5,$18,$50,$40,$f6,$fc,$f7,$2a', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$a9,$2a,$20,$9a,$b6,$bb,$20,$90,$0a,$e8,$ee,$fe,$e8,$a4,$a4,$ff', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$e4,$f4,$c6,$80,$de,$0e,$b5,$50,$46,$50,$47,$50,$48,$50,$3f,$c2', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$3a,$50,$3b,$50,$42,$50,$43,$a0,$ff,$51,$5f,$55,$50,$52,$50,$44', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$50,$45,$d8,$f1,$3c,$f2,$e4,$c3,$2e,$f8,$09,$a0,$8e,$95,$05,$a0', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$fd,$80,$88,$0a,$e0,$ef,$0e,$b2,$c5,$ce,$55,$62,$00,$bb,$5c,$f8', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$0a,$60,$f6,$5c,$8a,$3c,$5a,$2b,$2a,$d2,$fe,$01,$12,$a0,$09,$52', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f3,$f0,$5a,$f3,$8e,$fe,$30,$91,$f0,$b6,$f2,$ea,$8a,$32,$c0,$d1', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$96,$fd,$2e,$bd,$f0,$b2,$fe,$12,$cb,$2c,$c0,$40,$fd,$0e,$a0,$5c', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$8f,$be,$56,$a0,$a6,$4e,$a2,$51,$82,$b8,$09,$88,$a1,$53,$22,$b8', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$2d,$c0,$82,$f5,$27,$f0,$f8,$0b,$a6,$b9,$c0,$81,$54,$34,$54,$33', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$54,$32,$f0,$ed,$92,$40,$d1,$e0,$ea,$1a,$c0,$82,$54,$37,$c0,$81', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$68,$68,$55,$72,$f2,$58,$aa,$81,$41,$00,$e0,$60,$8e,$b0,$0a,$c0', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$80,$09,$7a,$b0,$0a,$bf,$28,$80,$c0,$40,$c0,$be,$cc,$a3,$cc,$00', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$d8,$0a,$f0,$00,$d8,$0c,$8a,$ba,$f0,$00,$d8,$0c,$f0,$00,$d8,$0a', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$88,$fe,$54,$b4,$7f,$fd,$cc,$f4,$f4,$bc,$f4,$bb,$f4,$ba,$f4,$80', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$d1,$7c,$d1,$bf,$50,$c0,$f8,$ff,$fa,$aa,$f8,$ab,$f8,$ac,$f8,$ad', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f8,$ae,$d4,$91,$26,$b7,$f8,$b1,$f8,$fb,$dd,$b2,$f8,$b3,$16,$b0', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$0b,$38,$af,$38,$b0,$30,$06,$b0,$0c,$38,$a9,$f0,$f8,$0e,$d6,$ed', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$a8,$f0,$f8,$0e,$a7,$f0,$f8,$0d,$ff,$f8,$13,$f0,$d5,$f0,$f8,$0e', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$d6,$f0,$f8,$0e,$d7,$fd,$ff,$05,$6e,$f2,$f8,$09,$f4,$d8,$f0,$d9', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$55,$71,$55,$70,$55,$6f,$50,$dd,$7f,$7f,$f0,$de,$f0,$df,$f0,$e0', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f2,$18,$00,$f1,$72,$51,$73,$50,$ef,$f0,$d8,$f0,$ff,$f1,$f2,$00', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$d9,$a2,$fe,$1f,$a1,$88,$7f,$70,$a1,$89,$a2,$2c,$a2,$2d,$a2,$1a', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$f4,$f8,$c8,$67,$02,$59,$5d,$ef,$a0,$6c,$f0,$fe,$f2,$5a,$00,$d4', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$9b,$f8,$4c,$2d,$00,$2e,$ac,$e8,$0a,$2f,$ff,$6d,$50,$30,$50,$31', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$50,$36,$50,$37,$50,$3c,$40,$df,$1e,$40,$d9,$1b,$ad,$6a,$7c,$e7', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$54,$e2,$8d,$88,$94,$f8,$d4,$a0,$8c,$92,$8e,$ee,$cb,$8f,$05,$19', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$ee,$bf,$2a,$e2,$f4,$80,$88,$0a,$e6,$04,$14,$f2,$e0,$ba,$f6,$ee', Cr, Lf
-                dc.b    Tab, 'dc.b', Tab,'$c0,$d3,$94,$f5,$e0,$c0,$d0,$15,$58,$85,$80,$84,$da,$'
+
+; ===========================================================================
+; Uncompiled Neo Green Hill Zone chunk data; it can be opened in any
+; text editor, but the Japanese at the top won't display correctly.
+; loc_E5946: Uncompiled_ASM:
+		incbin	"Data/all/Uncompiled chunk data for NGHZ.bin"
+
 Incomplete_Sega_Snd: ; Left Over ; Offset_0x0E8000:  
                 incbin  'data\all\sega.snd'  
+
+
 ; $F0000 => Sounds $98 to $9F
 ; $F8000 => Sounds $81 to $97 
-;================================ Sound Driver ================================                 
-Sound_Driver: ; Offset_0x0EC000: S2B_0x0EC000:                 
 
-                move	SR, -(A7)
-                movem.l D0-A6, -(SP)
-                move    #$2700, SR
-                lea     ($00A11100), A3
-		lea     ($00A11200), A2
-		moveq   #$00, D2
-		move.w  #$0100, D1 
-	        move.w  D1, (A3)	
-                move.w  D1, (A2)
-Sound_Driver_001:                
-                btst    D2, (A3)
-                bne.s   Sound_Driver_001 
-                jsr     Sound_Driver_002(PC)
-                move.w  D2, (A2)
-                move.w  D2, (A3)
-                moveq   #$17, D0
-Sound_Driver_Loop_01:
-                dbra    D0, Sound_Driver_Loop_01
-                move.w  D1, (A2)
-                movem.l (SP)+,D0-A6
-                move    (SP)+, SR
-                rts
-Sound_Driver_002:
-                lea     Sound_Driver_009(PC), A6 
-                move.w  #$0DF3, D7
-                moveq   #$00, D6
-                lea     ($00A00000), A5
-                moveq   #$00, D5
-                lea     ($00A00000), A4
-Sound_Driver_003:                
-                lsr.w   #$01, D6
-                btst    #$08, D6
-                bne.s   Sound_Driver_004
-                jsr     Sound_Driver_007(PC)
-                move.b  D0, D6
-                ori.w   #$FF00, D6
-Sound_Driver_004:  
-                btst    #$00, D6
-                beq.s   Sound_Driver_005
-                jsr     Sound_Driver_007(PC)
-                move.b  D0, (A5)+
-                addq.w  #$01, D5
-                bra.w   Sound_Driver_003 
-Sound_Driver_005:                  
-                jsr     Sound_Driver_007(PC)
-                moveq   #$00, D4
-                move.b  D0, D4 
-                jsr     Sound_Driver_007(PC)
-                move.b  D0, D3 
-                andi.w  #$000F, D3
-                addq.w  #$02, D3
-                andi.w  #$00F0, D0
-                lsl.w   #$04, D0
-                add.w   D0, D4
-                addi.w  #$0012, D4
-                andi.w  #$0FFF, D4
-                move.w  D5, D0
-                andi.w  #$F000, D0
-                add.w   D0, D4
-                cmp.w   D4, D5  
-                bcc.s   Sound_Driver_006
-                subi.w  #$1000, D4
-                bcc.s   Sound_Driver_006
-                add.w   D3, D5
-                addq.w  #$01, D5
-Sound_Driver_Loop_02:                
-                move.b  #$00, (A5)+
-                addq.w  #$01, D4
-                dbra    D3, Sound_Driver_Loop_02
-                bra.w   Sound_Driver_003
-Sound_Driver_006:                
-                add.w   D3, D5
-                addq.w  #$01, D5
-Sound_Driver_Loop_03:                 
-                move.b  $00(A4, D4), (A5)+
-                addq.w  #$01, D4
-                dbra    D3, Sound_Driver_Loop_03 
-                bra.w   Sound_Driver_003 
-Sound_Driver_007:                
-                move.b  (A6)+, D0   
-                subq.w  #$01, D7  
-                bne.s   Sound_Driver_008
-                addq.w  #$04, A7
-Sound_Driver_008:      
-                rts           
-Sound_Driver_009:  
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Subroutine to load the sound driver
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_EC000:
+SoundDriverLoad:
+		move	sr,-(sp)
+		movem.l	d0-a6,-(sp)
+		move	#$2700,sr
+		lea	($A11100).l,a3
+		lea	($A11200).l,a2
+		moveq	#0,d2
+		move.w	#$100,d1
+		move.w	d1,(a3)	; get Z80 bus
+		move.w	d1,(a2)	; release Z80 reset (was held high by console on startup)
+
+@loop1:
+		btst	d2,(a3)
+		bne.s	@loop1	; wait until the 68000 has the bus
+		jsr	DecompressSoundDriver(pc)
+		move.w	d2,(a2)
+		move.w	d2,(a3)
+		moveq	#$17,d0
+
+@loop2:
+		dbf	d0,@loop2	; wait for 2,314 cycles
+		move.w	d1,(a2)		; release Z80 reset
+		movem.l	(sp)+,d0-a6
+		move	(sp)+,sr
+		rts
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+; Handles the decompression of the sound driver (Saxman compression, an LZSS variant)
+; https://segaretro.org/Saxman_compression
+
+; a4 == start of decompressed data (used for dictionary match offsets)
+; a5 == current address of end of decompressed data
+; a6 == current address in compressed sound driver
+; d3 == length of match minus 1
+; d4 == offset into decompressed data of dictionary match
+; d5 == number of bytes decompressed so far
+; d6 == descriptor field
+; d7 == bytes left to decompress
+
+; Interestingly, this suggests the 68K version IS the original, rather than
+; the Z80 version used for most songs in the final
+
+; Sound_Driver_002:
+DecompressSoundDriver:
+		lea	Snd_Driver(pc),a6
+		move.w	#$DF3,d7
+		moveq	#0,d6		; the decompressor knows it's run out of descriptor bits when it starts reading 0's in bit 8
+		lea	($A00000).l,a5
+		moveq	#0,d5
+		lea	($A00000).l,a4
+
+SaxDec_Loop:                
+		lsr.w	#1,d6		; next descriptor bit
+		btst	#8,d6		; check if we've run out of bits
+		bne.s	@nobitsleft	; (lsr 'shifts in' 0's)
+		jsr	SaxDec_GetByte(pc)
+		move.b	d0,d6
+		ori.w	#$FF00,d6	; these set bits will disappear from the high byte as the register is shifted
+
+@nobitsleft:  
+		btst	#0,d6
+		beq.s	SaxDec_ReadCompressed
+
+; SaxDec_ReadUncompressed:
+		jsr	SaxDec_GetByte(pc)
+		move.b	d0,(a5)+
+		addq.w	#1,d5
+		bra.w	SaxDec_Loop
+; ---------------------------------------------------------------------------
+
+SaxDec_ReadCompressed:
+		jsr	SaxDec_GetByte(pc)
+		moveq	#0,d4
+		move.b	d0,d4
+		jsr	SaxDec_GetByte(pc)
+		move.b	d0,d3
+		andi.w	#$F,d3
+		addq.w	#2,d3	; d3 is the length of the match minus 1
+		andi.w	#$F0,d0
+		lsl.w	#4,d0
+		add.w	d0,d4
+		addi.w	#$12,d4
+		andi.w	#$FFF,d4	; d4 is the offset into the current $1000-byte window
+		; This part is a little tricky. You see, d4 currently contains the low three nibbles of an offset into the decompressed data,
+		; where the dictionary match lies. The way the high nibble is decided is first by taking it from d5 - the offset of the end
+		; of the decompressed data so far. Then, we see if the resulting offset in d4 is somehow higher than d5.
+		; If it is, then it's invalid... *unless* you subtract $1000 from it, in which case it refers to data in the previous $1000 block of bytes.
+		; This is all just a really gimmicky way of having an offset with a range of $1000 bytes from the end of the decompressed data.
+		; If, however, we cannot subtract $1000 because that would put the pointer before the start of the decompressed data, then
+		; this is actually a 'zero-fill' match, which encodes a series of zeroes.
+		move.w	d5,d0
+		andi.w	#$F000,d0
+		add.w	d0,d4
+		cmp.w	d4,d5
+		bcc.s	SaxDec_IsDictionaryReference
+		subi.w	#$1000,d4
+		bcc.s	SaxDec_IsDictionaryReference
+
+; SaxDec_IsSequenceOfZeroes:
+		add.w	d3,d5
+		addq.w	#1,d5
+
+@loop:
+		move.b	#0,(a5)+
+		addq.w	#1, d4
+		dbf	d3,@loop
+		bra.w	SaxDec_Loop
+; ---------------------------------------------------------------------------
+
+SaxDec_IsDictionaryReference:                
+		add.w	d3,d5
+		addq.w	#1,d5
+
+@loop:
+		move.b	(a4,d4.w),(a5)+
+		addq.w	#1,d4
+		dbf	d3,@loop
+
+		bra.w	SaxDec_Loop
+; End of function DecompressSoundDriver
+
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+
+SaxDec_GetByte:                
+		move.b	(a6)+,d0
+		subq.w	#1,d7	; decrement the remaining number of bytes
+		bne.s	@skip
+		addq.w	#4,sp	; exit the decompressor by messing with the track
+
+@skip:
+		rts
+; End of function SaxDec_GetByte
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Sound driver (Saxman-compressed)
+; ---------------------------------------------------------------------------
+
+Snd_Driver:
                 dc.w    $FFF3,$3180,$1BC3,$2D01,$00FF,$3A00,$4087,$38FA
                 dc.w    $C900,$FFDD,$CB01,$5628,$0218,$10FF,$F5CF,$F132
                 dc.w    $0040,$F5CF,$FF79,$3201,$40F1,$C900,$00EA,$0601
