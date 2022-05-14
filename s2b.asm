@@ -393,7 +393,7 @@ loc_BA2:
                 move.w  #$0000, ($00A11100)
                 bra.s   loc_B5E
 loc_BBC:                  
-                tst.b	($FFFFF730).w
+                tst.b	(Water_flag).w
                 beq     loc_C60
                 move.w	($00C00004), D0
                 btst	#$06, ($FFFFFFF8).w
@@ -407,7 +407,7 @@ loc_BDA:
 loc_BE8:                
                 btst	#$00, ($00A11100)
                 bne.s   loc_BE8  
-                tst.b	($FFFFF64E).w 
+                tst.b	(Water_fullscreen_flag).w 
                 bne.s   loc_C1E   
                 lea	($00C00004), A5 
                 move.l	#$94009340, (A5)
@@ -498,7 +498,7 @@ loc_D58:
                 btst	#$00, ($00A11100)
                 bne.s   loc_D58
                 bsr     ReadJoypads             ; loc_132C 
-                tst.b   ($FFFFF64E).w
+                tst.b   (Water_fullscreen_flag).w
                 bne.s   loc_D92
                 lea     ($00C00004), A5
                 move.l  #$94009340, (A5)
@@ -598,7 +598,7 @@ loc_F20:
                 btst	#$00, ($00A11100)
                 bne.s   loc_F20
                 bsr     ReadJoypads             ; loc_132C
-                tst.b   ($FFFFF64E).w
+                tst.b   (Water_fullscreen_flag).w
                 bne.s   loc_F5A
                 lea     ($00C00004), A5 
                 move.l  #$94009340, (A5)
@@ -692,7 +692,7 @@ loc_10C6:
                 btst	#$00, ($00A11100) 
                 bne.s   loc_10C6 
                 bsr     ReadJoypads             ; loc_132C 
-                tst.b   ($FFFFF64E).w
+                tst.b   (Water_fullscreen_flag).w
                 bne.s   loc_1100
                 lea     ($00C00004), A5 
                 move.l  #$94009340, (A5)
@@ -998,7 +998,7 @@ PlaySound:
 
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
-; Unreferenced sound queue, doesn't even work due to a bug
+; Unreferenced sound queue, but is indeed functional unlike Sonic 1
 ; sub_14CC:
 PlaySound2:
 		move.b	d0,($FFFFFFE2).w
@@ -2643,7 +2643,7 @@ Pal_FadeIn: ; loc_25CE:
 loc_25E4:                
                 bsr.s   Pal_AddColor            ; loc_260E
                 dbra    D0, loc_25E4
-                tst.b   ($FFFFF730).w
+                tst.b   (Water_flag).w
                 beq.s   loc_260C
                 moveq   #$00, D0
                 lea     ($FFFFFA80).w, A0
@@ -2762,7 +2762,7 @@ Pal_WhiteToBlack: ; loc_26F2:
 loc_2708:               
                 bsr.s   Pal_DecColor2           ; loc_2732
                 dbra    D0, loc_2708
-                tst.b   ($FFFFF730).w
+                tst.b   (Water_flag).w
                 beq.s   loc_2730
                 moveq   #$00, D0
                 lea     ($FFFFFA80).w, A0
@@ -3306,7 +3306,7 @@ SegaScreen: ; loc_360C: ; SEGA Logo
                 move.w  #$8700, (A6)
                 move.w  #$8B00, (A6)
                 move.w  #$8C81, (A6)
-                clr.b   ($FFFFF64E).w
+                clr.b   (Water_fullscreen_flag).w
                 move    #$2700, SR
                 move.w  ($FFFFF60C).w, D0
                 andi.b  #$BF, D0
@@ -3389,7 +3389,7 @@ TitleScreen: ; loc_3738: ; Game Intro / Title Screen
                 move.w  #$9200, (A6)
                 move.w  #$8B03, (A6)
                 move.w  #$8720, (A6)                 
-                clr.b   ($FFFFF64E).w
+                clr.b   (Water_fullscreen_flag).w
                 move.w  #$8C81, (A6)
                 bsr     ClearScreen             ; loc_1418 
                 lea     ($FFFFAC00).w, A1
@@ -3441,7 +3441,7 @@ loc_3818:
                 dbra    D1, loc_3818
                 nop
                 move.b  #$00, ($FFFFFE30).w
-                move.w  #$0000, ($FFFFFE08).w
+                move.w  #$0000, (Debug_placement_mode).w
                 move.w  #$0000, ($FFFFFFF0).w
                 move.w  #$0000, ($FFFFFFDA).w
                 move.w  #$0F00, ($FFFFFE10).w
@@ -3479,7 +3479,7 @@ loc_3818:
                 bsr     PalLoad1                ; loc_28E2      
                 move.b  #$99, D0                ; Load Title Screen Music
                 bsr     PlayMusic              ; loc_14C0
-                move.b  #$00, ($FFFFFFFA).w
+                move.b  #$00, (Debug_mode_flag).w
                 move.w  #$0000, ($FFFFFFD8).w
                 move.w  #$0178, ($FFFFF614).w
                 lea     ($FFFFB080).w, A1
@@ -3492,7 +3492,7 @@ loc_38EE:
                 move.b  #$0E, ($FFFFB040).w
                 move.b  #$0E, ($FFFFB080).w
                 move.b  #$01, ($FFFFB09A).w
-                jsr     (Load_Objects)          ; loc_CFD0
+                jsr     (RunObjects)          ; loc_CFD0
                 jsr     (Build_Sprites)         ; loc_D4DA
                 moveq   #$00, D0
                 bsr     LoadPLC2                ; loc_176E
@@ -3508,7 +3508,7 @@ loc_38EE:
 TitleScreen_Loop: ; loc_3948:                
                 move.b  #$04, ($FFFFF62A).w
                 bsr     DelayProgram            ; loc_31D8
-                jsr     (Load_Objects)          ; loc_CFD0
+                jsr     (RunObjects)          ; loc_CFD0
                 bsr     loc_5E38         ; Load Title Screen Background Scroll 
                 jsr     (Build_Sprites)         ; loc_D4DA
                 bsr     RunPLC                  ; loc_17A8
@@ -4046,7 +4046,7 @@ loc_420A:
                 cmpi.b  #$08, ($FFFFFE10).w    ; If Not Hidden Palace
                 bne.s   Init_No_Water          ; loc_4234
 Init_Water: ; loc_4228:
-                move.b  #$01, ($FFFFF730).w
+                move.b  #$01, (Water_flag).w
                 move.w  #$0000, ($FFFFFFD8).w  ; If Water Level Clear Two Player Flag
 Init_No_Water: ; loc_4234:
                 lea     ($00C00004), A6
@@ -4067,45 +4067,53 @@ loc_4262:
                 move.w  #$8A6B, ($FFFFF624).w
                 move.w  #$8014, (A6)
                 move.w  #$8C87, (A6)
+
 loc_427C:
-                move.w  ($FFFFF624).w, (A6)
-                move.l  #$FFFFDC00, ($FFFFDCFC).w
-                tst.b   ($FFFFF730).w
-                beq.s   LevelInit_NoWater       ; loc_42C8
-                move.w  #$8014, (A6)
-                moveq   #$00, D0
-                move.w  ($FFFFFE10).w, D0
-                subi.w  #$0800, D0
-                ror.b   #$01, D0
-                lsr.w   #$06, D0
-                andi.w  #$FFFE, D0
-                lea     (Water_Height_Array), A1 ; loc_46B8
-                move.w  $00(A1, D0), D0                
-                move.w  D0, ($FFFFF646).w
-                move.w  D0, ($FFFFF648).w
-                move.w  D0, ($FFFFF64A).w
-                clr.b   ($FFFFF64D).w
-                clr.b   ($FFFFF64E).w
-                move.b  #$01, ($FFFFF64C).w
-LevelInit_NoWater: ; loc_42C8:
-                move.w  #$001E, ($FFFFFE14).w
-                moveq   #$03, D0
-                bsr     PalLoad2                ; loc_28FE
-                tst.b   ($FFFFF730).w
-                beq.s   LevelInit_NoUndewaterPalette ; loc_4300
-                moveq   #$15, D0                ; Load HPz Underwater Palette
-                cmpi.b  #$08, ($FFFFFE10).w
-                beq.s   LevelInit_UndewaterPalette ; loc_42F0
-                moveq   #$16, D0                ; Load CPz Underwater Palette
-                cmpi.b  #$0D, ($FFFFFE10).w
-                beq.s   LevelInit_UndewaterPalette ; loc_42F0
-                moveq   #$17, D0                ; Load NGHz Underwater Palette
-LevelInit_UndewaterPalette: ; loc_42F0:
-                bsr     PalLoad3_Water ; loc_2916 ; Call Underwater palette routine
-                tst.b   ($FFFFFE30).w
-                beq.s   LevelInit_NoUndewaterPalette ; loc_4300
-                move.b  ($FFFFFE53).w, ($FFFFF64E).w
-LevelInit_NoUndewaterPalette: ; loc_4300:
+		move.w	($FFFFF624).w,(a6)
+		move.l	#$FFFFDC00,($FFFFDCFC).w
+		tst.b	(Water_flag).w
+		beq.s	Level_LoadPal
+		move.w	#$8014,(a6)
+		moveq	#0,d0
+		move.w	($FFFFFE10).w,d0
+		; this limits the water table to stages after HPZ
+		subi.w	#$800,d0
+		ror.b	#1,d0
+		lsr.w	#6,d0
+		andi.w	#$FFFE,d0
+		lea	(WaterHeight),a1	; load water height array
+		move.w	(a1,d0.w),d0
+		move.w	d0,(Water_Level_1).w	; set water heights
+		move.w	d0,(Water_Level_2).w
+		move.w	d0,(Water_Level_2).w
+		clr.b	(Water_routine).w	; clear water routine counter
+		clr.b	(Water_fullscreen_flag).w	; clear water movement
+		move.b	#1,(Water_on).w		; enable water
+; loc_42C8: LevelInit_NoWater:
+Level_LoadPal:
+		move.w	#$1E,($FFFFFE14).w
+
+		moveq	#3,d0
+                bsr.w	PalLoad2	; load Sonic's (and Tails') palette
+
+		tst.b	(Water_flag).w	; is this a water level?
+		beq.s	Level_GetBgm	; if not, branch
+
+		moveq	#$15,d0			; use HPZ underwater palette
+		cmpi.b	#8,($FFFFFE10).w	; is this Hidden Palace Zone?
+		beq.s	Level_WaterPal		; if yes, branch
+		moveq	#$16,d0			; use CPZ underwater palette
+		cmpi.b	#$D,($FFFFFE10).w	; if this Chemical Plant Zone?
+		beq.s	Level_WaterPal		; if yes, branch
+		moveq	#$17,d0			; use NGHZ underwater palette
+; loc_42F0: LevelInit_UnderwaterPalette:
+Level_WaterPal:
+		bsr.w	PalLoad3_Water		; ACTUALLY load the underwater palette
+		tst.b	($FFFFFE30).w		; is this the start of a level?
+		beq.s	Level_GetBgm		; if not, branch
+		move.b	($FFFFFE53).w, (Water_fullscreen_flag).w
+; loc_4300: LevelInit_NoUnderwaterPalette:
+Level_GetBgm:
                 tst.w   ($FFFFFFF0).w
                 bmi.s   loc_434E
                 moveq   #$00, D0
@@ -4117,7 +4125,7 @@ LevelInit_NoUndewaterPalette: ; loc_4300:
 LevelInit_TitleCard: ; loc_431E:                
                 move.b  #$0C, ($FFFFF62A).w
                 bsr     DelayProgram            ; loc_31D8
-                jsr     Load_Objects            ; loc_CFD0
+                jsr     RunObjects            ; loc_CFD0
                 jsr     Build_Sprites           ; loc_D4DA
                 bsr     RunPLC                  ; loc_17A8
                 move.w  ($FFFFB108).w, D0
@@ -4151,11 +4159,11 @@ Skip_Head_Up_Display: ; loc_4390:
                 beq.s   loc_43BC
                 btst    #$06, ($FFFFF604).w
                 beq.s   loc_43BC
-                move.b  #$01, ($FFFFFFFA).w
+                move.b  #$01, (Debug_mode_flag).w
 loc_43BC:
                 move.w  #$0000, ($FFFFF602).w
                 move.w  #$0000, ($FFFFF604).w
-                tst.b   ($FFFFF730).w
+                tst.b   (Water_flag).w
                 beq.s   loc_43E6
                 move.b  #$04, ($FFFFB780).w
                 move.w  #$0060, ($FFFFB788).w
@@ -4168,7 +4176,7 @@ loc_43E6:
 loc_43F4:
                 jsr     Load_Object_Pos         ; loc_E250
                 jsr     Load_Ring_Pos           ; loc_DE34
-                jsr     Load_Objects            ; loc_CFD0
+                jsr     RunObjects            ; loc_CFD0
                 jsr     Build_Sprites           ; loc_D4DA
                 bsr     JumpToDynamic_Art_Cues  ; loc_51F8
                 moveq   #$00, D0
@@ -4183,7 +4191,7 @@ loc_4424:
                 move.b  D0, ($FFFFFE2D).w
                 move.b  D0, ($FFFFFE2E).w
                 move.b  D0, ($FFFFFE2F).w
-                move.w  D0, ($FFFFFE08).w
+                move.w  D0, (Debug_placement_mode).w
                 move.w  D0, ($FFFFFE02).w
                 bsr     Oscillate_Num_Init      ; loc_4B64
                 move.b  #$01, ($FFFFFE1F).w
@@ -4219,7 +4227,7 @@ loc_4498:
                 bne.s   loc_44D2
                 move.w  #$01FE, ($FFFFF614).w
 loc_44D2:
-                tst.b   ($FFFFF730).w
+                tst.b   (Water_flag).w
                 beq.s   loc_44F2
                 moveq   #$15, D0
                 cmpi.b  #$08, ($FFFFFE10).w
@@ -4257,10 +4265,10 @@ Level_Main_Loop: ; loc_4534:
                 addq.w  #$01, ($FFFFFE04).w
                 bsr     Move_Sonic_In_Demo      ; loc_48DE
                 bsr     Water_Effects           ; loc_465A
-                jsr     Load_Objects            ; loc_CFD0
+                jsr     RunObjects            ; loc_CFD0
                 tst.w   ($FFFFFE02).w
                 bne     Level                   ; loc_4150
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne.s   loc_456A
                 cmpi.b  #$06, ($FFFFB024).w
                 bcc.s   loc_456E
@@ -4306,7 +4314,7 @@ loc_45F8:
                 move.b  #$08, ($FFFFF62A).w
                 bsr     DelayProgram            ; loc_31D8
                 bsr     Move_Sonic_In_Demo      ; loc_48DE
-                jsr     Load_Objects            ; loc_CFD0
+                jsr     RunObjects            ; loc_CFD0
                 jsr     Build_Sprites           ; loc_D4DA
                 jsr     Load_Object_Pos         ; loc_E250
                 subq.w  #$01, ($FFFFF794).w
@@ -4318,7 +4326,7 @@ loc_4628:
                 bne.s   loc_45F8
                 rts           
 Change_Water_Surface_Pos: ; loc_4630:
-                tst.b   ($FFFFF730).w
+                tst.b   (Water_flag).w
                 beq.s   loc_4658
                 move.w  ($FFFFEE00).w, D1
                 btst    #$00, ($FFFFFE05).w
@@ -4333,7 +4341,7 @@ loc_4646:
 loc_4658:
                 rts
 Water_Effects: ; loc_465A:
-                tst.b   ($FFFFF730).w
+                tst.b   (Water_flag).w
                 beq.s   loc_46B6
                 tst.b   ($FFFFEEDC).w
                 bne.s   loc_4672
@@ -4341,22 +4349,22 @@ Water_Effects: ; loc_465A:
                 bcc.s   loc_4672
                 bsr     Dynamic_Water_Height    ; loc_46D8
 loc_4672:
-                clr.b   ($FFFFF64E).w
+                clr.b   (Water_fullscreen_flag).w
                 moveq   #$00, D0
                 cmpi.b  #$0F, ($FFFFFE10).w
                 beq.s   loc_4686
                 move.b  ($FFFFFE60).w, D0
                 lsr.w   #$01, D0
 loc_4686:
-                add.w   ($FFFFF648).w, D0
-                move.w  D0, ($FFFFF646).w
-                move.w  ($FFFFF646).w, D0
+                add.w   (Water_Level_2).w, D0
+                move.w  D0, (Water_Level_1).w
+                move.w  (Water_Level_1).w, D0
                 sub.w   ($FFFFEE04).w, D0
                 bcc.s   loc_46A8
                 tst.w   D0
                 bpl.s   loc_46A8
                 move.b  #$DF, ($FFFFF625).w
-                move.b  #$01, ($FFFFF64E).w
+                move.b  #$01, (Water_fullscreen_flag).w
 loc_46A8:
                 cmpi.w  #$00DF, D0
                 bcs.s   loc_46B2
@@ -4365,9 +4373,22 @@ loc_46B2:
                 move.b  D0, ($FFFFF625).w
 loc_46B6:
                 rts
-Water_Height_Array: ; loc_46B8: ; Water Height Array                 
-                dc.w    $0600, $0600, $0600, $0600, $0600, $0600, $0600, $0600
-                dc.w    $0600, $0600, $0600, $0710, $0600, $0600, $0410, $0510
+; ===========================================================================
+; the code that handles initializing the water tables effectively makes
+; it start at $08 instead of $00 to save space
+; word_46B8: Water_Height_Array:
+WaterHeight:
+                dc.w	$600, $600	; HPZ
+		dc.w	$600, $600	; Zone 9
+		dc.w	$600, $600	; OOZ
+		dc.w	$600, $600	; MCZ
+                dc.w	$600, $600	; CNZ
+		dc.w	$600, $710	; CPZ
+		dc.w	$600, $600	; GCZ
+		dc.w	$410, $510	; ARZ
+		; no entry for DEZ...
+; ===========================================================================
+
 Dynamic_Water_Height: ; loc_46D8:
                 moveq   #$00, D0   
                 move.w  ($FFFFFE10).w, D0
@@ -4378,14 +4399,14 @@ Dynamic_Water_Height: ; loc_46D8:
                 move.w  Dynamic_Water_Index(PC, D0), D0 ; loc_470C
                 jsr     Dynamic_Water_Index(PC, D0) ; loc_470C
                 moveq   #$00, D1
-                move.b  ($FFFFF64C).w, D1
-                move.w  ($FFFFF64A).w, D0
-                sub.w   ($FFFFF648).w, D0
+                move.b  (Water_on).w, D1
+                move.w  (Water_Level_2).w, D0
+                sub.w   (Water_Level_2).w, D0
                 beq.s   loc_470A
                 bcc.s   loc_4706
                 neg.w   D1
 loc_4706:
-                add.w   D1, ($FFFFF648).w
+                add.w   D1, (Water_Level_2).w
 loc_470A:
                 rts
 Dynamic_Water_Index: ; loc_470C:      
@@ -4410,11 +4431,11 @@ Dynamic_Null_Water: ; loc_472C:
 Dynamic_CPz_Water: ; loc_472E:
                 cmpi.w  #$1DE0, ($FFFFEE00).w
                 bcs.s   loc_473C
-                move.w  #$0510, ($FFFFF64A).w
+                move.w  #$0510, (Water_Level_2).w
 loc_473C:    
                 rts  
 S1_LZ_Wind_Tunnels:; loc_473E: leftover from Sonic 1's LZ                             
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne     loc_481A
                 lea     (S1_LZ_Wind_Data), A2   ; loc_4824
                 moveq   #$00, D0
@@ -4449,7 +4470,7 @@ loc_479E:
                 bne     loc_481A
                 cmpi.b  #$04, $0024(A1)
                 bcc.s   loc_4816
-                move.b  #$01, ($FFFFF7C7).w
+                move.b  #$01, (WindTunnel_flag).w
                 subi.w  #$0080, D0
                 cmp.w   (A2), D0
                 bcc.s   loc_47CC
@@ -4477,11 +4498,11 @@ loc_4802:
 loc_4804:
                 addq.w  #$08, A2
                 dbra    D1, loc_4766
-                tst.b   ($FFFFF7C7).w
+                tst.b   (WindTunnel_flag).w
                 beq.s   loc_481A
                 move.b  #$00, $001C(A1)
 loc_4816:
-                clr.b   ($FFFFF7C7).w
+                clr.b   (WindTunnel_flag).w
 loc_481A:
                 rts                
 ;loc_481C:
@@ -4663,7 +4684,7 @@ Load_Colision_Index: ; loc_4AAA:
                 moveq   #$00, D0
                 move.b  ($FFFFFE10).w, D0
                 lsl.w   #$02, D0
-                move.l  #$FFFFD000, ($FFFFF796).w
+                move.l  #$FFFFD000, (Collision_addr).w
                 move.l  Primary_Colision_Index(PC, D0), A1 ; loc_4ADC
                 lea     ($FFFFD000).w, A2
                 bsr.s   Load_Colision           ; loc_4ACC
@@ -4800,7 +4821,7 @@ loc_4C9C:
 loc_4CBE:
                 rts
 End_Level_Art_Load: ; loc_4CC0: ; Test for load end level sprites...
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne     Skip_End_Level_Art_Load ; loc_4CF6
                 cmpi.w  #$0001, ($FFFFFE10).w
                 beq.s   Skip_End_Level_Art_Load ; loc_4CF6
@@ -4963,7 +4984,7 @@ loc_52A0:
 loc_52B0:                
                 move.l  D0, (A1)+
                 dbra    D1, loc_52B0
-                clr.b   ($FFFFF64E).w
+                clr.b   (Water_fullscreen_flag).w
                 clr.w   ($FFFFFE02).w
                 moveq   #$16, D0
                 bsr     PalLoad1                ; loc_28E2
@@ -4985,13 +5006,13 @@ loc_52B0:
                 subq.b  #$01, ($FFFFF792).w
                 clr.w   ($FFFFFE20).w
                 clr.b   ($FFFFFE1B).w
-                move.w  #$0000, ($FFFFFE08).w
+                move.w  #$0000, (Debug_placement_mode).w
                 move.w  #$0708, ($FFFFF614).w
                 tst.b   ($FFFFFFD2).w
                 beq.s   loc_533C
                 btst    #$06, ($FFFFF604).w
                 beq.s   loc_533C
-                move.b  #$01, ($FFFFFFFA).w
+                move.b  #$01, (Debug_mode_flag).w
 loc_533C:
                 move.w  ($FFFFF60C).w, D0
                 ori.b   #$40, D0
@@ -5003,7 +5024,7 @@ loc_534E:
                 bsr     DelayProgram            ; loc_31D8
                 bsr     Move_Sonic_In_Demo      ; loc_48DE
                 move.w  ($FFFFF604).w, ($FFFFF602).w
-                jsr     (Load_Objects)          ; loc_CFD0
+                jsr     (RunObjects)          ; loc_CFD0
                 jsr     (Build_Sprites)         ; loc_D4DA
                 jsr     (S1_SS_Show_Layout)     ; loc_21508
                 bsr     S1_SS_Bg_Animate        ; loc_5806
@@ -5029,7 +5050,7 @@ loc_53BE:
                 bsr     DelayProgram            ; loc_31D8
                 bsr     Move_Sonic_In_Demo      ; loc_48DE
                 move.w  ($FFFFF604).w, ($FFFFF602).w
-                jsr     (Load_Objects)          ; loc_CFD0
+                jsr     (RunObjects)          ; loc_CFD0
                 jsr     (Build_Sprites)         ; loc_D4DA
                 jsr     (S1_SS_Show_Layout)     ; loc_21508
                 bsr     S1_SS_Bg_Animate        ; loc_5806
@@ -5075,7 +5096,7 @@ loc_5480:
                 bsr     Pause                   ; loc_14D2
                 move.b  #$0C, ($FFFFF62A).w
                 bsr     DelayProgram            ; loc_31D8
-                jsr     (Load_Objects)          ; loc_CFD0
+                jsr     (RunObjects)          ; loc_CFD0
                 jsr     (Build_Sprites)         ; loc_D4DA
                 bsr     RunPLC                  ; loc_17A8
                 tst.w   ($FFFFFE02).w
@@ -8478,7 +8499,7 @@ loc_7A64:
                 move.w  #$0390, ($FFFFEEC6).w
                 move.w  #$0390, ($FFFFEECE).w
                 addq.b  #$02, ($FFFFEEDF).w
-                bsr     SingleObjectLoad        ; loc_E772
+                bsr     SingleObjLoad        ; loc_E772
                 bne.s   loc_7A9E
                 move.b  #$55, (A1)
                 move.b  #$81, $0028(A1)
@@ -8969,7 +8990,7 @@ loc_8036:
 loc_8096:
                 bra.s   loc_80EA
 loc_8098:                
-                bsr     S1SingleObjectLoad      ; loc_E788
+                bsr     SingleObjLoad2      ; loc_E788
                 bne.s   loc_80E8
                 move.b  $0000(A0), $0000(A1)
                 move.w  $0008(A0), $0008(A1)
@@ -9436,7 +9457,7 @@ loc_86B0:
                 move.b  D2, $003C(A0)
                 move.w  $0008(A0), D2
                 move.w  $000C(A0), D3
-                bsr     S1SingleObjectLoad      ; loc_E788
+                bsr     SingleObjLoad2      ; loc_E788
                 bne.s   loc_8738
                 move.b  $0000(A0), $0000(A1)
                 move.l  $0004(A0), $0004(A1)
@@ -9582,7 +9603,7 @@ loc_886C:
                 addi.w  #$0020, D0
                 cmpi.w  #$0040, D0
                 bcc.s   loc_88F6
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne     loc_88F6
                 move.b  #$01, $0034(A0)
 loc_8892:
@@ -9645,7 +9666,7 @@ loc_892E:
                 beq     loc_89E4
                 tst.b   ($FFFFFE78).w
                 bne     loc_89E4
-                bsr     S1SingleObjectLoad      ; loc_E788
+                bsr     SingleObjLoad2      ; loc_E788
                 bne.s   loc_89D4
                 moveq   #$00, D0
                 move.w  #$000F, D1
@@ -9725,7 +9746,7 @@ loc_8A56:
                 btst    #$01, $0022(A0)
                 beq.s   loc_8A92
                 addi.w  #$0018, $0012(A0)
-                move.w  ($FFFFF648).w, D0
+                move.w  (Water_Level_2).w, D0
                 cmp.w   $000C(A0), D0
                 bhi.s   loc_8AC0
                 move.w  D0, $000C(A0)
@@ -9852,7 +9873,7 @@ loc_8BB0:
                 bcs.s   loc_8C74
                 moveq   #$00, D6
 loc_8BFE:                
-                bsr     S1SingleObjectLoad      ; loc_E788
+                bsr     SingleObjLoad2      ; loc_E788
                 bne.s   loc_8C74
                 addq.b  #$01, $0028(A0)
                 move.w  A1, D5
@@ -10472,7 +10493,7 @@ loc_93B0:
                 move.l  A0, A1
                 bra.s   loc_93E2
 loc_93DA:
-                bsr     SingleObjectLoad        ; loc_E772
+                bsr     SingleObjLoad        ; loc_E772
                 bne.s   loc_9428
                 addq.w  #$08,  A3
 loc_93E2:
@@ -11114,7 +11135,7 @@ loc_9EF0:
                 bra     MarkObjGone             ; loc_D2A0
 loc_9EF4:
                 move.b  #$01, $0032(A0)
-                bsr     SingleObjectLoad        ; loc_E772
+                bsr     SingleObjLoad        ; loc_E772
                 bne.s   loc_9F38
                 move.w  $0008(A0), $0008(A1)
                 move.w  $000C(A0), $000C(A1)
@@ -11259,7 +11280,7 @@ Object_Hit_Index: ; loc_A094:
                 dc.w    loc_A100-Object_Hit_Index
 loc_A09A:
                 addq.b  #$02, $0024(A0)
-                bsr     SingleObjectLoad        ; loc_E772
+                bsr     SingleObjLoad        ; loc_E772
                 bne.s   loc_A0BC
                 move.b  #$28, $0000(A1)
                 move.w  $0008(A0), $0008(A1)
@@ -11528,7 +11549,7 @@ loc_A46A:
                 move.w  #$FC00, $0012(A0)
                 tst.b   ($FFFFF7A7).w
                 bne.s   loc_A4CA
-                bsr     SingleObjectLoad        ; loc_E772
+                bsr     SingleObjLoad        ; loc_E772
                 bne.s   loc_A4C6
                 move.b  #$29, $0000(A1)
                 move.w  $0008(A0), $0008(A1)
@@ -11932,7 +11953,7 @@ loc_A9BA:
 loc_A9BC:
                 move.w  #$003B, $0030(A0)
                 move.b  #$06, $001C(A0)
-                bsr     SingleObjectLoad        ; loc_E772
+                bsr     SingleObjLoad        ; loc_E772
                 bne.s   loc_A9F2
                 move.b  #$1F, $0000(A1)
                 move.b  #$06, $0024(A1)
@@ -11941,7 +11962,7 @@ loc_A9BC:
                 move.w  $000C(A0), $000C(A1)
                 move.w  #$FF00, $0010(A1)
 loc_A9F2:
-                bsr     SingleObjectLoad        ; loc_E772
+                bsr     SingleObjLoad        ; loc_E772
                 bne.s   loc_AA1C
                 move.b  #$1F, $0000(A1)
                 move.b  #$06, $0024(A1)
@@ -12092,100 +12113,136 @@ loc_AC1E:
 ; [ End ]
 ;===============================================================================                  
                           
-;=============================================================================== 
-; Object 0x25 - Rings  
-; [ Begin ]
-;===============================================================================                   
-Obj_0x25_Rings: ; loc_AC28:
-                moveq   #$00, D0
-                move.b  $0024(A0), D0
-                move.w  Rings_Index(PC, D0), D1  ; loc_AC36
-                jmp     Rings_Index(PC, D1)      ; loc_AC36
-Rings_Index: ; loc_AC36:
-                dc.w    loc_AC60-Rings_Index
-                dc.w    loc_ACCE-Rings_Index
-                dc.w    loc_ACEA-Rings_Index
-                dc.w    loc_AD10-Rings_Index
-                dc.w    loc_AD1E-Rings_Index                
-;loc_AC40:
-                dc.b    $10, $00, $18, $00, $20, $00, $00, $10, $00, $18, $00, $20, $10, $10, $18, $18
-                dc.b    $20, $20, $F0, $10, $E8, $18, $E0, $20, $10, $08, $18, $10, $F0, $08, $E8, $10   
-loc_AC60:
-                move.l  A0, A1
-                moveq   #$00, D1
-                move.w  $0008(A0), D2
-                move.w  $000C(A0), D3
-                bra.s   loc_AC76
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Object 25 - A ring (usually only placed through placement mode)
+; ---------------------------------------------------------------------------
+; Sprite_AC28: Obj_0x25_Rings:
+Obj25:
+		moveq	#0,d0
+		move.b	$24(a0),d0
+		move.w	Obj25_Index(pc,d0.w),d1
+		jmp	Obj25_Index(pc,d1.w)
+; ===========================================================================
+; off_AC36: Rings_Index
+Obj25_Index:	dc.w    Obj25_MakeRings-Obj25_Index
+		dc.w    Obj25_Animate-Obj25_Index
+		dc.w    Obj25_Collect-Obj25_Index
+		dc.w    Obj25_Sparkle-Obj25_Index
+		dc.w    Obj25_Delete-Obj25_Index
+; ===========================================================================
+; This was used in Sonic 1, which didn't have a separate ring manager
+; byte_AC40: Obj25_PosData:
+		;     x distance, y distance
+                dc.b	$10, 0		; horizontal tight
+		dc.b	$18, 0
+		dc.b	$20, 0
+		dc.b	0, $10		; vertical
+		dc.b	0, $18
+		dc.b	0, $20
+		dc.b	$10, $10	; diagonal
+		dc.b	$18, $18
+                dc.b    $20, $20
+		dc.b	$F0, $10
+		dc.b	$E8, $18
+		dc.b	$E0, $20
+		dc.b	$10, 8
+		dc.b	$18, $10
+		dc.b	$F0, 8
+		dc.b	$E8, $10
+; ===========================================================================
+; Evidently, there are still leftovers in the code itself relating to spawning
+; and positioning the ring objects, even though it's unneeded now
+; loc_AC60:
+Obj25_MakeRings:
+		move.l	a0,a1
+		moveq	#0,d1
+		move.w	8(a0),d2
+		move.w	$C(a0),d3
+		bra.s	loc_AC76
+
 loc_AC6E:
-                swap.w  D1
-                bsr     SingleObjectLoad        ; loc_E772
-                bne.s   loc_ACCE
+		swap.w	d1
+		bsr.w	SingleObjLoad
+		bne.s	loc_ACCE
+
 loc_AC76:
-                move.b  #$25, $0000(A1)
-                addq.b  #$02, $0024(A1)
-                move.w  D2, $0008(A1)
-                move.w  $0008(A0), $0032(A1)
-                move.w  D3, $000C(A1)
-                move.l  #Rings_Mappings, $0004(A1)  ; loc_B036
-                move.w  #$26BC, $0002(A1)
-                bsr     Adjust2PArtPointer2   ; loc_DC4C
-                move.b  #$04, $0001(A1)
-                move.b  #$02, $0018(A1)
-                move.b  #$47, $0020(A1)
-                move.b  #$08, $0019(A1)
-                move.b  $0023(A0), $0023(A1)
-                move.b  D1, $0034(A1)
-                addq.w  #$01, D1
-                add.w   D5, D2
-                add.w   D6, D3
-                swap.w  D1
-                dbra    D1, loc_AC6E   
-loc_ACCE:
-                move.b  ($FFFFFEC3).w, $001A(A0)
-                move.w  $0032(A0), D0
-                andi.w  #$FF80, D0
-                sub.w   ($FFFFF7DA).w, D0
-                cmpi.w  #$0280, D0
-                bhi.s   loc_AD1E
-                bra     DisplaySprite           ; loc_D3C2
-loc_ACEA:
-                addq.b  #$02, $0024(A0)
-                move.b  #$00, $0020(A0)
-                move.b  #$01, $0018(A0)
-                bsr     loc_AD22
-                lea     ($FFFFFC00).w, A2
-                moveq   #$00, D0
-                move.b  $0023(A0), D0
-                move.b  $0034(A0), D1
-                bset    D1, $02(A2, D0)
-loc_AD10:
-                lea     (loc_B02E), A1
-                bsr     AnimateSprite           ; loc_D412
-                bra     DisplaySprite           ; loc_D3C2
-loc_AD1E:
-                bra     DeleteObject            ; loc_D3B4
-loc_AD22:
-                addq.w  #$01, ($FFFFFE20).w
-                ori.b   #$01, ($FFFFFE1D).w
-                move.w  #$00B5, D0
-                cmpi.w  #$0064, ($FFFFFE20).w
-                bcs.s   loc_AD5C
-                bset    #$01, ($FFFFFE1B).w
-                beq.s   loc_AD50
-                cmpi.w  #$00C8, ($FFFFFE20).w
-                bcs.s   loc_AD5C
-                bset    #$02, ($FFFFFE1B).w
-                bne.s   loc_AD5C
+		move.b	#$25,0(a1)	; load obj25
+		addq.b	#2,$24(a1)
+		move.w	d2,8(a1)
+		move.w	8(a0),$32(a1)
+		move.w	d3,$C(a1)
+		move.l	#Rings_Mappings,4(a1)
+		move.w	#$26BC,2(a1)
+		bsr.w	Adjust2PArtPointer2
+		move.b	#4,1(a1)
+		move.b	#2,$18(a1)
+		move.b	#$47,$20(a1)
+		move.b	#8,$19(a1)
+		move.b	$23(a0),$23(a1)
+		move.b	d1,$34(a1)
+		addq.w	#1,d1
+		add.w	d5,d2
+		add.w	d6,d3
+		swap.w	d1
+		dbf	d1,loc_AC6E
+; loc_ACCE:
+Obj25_Animate:
+		move.b	($FFFFFEC3).w,$1A(a0)
+		move.w	$32(a0),d0
+		andi.w	#$FF80,d0
+		sub.w	($FFFFF7DA).w,d0
+		cmpi.w	#$280,d0
+		bhi.s	Obj25_Delete
+		bra.w	DisplaySprite
+; ===========================================================================
+; loc_ACEA:
+Obj25_Collect:
+		addq.b	#2,$24(a0)
+		move.b	#0,$20(a0)
+		move.b	#1,$18(a0)
+		bsr.w	CollectRing
+		lea	($FFFFFC00).w,a2
+		moveq	#0,d0
+		move.b	$23(a0),d0
+		move.b	$34(a0),d1
+		bset	d1,2(a2,d0.w)
+; loc_AD10:
+Obj25_Sparkle:
+		lea	(loc_B02E).l,a1
+		bsr.w	AnimateSprite
+		bra.w	DisplaySprite
+; ===========================================================================
+; loc_AD1E:
+Obj25_Delete:
+		bra.w	DeleteObject
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_AD22:
+CollectRing:
+		addq.w	#1,($FFFFFE20).w
+		ori.b	#1,($FFFFFE1D).w
+		move.w	#$B5,d0
+		cmpi.w	#$64,($FFFFFE20).w
+		bcs.s	loc_AD5C
+		bset	#1,($FFFFFE1B).w
+		beq.s	loc_AD50
+		cmpi.w	#$C8,($FFFFFE20).w
+		bcs.s	loc_AD5C
+		bset	#2,($FFFFFE1B).w
+		bne.s	loc_AD5C
+
 loc_AD50:
-                addq.b  #$01, ($FFFFFE12).w
-                addq.b  #$01, ($FFFFFE1C).w
-                move.w  #$0088, D0           ; +1UP Sound - Sonic 1 LeftOver
+		addq.b	#1,($FFFFFE12).w
+		addq.b	#1,($FFFFFE1C).w
+		; leftover from Sonic 1, which had the extra life music in slot
+		; $88 instead if $98 (which is now the Death Egg music slot)
+		move.w	#$88,d0
+
 loc_AD5C:
-                jmp     (PlaySound)              ; loc_14C6
-;=============================================================================== 
-; Object 0x25 - Rings  
-; [ End ]
-;===============================================================================  
+		jmp	(PlaySound).l
+; End of function CollectRing
 
 ;=============================================================================== 
 ; Object 0x37 - Rings flying out of you when you get hit 
@@ -12215,7 +12272,7 @@ loc_AD8A:
                 move.w  #$0288, D4
                 bra.s   loc_AD9A
 loc_AD92:  
-                bsr     SingleObjectLoad        ; loc_E772
+                bsr     SingleObjLoad        ; loc_E772
                 bne     loc_AE22
 loc_AD9A:
                 move.b  #$37, $0000(A1)
@@ -12288,7 +12345,7 @@ loc_AE90:
                 addq.b  #$02, $0024(A0)
                 move.b  #$00, $0020(A0)
                 move.b  #$01, $0018(A0)
-                bsr     loc_AD22
+                bsr     CollectRing
 loc_AEA4:
                 lea     (loc_B02E), A1
                 bsr     AnimateSprite           ; loc_D412
@@ -12344,7 +12401,7 @@ loc_AF1A:
 loc_AF38:
                 subq.b  #$02, $0024(A0)
                 move.b  #$00, $0020(A0)
-                bsr     SingleObjectLoad        ; loc_E772
+                bsr     SingleObjLoad        ; loc_E772
                 bne     loc_AF70
                 move.b  #$7C, $0000(A1)     ; Call Object 0x7C - Big Ring Flash
                 move.w  $0008(A0), $0008(A1)
@@ -12647,14 +12704,14 @@ loc_B408:
 loc_B40C:
                 addq.b  #$02, $0024(A0)
                 move.b  #$00, $0020(A0)
-                bsr     S1SingleObjectLoad      ; loc_E788
+                bsr     SingleObjLoad2      ; loc_E788
                 bne.s   loc_B434
                 move.b  #$2E, $0000(A1)
                 move.w  $0008(A0), $0008(A1)
                 move.w  $000C(A0), $000C(A1)
                 move.b  $001C(A0), $001C(A1)
 loc_B434:
-                bsr     S1SingleObjectLoad      ; loc_E788
+                bsr     SingleObjLoad2      ; loc_E788
                 bne.s   loc_B450
                 move.b  #$27, $0000(A1)
                 addq.b  #$02, $0024(A1)
@@ -12812,7 +12869,7 @@ loc_B5F0:
                 bmi.s   loc_B648
                 cmpi.b  #$06, ($FFFFB024).w
                 bcc.s   loc_B648
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne.s   loc_B648
                 cmp.w   D0, D1
                 bcc.s   loc_B63E
@@ -14204,169 +14261,226 @@ loc_CD68:
 ; [ End ]                         
 ;===============================================================================
                 dc.w    $0000                   ; Filler 
-;=============================================================================== 
-; Object 0x3C 
-; [ Begin ]                         
-;=============================================================================== 
-Obj_0x3C: ; loc_CD7C:
-                moveq   #$00, D0
-                move.b  $0024(A0), D0
-                move.w  loc_CD8E(PC, D0), D1
-                jsr     loc_CD8E(PC, D1)
-                bra     MarkObjGone             ; loc_D2A0
-loc_CD8E:
-                dc.w    loc_CD94-loc_CD8E
-                dc.w    loc_CDC2-loc_CD8E
-                dc.w    loc_CE3A-loc_CD8E
-loc_CD94:
-                addq.b  #$02, $0024(A0)
-                move.l  #loc_CF04, $0004(A0)
-                move.w  #$4590, $0002(A0)
-                bsr     Adjust2PArtPointer     ; loc_DC30
-                move.b  #$04, $0001(A0)
-                move.b  #$10, $0019(A0)
-                move.b  #$04, $0018(A0)
-                move.b  $0028(A0), $001A(A0)
-loc_CDC2:
-                move.w  ($FFFFB010).w, $0030(A0)
-                move.w  #$001B, D1
-                move.w  #$0020, D2
-                move.w  #$0020, D3
-                move.w  $0008(A0), D4
-                bsr     SolidObject             ; loc_F4A0
-                btst    #$05, $0022(A0)
-                bne.s   loc_CDE6
-loc_CDE4:                
-                rts
-loc_CDE6:
-                lea     ($FFFFB000).w, A1
-                cmpi.b  #$02, $001C(A1)
-                bne.s   loc_CDE4
-                move.w  $0030(A0), D0
-                bpl.s   loc_CDFA
-                neg.w   D0
-loc_CDFA:
-                cmpi.w  #$0480, D0
-                bcs.s   loc_CDE4
-                move.w  $0030(A0), $0010(A1)
-                addq.w  #$04, $0008(A1)
-                lea     (loc_CEC4), A4
-                move.w  $0008(A0), D0
-                cmp.w   $0008(A1), D0
-                bcs.s   loc_CE26
-                subi.w  #$0008, $0008(A1)
-                lea     (loc_CEE4), A4
-loc_CE26:
-                move.w  $0010(A1), $0014(A1)
-                bclr    #$05, $0022(A0)
-                bclr    #$05, $0022(A1)
-                bsr.s   loc_CE50
-loc_CE3A:
-                bsr     SpeedToPos              ; loc_D27A
-                addi.w  #$0070, $0012(A0)
-                tst.b   $0001(A0)
-                bpl     DeleteObject            ; loc_D3B4
-                bra     DisplaySprite           ; loc_D3C2
-;=============================================================================== 
-; Object 0x3C 
-; [ End ]                         
-;=============================================================================== 
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Object 3C - Breakable wall (leftover from S1) (mostly unused)
+; ---------------------------------------------------------------------------
+; Sprite_CD7C: Obj_0x3C:
+Obj3C:
+		moveq	#0,d0
+		move.b	$24(a0),d0
+		move.w	Obj3C_Index(pc,d0.w),d1
+		jsr	Obj3C_Index(pc,d1.w)
+		bra.w	MarkObjGone
+; ===========================================================================
+; off_CD8E:
+Obj3C_Index:
+                dc.w    Obj3C_Init-Obj3C_Index
+                dc.w    Obj3C_Main-Obj3C_Index
+                dc.w    Obj3C_Fragment-Obj3C_Index
+; ===========================================================================
+; loc_CD94:
+Obj3C_Init:
+		addq.b	#2,$24(a0)
+		move.l	#Obj3C_MapUnc_CF04,4(a0)
+		move.w	#$4590,2(a0)
+		bsr.w	Adjust2PArtPointer
+		move.b	#4,1(a0)
+		move.b	#$10,$19(a0)
+		move.b	#4,$18(a0)
+		move.b	$28(a0),$1A(a0)
+; loc_CDC2:
+Obj3C_Main:
+		move.w	($FFFFB010).w,$30(a0)
+		move.w	#$1B,d1
+		move.w	#$20,d2
+		move.w	#$20,d3
+		move.w	8(a0),d4
+		bsr.w	SolidObject
+		btst	#5,$22(a0)
+		bne.s	loc_CDE6
 
-loc_CE50:
-                moveq   #$00, D0
-                move.b  $001A(A0), D0
-                add.w   D0, D0
-                move.l  $0004(A0), A3
-                adda.w  $00(A3, D0), A3
-                move.w  (A3)+, D1
-                subq.w  #$01, D1
-                bset    #$05, $0001(A0)
-                move.b  $0000(A0), D4
-                move.b  $0001(A0), D5
-                move.l  A0, A1
-                bra.s   loc_CE7E
-loc_CE76:                
-                bsr     S1SingleObjectLoad      ; loc_E788
-                bne.s   loc_CEBA
-                addq.w  #$08, A3
-loc_CE7E:
-                move.b  #$04, $0024(A1)
-                move.b  D4, $0000(A1)
-                move.l  A3, $0004(A1)
-                move.b  D5, $0001(A1)
-                move.w  $0008(A0), $0008(A1)
-                move.w  $000C(A0), $000C(A1)
-                move.w  $0002(A0), $0002(A1)
-                move.b  $0018(A0), $0018(A1)
-                move.b  $0019(A0), $0019(A1)
-                move.w  (A4)+, $0010(A1)
-                move.w  (A4)+, $0012(A1)
-                dbra    D1, loc_CE76
+return_CDE4:
+		rts
+; ===========================================================================
+
+loc_CDE6:
+		lea	($FFFFB000).w,a1	; a1=character
+		cmpi.b	#2,$1C(a1)
+		bne.s	return_CDE4
+		move.w	$30(a0),d0
+		bpl.s	loc_CDFA
+		neg.w	d0
+
+loc_CDFA:
+		cmpi.w	#$480,d0
+		bcs.s	return_CDE4
+		move.w	$30(a0),$10(a1)
+		addq.w	#4,8(a1)
+		lea	(Obj3C_FragmentSpeeds_LeftToRight).l,a4
+		move.w	8(a0),d0
+		cmp.w	8(a1),d0
+		bcs.s	loc_CE26
+		subi.w	#8,8(a1)
+		lea	(Obj3C_FragmentSpeeds_RightToLeft).l,a4
+
+loc_CE26:
+		move.w	$10(a1),$14(a1)
+		bclr	#5,$22(a0)
+		bclr	#5,$22(a1)
+		bsr.s	BreakObjectToPieces
+; loc_CE3A:
+Obj3C_Fragment:
+		bsr.w	SpeedToPos
+		addi.w	#$70,$12(a0)
+		tst.b	1(a0)
+		bpl.w	DeleteObject
+		bra.w	DisplaySprite
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Subroutine to break an object into its current sprite mappings
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_CE50:
+BreakObjectToPieces:
+		moveq	#0,d0
+		move.b	$1A(A0),d0
+		add.w	d0,d0
+		move.l	4(a0),a3
+		adda.w	(a3,d0.w),a3	; put address of appropriate frame to a3
+		move.w	(a3)+,d1	; amount of pieces the frame consists of
+		subq.w	#1,d1
+		bset	#5,1(a0)
+		move.b	0(a0),d4
+		move.b	1(a0),d5
+		move.l	a0,a1
+		bra.s	BreakObjectToPieces_InitObject
+; ===========================================================================
+; loc_CE76:
+BreakObjectToPieces_Loop:
+		bsr.w	SingleObjLoad2
+		bne.s	loc_CEBA
+		addq.w	#8,a3
+; loc_CE7E:
+BreakObjectToPieces_InitObject:
+		move.b	#4,$24(a1)
+		move.b	d4,0(a1)	; load object with ID of parent object and routine 4
+		move.l	a3,4(a1)
+		move.b	d5,1(a1)
+		move.w	8(a0),8(a1)
+		move.w	$C(a0),$C(a1)
+		move.w	2(a0),2(a1)
+		move.b	$18(a0),$18(a1)
+		move.b	$19(a0),$19(a1)
+		move.w	(a4)+,$10(a1)
+		move.w	(a4)+,$12(a1)
+		dbf	d1,BreakObjectToPieces_Loop
+
 loc_CEBA:
-                move.w  #$00CB, D0
-                jmp     (PlaySound)              ; loc_14C6
-loc_CEC4:
-                dc.w    $0400, $FB00, $0600, $FF00, $0600, $0100, $0400, $0500
-                dc.w    $0600, $FA00, $0800, $FE00, $0800, $0200, $0600, $0600                
-loc_CEE4:
-                dc.w    $FA00, $FA00, $F800, $FE00, $F800, $0200, $FA00, $0600
-                dc.w    $FC00, $FB00, $FA00, $FF00, $FA00, $0100, $FC00, $0500               
-loc_CF04:
-                dc.w    loc_CF0A-loc_CF04
-                dc.w    loc_CF4C-loc_CF04
-                dc.w    loc_CF8E-loc_CF04
-loc_CF0A:
-                dc.w    $0008
-                dc.l    $E0050000, $0000FFF0, $F0050000, $0000FFF0
-                dc.l    $00050000, $0000FFF0, $10050000, $0000FFF0
-                dc.l    $E0050004, $00020000, $F0050004, $00020000
-                dc.l    $00050004, $00020000, $10050004, $00020000
-loc_CF4C:
-                dc.w    $0008
-                dc.l    $E0050004, $0002FFF0, $F0050004, $0002FFF0
-                dc.l    $00050004, $0002FFF0, $10050004, $0002FFF0
-                dc.l    $E0050004, $00020000, $F0050004, $00020000
-                dc.l    $00050004, $00020000, $10050004, $00020000
-loc_CF8E:
-                dc.w    $0008
-                dc.l    $E0050004, $0002FFF0, $F0050004, $0002FFF0
-                dc.l    $00050004, $0002FFF0, $10050004, $0002FFF0
-                dc.l    $E0050008, $00040000, $F0050008, $00040000
-                dc.l    $00050008, $00040000, $10050008, $00040000
-Load_Objects: ; loc_CFD0: ; Load Objects List Routine
-                lea     ($FFFFB000).w, A0
-                moveq   #$7F, D7
-                moveq   #$00, D0
-                cmpi.b  #$06, ($FFFFB024).w
-                bcc.s   loc_CFFA
-loc_CFE0:                
-                move.b  (A0), D0
-                beq.s   loc_CFF0
-                add.w   D0, D0
-                add.w   D0, D0
-                move.l  loc_D01A-$04(PC, D0), A1 ; Load Object List Array
-                jsr     (A1)
-                moveq   #$00, D0
-loc_CFF0:
-                lea     $0040(A0), A0
-                dbra    D7, loc_CFE0
-                rts
-loc_CFFA:
-                moveq   #$1F, D7
-                bsr.s   loc_CFE0
-                moveq   #$5F, D7
-loc_D000:                
-                moveq   #$00, D0
-                move.b  (A0), D0
-                beq.s   loc_D010
-                tst.b   $0001(A0)
-                bpl.s   loc_D010
-                bsr     DisplaySprite           ; loc_D3C2
+		move.w	#$CB,d0
+		jmp	(PlaySound).l
+; End of function BreakObjectToPieces
+
+; ===========================================================================
+; word_CEC4:
+Obj3C_FragmentSpeeds_LeftToRight:
+		;    x velocity,y velocity
+		dc.w  $400,-$500
+		dc.w  $600,-$100
+		dc.w  $600, $100
+		dc.w  $400, $500
+		dc.w  $600,-$600
+		dc.w  $800,-$200
+		dc.w  $800, $200
+		dc.w  $600, $600
+; word_CEE4:
+Obj3C_FragmentSpeeds_RightToLeft:
+		dc.w -$600,-$600
+		dc.w -$800,-$200
+		dc.w -$800, $200
+		dc.w -$600, $600
+		dc.w -$400,-$500
+		dc.w -$600,-$100
+		dc.w -$600, $100
+		dc.w -$400, $500
+; ---------------------------------------------------------------------------
+; Unused sprite mappings
+; ---------------------------------------------------------------------------
+Obj3C_MapUnc_CF04:	incbin	"mappings/sprite/obj3C.bin"
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; This runs the code of all the objects that are in object RAM
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_CDD0: Load_Objects:
+RunObjects:
+		lea	($FFFFB000).w,a0	; a0=object
+		moveq	#$7F,d7			; run the first $80 objects out of levels
+		moveq	#0,d0
+		cmpi.b	#6,($FFFFB024).w	; is Sonic dead?
+		bcc.s	RunObjectsWhenPlayerIsDead	; if yes, branch
+		; continue straight into RunObject
+
+; ---------------------------------------------------------------------------
+; This is THE place where each individual object's code gets called from
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_CFE0:
+RunObject:
+		move.b	(a0),d0		; get object ID
+		beq.s	RunNextObject	; skip if invalid (e.g. Obj00)
+
+		add.w	d0,d0
+		add.w	d0,d0	; d0 = object ID *4
+		move.l	Obj_Index-4(pc,d0.w),a1	; load the address of the object's code
+		jsr	(a1)	; dynamic call! to one of the the entries in Obj_Index
+		moveq	#0,d0
+; loc_CFF0:
+RunNextObject:
+		lea	$40(a0),a0	; load Obj address
+		dbf	d7,RunObject
+		rts
+; ---------------------------------------------------------------------------
+; this skips certain objects to make enemies and things pause when Sonic dies
+; loc_CFFA:
+RunObjectsWhenPlayerIsDead:
+		moveq	#$1F,d7
+		bsr.s	RunObject	; run the first $10 objects normally
+		moveq	#$5F,d7		; all objects in this range are paused
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_D000:
+RunObjectDisplayOnly:
+		moveq	#0,d0
+		move.b	(a0),d0		; get object ID
+		beq.s	loc_D010	; skip if invalid (e.g. Obj00)
+		tst.b	1(a0)		; has the object been fully initalized?
+		bpl.s	loc_D010	; if not, branch
+		bsr.w	DisplaySprite
+
 loc_D010:
-                lea     $0040(A0), A0
-                dbra    D7, loc_D000
-                rts
-loc_D01A: ; Object List Array
+		lea	$40(a0),a0	; load Obj address
+		dbf	d7,RunObjectDisplayOnly
+		rts
+; End of function RunObjects
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; OBJECT POINTER ARRAY ; object pointers ; sprite pointers ; object list ; sprite list
+;
+; This array contains the pointers to all the objects used in the game.
+; ---------------------------------------------------------------------------
+; loc_D01A:
+Obj_Index:
 		dc.l	Obj01			; Sonic
                 dc.l    Obj_0x02_Tails                    ; loc_10E38
                 dc.l    Obj_0x03_Layer_Switch             ; loc_144B0
@@ -14403,7 +14517,7 @@ loc_D01A: ; Object List Array
                 dc.l    Obj_0x22_Arrow_Shooter            ; loc_19660
                 dc.l    Obj_0x23_Pillar                   ; loc_19850    
                 dc.l    Obj_0x24                          ; loc_A012
-                dc.l    Obj_0x25_Rings                    ; loc_AC28 
+		dc.l	Obj25			; A ring
                 dc.l    Obj_0x26_Monitors                 ; loc_B29C
                 dc.l    Obj_0x27_Object_Hit               ; loc_A086
                 dc.l    Obj_0x28_Flickies                 ; loc_A2B0
@@ -14426,7 +14540,7 @@ loc_D01A: ; Object List Array
                 dc.l    Obj_0x39_Time_Game_Over           ; loc_BD76
                 dc.l    Obj_0x3A_Level_Results            ; loc_BE38 
                 dc.l    Obj_0x3B                          ; loc_CD00
-                dc.l    Obj_0x3C                          ; loc_CD7C
+		dc.l	Obj3C			; Breakable wall (leftover from S1) (mostly unused)
                 dc.l    Obj_0x3D_Break_Boost              ; loc_18E78   
                 dc.l    Obj_0x3E_Egg_Prison               ; loc_20E5C
                 dc.l    Obj_0x3F                          ; loc_A11E
@@ -14506,9 +14620,15 @@ loc_D01A: ; Object List Array
                 dc.l    Obj_Null                          ; loc_D24A ; Object $89
                 dc.l    Obj_0x8A_Credits                  ; loc_20740
                 dc.l    Obj_Null                          ; loc_D24A ; Object $8B
-                dc.l    Obj_Null                          ; loc_D24A ; Object $8C   
-Obj_Null: ; loc_D24A:
-                bra     DeleteObject            ; loc_D3B4                 
+                dc.l    Obj_Null                          ; loc_D24A ; Object $8C
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Used for blank objects, dealocate its array to prevent memory leaks
+; ---------------------------------------------------------------------------
+; loc_D24A:
+Obj_Null:
+		bra.w	DeleteObject
+
 ;=============================================================================== 
 ; Sub Routine ObjectFall
 ; [ Begin ]                         
@@ -15914,7 +16034,7 @@ loc_DFF4:
                 bhi     loc_E010
 loc_DFFA:
                 move.w  #$0604, (A1)
-                bsr     loc_AD22
+                bsr     CollectRing
                 lea     ($FFFFEF82).w, A3
 loc_E006:
                 tst.w   (A3)+
@@ -16595,7 +16715,7 @@ loc_E6C2:
                 moveq   #$00, D0
                 rts
 loc_E6D6:
-                bsr     SingleObjectLoad        ; loc_E772
+                bsr     SingleObjLoad        ; loc_E772
                 bne.s   loc_E710
                 move.w  (A0)+, $0008(A1)
                 move.w  (A0)+, D0
@@ -16627,7 +16747,7 @@ loc_E712:
 loc_E726:
                 btst    #$05, $0002(A0)
                 beq.s   loc_E736
-                bsr     SingleObjectLoad        ; loc_E772
+                bsr     SingleObjLoad        ; loc_E772
                 bne.s   loc_E770
                 bra.s   loc_E73C
 loc_E736:
@@ -16656,10 +16776,10 @@ loc_E770:
 ;========================= Load Object List - [ End ] =========================   
                
 ;=============================================================================== 
-; Sub Routine SingleObjectLoad
+; Sub Routine SingleObjLoad
 ; [ Begin ]                         
 ;===============================================================================                
-SingleObjectLoad: ; loc_E772:                
+SingleObjLoad: ; loc_E772:                
                 lea     ($FFFFB800).w, A1
                 move.w  #$005F, D0
 loc_E77A:
@@ -16670,15 +16790,15 @@ loc_E77A:
 loc_E786:
                 rts     
 ;=============================================================================== 
-; Sub Routine SingleObjectLoad
+; Sub Routine SingleObjLoad
 ; [ End ]                         
 ;===============================================================================                  
                                                                             
 ;=============================================================================== 
-; Sub Routine S1SingleObjectLoad
+; Sub Routine SingleObjLoad2
 ; [ Begin ]                         
 ;===============================================================================                 
-S1SingleObjectLoad: ;loc_E788:
+SingleObjLoad2: ;loc_E788:
                 move.l  A0, A1
                 move.w  #$D000, D0
                 sub.w   A0, D0
@@ -16693,7 +16813,7 @@ loc_E796:
 loc_E7A2:
                 rts   
 ;=============================================================================== 
-; Sub Routine S1SingleObjectLoad
+; Sub Routine SingleObjLoad2
 ; [ End ]                         
 ;===============================================================================    
              
@@ -17447,7 +17567,7 @@ loc_F29C:
                 addq.b  #$02, $0034(A0)
                 andi.b  #$0E, $0034(A0)
                 lea     loc_F30C(PC, D0), A2
-                bsr     SingleObjectLoad        ; loc_E772
+                bsr     SingleObjLoad        ; loc_E772
                 bne.s   loc_F30A
                 move.b  #$25, $0000(A1)
                 move.b  #$06, $0024(A1)
@@ -17470,7 +17590,7 @@ loc_F30A:
 loc_F30C: 
                 dc.b    $E8, $F0, $08, $08, $F0, $00, $18, $F8, $00, $F8, $10, $00, $E8, $08, $18, $10
 End_Panel_Sub_04: ; loc_F31C:
-                tst.w   ($FFFFFE08).w  
+                tst.w   (Debug_placement_mode).w  
                 bne     loc_F3B6
                 btst    #$01, ($FFFFB022).w
                 bne.s   loc_F338
@@ -17861,7 +17981,7 @@ loc_F794:
                 bmi     loc_F82A
                 cmpi.b  #$06, $0024(A1)
                 bcc     loc_F848
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne     loc_F848
                 move.w  D0, D5
                 cmp.w   D0, D1
@@ -18003,7 +18123,7 @@ loc_F8F4:
                 bmi.s   loc_F91C
                 cmpi.b  #$06, $0024(A1)
                 bcc.s   loc_F91C
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne.s   loc_F91C
                 moveq   #$00, D1
                 move.b  $0016(A1), D1
@@ -18307,12 +18427,12 @@ loc_FC44:
 ; ---------------------------------------------------------------------------            
 ; Sprite_FC48: Obj_0x01_Sonic:
 Obj01:
-		tst.w	($FFFFFE08).w		; is Debug Mode being used?
-		beq.s	Sonic_Normal		; if not, branch
+		tst.w	(Debug_placement_mode).w; is Debug Mode being used?
+		beq.s	Obj01_Normal		; if not, branch
 		jmp	(DebugMode).l
 ; ---------------------------------------------------------------------------
-; loc_FC54:
-Sonic_Normal:
+; loc_FC54: Sonic_Normal:
+Obj01_Normal:
 		moveq	#0,d0
 		move.b	$24(a0),d0
 		move.w	Obj01_Index(pc,d0.w),d1
@@ -18356,12 +18476,12 @@ loc_FCD4:
 ; ---------------------------------------------------------------------------
 ; loc_FCE2: Sonic_Control:
 Obj01_Control:
-		tst.w	($FFFFFFFA).w		; is Debug Mode enabled?
-		beq.s	loc_FCFC		; if not, branch
-		btst	#4,($FFFFF605).w	; is button B pressed?
-		beq.s	loc_FCFC		; if not, branch
-		move.w	#1,($FFFFFE08).w	; change Sonic into a ring/item
-		clr.b	($FFFFF7CC).w		; unlock control
+		tst.w	(Debug_mode_flag).w		; is Debug Mode enabled?
+		beq.s	loc_FCFC			; if not, branch
+		btst	#4,($FFFFF605).w		; is button B pressed?
+		beq.s	loc_FCFC			; if not, branch
+		move.w	#1,(Debug_placement_mode).w	; change Sonic into a ring/item
+		clr.b	($FFFFF7CC).w			; unlock control
 		rts
 ; -----------------------------------------------------------------------
 
@@ -18372,20 +18492,20 @@ loc_FCFC:
 
 loc_FD08:
 		btst	#0,$2A(a0)		; is Sonic interacting with another object that holds him in place or controls his movement somehow?
-		bne.s	Sonic_ControlsLock	; if yes, branch
+		bne.s	Obj01_ControlsLock	; if yes, branch
 		moveq	#0,d0
 		move.b	$22(a0),d0
 		andi.w	#6,d0
 		move.w	Obj01_Modes(pc,d0.w),d1
 		jsr	Obj01_Modes(pc,d1)	; run Sonic's movement code
-; loc_FD22:
-Sonic_ControlsLock:
+; loc_FD22: Sonic_ControlsLock:
+Obj01_ControlsLock:
 		bsr.s	Sonic_Display
 		bsr.w	Sonic_RecordPos
 		bsr.w	Sonic_Water
-		move.b	($FFFFF768).w,$36(a0)
-		move.b	($FFFFF76A).w,$37(a0)
-		tst.b	($FFFFF7C7).w
+		move.b	(Primary_Angle).w,$36(a0)
+		move.b	(Secondary_Angle).w,$37(a0)
+		tst.b	(WindTunnel_flag).w
 		beq.s	loc_FD4A
 		tst.b	$1C(a0)
 		bne.s	loc_FD4A
@@ -18531,7 +18651,7 @@ return_FE4C:
 
 ; loc_FE4E:
 Sonic_Water:
-		tst.b	($FFFFF730).w		; is this a water level?
+		tst.b	(Water_flag).w		; is this a water level?
 		bne.s	Obj01_InWater		; if not, branch
 
 return_FE54:
@@ -18539,7 +18659,7 @@ return_FE54:
 ; ---------------------------------------------------------------------------
 ; loc_FE56: Sonic_InLevelWithWater:
 Obj01_InWater:
-		move.w	($FFFFF646).w,d0
+		move.w	(Water_Level_1).w,d0
 		cmp.w	$C(a0),d0		; is Sonic underwater?
 		bge.s	Obj01_OutWater		; if not, branch
 
@@ -18791,101 +18911,112 @@ Obj01_Traction:
 
 ; stops Sonic from running through walls that meet the ground
 ; loc_100B8:
-Obj01_CheckWallsOnGround:                
-                move.b  $0026(A0), D0
-                addi.b  #$40, D0
-                bmi.s   loc_10128
-                move.b  #$40, D1
-                tst.w   $0014(A0)
-                beq.s   loc_10128
-                bmi.s   loc_100D0
-                neg.w   D1
-loc_100D0:
-                move.b  $0026(A0), D0
-                add.b   D1, D0
-                move.w  D0, -(A7)
-                bsr     Sonic_WalkSpeed         ; loc_1366C
-                move.w  (A7)+, D0
-                tst.w   D1
-                bpl.s   loc_10128
-                asl.w   #$08, D1
-                addi.b  #$20, D0
-                andi.b  #$C0, D0
-                beq.s   loc_10124
-                cmpi.b  #$40, D0
-                beq.s   loc_10112
-                cmpi.b  #$80, D0
-                beq.s   loc_1010C
-                add.w   D1, $0010(A0)
-                bset    #$05, $0022(A0)
-                move.w  #$0000, $0014(A0)
-                rts
-loc_1010C:
-                sub.w   D1, $0012(A0)
-                rts
-loc_10112:
-                sub.w   D1, $0010(A0)
-                bset    #$05, $0022(A0)
-                move.w  #$0000, $0014(A0)
-                rts
-loc_10124:
-                add.w   D1, $0012(A0)
-loc_10128:                
-                rts    
-;=============================================================================== 
-; Sub Routine Sonic_Move
-; [ End ]                         
-;===============================================================================  
+Obj01_CheckWallsOnGround:
+		move.b	$26(a0),d0
+		addi.b	#$40,d0
+		bmi.s	loc_10128
+		move.b	#$40,d1		; rotate 90 degress clockwise
+		tst.w	$14(a0)		; is Sonic moving?
+		beq.s	loc_10128	; if not, branch
+		bmi.s	loc_100D0	; if negative, branch
+		neg.w	d1		; rotate COUNTER-clockwise
 
-;=============================================================================== 
-; Sub Routine Sonic_MoveLeft
-; [ Begin ]                         
-;===============================================================================                             
-Sonic_MoveLeft: ; loc_1012A:
-                move.w  $0014(A0), D0
-                beq.s   loc_10132
-                bpl.s   loc_10164
+loc_100D0:
+		move.b	$26(a0),d0
+		add.b	d1,d0
+		move.w	d0,-(sp)
+		bsr.w	Sonic_WalkSpeed
+		move.w	(sp)+,d0
+		tst.w	d1
+		bpl.s	loc_10128
+		asl.w	#8,d1
+		addi.b	#$20,d0
+		andi.b	#$C0,d0
+		beq.s	loc_10124
+		cmpi.b	#$40,d0
+		beq.s	loc_10112
+		cmpi.b	#$80,d0
+		beq.s	loc_1010C
+		add.w	d1,$10(a0)
+		bset	#5,$22(a0)
+		move.w	#0,$14(a0)
+		rts
+; ---------------------------------------------------------------------------
+
+loc_1010C:
+		sub.w	d1,$12(a0)
+		rts
+; ---------------------------------------------------------------------------
+
+loc_10112:
+		sub.w	d1,$10(a0)
+		bset	#5,$22(a0)
+		move.w	#0,$14(a0)
+		rts
+; ---------------------------------------------------------------------------
+
+loc_10124:
+		add.w	d1,$12(a0)
+; ---------------------------------------------------------------------------
+
+loc_10128:
+		rts
+; End of subroutine Sonic_Move    
+
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_1012A:
+Sonic_MoveLeft:
+		move.w	$14(a0),d0
+		beq.s	loc_10132	; is Sonic starting to move to the right?
+		bpl.s	loc_10164	; if not, branch
+
 loc_10132:
-                bset    #$00, $0022(A0)
-                bne.s   loc_10146
-                bclr    #$05, $0022(A0)                  
-                move.b  #$01, $001D(A0) 
+		bset	#0,$22(a0)
+		bne.s	loc_10146
+		bclr	#5,$22(a0)
+		move.b	#1,$1D(a0)	; force walking animation to restart if it's already in-progress
+
 loc_10146:
-                sub.w   D5, D0
-                move.w  D6, D1
-                neg.w   D1
-                cmp.w   D1, D0
-                bgt.s   loc_10158
-                add.w   D5, D0
-                cmp.w   D1, D0
-                ble.s   loc_10158
-                move.w  D1, D0
+		sub.w	d5,d0		; add acceleration to the left
+		move.w	d6,d1
+		neg.w	d1
+		cmp.w	d1,d0		; compare new speed with top speed
+		bgt.s	loc_10158	; if new speed is less than the maximum, branch
+		add.w	d5,d0		; remove this frame's acceleration change
+		cmp.w	d1,d0		; compare speed with top speed
+		ble.s	loc_10158	; if speed was already greater than the maximum, branch
+		move.w	d1,d0		; limit speed on ground going left
+
 loc_10158:
-                move.w  D0, $0014(A0)
-                move.b  #$00, $001C(A0)
-                rts
+		move.w	d0,$14(a0)
+		move.b	#0,$1C(a0)	; use walking animation
+		rts
+; ---------------------------------------------------------------------------
+
 loc_10164:
-                sub.w   D4, D0
-                bcc.s   loc_1016C
-                move.w  #$FF80, D0
+		sub.w	d4,d0
+		bcc.s	loc_1016C
+		move.w	#-$80,d0
+
 loc_1016C:
-                move.w  D0, $0014(A0)
-                move.b  $0026(A0), D0
-                addi.b  #$20, D0
-                andi.b  #$C0, D0
-                bne.s   loc_1019A
-                cmpi.w  #$0400, D0             
-                blt.s   loc_1019A
-                move.b  #$0D, $001C(A0)
-                bclr    #$00, $0022(A0)
-                move.w  #$00A4, D0
-                jsr     (PlaySound)              ; loc_14C6
-loc_1019A:
-                rts
-;=============================================================================== 
-; Sub Routine Sonic_MoveLeft
-; [ End ]                         
-;===============================================================================    
+		move.w	d0,$14(a0)
+		move.b	$26(a0),d0
+		addi.b	#$20,d0
+		andi.b	#$C0,d0
+		bne.s	return_1019A
+		cmpi.w	#$400,d0             
+		blt.s	return_1019A
+		move.b	#$D,$1C(a0)	; use "stopping" animation
+		bclr	#0,$22(a0)
+		move.w	#$A4,d0
+		jsr	(PlaySound).l
+
+return_1019A:
+		rts
+; End of subroutine Sonic_MoveLeft
+
 
 ;=============================================================================== 
 ; Sub Routine Sonic_MoveRight
@@ -19261,36 +19392,43 @@ loc_1051C:
 ; [ End ]                         
 ;===============================================================================   
 
-;=============================================================================== 
-; Sub Routine Sonic_JumpHeight
-; [ Begin ]                         
-;===============================================================================   
-Sonic_JumpHeight: ; loc_10524:
-                tst.b   $003C(A0)
-                beq.s   loc_10550
-                move.w  #$FC00, D1
-                btst    #$06, $0022(A0)
-                beq.s   loc_1053A
-                move.w  #$FE00, D1
+; ---------------------------------------------------------------------------
+; Subroutine letting Sonic control the height of the jump
+; when the jump button is released
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_10524:
+Sonic_JumpHeight:
+		tst.b	$3C(A0)		; is Sonic jumping?
+		beq.s	Sonic_UpVelCap	; if not, branch
+
+		move.w	#-$400,d1
+		btst	#6,$22(a0)	; is Sonic underwater?
+		beq.s	loc_1053A	; if not, branch
+		move.w	#-$200,d1
+
 loc_1053A:
-                cmp.w   $0012(A0), D1
-                ble.s   loc_1054E
-                move.b  ($FFFFF602).w, D0
-                andi.b  #$70, D0
-                bne.s   loc_1054E
-                move.w  D1, $0012(A0)
-loc_1054E:
-                rts  
-loc_10550:
-                cmpi.w  #$F040, $0012(A0)
-                bge.s   loc_1055E
-                move.w  #$F040, $0012(A0)
-loc_1055E:
-                rts 
-;=============================================================================== 
-; Sub Routine Sonic_JumpHeight
-; [ End ]                         
-;===============================================================================
+		cmp.w	$12(a0),d1	; is Sonic going up faster than d1?
+		ble.s	return_1054E	; if not, branch
+		move.b	($FFFFF602).w,d0
+		andi.b	#$70,d0		; is A/B/C pressed?
+		bne.s	return_1054E	; if yes, branch
+		move.w	d1,$12(a0)	; immediately reduce Sonic's upward speed to d1
+
+return_1054E:
+		rts  
+; ---------------------------------------------------------------------------
+; loc_10550:
+Sonic_UpVelCap:
+		cmpi.w	#-$FC0,$12(a0)	; is Sonic moving up really fast?
+		bge.s	return_1055E	; if not, branch
+		move.w	#-$FC0,$12(a0)	; cap upward speed
+
+return_1055E:
+		rts
+; End of subroutine Sonic_JumpHeight
                   
 ; ---------------------------------------------------------------------------
 ; Subroutine to check for starting to charge a spindash
@@ -19504,10 +19642,10 @@ loc_106FE:
 ; [ Begin ]                         
 ;=============================================================================== 
 Sonic_Floor: ; loc_10700:
-                move.l  #$FFFFD000, ($FFFFF796).w
+                move.l  #$FFFFD000, (Collision_addr).w
                 cmpi.b  #$0C, $003E(A0)
                 beq.s   loc_10718
-                move.l  #$FFFFD600, ($FFFFF796).w
+                move.l  #$FFFFD600, (Collision_addr).w
 loc_10718:
                 move.b  $003F(A0), D5
                 move.w  $0010(A0), D1
@@ -20187,8 +20325,8 @@ Tails_Control: ; loc_10EB4:
 Tails_ControlsLock: ; loc_10ED2:
                 bsr.s   Tails_Display           ; loc_10F12
                 bsr     Tails_RecordMoves       ; loc_11056
-                move.b  ($FFFFF768).w, $0036(A0)
-                move.b  ($FFFFF76A).w, $0037(A0)
+                move.b  (Primary_Angle).w, $0036(A0)
+                move.b  (Secondary_Angle).w, $0037(A0)
                 bsr     Tails_Animate           ; loc_11BA2
                 tst.b   $002A(A0)
                 bmi.s   loc_10EF4
@@ -21960,7 +22098,7 @@ loc_120F8:
                 lea     (loc_12530), A1
                 jsr     AnimateSprite           ; (loc_D412)
 loc_12104:
-                move.w  ($FFFFF646).w, D0
+                move.w  (Water_Level_1).w, D0
                 cmp.w   $000C(A0), D0
                 bcs.s   loc_1212A
                 move.b  #$06, $0024(A0)
@@ -21971,7 +22109,7 @@ loc_12104:
                 move.b  #$0D, $001C(A0)
                 bra.s   loc_1216E
 loc_1212A:
-                tst.b   ($FFFFF7C7).w
+                tst.b   (WindTunnel_flag).w
                 beq.s   loc_12134
                 addq.w  #$04, $0030(A0)
 loc_12134:
@@ -22132,7 +22270,7 @@ loc_1242C:
                 jsr     PseudoRandomNumber      ; loc_31E4
                 andi.w  #$000F, D0
                 move.w  D0, $003A(A0)
-                jsr     SingleObjectLoad        ; (loc_E772)
+                jsr     SingleObjLoad        ; (loc_E772)
                 bne     loc_124FC
                 move.b  #$0A, $0000(A1)
                 move.w  ($FFFFB008).w, $0008(A1)
@@ -22520,7 +22658,7 @@ loc_12B56:
                 bsr     Adjust2PArtPointer     ; loc_DC30
                 move.w  ($FFFFB008).w, $0008(A0)
 loc_12B84:
-                move.w  ($FFFFF646).w, $000C(A0)
+                move.w  (Water_Level_1).w, $000C(A0)
                 lea     (loc_12CEC), A1
                 jsr     AnimateSprite           ; (loc_D412)
                 jmp     DisplaySprite           ; (loc_D3C2)
@@ -22626,22 +22764,22 @@ loc_12D1E:
 ;===============================================================================        
 ; loc_12D28: Sonic_AnglePos:
 AnglePos:
-                move.l  #$FFFFD000, ($FFFFF796).w
+                move.l  #$FFFFD000, (Collision_addr).w
                 cmpi.b  #$0C, $003E(A0)
                 beq.s   loc_12D40
-                move.l  #$FFFFD600, ($FFFFF796).w
+                move.l  #$FFFFD600, (Collision_addr).w
 loc_12D40:
                 move.b  $003E(A0), D5
                 btst    #$03, $0022(A0)
                 beq.s   loc_12D58
                 moveq   #$00, D0
-                move.b  D0, ($FFFFF768).w
-                move.b  D0, ($FFFFF76A).w
+                move.b  D0, (Primary_Angle).w
+                move.b  D0, (Secondary_Angle).w
                 rts
 loc_12D58:
                 moveq   #$03, D0
-                move.b  D0, ($FFFFF768).w
-                move.b  D0, ($FFFFF76A).w
+                move.b  D0, (Primary_Angle).w
+                move.b  D0, (Secondary_Angle).w
                 move.b  $0026(A0), D0
                 addi.b  #$20, D0
                 bpl.s   loc_12D7A
@@ -22674,7 +22812,7 @@ loc_12D86:
                 move.b  $0017(A0), D0
                 ext.w   D0
                 add.w   D0, D3
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.w  #$0010, A3
                 move.w  #$0000, D6
                 bsr     FindFloor               ; loc_132C4
@@ -22689,7 +22827,7 @@ loc_12D86:
                 ext.w   D0
                 neg.w   D0
                 add.w   D0, D3
-                lea     ($FFFFF76A).w, A4
+                lea     (Secondary_Angle).w, A4
                 move.w  #$0010, A3
                 move.w  #$0000, D6
                 bsr     FindFloor               ; loc_132C4
@@ -22731,10 +22869,10 @@ loc_12E30:
 ; [ Begin ]                         
 ;===============================================================================                   
 Sonic_Angle: ; loc_12E4A:
-                move.b  ($FFFFF76A).w, D2
+                move.b  (Secondary_Angle).w, D2
                 cmp.w   D0, D1
                 ble.s   loc_12E58
-                move.b  ($FFFFF768).w, D2
+                move.b  (Primary_Angle).w, D2
                 move.w  D0, D1
 loc_12E58:
                 btst    #$00, D2
@@ -22766,7 +22904,7 @@ Sonic_WalkVertR: ; loc_12E86:
                 move.b  $0016(A0), D0
                 ext.w   D0
                 add.w   D0, D3
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.w  #$0010, A3
                 move.w  #$0000, D6
                 bsr     FindWall                ; loc_1349E
@@ -22780,7 +22918,7 @@ Sonic_WalkVertR: ; loc_12E86:
                 move.b  $0016(A0), D0
                 ext.w   D0
                 add.w   D0, D3
-                lea     ($FFFFF76A).w, A4
+                lea     (Secondary_Angle).w, A4
                 move.w  #$0010, A3
                 move.w  #$0000, D6
                 bsr     FindWall                ; loc_1349E
@@ -22828,7 +22966,7 @@ Sonic_WalkCeiling: ; loc_12F2E:
                 move.b  $0017(A0), D0
                 ext.w   D0
                 add.w   D0, D3
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.w  #$FFF0, A3
                 move.w  #$0800, D6
                 bsr     FindFloor               ; loc_132C4
@@ -22843,7 +22981,7 @@ Sonic_WalkCeiling: ; loc_12F2E:
                 move.b  $0017(A0), D0
                 ext.w   D0
                 sub.w   D0, D3
-                lea     ($FFFFF76A).w, A4
+                lea     (Secondary_Angle).w, A4
                 move.w  #$FFF0, A3
                 move.w  #$0800, D6
                 bsr     FindFloor               ; loc_132C4
@@ -22891,7 +23029,7 @@ Sonic_WalkVertL: ; loc_12FDC:
                 ext.w   D0
                 sub.w   D0, D3
                 eori.w  #$000F, D3
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.w  #$FFF0, A3
                 move.w  #$0400, D6
                 bsr     FindWall                ; loc_1349E
@@ -22906,7 +23044,7 @@ Sonic_WalkVertL: ; loc_12FDC:
                 ext.w   D0
                 sub.w   D0, D3
                 eori.w  #$000F, D3
-                lea     ($FFFFF76A).w, A4
+                lea     (Secondary_Angle).w, A4
                 move.w  #$FFF0, A3
                 move.w  #$0400, D6
                 bsr     FindWall                ; loc_1349E
@@ -23024,7 +23162,7 @@ loc_132D6:
                 addi.w  #$0010, D1
                 rts
 loc_132E4:
-                move.l  ($FFFFF796).w, A2
+                move.l  (Collision_addr).w, A2
                 add.w   D0, D0
                 move.w  $00(A2, D0), D0
                 beq.s   loc_132D6
@@ -23099,7 +23237,7 @@ loc_1337C:
                 sub.w   D0, D1
                 rts
 loc_1338A:
-                move.l  ($FFFFF796).w, A2
+                move.l  (Collision_addr).w, A2
                 add.w   D0, D0
                 move.w  $00(A2, D0), D0
                 beq.s   loc_1337C
@@ -23156,7 +23294,7 @@ loc_13412:
                 move.w  #$0010, D1
                 rts
 loc_13418:
-                move.l  ($FFFFF796).w, A2
+                move.l  (Collision_addr).w, A2
                 add.w   D0, D0
                 move.w  $00(A2, D0), D0
                 beq.s   loc_13412
@@ -23231,7 +23369,7 @@ loc_134B0:
                 addi.w  #$0010, D1
                 rts
 loc_134BE:
-                move.l  ($FFFFF796).w, A2
+                move.l  (Collision_addr).w, A2
                 add.w   D0, D0
                 move.w  $00(A2, D0), D0
                 beq.s   loc_134B0
@@ -23306,7 +23444,7 @@ loc_13556:
                 sub.w   D0, D1
                 rts
 loc_13564:
-                move.l  ($FFFFF796).w, A2
+                move.l  (Collision_addr).w, A2
                 add.w   D0, D0
                 move.w  $00(A2, D0), D0
                 beq.s   loc_13556
@@ -23423,10 +23561,10 @@ loc_13664:
 ; [ Begin ]                         
 ;===============================================================================                                  
 Sonic_WalkSpeed: ; loc_1366C:
-                move.l  #$FFFFD000, ($FFFFF796).w
+                move.l  #$FFFFD000, (Collision_addr).w
                 cmpi.b  #$0C, $003E(A0)
                 beq.s   loc_13684
-                move.l  #$FFFFD600, ($FFFFF796).w
+                move.l  #$FFFFD600, (Collision_addr).w
 loc_13684:
                 move.b  $003F(A0), D5
                 move.l  $0008(A0), D3
@@ -23441,8 +23579,8 @@ loc_13684:
                 add.l   D1, D2
                 swap.w  D2
                 swap.w  D3
-                move.b  D0, ($FFFFF768).w
-                move.b  D0, ($FFFFF76A).w
+                move.b  D0, (Primary_Angle).w
+                move.b  D0, (Secondary_Angle).w
                 move.b  D0, D1
                 addi.b  #$20, D0
                 bpl.s   loc_136C4
@@ -23471,14 +23609,14 @@ loc_136E6:
                 beq     loc_13B04
                 bra     loc_13982                    
 loc_136F2:
-                move.l  #$FFFFD000, ($FFFFF796).w
+                move.l  #$FFFFD000, (Collision_addr).w
                 cmpi.b  #$0C, $003E(A0)
                 beq.s   loc_1370A
-                move.l  #$FFFFD600, ($FFFFF796).w
+                move.l  #$FFFFD600, (Collision_addr).w
 loc_1370A:
                 move.b  $003F(A0), D5
-                move.b  D0, ($FFFFF768).w
-                move.b  D0, ($FFFFF76A).w
+                move.b  D0, (Primary_Angle).w
+                move.b  D0, (Secondary_Angle).w
                 addi.b  #$20, D0
                 andi.b  #$C0, D0
                 cmpi.b  #$40, D0
@@ -23488,10 +23626,10 @@ loc_1370A:
                 cmpi.b  #$C0, D0
                 beq     loc_1391A
 loc_13736:                
-                move.l  #$FFFFD000, ($FFFFF796).w
+                move.l  #$FFFFD000, (Collision_addr).w
                 cmpi.b  #$0C, $003E(A0)
                 beq.s   loc_1374E
-                move.l  #$FFFFD600, ($FFFFF796).w
+                move.l  #$FFFFD600, (Collision_addr).w
 loc_1374E:
                 move.b  $003E(A0), D5
                 move.w  $000C(A0), D2
@@ -23503,7 +23641,7 @@ loc_1374E:
                 move.b  $0017(A0), D0
                 ext.w   D0
                 add.w   D0, D3
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.w  #$0010, A3
                 move.w  #$0000, D6
                 bsr     FindFloor               ; loc_132C4
@@ -23517,17 +23655,17 @@ loc_1374E:
                 move.b  $0017(A0), D0
                 ext.w   D0
                 sub.w   D0, D3
-                lea     ($FFFFF76A).w, A4
+                lea     (Secondary_Angle).w, A4
                 move.w  #$0010, A3
                 move.w  #$0000, D6
                 bsr     FindFloor               ; loc_132C4
                 move.w  (A7)+, D0
                 move.b  #$00, D2
 loc_137AE:                
-                move.b  ($FFFFF76A).w, D3
+                move.b  (Secondary_Angle).w, D3
                 cmp.w   D0, D1
                 ble.s   loc_137BC
-                move.b  ($FFFFF768).w, D3
+                move.b  (Primary_Angle).w, D3
                 exg.l   D1, D0
 loc_137BC:
                 btst    #$00, D3
@@ -23540,13 +23678,13 @@ loc_137C4:
                 move.w  $0008(A0), D3                
 loc_137CE:
                 addi.w  #$000A, D2
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.w  #$0010, A3
                 move.w  #$0000, D6
                 bsr     FindFloor               ; loc_132C4
                 move.b  #$00, D2
 loc_137E6:                
-                move.b  ($FFFFF768).w, D3
+                move.b  (Primary_Angle).w, D3
                 btst    #$00, D3
                 beq.s   loc_137F2
                 move.b  D2, D3
@@ -23564,18 +23702,18 @@ Sonic_HitFloor: ; loc_137F4:
                 move.b  $0016(A0), D0
                 ext.w   D0
                 add.w   D0, D2
-                move.l  #$FFFFD000, ($FFFFF796).w
+                move.l  #$FFFFD000, (Collision_addr).w
                 cmpi.b  #$0C, $003E(A0)
                 beq.s   loc_1381E
-                move.l  #$FFFFD600, ($FFFFF796).w
+                move.l  #$FFFFD600, (Collision_addr).w
 loc_1381E:
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.b  #$00, (A4)
                 move.w  #$0010, A3
                 move.w  #$0000, D6
                 move.b  $003E(A0), D5
                 bsr     FindFloor               ; loc_132C4
-                move.b  ($FFFFF768).w, D3
+                move.b  (Primary_Angle).w, D3
                 btst    #$00, D3
                 beq.s   loc_13844
                 move.b  #$00, D3
@@ -23597,18 +23735,18 @@ Sonic_HitFloor2: ; loc_13846:
                 move.b  $0016(A1), D0
                 ext.w   D0
                 add.w   D0, D2
-                move.l  #$FFFFD000, ($FFFFF796).w
+                move.l  #$FFFFD000, (Collision_addr).w
                 cmpi.b  #$0C, $003E(A1)
                 beq.s   loc_13870
-                move.l  #$FFFFD600, ($FFFFF796).w
+                move.l  #$FFFFD600, (Collision_addr).w
 loc_13870:
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.b  #$00, (A4)
                 move.w  #$0010, A3
                 move.w  #$0000, D6
                 move.b  $003E(A1), D5
                 bsr     FindFloor               ; loc_132C4
-                move.b  ($FFFFF768).w, D3
+                move.b  (Primary_Angle).w, D3
                 btst    #$00, D3
                 beq.s   loc_13896
                 move.b  #$00, D3
@@ -23630,13 +23768,13 @@ ObjHitFloor2: ; loc_1389C:
                 move.b  $0016(A0), D0
                 ext.w   D0
                 add.w   D0, D2
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.b  #$00, (A4)
                 move.w  #$0010, A3
                 move.w  #$0000, D6
                 moveq   #$0C, D5
                 bsr     FindFloor               ; loc_132C4
-                move.b  ($FFFFF768).w, D3
+                move.b  (Primary_Angle).w, D3
                 btst    #$00, D3
                 beq.s   loc_138CC
                 move.b  #$00, D3
@@ -23653,7 +23791,7 @@ loc_138CE:
                 move.b  $0016(A1), D0
                 ext.w   D0
                 add.w   D0, D2
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.b  #$00, (A4)
                 move.w  #$0010, A3
                 move.w  #$0000, D6
@@ -23665,7 +23803,7 @@ loc_138F4:
                 move.b  $0016(A0), D0
                 ext.w   D0
                 add.w   D0, D2
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.b  #$00, (A4)
                 move.w  #$0010, A3
                 move.w  #$0000, D6
@@ -23682,7 +23820,7 @@ loc_1391A:
                 move.b  $0016(A0), D0
                 ext.w   D0
                 add.w   D0, D3
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.w  #$0010, A3
                 move.w  #$0000, D6
                 bsr     FindWall                ; loc_1349E
@@ -23696,7 +23834,7 @@ loc_1391A:
                 move.b  $0016(A0), D0
                 ext.w   D0
                 add.w   D0, D3
-                lea     ($FFFFF76A).w, A4
+                lea     (Secondary_Angle).w, A4
                 move.w  #$0010, A3
                 move.w  #$0000, D6
                 bsr     FindWall                ; loc_1349E
@@ -23709,7 +23847,7 @@ loc_1397A:
                 move.w  $0008(A0), D3                
 loc_13982:
                 addi.w  #$000A, D3
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.w  #$0010, A3
                 move.w  #$0000, D6
                 bsr     FindWall                ; loc_1349E
@@ -23723,13 +23861,13 @@ loc_13982:
 ObjHitWallRight: ; loc_1399E:
                 add.w   $0008(A0), D3
                 move.w  $000C(A0), D2
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.b  #$00, (A4)
                 move.w  #$0010, A3
                 move.w  #$0000, D6
                 moveq   #$0D, D5
                 bsr     FindWall                ; loc_1349E
-                move.b  ($FFFFF768).w, D3
+                move.b  (Primary_Angle).w, D3
                 btst    #$00, D3
                 beq.s   loc_139CA
                 move.b  #$C0, D3
@@ -23755,7 +23893,7 @@ Sonic_DontRunOnWalls: ; loc_139CC:
                 move.b  $0017(A0), D0
                 ext.w   D0
                 add.w   D0, D3
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.w  #$FFF0, A3
                 move.w  #$0800, D6
                 bsr     FindFloor               ; loc_132C4
@@ -23770,7 +23908,7 @@ Sonic_DontRunOnWalls: ; loc_139CC:
                 move.b  $0017(A0), D0
                 ext.w   D0
                 sub.w   D0, D3
-                lea     ($FFFFF76A).w, A4
+                lea     (Secondary_Angle).w, A4
                 move.w  #$FFF0, A3
                 move.w  #$0800, D6
                 bsr     FindFloor               ; loc_132C4
@@ -23788,7 +23926,7 @@ Sonic_DontRunOnWalls: ; loc_139CC:
 loc_13A3C:
                 subi.w  #$000A, D2
                 eori.w  #$000F, D2
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.w  #$FFF0, A3
                 move.w  #$0800, D6
                 bsr     FindFloor               ; loc_132C4
@@ -23803,12 +23941,12 @@ loc_13A3C:
                 ext.w   D0
                 sub.w   D0, D2
                 eori.w  #$000F, D2
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.w  #$FFF0, A3
                 move.w  #$0800, D6
                 moveq   #$0D, D5
                 bsr     FindFloor               ; loc_132C4
-                move.b  ($FFFFF768).w, D3
+                move.b  (Primary_Angle).w, D3
                 btst    #$00, D3
                 beq.s   loc_13A92
                 move.b  #$80, D3
@@ -23826,7 +23964,7 @@ loc_13A94:
                 ext.w   D0
                 sub.w   D0, D3
                 eori.w  #$000F, D3
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.w  #$FFF0, A3
                 move.w  #$0400, D6
                 bsr     FindWall                ; loc_1349E
@@ -23841,7 +23979,7 @@ loc_13A94:
                 ext.w   D0
                 sub.w   D0, D3
                 eori.w  #$000F, D3
-                lea     ($FFFFF76A).w, A4
+                lea     (Secondary_Angle).w, A4
                 move.w  #$FFF0, A3
                 move.w  #$0400, D6
                 bsr     FindWall                ; loc_1349E
@@ -23859,7 +23997,7 @@ Sonic_HitWall: ; loc_13AFC:
 loc_13B04:
                 subi.w  #$000A, D3
                 eori.w  #$000F, D3
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.w  #$FFF0, A3
                 move.w  #$0400, D6
                 bsr     FindWall                ; loc_1349E
@@ -23869,13 +24007,13 @@ loc_13B04:
 ObjHitWallLeft: ; loc_13B24:
                 add.w   $0008(A0), D3
                 move.w  $000C(A0), D2
-                lea     ($FFFFF768).w, A4
+                lea     (Primary_Angle).w, A4
                 move.b  #$00, (A4)
                 move.w  #$FFF0, A3
                 move.w  #$0400, D6
                 moveq   #$0D, D5
                 bsr     FindWall                ; loc_1349E
-                move.b  ($FFFFF768).w, D3
+                move.b  (Primary_Angle).w, D3
                 btst    #$00, D3
                 beq.s   loc_13B50
                 move.b  #$40, D3
@@ -23921,7 +24059,7 @@ loc_13BC2:
                 move.b  #$04, $0024(A0)
                 rts
 loc_13BD0:
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne     loc_13C56
                 tst.b   ($FFFFB02A).w
                 bmi     loc_13C56
@@ -23983,9 +24121,9 @@ Lamp_Post_Save_Info: ; loc_13C6A:
                 move.w  ($FFFFEE14).w, ($FFFFFE4A).w
                 move.w  ($FFFFEE18).w, ($FFFFFE4C).w
                 move.w  ($FFFFEE1C).w, ($FFFFFE4E).w
-                move.w  ($FFFFF648).w, ($FFFFFE50).w
-                move.b  ($FFFFF64D).w, ($FFFFFE52).w
-                move.b  ($FFFFF64E).w, ($FFFFFE53).w
+                move.w  (Water_Level_2).w, ($FFFFFE50).w
+                move.b  (Water_routine).w, ($FFFFFE52).w
+                move.b  (Water_fullscreen_flag).w, ($FFFFFE53).w
                 rts
 Lamp_Post_Load_Info: ; loc_13CE4:
                 move.b  ($FFFFFE31).w, ($FFFFFE30).w
@@ -23999,7 +24137,7 @@ Lamp_Post_Load_Info: ; loc_13CE4:
                 move.b  #$3B, ($FFFFFE25).w
                 subq.b  #$01, ($FFFFFE24).w
                 move.b  ($FFFFFE3C).w, ($FFFFEEDF).w
-                move.b  ($FFFFFE52).w, ($FFFFF64D).w
+                move.b  ($FFFFFE52).w, (Water_routine).w
                 move.w  ($FFFFFE3E).w, ($FFFFEECE).w
                 move.w  ($FFFFFE3E).w, ($FFFFEEC6).w
                 move.w  ($FFFFFE40).w, ($FFFFEE00).w
@@ -24010,11 +24148,11 @@ Lamp_Post_Load_Info: ; loc_13CE4:
                 move.w  ($FFFFFE4A).w, ($FFFFEE14).w
                 move.w  ($FFFFFE4C).w, ($FFFFEE18).w
                 move.w  ($FFFFFE4E).w, ($FFFFEE1C).w
-                tst.b   ($FFFFF730).w
+                tst.b   (Water_flag).w
                 beq.s   loc_13D7A
-                move.w  ($FFFFFE50).w, ($FFFFF648).w
-                move.b  ($FFFFFE52).w, ($FFFFF64D).w
-                move.b  ($FFFFFE53).w, ($FFFFF64E).w
+                move.w  ($FFFFFE50).w, (Water_Level_2).w
+                move.b  ($FFFFFE52).w, (Water_routine).w
+                move.b  ($FFFFFE53).w, (Water_fullscreen_flag).w
 loc_13D7A:
                 tst.b   ($FFFFFE30).w
                 bpl.s   loc_13D8C
@@ -24072,7 +24210,7 @@ loc_13E0E:
                 add.w   D2, D1
                 cmp.w   D3, D1
                 bcc.s   loc_13E90
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne.s   loc_13E90
                 tst.b   ($FFFFF7CD).w
                 bne.s   loc_13E90
@@ -24202,7 +24340,7 @@ loc_13F6C:
 loc_13FDA:
                 moveq   #$01, D0
                 jsr     AddPoints               ; (loc_22FD0)
-                bsr     SingleObjectLoad        ; loc_E772
+                bsr     SingleObjLoad        ; loc_E772
                 bne.s   loc_14000
                 move.b  #$29, $0000(A1)
                 move.w  $0008(A0), $0008(A1)
@@ -24284,7 +24422,7 @@ loc_140D8:
                 bne.s   loc_140F2
                 move.b  #$01, $002E(A0)
 loc_140F2:
-                move.w  ($FFFFF646).w, D0
+                move.w  (Water_Level_1).w, D0
                 cmp.w   $000C(A0), D0
                 bcs.s   loc_1410A
 loc_140FC                
@@ -24343,7 +24481,7 @@ loc_141CA:
 loc_141CE:
                 tst.w   $0036(A0)
                 bne.s   loc_14230
-                move.w  ($FFFFF646).w, D0
+                move.w  (Water_Level_1).w, D0
                 cmp.w   $000C(A0), D0
                 bcc     loc_142D6
                 tst.b   $0001(A0)
@@ -24375,7 +24513,7 @@ loc_14238:
                 jsr     PseudoRandomNumber      ; loc_31E4
                 andi.w  #$001F, D0
                 move.w  D0, $0038(A0)
-                bsr     SingleObjectLoad        ; loc_E772
+                bsr     SingleObjLoad        ; loc_E772
                 bne.s   loc_142AE
                 move.w  $0008(A0), $0008(A1)
                 jsr     PseudoRandomNumber      ; loc_31E4
@@ -24418,7 +24556,7 @@ loc_142D6:
                 sub.w   ($FFFFF7DA).w, D0
                 cmpi.w  #$0280, D0
                 bhi     DeleteObject            ; loc_D3B4
-                move.w  ($FFFFF646).w, D0
+                move.w  (Water_Level_1).w, D0
                 cmp.w   $000C(A0), D0
                 bcs     DisplaySprite           ; loc_D3C2
                 rts   
@@ -24572,7 +24710,7 @@ Obj_0x03_Layer_Switch: ; loc_144B0:
                 move.b  $0024(A0), D0
                 move.w  loc_144CC(PC, D0), D1
                 jsr     loc_144CC(PC, D1)
-                tst.w   ($FFFFFFFA).w
+                tst.w   (Debug_mode_flag).w
                 beq     loc_D30C
                 jmp     MarkObjGone             ; loc_D2A0
 loc_144CC:
@@ -24605,7 +24743,7 @@ loc_14528:
                 add.w   D0, D0
                 move.w  loc_14520(PC, D0), $0032(A0)
 loc_14538:
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne     loc_1465A
                 move.b  #$00, $0034(A0)
                 move.w  $0030(A0), D5
@@ -24678,7 +24816,7 @@ loc_1461C:
                 bset    #$07, $0002(A1)
 loc_1462E:
                 move.b  #$01, $0034(A0)
-                tst.w   ($FFFFFFFA).w
+                tst.w   (Debug_mode_flag).w
                 beq.s   loc_14644
                 move.w  #$00A1, D0
                 jsr     (PlaySound)              ; loc_14C6
@@ -24694,7 +24832,7 @@ loc_1464A:
 loc_1465A:                
                 rts
 loc_1465C:
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne     loc_1477E
                 move.b  #$00, $0034(A0)
                 move.w  $0030(A0), D5
@@ -24767,7 +24905,7 @@ loc_14740:
                 bset    #$07, $0002(A1)
 loc_14752:
                 move.b  #$01, $0034(A0)
-                tst.w   ($FFFFFFFA).w
+                tst.w   (Debug_mode_flag).w
                 beq.s   loc_14768
                 move.w  #$00A1, D0
                 jsr     (PlaySound)              ; loc_14C6
@@ -25116,7 +25254,7 @@ loc_14B8C:
                 addi.w  #$0098, $000C(A1)
                 bra.s   loc_14C38
 loc_14BF4:
-                jsr     S1SingleObjectLoad      ; loc_E788
+                jsr     SingleObjLoad2      ; loc_E788
                 bne.s   loc_14C36
                 move.b  #$13, $0000(A1)
                 addq.b  #$04, $0024(A1)
@@ -25143,7 +25281,7 @@ loc_14C52:
                 move.l  $0038(A0), A1
                 move.b  #$12, $001A(A0)
                 move.w  $0034(A0), D0 
-                move.w  ($FFFFF646).w, D1
+                move.w  (Water_Level_1).w, D1
                 cmp.w   D0, D1
                 bcc.s   loc_14C6A
                 move.w  D1, D0
@@ -25364,7 +25502,7 @@ loc_150A4:
                 move.l  #Obj_0x04_Mappings_1, $0004(A0) ;  loc_152B2
                 bra     loc_15176
 loc_150E4:
-                move.w  ($FFFFF646).w, D1
+                move.w  (Water_Level_1).w, D1
                 move.w  D1, $000C(A0)
                 tst.b   $0032(A0)
                 bne.s   loc_15106
@@ -25392,7 +25530,7 @@ loc_15136:
                 dc.b    $02, $01, $02, $01, $02, $01, $02, $01, $02, $01, $02, $01, $02, $01, $02, $01
                 dc.b    $01, $00, $01, $00, $01, $00, $01, $00, $01, $00, $01, $00, $01, $00, $01, $00
 loc_15176:
-                move.w  ($FFFFF646).w, D1
+                move.w  (Water_Level_1).w, D1
                 move.w  D1, $000C(A0)
                 tst.b   $0032(A0)
                 bne.s   loc_15198
@@ -25621,7 +25759,7 @@ loc_155EC:
                 cmpi.w  #$0280, D0
                 bhi     J_DeleteObject_09       ; loc_15726
 loc_15606:
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 beq.s   loc_15610
                 bsr     J_DisplaySprite_00      ; loc_15720
 loc_15610:                
@@ -25686,7 +25824,7 @@ loc_1568A:
                 cmpi.w  #$0280, D0
                 bhi     J_DeleteObject_09       ; loc_15726
 loc_156A4:
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 beq.s   loc_156B0
                 jmp     DisplaySprite           ; (loc_D3C2)
 loc_156B0:
@@ -26005,7 +26143,7 @@ loc_15BAE:
                 move.w  $0008(A0), $0030(A0)
                 tst.b   $0028(A0)
                 bne.s   loc_15C08
-                bsr     S1SingleObjectLoad      ; loc_E788
+                bsr     SingleObjLoad2      ; loc_E788
                 bne.s   loc_15C08
                 move.b  #$14, $0000(A1)
                 addq.b  #$06, $0024(A1)
@@ -26371,7 +26509,7 @@ loc_160BC:
                 move.b  #$02, $001A(A0)
                 move.w  #$0000, $0010(A0)
                 move.w  #$0000, $0012(A0)
-                bsr     S1SingleObjectLoad      ; loc_E788
+                bsr     SingleObjLoad2      ; loc_E788
                 bne.s   loc_16100
                 move.b  #$1C, $0000(A1)
                 move.w  $0008(A0), $0008(A1)
@@ -26779,7 +26917,7 @@ loc_165F0:
                 move.l  A0, A1
                 bra.s   loc_16600
 loc_165FA:                
-                bsr     S1SingleObjectLoad      ; loc_E788
+                bsr     SingleObjLoad2      ; loc_E788
                 bne.s   loc_16678
 loc_16600:
                 move.b  $0000(A0), $0000(A1)
@@ -26908,7 +27046,7 @@ loc_1677C:
                 dc.w    loc_1697C-loc_1677C
                 dc.w    loc_169E8-loc_1677C
 loc_16784:
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne     loc_16896
                 move.w  $002A(A0), D2
                 move.w  $0008(A1), D0
@@ -27436,10 +27574,10 @@ loc_171F2:
 loc_17200:
                 cmpi.b  #$05, $001E(A0)
                 bne.s   loc_17230
-                bsr     J_S1SingleObjectLoad_00 ; loc_17464
+                bsr     J_SingleObjLoad2_00 ; loc_17464
                 bne.s   loc_17222
                 bsr.s   loc_1723E
-                bsr     J_S1SingleObjectLoad_00 ; loc_17464
+                bsr     J_SingleObjLoad2_00 ; loc_17464
                 bne.s   loc_17222
                 bsr.s   loc_1723E
                 neg.w   $0010(A1)
@@ -27520,7 +27658,7 @@ loc_1734E:
                 move.w  #$007F, $0032(A0)
                 subq.b  #$01, $0036(A0)
                 bmi.s   loc_173A0
-                bsr     J_S1SingleObjectLoad_00 ; loc_17464
+                bsr     J_SingleObjLoad2_00 ; loc_17464
                 bne.s   loc_173A0
                 moveq   #$00, D0
                 move.w  #$000F, D1
@@ -27610,8 +27748,8 @@ J_DeleteObject_0D: ; loc_17458:
                 jmp     DeleteObject            ; (loc_D3B4)
 J_MarkObjGone_03: ; loc_1745E:
                 jmp     MarkObjGone             ; (loc_D2A0)
-J_S1SingleObjectLoad_00: ; loc_17464:
-                jmp     S1SingleObjectLoad      ; (loc_E788)
+J_SingleObjLoad2_00: ; loc_17464:
+                jmp     SingleObjLoad2      ; (loc_E788)
 J_AnimateSprite_00: ; loc_1746A:
                 jmp     AnimateSprite           ; (loc_D412)
 J_Adjust2PArtPointer_04: ; loc_17470:
@@ -27888,7 +28026,7 @@ loc_17808:
 ; [ End ]                         
 ;===============================================================================              
 loc_17818:
-                bsr     J_SingleObjectLoad_00   ; loc_17A28
+                bsr     J_SingleObjLoad_00   ; loc_17A28
                 bne.s   loc_17860
                 move.b  #$29, $0000(A1)
                 move.w  $0008(A0), $0008(A1)
@@ -27977,14 +28115,14 @@ J_DisplaySprite_02: ; loc_17A1C:
                 jmp     DisplaySprite           ; (loc_D3C2)
 J_DeleteObject_0E: ; loc_17A22:
                 jmp     DeleteObject            ; (loc_D3B4)
-J_SingleObjectLoad_00: ; loc_17A28:
-                jmp     SingleObjectLoad        ; (loc_E772)
+J_SingleObjLoad_00: ; loc_17A28:
+                jmp     SingleObjLoad        ; (loc_E772)
 J_MarkObjGone_04: ; loc_17A2E:
                 jmp     MarkObjGone             ; (loc_D2A0)
 J_Adjust2PArtPointer_05: ; loc_17A34:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
 loc_17A3A:
-                jmp     (loc_CE50)
+                jmp     (BreakObjectToPieces)
 J_SolidObject_00: ; loc_17A40:
                 jmp     SolidObject             ; (loc_F4A0)
 J_SpeedToPos_04: ; loc_17A46:
@@ -28340,7 +28478,7 @@ loc_17F32:
                 move.l  A0, A1
                 bra.s   loc_17F74
 loc_17F50:                
-                bsr     J_S1SingleObjectLoad_01  ; loc_180C4
+                bsr     J_SingleObjLoad2_01  ; loc_180C4
                 bne.s   loc_17FA0
                 move.b  $0000(A0), $0000(A1)
                 move.b  #$04, $0024(A1)
@@ -28449,8 +28587,8 @@ loc_18090:
 ; [ End ]                         
 ;===============================================================================                
                 nop                             ; Filler
-J_S1SingleObjectLoad_01: ; loc_180C4:
-                jmp     S1SingleObjectLoad      ; (loc_E788)
+J_SingleObjLoad2_01: ; loc_180C4:
+                jmp     SingleObjLoad2      ; (loc_E788)
 J_Adjust2PArtPointer_07: ; loc_180CA:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
 ;=============================================================================== 
@@ -29064,7 +29202,7 @@ loc_18AF0:
                 move.b  #$00, $001A(A0)
                 move.w  #$0000, $0014(A0)
                 move.b  #$01, $001F(A0)
-                bsr     J_SingleObjectLoad_01   ; loc_18D72
+                bsr     J_SingleObjLoad_01   ; loc_18D72
                 bne.s   loc_18B8E
                 move.b  #$46, $0000(A1)
                 addq.b  #$06, $0024(A1)
@@ -29228,8 +29366,8 @@ loc_18D58:
                 nop                             ; Filler
 J_DeleteObject_11: ; loc_18D6C:
                 jmp     DeleteObject            ; (loc_D3B4)
-J_SingleObjectLoad_01: ; loc_18D72:
-                jmp     SingleObjectLoad        ; (loc_E772)
+J_SingleObjLoad_01: ; loc_18D72:
+                jmp     SingleObjLoad        ; (loc_E772)
 J_MarkObjGone_06: ; loc_18D78:
                 jmp     MarkObjGone             ; (loc_D2A0)
 J_Adjust2PArtPointer_08: ; loc_18D7E:
@@ -29409,7 +29547,7 @@ loc_18F78:
                 bsr.s   loc_18F48
 loc_18F94:
                 andi.b  #$E7, $0022(A0)
-                bsr     J_S1SingleObjectLoad_02  ; loc_1922A
+                bsr     J_SingleObjLoad2_02  ; loc_1922A
                 bne.s   loc_18FB8
                 moveq   #$00, D0
                 move.w  #$0009, D1
@@ -29563,14 +29701,14 @@ J_DeleteObject_12: ; loc_1921E:
                 jmp     DeleteObject            ; (loc_D3B4)
 J_MarkObjGone_08: ; loc_19224:
                 jmp     MarkObjGone             ; (loc_D2A0)
-J_S1SingleObjectLoad_02: ; loc_1922A:
-                jmp     S1SingleObjectLoad      ; (loc_E788)
+J_SingleObjLoad2_02: ; loc_1922A:
+                jmp     SingleObjLoad2      ; (loc_E788)
 loc_19230:
                 jmp     (loc_D30C)
 J_Adjust2PArtPointer_0A: ; loc_19236:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
 loc_1923C:
-                jmp     (loc_CE50)
+                jmp     (BreakObjectToPieces)
 J_SolidObject_04: ; loc_19242:
                 jmp     SolidObject             ; (loc_F4A0)
 J_SpeedToPos_06: ; loc_19248:
@@ -29636,7 +29774,7 @@ loc_192F4:
                 dc.w    loc_1945E-loc_192F4
                 dc.w    loc_194BE-loc_192F4
 loc_192FC:
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne     loc_193AE
                 move.w  $0008(A1), D0
                 sub.w   $0008(A0), D0
@@ -29884,7 +30022,7 @@ loc_196EC:
 loc_196F4:
                 rts
 loc_196F6:
-                bsr     J_SingleObjectLoad_02   ; loc_19832
+                bsr     J_SingleObjLoad_02   ; loc_19832
                 bne.s   loc_1972A
                 move.b  $0000(A0), $0000(A1)
                 addq.b  #$06, $0024(A1)
@@ -29971,8 +30109,8 @@ loc_19818:
                 nop                             ; Filler
 J_DeleteObject_13: ; loc_1982C:
                 jmp     DeleteObject            ; (loc_D3B4)
-J_SingleObjectLoad_02: ; loc_19832:
-                jmp     SingleObjectLoad        ; (loc_E772)
+J_SingleObjLoad_02: ; loc_19832:
+                jmp     SingleObjLoad        ; (loc_E772)
 J_MarkObjGone_0A: ; loc_19838:
                 jmp     MarkObjGone             ; (loc_D2A0)
 J_AnimateSprite_01: ; loc_1983E:
@@ -30002,7 +30140,7 @@ loc_19862:
                 move.b  #$10, $0019(A0)
                 move.b  #$20, $0016(A0)
                 move.b  #$04, $0018(A0)
-                bsr     J_S1SingleObjectLoad_03  ; loc_1A0AA
+                bsr     J_SingleObjLoad2_03  ; loc_1A0AA
                 bne.s   loc_198E6
                 move.b  $0000(A0), $0000(A1)
                 addq.b  #$02, $0024(A1)
@@ -30042,7 +30180,7 @@ loc_1991A:
                 dc.w    loc_19952-loc_1991A
                 dc.w    loc_1997C-loc_1991A
 loc_19922:
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne.s   loc_19950
                 lea     ($FFFFB000).w, A1
                 bsr.s   loc_19932
@@ -30180,7 +30318,7 @@ loc_19AF8:
                 dc.w    loc_19B28-loc_19AF8
                 dc.w    loc_19B26-loc_19AF8
 loc_19AFE:
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne.s   loc_19B26
                 lea     ($FFFFB000).w, A1
                 bsr.s   loc_19B0E
@@ -30241,7 +30379,7 @@ loc_19BB8:
                 move.l  A0, A1
                 bra.s   loc_19BE6
 loc_19BDE:                
-                bsr     J_S1SingleObjectLoad_03  ; loc_1A0AA
+                bsr     J_SingleObjLoad2_03  ; loc_1A0AA
                 bne.s   loc_19C26
                 addq.w  #$08, A3
 loc_19BE6:
@@ -30384,8 +30522,8 @@ J_DeleteObject_14: ; loc_1A09E:
                 jmp     DeleteObject            ; (loc_D3B4)
 J_MarkObjGone_0B: ; loc_1A0A4:
                 jmp     MarkObjGone             ; (loc_D2A0)
-J_S1SingleObjectLoad_03: ; loc_1A0AA:
-                jmp     S1SingleObjectLoad      ; (loc_E788)
+J_SingleObjLoad2_03: ; loc_1A0AA:
+                jmp     SingleObjLoad2      ; (loc_E788)
 J_Adjust2PArtPointer_0D: ; loc_1A0B0:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
 J_SolidObject_05: ; loc_1A0B6:
@@ -30425,7 +30563,7 @@ loc_1A112:
                 sub.w   ($FFFFF7DA).w, D0
                 cmpi.w  #$0280, D0
                 bhi     J_DeleteObject_15       ; loc_1A2F2
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 beq.s   loc_1A130
                 bsr     J_DisplaySprite_06      ; loc_1A2EC
 loc_1A130:
@@ -30468,7 +30606,7 @@ loc_1A18A:
                 lea     (loc_1A224), A3
                 moveq   #$03, D6
 loc_1A192:                
-                bsr     J_SingleObjectLoad_03   ; loc_1A2F8
+                bsr     J_SingleObjLoad_03   ; loc_1A2F8
                 bne     loc_1A21E
                 move.b  #$2C, $0000(A1)
                 move.b  #$04, $0024(A1)
@@ -30573,8 +30711,8 @@ J_DisplaySprite_06: ; loc_1A2EC:
                 jmp     DisplaySprite           ; (loc_D3C2)
 J_DeleteObject_15: ; loc_1A2F2:
                 jmp     DeleteObject            ; (loc_D3B4)
-J_SingleObjectLoad_03: ; loc_1A2F8:
-                jmp     SingleObjectLoad        ; (loc_E772)
+J_SingleObjLoad_03: ; loc_1A2F8:
+                jmp     SingleObjLoad        ; (loc_E772)
 loc_1A2FE:
                 jmp     PseudoRandomNumber      ; loc_31E4
 loc_1A304:
@@ -30858,7 +30996,7 @@ loc_1A6D4:
 loc_1A6E0:
                 bra     J_MarkObjGone_0D        ; loc_1A8A2
 loc_1A6E4:
-                bsr     J_SingleObjectLoad_04   ; loc_1A89C
+                bsr     J_SingleObjLoad_04   ; loc_1A89C
                 bne.s   loc_1A724
                 move.b  $0000(A0), $0000(A1)
                 addq.b  #$04, $0024(A1)
@@ -30973,8 +31111,8 @@ J_DisplaySprite_07: ; loc_1A890:
                 jmp     DisplaySprite           ; (loc_D3C2)
 J_DeleteObject_16: ; loc_1A896:
                 jmp     DeleteObject            ; (loc_D3B4)
-J_SingleObjectLoad_04: ; loc_1A89C:
-                jmp     SingleObjectLoad        ; (loc_E772)
+J_SingleObjLoad_04: ; loc_1A89C:
+                jmp     SingleObjLoad        ; (loc_E772)
 J_MarkObjGone_0D: ; loc_1A8A2:
                 jmp     MarkObjGone             ; (loc_D2A0)
 J_Adjust2PArtPointer_0F: ; loc_1A8A8:
@@ -31168,7 +31306,7 @@ loc_1AB02:
                 bne.s   loc_1AB38
                 move.w  $003C(A0), $003A(A0)
 loc_1AB38:
-                bsr     J_S1SingleObjectLoad_04  ; loc_1AEAA
+                bsr     J_SingleObjLoad2_04  ; loc_1AEAA
                 bne.s   loc_1AB98
                 move.b  $0000(A0), $0000(A1)
                 addq.b  #$04, $0024(A1)
@@ -31453,8 +31591,8 @@ loc_1AE92:
 ;===============================================================================                  
 J_MarkObjGone_0E: ; loc_1AEA4:
                 jmp     MarkObjGone             ; (loc_D2A0)
-J_S1SingleObjectLoad_04: ; loc_1AEAA:
-                jmp     S1SingleObjectLoad      ; (loc_E788)
+J_SingleObjLoad2_04: ; loc_1AEAA:
+                jmp     SingleObjLoad2      ; (loc_E788)
 J_Adjust2PArtPointer_11: ; loc_1AEB0:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
 J_SolidObject_07: ; loc_1AEB6:
@@ -31534,7 +31672,7 @@ loc_1AF90:
                 sub.w   ($FFFFF7DA).w, D0
                 cmpi.w  #$0280, D0
                 bhi     J_DeleteObject_19       ; loc_1B0B2
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 beq.s   loc_1AFAE
                 bsr     J_DisplaySprite_08      ; loc_1B0AC
 loc_1AFAE:
@@ -31654,7 +31792,7 @@ loc_1B132:
                 dc.w    loc_1B1C8-loc_1B132
                 dc.w    loc_1B1FC-loc_1B132
 loc_1B138:
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne     loc_1B1C6
                 move.w  $0008(A1), D0
                 sub.w   $0008(A0), D0
@@ -31967,7 +32105,7 @@ loc_1B534:
                 move.b  #$04, $0001(A0)
                 move.b  #$10, $0019(A0)
                 move.b  #$04, $0018(A0)
-                bsr     J_S1SingleObjectLoad_05  ; loc_1B7F6
+                bsr     J_SingleObjLoad2_05  ; loc_1B7F6
                 bne.s   loc_1B5D0
                 move.b  $0000(A0), $0000(A1)
                 addq.b  #$04, $0024(A1)
@@ -32174,8 +32312,8 @@ loc_1B7EE:
 
 J_MarkObjGone_0F: ; loc_1B7F0:
                 jmp     MarkObjGone             ; (loc_D2A0)
-J_S1SingleObjectLoad_05: ; loc_1B7F6:
-                jmp     S1SingleObjectLoad      ; (loc_E788)
+J_SingleObjLoad2_05: ; loc_1B7F6:
+                jmp     SingleObjLoad2      ; (loc_E788)
 J_Adjust2PArtPointer_13: ; loc_1B7FC:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
 J_SolidObject_08: ; loc_1B802:
@@ -32397,7 +32535,7 @@ loc_1BABC:
                 move.b  #$00, $001A(A0)
                 cmpi.b  #$18, $0028(A0)
                 bne     loc_1BB50
-                bsr     J_S1SingleObjectLoad_06  ; loc_1BCD4
+                bsr     J_SingleObjLoad2_06  ; loc_1BCD4
                 bne.s   loc_1BB1C
                 bsr.s   loc_1BB1E
                 addi.w  #$0040, $0008(A1)
@@ -32407,7 +32545,7 @@ loc_1BABC:
                 beq.s   loc_1BAF4
                 move.b  #$0C, $0028(A1)
 loc_1BAF4:
-                bsr     J_S1SingleObjectLoad_06  ; loc_1BCD4
+                bsr     J_SingleObjLoad2_06  ; loc_1BCD4
                 bne.s   loc_1BB1C
                 bsr.s   loc_1BB1E
                 subi.w  #$0040, $0008(A1)
@@ -32536,8 +32674,8 @@ loc_1BCB2:
 ; Object 0x6A - Dust Hill - Three Rotating Boxes
 ; [ End ]                         
 ;===============================================================================                   
-J_S1SingleObjectLoad_06: ; loc_1BCD4:
-                jmp     S1SingleObjectLoad      ; (loc_E788)
+J_SingleObjLoad2_06: ; loc_1BCD4:
+                jmp     SingleObjLoad2      ; (loc_E788)
 J_Adjust2PArtPointer_15: ; loc_1BCDA:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
 J_SolidObject_0A: ; loc_1BCE0:
@@ -32862,7 +33000,7 @@ loc_1C04A:
                 move.w  $000C(A0), D3
                 bra.s   loc_1C06E
 loc_1C068:                
-                bsr     J_SingleObjectLoad_05   ; loc_1C2CC
+                bsr     J_SingleObjLoad_05   ; loc_1C2CC
                 bne.s   loc_1C098
 loc_1C06E:
                 move.b  #$6C, $0000(A1)
@@ -33022,8 +33160,8 @@ J_DisplaySprite_0A: ; loc_1C2C0:
                 jmp     DisplaySprite           ; (loc_D3C2)
 J_DeleteObject_1A: ; loc_1C2C6:
                 jmp     DeleteObject            ; (loc_D3B4)
-J_SingleObjectLoad_05: ; loc_1C2CC:
-                jmp     SingleObjectLoad        ; (loc_E772)
+J_SingleObjLoad_05: ; loc_1C2CC:
+                jmp     SingleObjLoad        ; (loc_E772)
 J_Adjust2PArtPointer_17: ; loc_1C2D2:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
 loc_1C2D8:
@@ -33372,7 +33510,7 @@ loc_1C862:
                 bset    #$07, $0022(A0)
                 bra.s   loc_1C884
 loc_1C87E:                
-                bsr     J_S1SingleObjectLoad_07  ; loc_1CBB8
+                bsr     J_SingleObjLoad2_07  ; loc_1CBB8
                 bne.s   loc_1C8DE
 loc_1C884:
                 move.b  $0000(A0), $0000(A1)
@@ -33604,8 +33742,8 @@ loc_1CBAC:
 ; [ End ]                         
 ;===============================================================================                  
                 nop                             ; Filler
-J_S1SingleObjectLoad_07: ; loc_1CBB8:
-                jmp     S1SingleObjectLoad      ; (loc_E788)
+J_SingleObjLoad2_07: ; loc_1CBB8:
+                jmp     SingleObjLoad2      ; (loc_E788)
 J_Adjust2PArtPointer2_01: ; loc_1CBBE:
                 jmp     Adjust2PArtPointer2   ; (loc_DC4C)
 J_SolidObject_0D: ; loc_1CBC4:
@@ -33716,7 +33854,7 @@ loc_1CC68:
                 subq.w  #$01, D1
                 bcs.s   loc_1CD48
 loc_1CCEE:
-                bsr     J_SingleObjectLoad_06   ; loc_1CE2E
+                bsr     J_SingleObjLoad_06   ; loc_1CE2E
                 bne.s   loc_1CD48
                 addq.b  #$01, $0029(A0)
                 move.w  A1, D5
@@ -33822,8 +33960,8 @@ loc_1CE1E:
 ;===============================================================================
 J_DisplaySprite_0B: ; loc_1CE28:
                 jmp     DisplaySprite           ; (loc_D3C2)
-J_SingleObjectLoad_06: ; loc_1CE2E:
-                jmp     SingleObjectLoad        ; (loc_E772)
+J_SingleObjLoad_06: ; loc_1CE2E:
+                jmp     SingleObjLoad        ; (loc_E772)
 loc_1CE34:
                 jmp     (loc_D3B6)
 J_Adjust2PArtPointer_1A: ; loc_1CE3A:
@@ -33878,7 +34016,7 @@ loc_1CE6E:
                 rts
 loc_1CEDE:
                 move.b  #$9A, $0020(A0)
-                bsr     J_S1SingleObjectLoad_08  ; loc_1D05E
+                bsr     J_SingleObjLoad2_08  ; loc_1D05E
                 bne.s   loc_1CF4A
                 move.b  $0000(A0), $0000(A1)
                 move.l  $0004(A0), $0004(A1)
@@ -33997,8 +34135,8 @@ J_MarkObjGone_11: ; loc_1D052:
                 jmp     MarkObjGone             ; (loc_D2A0)
 loc_1D058:
                 jmp     (loc_D3B6)
-J_S1SingleObjectLoad_08: ; loc_1D05E:
-                jmp     S1SingleObjectLoad      ; (loc_E788)
+J_SingleObjLoad2_08: ; loc_1D05E:
+                jmp     SingleObjLoad2      ; (loc_E788)
 J_Adjust2PArtPointer_1B: ; loc_1D064:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
 loc_1D06A:
@@ -34269,7 +34407,7 @@ loc_1D3F0:
                 moveq   #$03, D1
                 bra.s   loc_1D408
 loc_1D3FA:                
-                bsr     J_S1SingleObjectLoad_09 ; loc_1D57C
+                bsr     J_SingleObjLoad2_09 ; loc_1D57C
                 bne     loc_1D460
                 move.b  #$04, $0024(A1)
 loc_1D408:
@@ -34410,8 +34548,8 @@ loc_1D57A:
 ; Object 0x78 - Chemical Plant - Rotanting Platforms / Down when Touch Platform 
 ; [ End ]                         
 ;===============================================================================                   
-J_S1SingleObjectLoad_09: ; loc_1D57C:
-                jmp     S1SingleObjectLoad      ; (loc_E788)
+J_SingleObjLoad2_09: ; loc_1D57C:
+                jmp     SingleObjLoad2      ; (loc_E788)
 J_Adjust2PArtPointer2_02: ; loc_1D582:
                 jmp     Adjust2PArtPointer2   ; (loc_DC4C)
 J_SolidObject_12: ; loc_1D588:
@@ -34445,7 +34583,7 @@ loc_1D5BA:
                 move.l  A0, A1
                 bra.s   loc_1D5F6
 loc_1D5D8:                
-                bsr     J_S1SingleObjectLoad_0A  ; loc_1D738
+                bsr     J_SingleObjLoad2_0A  ; loc_1D738
                 bne.s   loc_1D61C
                 move.b  $0000(A0), $0000(A1)
                 move.b  #$04, $0024(A1)
@@ -34559,8 +34697,8 @@ loc_1D72E:
 ; Object 0x7A - Chemical Plant - Platforms - Move horizontally
 ; [ End ]                         
 ;===============================================================================  
-J_S1SingleObjectLoad_0A: ; loc_1D738:
-                jmp     S1SingleObjectLoad      ; (loc_E788)
+J_SingleObjLoad2_0A: ; loc_1D738:
+                jmp     SingleObjLoad2      ; (loc_E788)
 J_Adjust2PArtPointer_1E: ; loc_1D73E:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
 loc_1D744:
@@ -34985,7 +35123,7 @@ loc_1DD0E:
                 move.w  #$0001, $003E(A0)
                 bra     J_MarkObjGone_14        ; loc_1DE98
 loc_1DD50:
-                move.w  #$0390, ($FFFFF646).w
+                move.w  #$0390, (Water_Level_1).w
                 lea     (loc_1DE4E), A1
                 bsr     J_AnimateSprite_06      ; loc_1DE9E
                 move.w  $003E(A0), D0
@@ -34994,7 +35132,7 @@ loc_1DD50:
                 tst.l   $0036(A0)
                 bpl.s   loc_1DDA8
                 move.w  $000C(A0), D0
-                cmp.w   ($FFFFF646).w, D0
+                cmp.w   (Water_Level_1).w, D0
                 bgt     J_MarkObjGone_14        ; loc_1DE98
                 move.b  #$03, $001C(A0)
                 bclr    #$06, $0022(A0)
@@ -35008,7 +35146,7 @@ loc_1DD50:
                 bra     J_MarkObjGone_14        ; loc_1DE98
 loc_1DDA8:
                 move.w  $000C(A0), D0
-                cmp.w   ($FFFFF646).w, D0
+                cmp.w   (Water_Level_1).w, D0
                 bgt.s   loc_1DDBC
                 move.b  #$01, $001C(A0)
                 bra     J_MarkObjGone_14        ; loc_1DE98
@@ -35250,7 +35388,7 @@ loc_1E02A:
                 move.w  D0, $0032(A0)
                 move.w  D0, $0034(A0)
                 move.w  $000C(A0), $002A(A0)
-                bsr     J_SingleObjectLoad_07   ; loc_1E87C
+                bsr     J_SingleObjLoad_07   ; loc_1E87C
                 bne.s   loc_1E0E2
                 move.b  #$50, $0000(A1)
                 move.b  #$04, $0024(A1)
@@ -35270,7 +35408,7 @@ loc_1E02A:
 loc_1E0E2:
                 lea     (loc_1E4A8), A1
                 bsr     J_AnimateSprite_08      ; loc_1E888
-                move.w  #$039C, ($FFFFF646).w
+                move.w  #$039C, (Water_Level_1).w
                 moveq   #$00, D0
                 move.b  $0025(A0), D0
                 move.w  loc_1E108(PC, D0), D1
@@ -35324,7 +35462,7 @@ loc_1E18C:
                 rts
 loc_1E18E:
                 st      $002D(A0)
-                bsr     J_SingleObjectLoad_07   ; loc_1E87C
+                bsr     J_SingleObjLoad_07   ; loc_1E87C
                 bne.s   loc_1E1FA
                 move.b  #$50, $0000(A1)
                 move.b  #$06, $0024(A1)
@@ -35351,7 +35489,7 @@ loc_1E1FA:
                 rts
 loc_1E1FC:
                 move.w  $000C(A0), D0
-                cmp.w   ($FFFFF646).w, D0
+                cmp.w   (Water_Level_1).w, D0
                 blt.s   loc_1E222
                 move.b  #$02, $0025(A0)
                 move.b  #$00, $001C(A0)
@@ -35412,7 +35550,7 @@ loc_1E2AE:
                 move.w  $000C(A0), D0
                 tst.b   $002C(A0)
                 bne.s   loc_1E2CC
-                cmp.w   ($FFFFF646).w, D0
+                cmp.w   (Water_Level_1).w, D0
                 bgt.s   loc_1E2CA
                 subq.b  #$02, $0025(A0)
                 st      $002C(A0)
@@ -35428,7 +35566,7 @@ loc_1E2CC:
                 rts
 loc_1E2E0:
                 moveq   #$0A, D0
-                moveq   #$FFFFFFFA, D1
+                moveq   #Debug_mode_flag, D1
                 move.l  $0036(A0), A1
                 move.w  $0008(A0), $0008(A1)
                 move.w  $000C(A0), $000C(A1)
@@ -35511,7 +35649,7 @@ loc_1E404:
                 beq     loc_1E4A6
                 moveq   #$02, D3
 loc_1E40E:                
-                bsr     J_SingleObjectLoad_07   ; loc_1E87C
+                bsr     J_SingleObjLoad_07   ; loc_1E87C
                 bne.s   loc_1E480
                 move.b  $0000(A0), $0000(A1)
                 move.b  #$08, $0024(A1)
@@ -35538,7 +35676,7 @@ loc_1E47A:
                 move.w  #$0040, $0010(A1)
 loc_1E480:
                 dbra    D3, loc_1E40E
-                bsr     J_SingleObjectLoad_07   ; loc_1E87C
+                bsr     J_SingleObjLoad_07   ; loc_1E87C
                 bne.s   loc_1E4A2
                 move.b  $0000(A0), $0000(A1)
                 move.b  #$0A, $0024(A1)
@@ -35678,7 +35816,7 @@ loc_1E646:
 loc_1E6A4:
                 lea     loc_1E4A8(PC), A1
                 bsr     J_AnimateSprite_08      ; loc_1E888
-                move.w  #$039C, ($FFFFF646).w
+                move.w  #$039C, (Water_Level_1).w
                 moveq   #$00, D0
                 move.b  $0025(A0), D0
                 move.w  loc_1E6C4(PC, D0), D1
@@ -35761,7 +35899,7 @@ loc_1E780:
 loc_1E7A4:
                 rts
 loc_1E7A6:
-                bsr     J_SingleObjectLoad_07   ; loc_1E87C
+                bsr     J_SingleObjLoad_07   ; loc_1E87C
                 bne.s   loc_1E80E
                 move.b  #$51, $0000(A1)
                 move.b  #$04, $0024(A1)
@@ -35829,8 +35967,8 @@ J_DisplaySprite_0F: ; loc_1E870:
                 jmp     DisplaySprite           ; (loc_D3C2)
 J_DeleteObject_23: ; loc_1E876:
                 jmp     DeleteObject            ; (loc_D3B4)
-J_SingleObjectLoad_07: ; loc_1E87C:
-                jmp     SingleObjectLoad        ; (loc_E772)
+J_SingleObjLoad_07: ; loc_1E87C:
+                jmp     SingleObjLoad        ; (loc_E772)
 J_MarkObjGone_15: ; loc_1E882:
                 jmp     MarkObjGone             ; (loc_D2A0)
 J_AnimateSprite_08: ; loc_1E888:
@@ -35886,7 +36024,7 @@ loc_1E8FC:
                 move.b  #$18, $0017(A0)
                 move.b  #$03, $0018(A0)
                 addq.b  #$02, $0024(A0)
-                bsr     J_S1SingleObjectLoad_0B  ; loc_1EB92
+                bsr     J_SingleObjLoad2_0B  ; loc_1EB92
                 bne.s   loc_1E9A6
                 move.b  #$4B, $0000(A1)
                 move.b  #$04, $0024(A1)
@@ -35979,7 +36117,7 @@ loc_1EA6C:
                 subq.b  #$02, $0025(A0)
                 rts
 loc_1EA72:
-                jsr     S1SingleObjectLoad      ; loc_E788
+                jsr     SingleObjLoad2      ; loc_E788
                 bne.s   loc_1EAEC
                 move.b  #$4B, $0000(A1)
                 move.b  #$06, $0024(A1)
@@ -36057,8 +36195,8 @@ loc_1EB80:
                 dc.w    $0000                   ; Filler
 J_DeleteObject_24: ; loc_1EB8C:
                 jmp     DeleteObject            ; (loc_D3B4)
-J_S1SingleObjectLoad_0B: ; loc_1EB92:
-                jmp     S1SingleObjectLoad      ; loc_E788
+J_SingleObjLoad2_0B: ; loc_1EB92:
+                jmp     SingleObjLoad2      ; loc_E788
 J_AnimateSprite_09: ; loc_1EB98:
                 jmp     AnimateSprite           ; loc_D412
 J_Adjust2PArtPointer2_03: ; loc_1EB9E:
@@ -36161,7 +36299,7 @@ loc_1ECC2:
                 beq     loc_1ED8E
                 bpl     loc_1ED8C
                 move.w  #$001E, $002C(A0)
-                jsr     SingleObjectLoad        ; (loc_E772)
+                jsr     SingleObjLoad        ; (loc_E772)
                 bne.s   loc_1ED28
                 move.b  #$4A, $0000(A1)
                 move.b  #$04, $0024(A1)
@@ -36176,7 +36314,7 @@ loc_1ECC2:
                 move.b  $0001(A0), $0001(A1)
                 move.b  $0022(A0), $0022(A1)
 loc_1ED28:
-                jsr     SingleObjectLoad        ; (loc_E772)
+                jsr     SingleObjLoad        ; (loc_E772)
                 bne.s   loc_1ED8C
                 move.b  #$4A, $0000(A1)
                 move.b  #$06, $0024(A1)
@@ -36829,7 +36967,7 @@ loc_1F700:
                 move.b  #$10, $0019(A0)
                 move.b  #$10, $0016(A0)
                 move.b  #$0E, $0017(A0)
-                bsr     J_S1SingleObjectLoad_0C  ; loc_1F972
+                bsr     J_SingleObjLoad2_0C  ; loc_1F972
                 bne.s   loc_1F788
                 move.b  #$54, $0000(A1)
                 move.b  #$06, $0024(A1)
@@ -36898,7 +37036,7 @@ loc_1F818:
 loc_1F82A:
                 rts
 loc_1F82C:
-                bsr     J_S1SingleObjectLoad_0C  ; loc_1F972
+                bsr     J_SingleObjLoad2_0C  ; loc_1F972
                 bne.s   loc_1F888
                 move.b  #$54, $0000(A1)
                 move.b  #$08, $0024(A1)
@@ -36985,8 +37123,8 @@ loc_1F962:
 ;=============================================================================== 
 J_DeleteObject_26: ; loc_1F96C:
                 jmp     DeleteObject            ; loc_D3B4
-J_S1SingleObjectLoad_0C: ; loc_1F972:
-                jmp     S1SingleObjectLoad      ; loc_E788
+J_SingleObjLoad2_0C: ; loc_1F972:
+                jmp     SingleObjLoad2      ; loc_E788
 J_AnimateSprite_0E: ; loc_1F978:
                 jmp     AnimateSprite           ; loc_D412
 J_Adjust2PArtPointer2_04: ; loc_1F97E:
@@ -37095,7 +37233,7 @@ loc_1FAC0:
                 dc.w    loc_1FB58-loc_1FAC0
 loc_1FAC6:
                 bclr    #$00, $002D(A0)
-                bsr     J_S1SingleObjectLoad_0D ; loc_202EE
+                bsr     J_SingleObjLoad2_0D ; loc_202EE
                 bne     J_DisplaySprite_11      ; loc_202DC
                 move.b  #$58, $0000(A1)
                 move.l  A0, $0034(A1)
@@ -37383,7 +37521,7 @@ loc_1FEAE:
                 bset    #$03, $002D(A1)
                 rts  
 loc_1FEB6:
-                jsr     S1SingleObjectLoad      ; (loc_E788)
+                jsr     SingleObjLoad2      ; (loc_E788)
                 bne.s   loc_1FF2E
                 move.b  #$58, $0000(A1)
                 move.l  A0, $0034(A1)
@@ -37405,7 +37543,7 @@ loc_1FEB6:
                 move.b  #$01, $001C(A1)
                 move.w  #$0016, $002A(A1)
 loc_1FF2E:
-                jsr     S1SingleObjectLoad      ; (loc_E788)
+                jsr     SingleObjLoad2      ; (loc_E788)
                 bne.s   loc_1FFA6
                 move.b  #$58, $0000(A1)
                 move.l  A0, $0034(A1)
@@ -37427,7 +37565,7 @@ loc_1FF2E:
                 move.b  #$01, $001C(A1)
                 move.w  #$004B, $002A(A1)
 loc_1FFA6:
-                jsr     S1SingleObjectLoad      ; (loc_E788)
+                jsr     SingleObjLoad2      ; (loc_E788)
                 bne.s   loc_2001E
                 move.b  #$58, $0000(A1)
                 move.l  A0, $0034(A1)
@@ -37449,7 +37587,7 @@ loc_1FFA6:
                 move.b  #$02, $001C(A1)
                 move.w  #$0030, $002A(A1)
 loc_2001E:
-                jsr     S1SingleObjectLoad      ; (loc_E788)
+                jsr     SingleObjLoad2      ; (loc_E788)
                 bne.s   loc_2007E
                 move.b  #$58, $0000(A1)
                 move.l  A0, $0034(A1)
@@ -37469,7 +37607,7 @@ loc_2001E:
 loc_2007E:
                 rts                
 loc_20080:
-                jsr     S1SingleObjectLoad      ; (loc_E788)
+                jsr     SingleObjLoad2      ; (loc_E788)
                 bne.s   loc_200C8
                 move.b  #$58, $0000(A1)
                 move.l  A0, $0034(A1)
@@ -37487,7 +37625,7 @@ loc_200C8:
                 subi.w  #$0008, $0038(A0)
                 move.w  #$2A00, $0008(A0)
                 move.w  #$02C0, $000C(A0)
-                jsr     S1SingleObjectLoad      ; (loc_E788)
+                jsr     SingleObjLoad2      ; (loc_E788)
                 bne.s   loc_2012C
                 move.b  #$58, $0000(A1)
                 move.l  A0, $0034(A1)
@@ -37613,8 +37751,8 @@ J_DeleteObject_27: ; loc_202E2:
                 jmp     DeleteObject            ; (loc_D3B4)
 J_MarkObjGone_1A: ; loc_202E8:
                 jmp     MarkObjGone             ; (loc_D2A0)
-J_S1SingleObjectLoad_0D: ; loc_202EE:
-                jmp     S1SingleObjectLoad      ; (loc_E788)
+J_SingleObjLoad2_0D: ; loc_202EE:
+                jmp     SingleObjLoad2      ; (loc_E788)
 J_AnimateSprite_0F: ; loc_202F4:
                 jmp     AnimateSprite           ; (loc_D412)
 J_Adjust2PArtPointer2_05: ; loc_202FA:
@@ -37655,7 +37793,7 @@ loc_20324:
                 addi.w  #$0060, $0002(A0)
 loc_20370:
                 bsr     J_Adjust2PArtPointer_23 ; loc_2073A
-                jsr     S1SingleObjectLoad      ; (loc_E788)
+                jsr     SingleObjLoad2      ; (loc_E788)
                 bne     loc_20434
                 move.b  #$55, $0000(A1)
                 move.l  A0, $0034(A1)
@@ -37678,7 +37816,7 @@ loc_203D8:
                 bsr     J_Adjust2PArtPointer2_06 ; loc_20734
                 tst.b   $0028(A0)
                 bmi.s   loc_20434
-                jsr     S1SingleObjectLoad      ; (loc_E788)
+                jsr     SingleObjLoad2      ; (loc_E788)
                 bne.s   loc_20434
                 move.b  #$55, $0000(A1)
                 move.l  A0, $0034(A1)
@@ -38198,7 +38336,7 @@ loc_20F9A:
                 moveq   #$07, D0
                 and.b   ($FFFFFE0F).w, D0
                 bne.s   loc_20FD8
-                jsr     SingleObjectLoad        ; (loc_E772)
+                jsr     SingleObjLoad        ; (loc_E772)
                 bne.s   loc_20FD8
                 move.b  #$3F, $0000(A1)
                 move.w  $0008(A0), $0008(A1)
@@ -38226,7 +38364,7 @@ loc_20FE0:
                 move.w  #$009A, D5
                 moveq   #$FFFFFFE4, D4    
 loc_21006:                            
-                jsr     SingleObjectLoad        ; (loc_E772)
+                jsr     SingleObjLoad        ; (loc_E772)
                 bne.s   loc_21030
                 move.b  #$28, $0000(A1)
                 move.w  $0008(A0), $0008(A1)
@@ -38242,7 +38380,7 @@ loc_21032:
                 moveq   #$07, D0
                 and.b   ($FFFFFE0F).w, D0
                 bne.s   loc_21070
-                jsr     SingleObjectLoad        ; (loc_E772)
+                jsr     SingleObjLoad        ; (loc_E772)
                 bne.s   loc_21070
                 move.b  #$28, $0000(A1)
                 move.w  $0008(A0), $0008(A1)
@@ -38509,7 +38647,7 @@ HurtSonic: ; loc_21384:
                 bne.s   HurtShield              ; loc_213AC
                 tst.w   ($FFFFFE20).w
                 beq     Hurt_NoRings            ; loc_2141A
-                jsr     SingleObjectLoad        ; loc_E772
+                jsr     SingleObjLoad        ; loc_E772
                 bne.s   HurtShield              ; loc_213AC
                 move.b  #$37, $0000(A1)
                 move.w  $0008(A0), $0008(A1)
@@ -38543,7 +38681,7 @@ loc_21410:
                 moveq   #$FFFFFFFF, D0
                 rts
 Hurt_NoRings: ; loc_2141A:
-                tst.w   ($FFFFFFFA).w
+                tst.w   (Debug_mode_flag).w
                 bne     HurtShield              ; loc_213AC 
 ;=============================================================================== 
 ; Sub Routine HurtSonic
@@ -38555,7 +38693,7 @@ Hurt_NoRings: ; loc_2141A:
 ; [ Begin ]                         
 ;===============================================================================                  
 KillSonic: ; loc_21422:
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 bne.s   Kill_NoDeath            ; loc_21476
                 move.b  #$00, ($FFFFFE2D).w
                 move.b  #$06, $0024(A0)
@@ -39321,7 +39459,7 @@ loc_21D38:
 ; [ Begin ]                         
 ;===============================================================================                 
 Obj_0x09_Sonic_In_Special_Stage: ; loc_21D40:
-                tst.w   ($FFFFFE08).w
+                tst.w   (Debug_placement_mode).w
                 beq.s   Sonic_In_SS_Normal      ; loc_21D4E
                 bsr     S1SS_FixCamera          ; loc_21F76
                 bra     DebugMode              ; loc_23B70
@@ -39348,11 +39486,11 @@ loc_21D64:
                 bset    #$02, $0022(A0)
                 bset    #$01, $0022(A0)
 loc_21DA4:
-                tst.w   ($FFFFFFFA).w
+                tst.w   (Debug_mode_flag).w
                 beq.s   loc_21DB8
                 btst    #$04, ($FFFFF605).w
                 beq.s   loc_21DB8
-                move.w  #$0001, ($FFFFFE08).w
+                move.w  #$0001, (Debug_placement_mode).w
 loc_21DB8:
                 move.b  #$00, $0030(A0)
                 moveq   #$00, D0
@@ -39732,7 +39870,7 @@ loc_2214C:
                 move.b  #$01, (A2)
                 move.l  A1, $0004(A2)
 loc_22160:
-                jsr     (loc_AD22)
+                jsr     (CollectRing)
                 cmpi.w  #$0032, ($FFFFFE20).w
                 bcs.s   loc_22184
                 bset    #$00, ($FFFFFE1B).w
@@ -40710,7 +40848,7 @@ loc_23010:
 HudUpdate: ; loc_23012:
                 nop
                 lea     ($00C00000), A6
-                tst.w   ($FFFFFFFA).w
+                tst.w   (Debug_mode_flag).w
                 bne     loc_23104
                 tst.b   ($FFFFFE1F).w
                 beq.s   loc_2303A
@@ -41142,14 +41280,14 @@ J_Adjust2PArtPointer_27: ; loc_23B68:
                 dc.w    $0000                   ; Filler
 DebugMode: ; loc_23B70: ; Debug Mode Routine                 
                 moveq   #$00, D0
-                move.b  ($FFFFFE08).w, D0
+                move.b  (Debug_placement_mode).w, D0
                 move.w  loc_23B7E(PC, D0), D1
                 jmp     loc_23B7E(PC, D1)
 loc_23B7E:
                 dc.w    loc_23B82-loc_23B7E
                 dc.w    loc_23BEC-loc_23B7E
 loc_23B82:
-                addq.b  #$02, ($FFFFFE08).w
+                addq.b  #$02, (Debug_placement_mode).w
                 move.w  ($FFFFEECC).w, ($FFFFFEF0).w
                 move.w  ($FFFFEEC6).w, ($FFFFFEF2).w
                 andi.w  #$07FF, ($FFFFB00C).w
@@ -41272,7 +41410,7 @@ loc_23CEE:
 loc_23CF2:
                 btst    #$05, ($FFFFF605).w
                 beq.s   loc_23D36
-                jsr     SingleObjectLoad        ; (loc_E772)
+                jsr     SingleObjLoad        ; (loc_E772)
                 bne.s   loc_23D36
                 move.w  $0008(A0), $0008(A1)
                 move.w  $000C(A0), $000C(A1)
@@ -41289,7 +41427,7 @@ loc_23D36:
                 btst    #$04, ($FFFFF605).w
                 beq.s   loc_23D9C
                 moveq   #$00, D0
-                move.w  D0, ($FFFFFE08).w
+                move.w  D0, (Debug_placement_mode).w
                 move.l  #MapUnc_Sonic, ($FFFFB004).w ; loc_614C0
                 move.w  #$0780, ($FFFFB002).w
                 tst.w   ($FFFFFFD8).w
