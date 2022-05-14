@@ -1676,13 +1676,13 @@ loc_1AA6:
 loc_1AB8: 
                 roxl.w  #$01, D3 
                 addq.w  #$01, D3
-                moveq   #$FFFFFFFF, D2
+                moveq   #-1, D2
                 move.b  (A0)+, D2
                 bra.s   loc_1AD8
 loc_1AC2: 
                 move.b  (A0)+, D0 
                 move.b  (A0)+, D1 
-                moveq   #$FFFFFFFF, D2
+                moveq   #-1, D2
                 move.b  D1, D2 
                 lsl.w   #$05, D2
                 move.b  D0, D2
@@ -2892,7 +2892,7 @@ loc_283A:
                 cmpi.w  #$0064, D0
                 blt.s   loc_2848
                 move.w  #$0401, ($FFFFF634).w
-                moveq   #$FFFFFFF4, D0
+                moveq   #-$C, D0
 loc_2848:
                 move.w  D0, ($FFFFF632).w
                 moveq   #$01, D0
@@ -7283,15 +7283,15 @@ loc_6E6C:
                 tst.b   ($FFFFF720).w
                 beq.s   loc_6EB4
                 move.b  #$00, ($FFFFF720).w
-                moveq   #$FFFFFFF0, D4
+                moveq   #-$10, D4
                 moveq   #$0F, D6
 loc_6E8C                
                 movem.l D4-D6, -(A7)
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D5
                 move.w  D4, D1
                 bsr     loc_7644
                 move.w  D1, D4 
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D5
                 bsr     loc_7350
                 movem.l (A7)+, D4-D6 
                 addi.w  #$0010, D4
@@ -7303,37 +7303,37 @@ loc_6EB4:
                 beq.s   loc_6F18
                 bclr    #$00, (A2)
                 beq.s   loc_6ECE
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5  
+                moveq   #-$10, D4
+                moveq   #-$10, D5  
                 bsr     loc_7644
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5 
+                moveq   #-$10, D4
+                moveq   #-$10, D5 
                 bsr     loc_7350
 loc_6ECE:                 
                 bclr    #$01, (A2)
                 beq.s   loc_6EE8
                 move.w  #$00E0, D4
-                moveq   #$FFFFFFF0, D5 
+                moveq   #-$10, D5 
                 bsr     loc_7644
                 move.w  #$00E0, D4
-                moveq   #$FFFFFFF0, D5 
+                moveq   #-$10, D5 
                 bsr     loc_7350
 loc_6EE8:    
                 bclr    #$02, (A2)
                 beq.s   loc_6EFE
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D4
+                moveq   #-$10, D5
                 bsr     loc_7644
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D4
+                moveq   #-$10, D5
                 bsr     loc_72C2
 loc_6EFE: 
                 bclr    #$03, (A2)
                 beq.s   loc_6F18
-                moveq   #$FFFFFFF0, D4
+                moveq   #-$10, D4
                 move.w  #$0140, D5
                 bsr     loc_7644
-                moveq   #$FFFFFFF0, D4
+                moveq   #-$10, D4
                 move.w  #$0140, D5
                 bsr     loc_72C2
 loc_6F18: 
@@ -7343,37 +7343,37 @@ loc_6F1A:
                 beq.s   loc_6F7E
                 bclr    #$00, (A2)
                 beq.s   loc_6F34
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D4
+                moveq   #-$10, D5
                 bsr     loc_7680
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D4
+                moveq   #-$10, D5
                 bsr     loc_7350
 loc_6F34:  
                 bclr    #$01, (A2)
                 beq.s   loc_6F4E
                 move.w  #$00E0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D5
                 bsr     loc_7680
                 move.w  #$00E0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D5
                 bsr     loc_7350
 loc_6F4E: 
                 bclr    #$02, (A2)
                 beq.s   loc_6F64
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D4
+                moveq   #-$10, D5
                 bsr     loc_7680
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D4
+                moveq   #-$10, D5
                 bsr     loc_72C2
 loc_6F64:   
                 bclr    #$03, (A2)
                 beq.s   loc_6F7E
-                moveq   #$FFFFFFF0, D4
+                moveq   #-$10, D4
                 move.w  #$0140, D5
                 bsr     loc_7680
-                moveq   #$FFFFFFF0, D4
+                moveq   #-$10, D4
                 move.w  #$0140, D5
                 bsr     loc_72C2
 loc_6F7E:   
@@ -7383,46 +7383,46 @@ loc_6F80:
                 beq     loc_704E
                 bclr    #$00, (A2)
                 beq.s   loc_6F9C 
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D4
+                moveq   #-$10, D5
                 bsr     loc_7644
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D4
+                moveq   #-$10, D5
                 bsr     loc_7350
 loc_6F9C:      
                 bclr    #$01, (A2)
                 beq.s   loc_6FB6
                 move.w  #$00E0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D5
                 bsr     loc_7644
                 move.w  #$00E0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D5
                 bsr     loc_7350
 loc_6FB6:    
                 bclr    #$02, (A2)
                 beq.s   loc_6FCC
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D4
+                moveq   #-$10, D5
                 bsr     loc_7644
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D4
+                moveq   #-$10, D5
                 bsr     loc_72C2                   
 loc_6FCC:    
                 bclr    #$03, (A2)
                 beq.s   loc_6FE6
-                moveq   #$FFFFFFF0, D4
+                moveq   #-$10, D4
                 move.w  #$0140, D5
                 bsr     loc_7644
-                moveq   #$FFFFFFF0, D4
+                moveq   #-$10, D4
                 move.w  #$0140, D5
                 bsr     loc_72C2
 loc_6FE6:     
                 bclr    #$04, (A2)
                 beq.s   loc_6FFE
-                moveq   #$FFFFFFF0, D4
+                moveq   #-$10, D4
                 moveq   #$00, D5
                 bsr     loc_7646
-                moveq   #$FFFFFFF0, D4
+                moveq   #-$10, D4
                 moveq   #$00, D5
                 moveq   #$1F, D6
                 bsr     loc_7354                  
@@ -7439,21 +7439,21 @@ loc_6FFE:
 loc_701A:    
                 bclr    #$06, (A2)
                 beq.s   loc_7032
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D4
+                moveq   #-$10, D5
                 bsr     loc_7644
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D4
+                moveq   #-$10, D5
                 moveq   #$1F, D6
                 bsr     loc_7348
 loc_7032:    
                 bclr    #$07, (A2)
                 beq.s   loc_704E
                 move.w  #$00E0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D5
                 bsr     loc_7644  
                 move.w  #$00E0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D5
                 moveq   #$1F, D6
                 bsr     loc_7348
 loc_704E:
@@ -7464,10 +7464,10 @@ loc_7050:
                 bclr    #$00, (A2)
                 beq.s   loc_7072
                 move.w  #$0070, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D5
                 bsr     loc_7644 
                 move.w  #$0070, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D5
                 moveq   #$02, D6
                 bsr     loc_72C4                   
 loc_7072:  
@@ -7490,7 +7490,7 @@ loc_7095:
                 dc.b    $04, $04, $04, $04, $04, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02
                 dc.b    $00                
 ;loc_70B6:
-                moveq   #$FFFFFFF0, D4
+                moveq   #-$10, D4
                 bclr    #$00, (A2)
                 bne.s   loc_70C8
                 bclr    #$01, (A2)
@@ -7506,7 +7506,7 @@ loc_70C8:
                 lea     (loc_723C), A3
                 move.w  $00(A3, D0), A3
                 beq.s   loc_70FC
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D5
                 movem.l D4/D5, -(A7)
                 bsr     loc_7644
                 movem.l (A7)+, D4/D5
@@ -7524,8 +7524,8 @@ loc_7110:
                 bne.s   loc_7116
                 rts
 loc_7116:
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D4
+                moveq   #-$10, D5
                 move.b  (A2), D0
                 andi.b  #$A8, D0
                 beq.s   loc_712A
@@ -7547,10 +7547,10 @@ loc_7140:
                 bclr    #$00, (A2)
                 beq.s   loc_716C
                 move.w  #$0040, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D5
                 bsr     loc_7644 
                 move.w  #$0040, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D5
                 moveq   #$02, D6
                 bsr     loc_72C4
 loc_716C: 
@@ -7574,7 +7574,7 @@ loc_718F:
                 dc.b    $04, $04, $04, $04, $04, $04, $04, $04, $04, $04, $04, $04, $04, $04, $04, $04
                 dc.b    $00    ; filler           
 loc_71D0:    
-                moveq   #$FFFFFFF0, D4
+                moveq   #-$10, D4
                 bclr    #$00, (A2)
                 bne.s   loc_71E2
                 bclr    #$01, (A2) 
@@ -7588,7 +7588,7 @@ loc_71E2:
                 lsr.w   #$04, D0
                 move.b  $00(A0, D0), D0
                 move.w  loc_723C(PC, D0), A3
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D5
                 movem.l D4-D5, -(A7)                 
                 bsr     loc_7644
                 movem.l (A7)+, D4-D5
@@ -7598,8 +7598,8 @@ loc_720C:
                 bne.s   loc_7212
                 rts 
 loc_7212:
-                moveq   #$FFFFFFF0, D4
-                moveq   #$FFFFFFF0, D5
+                moveq   #-$10, D4
+                moveq   #-$10, D5
                 move.b  (A2), D0
                 andi.b  #$A8, D0
                 beq.s   loc_7226
@@ -7837,7 +7837,7 @@ loc_745C:
                 lsr.w   #4, D0
                 andi.w  #$007F, D0
                 add.w   D3, D0
-                moveq   #$FFFFFFFF, D3
+                moveq   #-1, D3
                 clr.w   D3
                 move.b  $00(A4, D0), D3
                 lsl.w   #7, D3
@@ -8012,7 +8012,7 @@ loc_7602:
                 lsr.w   #$04, D0
                 andi.w  #$007F, D0
                 add.w   D3, D0
-                moveq   #$FFFFFFFF, D3
+                moveq   #-1, D3
                 clr.w   D3
                 move.b  $00(A4, D0), D3
                 lsl.w   #$07, D3
@@ -8101,7 +8101,7 @@ loc_76DE:
                 cmpi.b  #$0B, ($FFFFFE10).w
                 beq     loc_776A
 loc_770A:
-                moveq   #$FFFFFFF0, D4
+                moveq   #-$10, D4
                 moveq   #$0F, D6
 loc_770E                
                 movem.l D4-D6, -(A7)
@@ -8119,7 +8119,7 @@ loc_770E
                 dbra    D6, loc_770E
                 rts                  
 loc_773A:
-                moveq   #$FFFFFFF0, D4
+                moveq   #-$10, D4
                 moveq   #$0F, D6
 loc_773E                
                 movem.l D4-D6, -(A7)
@@ -9197,8 +9197,8 @@ loc_82C0:
 loc_82C1:
                 dc.b    $02, $01, $02, $01, $02, $01, $02, $00, $01, $00, $00, $00, $00, $00, $01
 loc_82D0:
-                moveq   #$FFFFFFFE, D3
-                moveq   #$FFFFFFFE, D4
+                moveq   #-2, D3
+                moveq   #-2, D4
                 move.b  $0022(A0), D0
                 andi.b  #$08, D0
                 beq.s   loc_82E2
@@ -11141,7 +11141,7 @@ loc_9EF4:
                 move.w  $000C(A0), $000C(A1)
                 move.w  #$FF00, $0010(A1)
                 move.w  #$0000, $0012(A1)
-                moveq   #$FFFFFFFC, D0
+                moveq   #-4, D0
                 btst    #$00, $0022(A0)
                 beq.s   loc_9F28
                 neg.w   D0
@@ -12895,7 +12895,7 @@ loc_B64C:
                 bmi.s   loc_B644
                 cmp.w   D2, D1
                 bcc.s   loc_B644
-                moveq   #$FFFFFFFF, D1
+                moveq   #-1, D1
                 rts    
 loc_B66A:
                 dc.w    loc_B680-loc_B66A
@@ -16207,7 +16207,7 @@ loc_E1B0:
                 bra.s   loc_E17C
 loc_E1C4:
                 move.w  D5, ($FFFFFF40).w
-                moveq   #$FFFFFFFF, D0
+                moveq   #-1, D0
                 move.l  D0, (A2)+
                 lea     ($FFFFE802).w, A1
                 move.w  #$00FE, D3
@@ -16412,7 +16412,7 @@ loc_E3D6:
 loc_E3DA:
                 rts
 loc_E3DC:
-                moveq   #$FFFFFFFF, D0
+                moveq   #-1, D0
                 move.l  D0, ($FFFFF780).w
                 move.l  D0, ($FFFFF784).w
                 move.l  D0, ($FFFFF788).w
@@ -16426,10 +16426,10 @@ loc_E3DC:
                 lea     ($FFFFF770).w, A4
                 lea     ($FFFFF786).w, A1
                 lea     ($FFFFF789).w, A6
-                moveq   #$FFFFFFFE, D6
+                moveq   #-2, D6
                 bsr     loc_E570
                 lea     ($FFFFF786).w, A1
-                moveq   #$FFFFFFFF, D6
+                moveq   #-1, D6
                 bsr     loc_E570
                 lea     ($FFFFF786).w, A1
                 moveq   #$00, D6
@@ -16438,10 +16438,10 @@ loc_E3DC:
                 lea     ($FFFFF778).w, A4
                 lea     ($FFFFF789).w, A1
                 lea     ($FFFFF786).w, A6
-                moveq   #$FFFFFFFE, D6
+                moveq   #-2, D6
                 bsr     loc_E570
                 lea     ($FFFFF789).w, A1
-                moveq   #$FFFFFFFF, D6
+                moveq   #-1, D6
                 bsr     loc_E570
                 lea     ($FFFFF789).w, A1
                 moveq   #$00, D6
@@ -18068,7 +18068,7 @@ loc_F86E:
                 move.w  D6, D4
                 addi.b  #$0F, D4
                 bset    D4, D6
-                moveq   #$FFFFFFFE, D4
+                moveq   #-2, D4
                 rts
 loc_F87A:
                 btst    #$01, $0022(A1)
@@ -18086,7 +18086,7 @@ loc_F888:
                 move.w  D6, D4
                 addi.b  #$0F, D4
                 bset    D4, D6
-                moveq   #$FFFFFFFE, D4
+                moveq   #-2, D4
                 rts
 loc_F8A8:
                 subq.w  #$04, D3
@@ -18107,7 +18107,7 @@ loc_F8A8:
                 move.w  D6, D4
                 addi.b  #$11, D4
                 bset    D4, D6
-                moveq   #$FFFFFFFF, D4
+                moveq   #-1, D4
                 rts
 loc_F8E0:
                 moveq   #$00, D4
@@ -23096,7 +23096,7 @@ Floor_ChkTile: ; loc_1308A:
                 lsr.w   #$04, D1
                 andi.w  #$007F, D1
                 add.w   D1, D0
-                moveq   #$FFFFFFFF, D1
+                moveq   #-1, D1
                 clr.w   D1
                 lea     ($FFFF8000).w, A1
                 move.b  $00(A1, D0), D1
@@ -28884,7 +28884,7 @@ loc_18436:
                 cmp.w   $0008(A0), D0
                 beq.s   loc_18470
                 subq.w  #$01, $0008(A0)
-                moveq   #$FFFFFFFF, D0
+                moveq   #-1, D0
                 move.w  #$FFC0, D1
 loc_1844E:
                 add.w   D0, $0008(A1)
@@ -30056,7 +30056,7 @@ loc_19780:
                 bsr     J_SpeedToPos_07         ; loc_1984A
                 btst    #$00, $0022(A0)
                 bne.s   loc_197A0
-                moveq   #$FFFFFFF8, D3
+                moveq   #-8, D3
                 bsr     ObjHitWallLeft          ; loc_13B24
                 tst.w   D1
                 bmi     loc_1979C
@@ -34244,7 +34244,7 @@ loc_1D19E:
                 tst.w   $0036(A0)
                 beq.s   loc_1D1B8
                 subq.w  #$01, $0036(A0)
-                moveq   #$FFFFFFFF, D0
+                moveq   #-1, D0
                 btst    #$00, $0022(A0)
                 beq.s   loc_1D1B4
                 neg.w   D0
@@ -34400,7 +34400,7 @@ loc_1D3DC:
                 btst    #$00, $0022(A0)
                 beq.s   loc_1D3F0
                 moveq   #$3A, D3
-                moveq   #$FFFFFFFE, D4
+                moveq   #-2, D4
 loc_1D3F0:
                 move.w  $0008(A0), D2
                 move.l  A0, A1
@@ -38362,7 +38362,7 @@ loc_20FE0:
                 addi.w  #$0020, $000C(A0)
                 moveq   #$07, D6
                 move.w  #$009A, D5
-                moveq   #$FFFFFFE4, D4    
+                moveq   #-$1C, D4    
 loc_21006:                            
                 jsr     SingleObjLoad        ; (loc_E772)
                 bne.s   loc_21030
@@ -38629,7 +38629,7 @@ loc_21370:
                 tst.b   ($FFFFFE2D).w
                 beq.s   Touch_Hurt              ; loc_2137A
 loc_21376:                
-                moveq   #$FFFFFFFF, D0
+                moveq   #-1, D0
                 rts
 ;===============================================================================                
 Touch_Hurt: ; loc_2137A:
@@ -38678,7 +38678,7 @@ Hurt_ChkSpikes: ; loc_213F0:
                 move.w  #$00A6, D0
 loc_21410:
                 jsr     (PlaySound)              ; loc_14C6
-                moveq   #$FFFFFFFF, D0
+                moveq   #-1, D0
                 rts
 Hurt_NoRings: ; loc_2141A:
                 tst.w   (Debug_mode_flag).w
@@ -38712,7 +38712,7 @@ KillSonic: ; loc_21422:
 loc_21470:
                 jsr     (PlaySound)              ; loc_14C6
 Kill_NoDeath ; loc_21476:                
-                moveq   #$FFFFFFFF, D0
+                moveq   #-1, D0
                 rts
 ;=============================================================================== 
 ; Sub Routine KillSonic
@@ -39836,7 +39836,7 @@ loc_22104:
 loc_22106:
                 move.b  D4, $0030(A0)
                 move.l  A1, $0032(A0)                
-                moveq   #$FFFFFFFF, D5
+                moveq   #-1, D5
                 rts
                 
 ;=============================================================================== 
@@ -39929,7 +39929,7 @@ loc_22204:
                 bne.s   loc_22218
                 move.b  #$02, $003A(A0)
 loc_22218:                  
-                moveq   #$FFFFFFFF, D4
+                moveq   #-1, D4
                 rts
 loc_2221C:
                 cmpi.b  #$02, $003A(A0)
@@ -40192,7 +40192,7 @@ loc_2244E:
                 moveq   #$05, D5
                 move.w  #$A000, D4
 loc_224A4:
-                moveq   #$FFFFFFFF, D1
+                moveq   #-1, D1
                 move.w  (A4)+, D1
                 andi.l  #$00FFFFFF, D1
                 move.w  D4, D2
@@ -40727,7 +40727,7 @@ loc_22D62: ; Load Hill Top 8x8 Extra Background Tiles In To Ram
                 moveq   #$00, D2
                 moveq   #$2F, D3
 loc_22D7E:
-                moveq   #$FFFFFFFF, D0
+                moveq   #-1, D0
                 move.w  (A4)+, D0
                 move.l  D0, A2
                 moveq   #$1F, D1
