@@ -189,7 +189,7 @@ GameModesArray:
 		bra.w	Level
 		bra.w	SpecialStage
 ; ===========================================================================
-; leftover from Sonic 1, turned the screen red if the checksum ever failed
+; Leftover from Sonic 1, turned the screen red if the checksum ever failed
 ChecksumError:
 		bsr.w	VDPRegSetup
 		move.l	#$C0000000,($C00004).l	; write to CRAM
@@ -1154,14 +1154,14 @@ ProcessDMAQueue_Done:
 		rts
 ; End of function ProcessDMAQueue
 
-NemesisDec: ; loc_15FC: ; Decompress Sprites to VRam                 
+NemDec: ; loc_15FC: ; Decompress Sprites to VRam                 
                 movem.l D0-D7/A0/A1/A3-A5, -(A7) 
-                lea     (NemesisDec_Output), A3 ; loc_16BE
+                lea     (NemDec_Output), A3 ; loc_16BE
                 lea     ($00C00000), A4
                 bra.s   loc_1618
-NemesisDec_ToRAM: ;loc_160E: ; Decompress Sprites to Ram
+NemDec_ToRAM: ;loc_160E: ; Decompress Sprites to Ram
                 movem.l D0-D7/A0/A1/A3-A5, -(A7)
-                lea     (NemesisDec_OutputRAM), A3 ; loc_16D4
+                lea     (NemDec_OutputRAM), A3 ; loc_16D4
 loc_1618:                
                 lea     ($FFFFAA00).w, A1
                 move.w  (A0)+, D2
@@ -1174,7 +1174,7 @@ loc_1626:
                 moveq   #$08, D3 
                 moveq   #$00, D2
                 moveq   #$00, D4  
-                bsr     NemesisDec4             ; loc_16EA
+                bsr     NemDec4             ; loc_16EA
                 move.b  (A0)+, D5
                 asl.w   #$08, D5
                 move.b  (A0)+, D5
@@ -1212,7 +1212,7 @@ loc_167E:
                 subq.w  #$01, D3
                 bne.s   loc_168C
                 jmp     (A3) 
-NemesisDec3: ; loc_1688:                
+NemDec3: ; loc_1688:                
                 moveq   #$00, D4
                 moveq   #$08, D3 
 loc_168C:                
@@ -1238,33 +1238,33 @@ loc_16A0:
                 asl.w   #$08, D5   
                 move.b  (A0)+, D5  
                 bra.s   loc_167C 
-NemesisDec_Output: ; loc_16BE:
+NemDec_Output: ; loc_16BE:
                 move.l  D4, (A4) 
                 subq.w  #$01, A5
                 move.w  A5, D4 
-                bne.s   NemesisDec3             ; loc_1688
+                bne.s   NemDec3             ; loc_1688
                 rts 
-;NemesisDec_Output_XOR: ; loc_16C8:
+;NemDec_Output_XOR: ; loc_16C8:
                 eor.l   D4, D2
                 move.l  D2, (A4)  
                 subq.w  #$01, A5  
                 move.w  A5, D4  
-                bne.s   NemesisDec3             ; loc_1688
+                bne.s   NemDec3             ; loc_1688
                 rts 
-NemesisDec_OutputRAM: ; loc_16D4:
+NemDec_OutputRAM: ; loc_16D4:
                 move.l  D4, (A4)+
                 subq.w  #$01, A5    
                 move.w  A5, D4   
-                bne.s   NemesisDec3             ; loc_1688
+                bne.s   NemDec3             ; loc_1688
                 rts  
-;NemesisDec_OutputRAM_XOR: ; loc_16DE:
+;NemDec_OutputRAM_XOR: ; loc_16DE:
                 eor.l   D4, D2
                 move.l  D2, (A4)+   
                 subq.w  #$01, A5   
                 move.w  A5, D4 
-                bne.s   NemesisDec3             ; loc_1688
+                bne.s   NemDec3             ; loc_1688
                 rts                      
-NemesisDec4: ; loc_16EA: 
+NemDec4: ; loc_16EA: 
                 move.b  (A0)+, D0 
 loc_16EC:                
                 cmpi.b  #$FF, D0
@@ -1355,7 +1355,7 @@ RunPLC: ; loc_17A8:
                 tst.w   ($FFFFF6F8).w
                 bne.s   loc_17FC
                 move.l  ($FFFFF680).w, A0
-                lea     NemesisDec_Output(PC), A3 ; loc_16BE              
+                lea     NemDec_Output(PC), A3 ; loc_16BE              
                 nop
                 lea     ($FFFFAA00).w, A1
                 move.w  (A0)+, D2
@@ -1364,7 +1364,7 @@ RunPLC: ; loc_17A8:
 loc_17CA: 
                 andi.w  #$7FFF, D2
                 move.w  D2, ($FFFFF6F8).w
-                bsr     NemesisDec4             ; loc_16EA
+                bsr     NemDec4             ; loc_16EA
                 move.b  (A0)+, D5
                 asl.w   #$08, D5
                 move.b  (A0)+, D5  
@@ -1412,7 +1412,7 @@ loc_1832:
                 lea     ($FFFFAA00).w, A1
 loc_1866:                
                 move.w  #$0008, A5
-                bsr     NemesisDec3             ; loc_1688
+                bsr     NemDec3             ; loc_1688
                 subq.w  #$01, ($FFFFF6F8).w
                 beq.s   loc_1898
                 subq.w  #$01, ($FFFFF6FA).w
@@ -1448,10 +1448,10 @@ loc_18BA:
                 ori.w   #$4000, D0
                 swap.w  D0
                 move.l  D0, ($00C00004)
-                bsr     NemesisDec              ; loc_15FC
+                bsr     NemDec              ; loc_15FC
                 dbra    D1, loc_18BA
                 rts
-EnigmaDec: ; loc_18DA:
+EniDec: ; loc_18DA:
                 movem.l D0-D7/A1-A5, -(A7)                 
                 move.w  D0, A3
                 move.b  (A0)+, D0
@@ -1628,7 +1628,7 @@ loc_1A48:
                 move.b  (A0)+, D5
 loc_1A56:                
                 rts
-KosinskiDec: ; loc_1A58:                
+KosDec: ; loc_1A58:                
                 subq.l  #$02, A7
                 move.b  (A0)+, $0001(A7)
                 move.b  (A0)+, (A7)
@@ -3314,11 +3314,11 @@ SegaScreen: ; loc_360C: ; SEGA Logo
                 bsr     ClearScreen             ; loc_1418
                 move.l  #$40000000, ($00C00004)
                 lea     (SegaLogo), A0          ; Load Sega Sprites ; loc_70960  
-                bsr     NemesisDec              ; loc_15FC
+                bsr     NemDec              ; loc_15FC
                 lea     ($FFFF0000), A1
                 lea     (SegaLogo_Mappings), A0 ; Load Sega Mappings ; loc_70DD0
                 move.w  #$0000, D0
-                bsr     EnigmaDec               ; loc_18DA
+                bsr     EniDec               ; loc_18DA
                 lea     ($FFFF0000), A1
                 move.l  #$65100003, D0
                 moveq   #$17, D1
@@ -3375,83 +3375,95 @@ Sega_GoToTitleScreen: ; loc_3730:
 ; Title Screen
 ; [ Begin ]              
 ;===============================================================================                   
-TitleScreen: ; loc_3738: ; Game Intro / Title Screen
-                move.b  #$FD, D0   
-                bsr     PlayMusic              ; loc_14C0
-                bsr     ClearPLC                ; loc_179A
-                bsr     Pal_FadeFrom            ; loc_263A  
-                move    #$2700, SR
-                lea     ($00C00004), A6
-                move.w  #$8004, (A6)
-                move.w  #$8230, (A6)
-                move.w  #$8407, (A6)
-                move.w  #$9001, (A6)
-                move.w  #$9200, (A6)
-                move.w  #$8B03, (A6)
-                move.w  #$8720, (A6)                 
-                clr.b   (Water_fullscreen_flag).w
-                move.w  #$8C81, (A6)
-                bsr     ClearScreen             ; loc_1418 
-                lea     ($FFFFAC00).w, A1
-                moveq   #$00, D0
-                move.w  #$00FF, D1
-loc_3784:                
-                move.l  D0, (A1)+
-                dbra    D1, loc_3784
-                lea     ($FFFFB000).w, A1
-                moveq   #$00, D0
-                move.w  #$07FF, D1
-loc_3794:                
-                move.l  D0, (A1)+
-                dbra    D1, loc_3794
-                lea     ($FFFFF700).w, A1
-                moveq   #$00, D0
-                move.w  #$003F, D1
-loc_37A4:                
-                move.l  D0, (A1)+
-                dbra    D1, loc_37A4
-                lea     ($FFFFEE00).w, A1
-                moveq   #$00, D0
-                move.w  #$003F, D1
-loc_37B4:                
-                move.l  D0, (A1)+
-                dbra    D1, loc_37B4
-                lea     ($FFFFFB80).w, A1
-                moveq   #$00, D0
-                move.w  #$001F, D1
-loc_37C4:                
-                move.l  D0, (A1)+
-                dbra    D1, loc_37C4
-                moveq   #$03, D0                ; Load Sonic Palette "Sonic Team Presents" Left Over
-                bsr     PalLoad1                ; loc_28E2
-                bsr     Pal_FadeTo              ; loc_2596
-                move    #$2700, SR
-                move.l  #$40000000, ($00C00004)
-                lea     (Title_Screen_Bg_Wings), A0 ; loc_71520 ; Load Title Screen wings and background
-                bsr     NemesisDec              ; loc_15FC
-                move.l  #$40000001, ($00C00004)
-                lea     (Title_Screen_Sonic_Tails), A0 ; loc_72E82 ; Load Sonic and Tails in Title Screen
-                bsr     NemesisDec              ; loc_15FC
-                lea     ($00C00000), A6
-                move.l  #$50000003, $0004(A6)
-                lea     (Art_Text), A5     ; loc_5E8
-                move.w  #$028F, D1
+; loc_3738:
+TitleScreen:
+		move.b	#$FD,d0
+		bsr.w	PlayMusic
+		bsr.w	ClearPLC
+		bsr.w	Pal_FadeFrom
+		move	#$2700,sr
+		lea	($C00004),a6
+		move.w	#$8004,(a6)
+		move.w	#$8230,(a6)
+		move.w	#$8407,(a6)
+		move.w	#$9001,(a6)
+		move.w	#$9200,(a6)
+		move.w	#$8B03,(a6)
+		move.w	#$8720,(a6)
+		clr.b	(Water_fullscreen_flag).w
+		move.w	#$8C81,(a6)
+		bsr.w	ClearScreen
+		lea	($FFFFAC00).w,a1
+		moveq	#0,d0
+		move.w	#$FF,d1
+
+loc_3784:
+		move.l	d0,(a1)+
+		dbf	d1,loc_3784
+		lea	($FFFFB000).w,a1
+		moveq	#0,d0
+		move.w	#$7FF,d1
+
+loc_3794:
+		move.l	d0,(a1)+
+		dbf	d1,loc_3794
+		lea	($FFFFF700).w,a1
+		moveq	#0,d0
+		move.w	#$3F,d1
+
+loc_37A4:
+		move.l	d0,(a1)+
+		dbf	d1,loc_37A4
+		lea	($FFFFEE00).w,a1
+		moveq	#0,d0
+		move.w	#$3F,d1
+
+loc_37B4:
+		move.l	d0,(a1)+
+		dbf	d1,loc_37B4
+		lea	($FFFFFB80).w,a1
+		moveq	#0,d0
+		move.w	#$1F,d1
+
+loc_37C4:
+		move.l	d0,(a1)+
+		dbf	d1,loc_37C4
+
+		; leftover from Sonic 1, which had a "SONIC TEAM PRESENTS"
+		; screen load Sonic's palette for the font
+		moveq	#3,d0
+		bsr.w	PalLoad1
+		bsr.w	Pal_FadeTo
+
+		move	#$2700,sr
+		move.l	#$40000000,($C00004)
+		lea	(Title_Screen_Bg_Wings),a0
+		bsr.w	NemDec
+		move.l	#$40000001,($C00004)
+		lea	(Title_Screen_Sonic_Tails),a0
+		bsr.w	NemDec
+		lea	($C00000),a6
+		move.l	#$50000003,4(a6)
+		lea	(Art_Text),a5
+		move.w	#$28F,d1
+
 loc_3818:
-                move.w  (A5)+, (A6)
-                dbra    D1, loc_3818
-                nop
-                move.b  #$00, ($FFFFFE30).w
-                move.w  #$0000, (Debug_placement_mode).w
-                move.w  #$0000, ($FFFFFFF0).w
-                move.w  #$0000, ($FFFFFFDA).w
-                move.w  #$0F00, ($FFFFFE10).w
-                move.w  #$0000, ($FFFFF634).w
-                bsr     Pal_FadeFrom            ; loc_263A 
-                move    #$2700, SR
-                lea     ($FFFF0000), A1
-                lea     (TS_Wings_MapUnc_Sonic), A0 ; loc_70ECC Load Wings, Sonic 2, (c) Sega 1992 mappings
-                move.w  #$0000, D0
-                bsr     EnigmaDec               ; loc_18DA
+		move.w	(a5)+,(a6)
+		dbf	d1,loc_3818
+		nop
+		move.b	#0,($FFFFFE30).w
+		move.w	#0,(Debug_placement_mode).w
+		move.w	#0,($FFFFFFF0).w
+		move.w	#0,($FFFFFFDA).w
+		move.w	#$F00,($FFFFFE10).w
+		move.w	#0,($FFFFF634).w
+		bsr.w	Pal_FadeFrom
+
+		move	#$2700,sr
+		lea	($FFFF0000).l,a1
+		lea	(TS_Wings_MapUnc_Sonic).l,a0
+		move.w	#0,d0
+		bsr.w	EniDec
                 lea     ($FFFF0000), A1
                 move.l  #$40000003, D0
                 moveq   #$27, D1
@@ -3460,7 +3472,7 @@ loc_3818:
                 lea     ($FFFF0000), A1
                 lea     (Title_Screen_Bg_Mappings), A0 ; loc_71024 Load Title Screen Background mappings
                 move.w  #$0000, D0
-                bsr     EnigmaDec               ; loc_18DA
+                bsr     EniDec               ; loc_18DA
                 lea     ($FFFF0000), A1
                 move.l  #$60000003, D0
                 moveq   #$1F, D1
@@ -3469,7 +3481,7 @@ loc_3818:
                 lea     ($FFFF0000), A1
                 lea     (Title_Screen_R_Bg_Mappings), A0 ; loc_712D8 Load Title Screen Background mappings (Right Side) 
                 move.w  #$0000, D0
-                bsr     EnigmaDec               ; loc_18DA
+                bsr     EniDec               ; loc_18DA
                 lea     ($FFFF0000), A1
                 move.l  #$60400003, D0
                 moveq   #$1F, D1
@@ -3988,7 +4000,7 @@ Level_Init: ; loc_4164:
                 move    #$2700, SR
                 move.l  #$70000002, ($00C00004)
                 lea     (Title_Cards), A0 ; loc_7EA04  / Load Title Cards sprites
-                bsr     NemesisDec              ; loc_15FC
+                bsr     NemDec              ; loc_15FC
                 bsr     ClearScreen             ; loc_1418
                 move    #$2300, SR
                 moveq   #$00, D0
@@ -4145,7 +4157,7 @@ loc_434E:
                 bsr     Load_Tiles_From_Start   ; loc_76BE
                 jsr     loc_135DA
                 bsr     Load_Colision_Index     ; loc_4AAA
-                bsr     Water_Effects           ; loc_465A
+                bsr     WaterEffects           ; loc_465A
                 move.b  #$01, ($FFFFB000).w  ; Load Sonic Object
                 tst.w   ($FFFFFFF0).w
                 bmi.s   Skip_Head_Up_Display ; loc_4390                 
@@ -4264,7 +4276,7 @@ Level_Main_Loop: ; loc_4534:
                 bsr     DelayProgram            ; loc_31D8
                 addq.w  #$01, ($FFFFFE04).w
                 bsr     Move_Sonic_In_Demo      ; loc_48DE
-                bsr     Water_Effects           ; loc_465A
+                bsr     WaterEffects           ; loc_465A
                 jsr     RunObjects            ; loc_CFD0
                 tst.w   ($FFFFFE02).w
                 bne     Level                   ; loc_4150
@@ -4275,7 +4287,7 @@ Level_Main_Loop: ; loc_4534:
 loc_456A:
                 bsr     Background_Scroll_Layer ; loc_5D5C                 
 loc_456E:
-                bsr     Change_Water_Surface_Pos ; loc_4630
+                bsr     UpdateWaterSurface ; loc_4630
                 jsr     Load_Ring_Pos           ; loc_DE34
                 bsr     JumpToDynamic_Art_Cues  ; loc_51F8
                 bsr     PalCycle_Load           ; loc_1F18
@@ -4325,115 +4337,156 @@ loc_4628:
                 tst.w   ($FFFFF614).w
                 bne.s   loc_45F8
                 rts           
-Change_Water_Surface_Pos: ; loc_4630:
-                tst.b   (Water_flag).w
-                beq.s   loc_4658
-                move.w  ($FFFFEE00).w, D1
-                btst    #$00, ($FFFFFE05).w
-                beq.s   loc_4646
-                addi.w  #$0020, D1
-loc_4646:
-                move.w  D1, D0
-                addi.w  #$0060, D0
-                move.w  D0, ($FFFFB788).w
-                addi.w  #$0120, D1
-                move.w  D1, ($FFFFB7C8).w
-loc_4658:
-                rts
-Water_Effects: ; loc_465A:
-                tst.b   (Water_flag).w
-                beq.s   loc_46B6
-                tst.b   ($FFFFEEDC).w
-                bne.s   loc_4672
-                cmpi.b  #$06, ($FFFFB024).w
-                bcc.s   loc_4672
-                bsr     Dynamic_Water_Height    ; loc_46D8
-loc_4672:
-                clr.b   (Water_fullscreen_flag).w
-                moveq   #$00, D0
-                cmpi.b  #$0F, ($FFFFFE10).w
-                beq.s   loc_4686
-                move.b  ($FFFFFE60).w, D0
-                lsr.w   #$01, D0
-loc_4686:
-                add.w   (Water_Level_2).w, D0
-                move.w  D0, (Water_Level_1).w
-                move.w  (Water_Level_1).w, D0
-                sub.w   ($FFFFEE04).w, D0
-                bcc.s   loc_46A8
-                tst.w   D0
-                bpl.s   loc_46A8
-                move.b  #$DF, ($FFFFF625).w
-                move.b  #$01, (Water_fullscreen_flag).w
-loc_46A8:
-                cmpi.w  #$00DF, D0
-                bcs.s   loc_46B2
-                move.w  #$00DF, D0
-loc_46B2:
-                move.b  D0, ($FFFFF625).w
-loc_46B6:
-                rts
+
 ; ===========================================================================
-; the code that handles initializing the water tables effectively makes
+; ---------------------------------------------------------------------------
+; Subroutine to move the water or oil surface sprites to where the screen is at
+; (the closest match to this subroutine in Sonic 1 is Obj1B_Action)
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_4630:  Change_Water_Surface_Pos:
+UpdateWaterSurface:
+		tst.b	(Water_flag).w
+		beq.s	loc_4658
+		move.w	($FFFFEE00).w,d1
+		btst	#0,($FFFFFE05).w
+		beq.s	loc_4646
+		addi.w	#$20,d1
+
+loc_4646:
+		move.w	d1,d0
+		addi.w	#$60,d0
+		move.w	d0,($FFFFB788).w
+		addi.w	#$120,d1
+		move.w	d1,($FFFFB7C8).w
+
+loc_4658:
+		rts
+; End of function UpdateWaterSurface
+
+; ---------------------------------------------------------------------------
+; Subroutine to do special water effects
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_465A:
+WaterEffects:
+		tst.b	(Water_flag).w		; does the level have water?
+		beq.s	return_46B6		; if not, branch
+		tst.b	($FFFFEEDC).w
+		bne.s	MoveWater
+		cmpi.b	#6,($FFFFB024).w	; is Sonic dead?
+		bcc.s	MoveWater		; if yes, branch
+		bsr.w	DynamicWater
+; loc_4672:
+MoveWater:
+		clr.b	(Water_fullscreen_flag).w
+		moveq	#0, D0
+		cmpi.b	#$F,($FFFFFE10).w	; is this NGHZ?
+		beq.s	loc_4686		; if yes, branch
+		move.b	($FFFFFE60).w,0
+		lsr.w	#1,d0
+
+loc_4686:
+		add.w	(Water_Level_2).w,d0
+		move.w	D0, (Water_Level_1).w
+		; calculate distance between water surface and top of screen
+		move.w	(Water_Level_1).w,d0
+		sub.w	($FFFFEE04).w,d0
+		bcc.s	loc_46A8
+		tst.w	d0
+		bpl.s	loc_46A8
+		move.b	#224-1,($FFFFF625).w	; H-INT every 224th scanline
+                move.b	#1,(Water_fullscreen_flag).w
+
+loc_46A8:
+		cmpi.w	#224-1,d0
+		bcs.s	loc_46B2
+		move.w	#224-1,d0
+
+loc_46B2:
+		move.b	d0,($FFFFF625).w	; H-INT every d0 scanlines
+
+return_46B6:
+		rts
+; ===========================================================================
+; The code that handles initializing the water tables effectively makes
 ; it start at $08 instead of $00 to save space
 ; word_46B8: Water_Height_Array:
-WaterHeight:
-                dc.w	$600, $600	; HPZ
+WaterHeight:	dc.w	$600, $600	; HPZ
 		dc.w	$600, $600	; Zone 9
 		dc.w	$600, $600	; OOZ
 		dc.w	$600, $600	; MCZ
-                dc.w	$600, $600	; CNZ
+		dc.w	$600, $600	; CNZ
 		dc.w	$600, $710	; CPZ
 		dc.w	$600, $600	; GCZ
 		dc.w	$410, $510	; ARZ
 		; no entry for DEZ...
 ; ===========================================================================
+; sub_46D8: Dynamic_Water_Height:
+DynamicWater:
+		moveq	#0,d0
+		move.w	($FFFFFE10).w,d0
+		subi.w	#$800,d0
+		ror.b	#1,d0
+		lsr.w	#6,d0
+		andi.w	#$FFFE,d0
+		move.w	DynamicWater_Index(pc,d0.w),d0
+		jsr	DynamicWater_Index(pc,d0.w)
+		moveq	#0,d1
+		move.b	(Water_on).w,d1
+		move.w	(Water_Level_2).w,d0
+		sub.w	(Water_Level_2).w,d0
+		beq.s	loc_470A
+		bcc.s	loc_4706
+		neg.w	d1
 
-Dynamic_Water_Height: ; loc_46D8:
-                moveq   #$00, D0   
-                move.w  ($FFFFFE10).w, D0
-                subi.w  #$0800, D0
-                ror.b   #$01, D0
-                lsr.w   #$06, D0
-                andi.w  #$FFFE, D0
-                move.w  Dynamic_Water_Index(PC, D0), D0 ; loc_470C
-                jsr     Dynamic_Water_Index(PC, D0) ; loc_470C
-                moveq   #$00, D1
-                move.b  (Water_on).w, D1
-                move.w  (Water_Level_2).w, D0
-                sub.w   (Water_Level_2).w, D0
-                beq.s   loc_470A
-                bcc.s   loc_4706
-                neg.w   D1
 loc_4706:
-                add.w   D1, (Water_Level_2).w
+		add.w	d1,(Water_Level_2).w
+
 loc_470A:
-                rts
-Dynamic_Water_Index: ; loc_470C:      
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index 
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index 
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index            
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index 
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index 
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index   
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index 
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index 
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index            
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index 
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index 
-                dc.w    Dynamic_CPz_Water-Dynamic_Water_Index ; $0D - Chemical Plant          
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index             
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index 
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index
-                dc.w    Dynamic_Null_Water-Dynamic_Water_Index               
-Dynamic_Null_Water: ; loc_472C:               
-                rts
-Dynamic_CPz_Water: ; loc_472E:
-                cmpi.w  #$1DE0, ($FFFFEE00).w
-                bcs.s   loc_473C
-                move.w  #$0510, (Water_Level_2).w
-loc_473C:    
-                rts  
+		rts
+; End of function DynamicWater
+
+; ===========================================================================
+; Like with the water height table, the index starts at $08, rather than $00
+; off_470C:
+DynamicWater_Index:
+		dc.w    DynamicWater_Null-DynamicWater_Index	; HPZ 1
+		dc.w    DynamicWater_Null-DynamicWater_Index	; HPZ 2
+		dc.w    DynamicWater_Null-DynamicWater_Index	; Zone 9-1
+		dc.w    DynamicWater_Null-DynamicWater_Index	; Zone 9-2
+		dc.w    DynamicWater_Null-DynamicWater_Index	; OOZ 1
+		dc.w    DynamicWater_Null-DynamicWater_Index	; OOZ 2
+		dc.w    DynamicWater_Null-DynamicWater_Index	; MCZ 1
+		dc.w    DynamicWater_Null-DynamicWater_Index	; MCZ 2
+		dc.w    DynamicWater_Null-DynamicWater_Index	; CNZ 1
+		dc.w    DynamicWater_Null-DynamicWater_Index	; CNZ 2
+		dc.w    DynamicWater_Null-DynamicWater_Index	; CPZ 1
+		dc.w    DynamicWater_CPZ2-DynamicWater_Index	; CPZ 2
+		dc.w    DynamicWater_Null-DynamicWater_Index	; GCZ 1
+		dc.w    DynamicWater_Null-DynamicWater_Index	; GCZ 2
+		dc.w    DynamicWater_Null-DynamicWater_Index	; NGHZ 1
+		dc.w    DynamicWater_Null-DynamicWater_Index	; NGHZ 2
+		; no entry for DEZ...
+; ===========================================================================
+; return_472C:
+DynamicWater_Null:
+		rts
+; ===========================================================================
+; loc_472E:
+DynamicWater_CPZ2:
+		cmpi.w	#$1DE0,($FFFFEE00).w
+		bcs.s	return_473C
+		move.w	#$510,(Water_Level_2).w
+
+return_473C:    
+		rts
+; ===========================================================================
+
 S1_LZ_Wind_Tunnels:; loc_473E: leftover from Sonic 1's LZ                             
                 tst.w   (Debug_placement_mode).w
                 bne     loc_481A
@@ -5069,7 +5122,7 @@ loc_53F8:
                 bsr     ClearScreen             ; loc_1418
                 move.l  #$70000002, ($00C00004)
                 lea     (Title_Cards), A0 ; loc_7EA04
-                bsr     NemesisDec              ; loc_15FC
+                bsr     NemDec              ; loc_15FC
                 jsr     (Head_Up_Display_Base)  ; loc_23184
                 move    #$2300, SR
                 moveq   #$16, D0
@@ -5117,7 +5170,7 @@ loc_54C0:
 SS_Background_Load: ; loc_54CA:
                 lea     ($FFFF0000), A1
                 move.w  #$4051, D0
-                bsr     EnigmaDec               ; loc_18DA
+                bsr     EniDec               ; loc_18DA
                 move.l  #$50000001, D3
                 lea     ($FFFF0080), A2
                 moveq   #$06, D7
@@ -5159,7 +5212,7 @@ loc_5544:
                 dbra    D7, loc_54E6
                 lea     ($FFFF0000), A1
                 move.w  #$4000, D0
-                bsr     EnigmaDec               ; loc_18DA
+                bsr     EniDec               ; loc_18DA
                 lea     ($FFFF0000), A1
                 move.l  #$40000003, D0
                 moveq   #$3F, D1
@@ -8177,7 +8230,7 @@ Main_Level_Load_16_128_Blocks: ; loc_779A: Load 16x16/128x128 Tiles
 ; loc_77BC:                
                 lea     ($FFFF9000).w, A1       ; 16x16 Tiles
                 move.w  #$0000, D0
-                bsr     EnigmaDec               ; loc_18DA
+                bsr     EniDec               ; loc_18DA
                 bra.s   loc_77EE
 ;===============================================================================                
 Main_Level_Load_Blocks_Convert16: ; loc_77CA:
@@ -8216,7 +8269,7 @@ loc_781A:
 loc_7820:                
                 move.l  (A2)+, A0
                 lea     ($FFFF0000), A1         ; 128x128 Tiles
-                bsr     KosinskiDec             ; loc_1A58
+                bsr     KosDec             ; loc_1A58
                 bra.s   Load_Level_Sprites      ; loc_785E 
 ;=============================================================================== 
 ; Sub Routine Main_Level_Load_16_128_Blocks
@@ -12164,7 +12217,7 @@ Obj25_MakeRings:
 loc_AC6E:
 		swap.w	d1
 		bsr.w	SingleObjLoad
-		bne.s	loc_ACCE
+		bne.s	Obj25_Animate
 
 loc_AC76:
 		move.b	#$25,0(a1)	; load obj25
@@ -14484,7 +14537,7 @@ Obj_Index:
 		dc.l	Obj01			; Sonic
                 dc.l    Obj_0x02_Tails                    ; loc_10E38
                 dc.l    Obj_0x03_Layer_Switch             ; loc_144B0
-                dc.l    Obj_0x04                          ; loc_15090 
+		dc.l	Obj04			; Surface of the water
                 dc.l    Obj_0x05_Tails_Tail               ; loc_11F96 
                 dc.l    Obj_0x06_Spiral_Attributes        ; loc_1572C 
                 dc.l    Obj_0x07                          ; loc_180D0 
@@ -25475,146 +25528,110 @@ loc_1506E:
 ; [ End ]                         
 ;===============================================================================  
 
-;=============================================================================== 
-; Object 0x04 - 
-; [ Begin ]                         
-;===============================================================================  
-Obj_0x04: ; loc_15090:
-                moveq   #$00, D0
-                move.b  $0024(A0), D0
-                move.w  loc_1509E(PC, D0), D1
-                jmp     loc_1509E(PC, D1)
-loc_1509E:
-                dc.w    loc_150A4-loc_1509E
-                dc.w    loc_150E4-loc_1509E
-                dc.w    loc_15176-loc_1509E
-loc_150A4:
-                addq.b  #$02, $0024(A0)
-                move.l  #Obj_0x04_Mappings, $0004(A0) ; loc_151C2
-                move.w  #$8400, $0002(A0)
-                bsr     Adjust2PArtPointer     ; loc_DC30
-                move.b  #$04, $0001(A0)
-                move.b  #$80, $0019(A0)
-                move.w  $0008(A0), $0030(A0)
-                cmpi.b  #$0F, ($FFFFFE10).w
-                bne.s   loc_150E4
-                addq.b  #$02, $0024(A0)
-                move.l  #Obj_0x04_Mappings_1, $0004(A0) ;  loc_152B2
-                bra     loc_15176
-loc_150E4:
-                move.w  (Water_Level_1).w, D1
-                move.w  D1, $000C(A0)
-                tst.b   $0032(A0)
-                bne.s   loc_15106
-                btst    #$07, ($FFFFF605).w
-                beq.s   loc_15116
-                addq.b  #$03, $001A(A0)
-                move.b  #$01, $0032(A0)
-                bra.s   loc_15116
-loc_15106:
-                tst.w   ($FFFFF63A).w
-                bne.s   loc_15116
-                move.b  #$00, $0032(A0)
-                subq.b  #$03, $001A(A0)
-loc_15116:
-                lea     (loc_15136), A1
-                moveq   #$00, D1
-                move.b  $001B(A0), D1
-                move.b  $00(A1, D1), $001A(A0)
-                addq.b  #$01, $001B(A0)
-                andi.b  #$3F, $001B(A0)
-                bra     J_DisplaySprite_00      ; loc_15720
-loc_15136:
-                dc.b    $00, $01, $00, $01, $00, $01, $00, $01, $00, $01, $00, $01, $00, $01, $00, $01
-                dc.b    $01, $02, $01, $02, $01, $02, $01, $02, $01, $02, $01, $02, $01, $02, $01, $02
-                dc.b    $02, $01, $02, $01, $02, $01, $02, $01, $02, $01, $02, $01, $02, $01, $02, $01
-                dc.b    $01, $00, $01, $00, $01, $00, $01, $00, $01, $00, $01, $00, $01, $00, $01, $00
-loc_15176:
-                move.w  (Water_Level_1).w, D1
-                move.w  D1, $000C(A0)
-                tst.b   $0032(A0)
-                bne.s   loc_15198
-                btst    #$07, ($FFFFF605).w
-                beq.s   loc_151A8
-                addq.b  #$02, $001A(A0)
-                move.b  #$01, $0032(A0)
-                bra.s   loc_151BE
-loc_15198:
-                tst.w   ($FFFFF63A).w
-                bne.s   loc_151BE
-                move.b  #$00, $0032(A0)
-                subq.b  #$02, $001A(A0)
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Object 04 - Surface of the water - water surface
+; ---------------------------------------------------------------------------
+; Sprite_15090: Obj_0x04:
+Obj04:
+		moveq	#0,d0
+		move.b	$24(a0),d0
+		move.w	Obj04_Index(pc,d0.w),d1
+		jmp	Obj04_Index(pc,d1.w)
+; ===========================================================================
+; off_1509E:
+Obj04_Index:	dc.w	Obj04_Init-Obj04_Index
+		dc.w	Obj04_Action-Obj04_Index
+		dc.w	Obj04_Action2-Obj04_Index
+; ===========================================================================
+; loc_150A4:
+Obj04_Init:
+		addq.b	#2,$24(a0)	; => Obj04_Action
+		move.l	#Obj04_MapUnc_151C2,4(a0)
+		move.w	#$8400,2(a0)
+		bsr.w	Adjust2PArtPointer
+		move.b	#4,1(a0)
+		move.b	#$80,$19(a0)
+		move.w	8(a0),$30(a0)
+		cmpi.b	#$F,($FFFFFE10).w
+		bne.s	Obj04_Action
+		addq.b	#2,$24(a0)	; => Obj04_Action2
+		move.l	#Obj04_MapUnc_152B2,4(a0)
+		bra.w	Obj04_Action2
+; ===========================================================================
+; loc_150E4:
+Obj04_Action:
+		move.w	(Water_Level_1).w,d1
+		move.w	d1,$C(a0)
+		tst.b	$32(a0)
+		bne.s	Obj04_Animate
+		btst	#7,($FFFFF605).w	; is the Start button pressed?
+		beq.s	Obj04_Display		; if not, branch
+		addq.b	#3,$1A(a0)		; use different frames
+		move.b	#1,$32(a0)		; stop animation
+		bra.s	Obj04_Display
+; ===========================================================================
+; loc_15106:
+Obj04_Animate:
+		tst.w	($FFFFF63A).w		; if the game paused?
+		bne.s	Obj04_Display		; if yes, branch
+		move.b	#0,$32(a0)		; resume animation
+		subq.b	#3,$1A(a0)		; use normal frames
+; loc_15116:
+Obj04_Display:
+		lea	(Ani_obj04).l,a1
+		moveq	#0,d1
+		move.b	$1B(a0),d1
+		move.b	(a1,d1.w),$1A(a0)
+		addq.b	#1,$1B(a0)
+		andi.b	#$3F,$1B(a0)
+		bra.w	J_DisplaySprite_00
+; ===========================================================================
+; water sprite animation 'script' (custom format for this object)
+; byte_15136:
+Ani_obj04:	dc.b	0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1
+		dc.b	1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2
+		dc.b	2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1
+		dc.b	1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0
+		even
+; ===========================================================================
+; loc_15176:
+Obj04_Action2:
+		move.w	(Water_Level_1).w,d1
+		move.w	d1,$C(a0)
+		tst.b	$32(a0)
+		bne.s	Obj04_Animate2
+		btst	#7,($FFFFF605).w	; is the Start button pressed?
+		beq.s	loc_151A8		; if not, branch
+		addq.b	#2,$1A(a0)		; use different frames
+		move.b	#1,$32(a0)		; stop animation
+		bra.s	loc_151BE
+; ===========================================================================
+; loc_15198:
+Obj04_Animate2:
+		tst.w	($FFFFF63A).w		; is the game paused?
+		bne.s	loc_151BE		; if yes, branch
+		move.b	#0,$32(a0)		; resume animation
+		subq.b	#2,$1A(a0)		; use normal frames
+
 loc_151A8:
-                subq.b  #$01, $001E(A0)
-                bpl.s   loc_151BE
-                move.b  #$05, $001E(A0)
-                addq.b  #$01, $001A(A0)
-                andi.b  #$01, $001A(A0)
+		subq.b	#1,$1E(a0)
+		bpl.s	loc_151BE
+		move.b	#5,$1E(a0)
+		addq.b	#1,$1A(a0)
+		andi.b	#1,$1A(a0)
+
 loc_151BE:
-                bra     J_DisplaySprite_00      ; loc_15720
-Obj_0x04_Mappings:
-loc_151C2:
-                dc.w    loc_151CE-loc_151C2
-                dc.w    loc_151E8-loc_151C2
-                dc.w    loc_15202-loc_151C2
-                dc.w    loc_1521C-loc_151C2
-                dc.w    loc_1524E-loc_151C2
-                dc.w    loc_15280-loc_151C2                   
-loc_151CE:
-                dc.w    $0003
-                dc.l    $F80D0000, $0000FFA0, $F80D0000, $0000FFE0
-                dc.l    $F80D0000, $00000020
-loc_151E8:
-                dc.w    $0003
-                dc.l    $F80D0008, $0004FFA0, $F80D0008, $0004FFE0
-                dc.l    $F80D0008, $00040020
-loc_15202:
-                dc.w    $0003
-                dc.l    $F80D0010, $0008FFA0, $F80D0010, $0008FFE0
-                dc.l    $F80D0010, $00080020
-loc_1521C:
-                dc.w    $0006
-                dc.l    $F80D0000, $0000FFA0, $F80D0008, $0004FFC0
-                dc.l    $F80D0000, $0000FFE0, $F80D0008, $00040000
-                dc.l    $F80D0000, $00000020, $F80D0008, $00040040
-loc_1524E:
-                dc.w    $0006
-                dc.l    $F80D0008, $0004FFA0, $F80D0010, $0008FFC0
-                dc.l    $F80D0008, $0004FFE0, $F80D0010, $00080000
-                dc.l    $F80D0008, $00040020, $F80D0010, $00080040
-loc_15280:
-                dc.w    $0006
-                dc.l    $F80D0010, $0008FFA0, $F80D0008, $0004FFC0
-                dc.l    $F80D0010, $0008FFE0, $F80D0008, $00040000
-                dc.l    $F80D0010, $00080020, $F80D0008, $00040040
-Obj_0x04_Mappings_1:
-loc_152B2:
-                dc.w    loc_152BA-loc_152B2
-                dc.w    loc_152D4-loc_152B2
-                dc.w    loc_152EE-loc_152B2
-                dc.w    loc_15320-loc_152B2
-loc_152BA:
-                dc.w    $0003
-                dc.l    $FC0D0000, $0000FFA0, $FC0D0000, $0000FFE0
-                dc.l    $FC0D0000, $00000020
-loc_152D4:
-                dc.w    $0003
-                dc.l    $FC0D0008, $0004FFA0, $FC0D0008, $0004FFE0
-                dc.l    $FC0D0008, $00040020
-loc_152EE:
-                dc.w    $0006
-                dc.l    $FC0D0000, $0000FFA0, $FC0D0000, $0000FFC0
-                dc.l    $FC0D0000, $0000FFE0, $FC0D0000, $00000000
-                dc.l    $FC0D0000, $00000020, $FC0D0000, $00000040
-loc_15320:
-                dc.w    $0006
-                dc.l    $FC0D0008, $0004FFA0, $FC0D0008, $0004FFC0
-                dc.l    $FC0D0008, $0004FFE0, $FC0D0008, $00040000
-                dc.l    $FC0D0008, $00040020, $FC0D0008, $00040040                
-;=============================================================================== 
-; Object 0x04 - 
-; [ End ]                         
-;===============================================================================  
+		bra.w	J_DisplaySprite_00
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; sprite mappings
+; ---------------------------------------------------------------------------
+Obj04_MapUnc_151C2:	incbin	"mappings/sprite/obj04_a.bin"
+; ---------------------------------------------------------------------------
+; sprite mappings
+; ---------------------------------------------------------------------------
+Obj04_MapUnc_152B2:	incbin	"mappings/sprite/obj04_a.bin"
 
 ;=============================================================================== 
 ; Object 0x49 - Green Hill - Waterfalls 
@@ -39192,7 +39209,7 @@ loc_21A70:
                 move.l  S1SS_LayoutIndex(PC, D0), A0 ; loc_21A06
                 lea     ($FFFF4000), A1
                 move.w  #$0000, D0
-                jsr     EnigmaDec               ; loc_18DA
+                jsr     EniDec               ; loc_18DA
                 lea     ($FFFF0000), A1
                 move.w  #$0FFF, D0
 loc_21A9C:                
@@ -40745,7 +40762,7 @@ loc_22D94:
                 dc.w    $2B00, $3280, $3600, $3680, $3C80, $3D00, $3F00, $3F80
                 dc.w    $4080, $4480, $4580, $4880, $4900, $4B80, $4C80, $4D80
 loc_22DF4:
-                jmp     NemesisDec_ToRAM        ; loc_160E 
+                jmp     NemDec_ToRAM        ; loc_160E 
                 dc.w    $0000 ; Filler    
 Obj_0x21_Head_Up_Display: ; loc_22DFC:
                 moveq   #$00, D0
