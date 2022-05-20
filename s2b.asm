@@ -14272,48 +14272,51 @@ loc_CCBE:
 ; [ End ]                         
 ;===============================================================================   
 
-;=============================================================================== 
-; Object 0x3B 
-; [ Begin ]                         
-;===============================================================================   
-Obj_0x3B: ; loc_CD00:
-                moveq   #$00, D0
-                move.b  $0024(A0), D0
-                move.w  loc_CD0E(PC, D0), D1
-                jmp     loc_CD0E(PC, D1)
-loc_CD0E:
-                dc.w    loc_CD12-loc_CD0E
-                dc.w    loc_CD3A-loc_CD0E
-loc_CD12:
-                addq.b  #$02, $0024(A0)
-                move.l  #loc_CD66, $0004(A0)
-                move.w  #$66C0, $0002(A0)
-                bsr     Adjust2PArtPointer     ; loc_DC30
-                move.b  #$04, $0001(A0)
-                move.b  #$13, $0019(A0)
-                move.b  #$04, $0018(A0)
-loc_CD3A:
-                move.w  #$001B, D1
-                move.w  #$0010, D2
-                move.w  #$0010, D3
-                move.w  $0008(A0), D4
-                bsr     SolidObject             ; loc_F4A0
-                move.w  $0008(A0), D0
-                andi.w  #$FF80, D0
-                sub.w   ($FFFFF7DA).w, D0
-                cmpi.w  #$0280, D0
-                bhi     DeleteObject            ; loc_D3B4
-                bra     DisplaySprite           ; loc_D3C2
-loc_CD66:
-                dc.w    loc_CD68-loc_CD66
-loc_CD68:
-                dc.w    $0002
-                dc.l    $F00B0000, $0000FFE8, $F00B000C, $00060000
-;=============================================================================== 
-; Object 0x3B 
-; [ End ]                         
-;===============================================================================
-                dc.w    $0000                   ; Filler 
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Object 3B - Purple rock (leftover from S1)
+; ---------------------------------------------------------------------------
+; Sprite_CD00: Obj_0x3B:
+Obj3B:
+		moveq	#0,d0
+		move.b	$24(a0),d0
+		move.w	Obj3B_Index(pc,d0.w),d1
+		jmp	Obj3B_Index(pc,d1.w)
+; ===========================================================================
+; off_CD0E:
+Obj3B_Index:	dc.w	Obj3B_Init-Obj3B_Index
+		dc.w	Obj3B_Main-Obj3B_Index
+; ===========================================================================
+; loc_CD12:
+Obj3B_Init:
+		addq.b	#2,$24(a0)
+		move.l	#Obj3B_MapUnc_CD66,4(a0)
+		move.w	#$66C0,2(a0)
+		bsr.w	Adjust2PArtPointer
+		move.b	#4,1(a0)
+		move.b	#$13,$19(a0)
+		move.b	#4,$18(a0)
+; loc_CD3A:
+Obj3B_Main:
+		move.w	#$1B,d1
+		move.w	#$10,d2
+		move.w	#$10,d3
+		move.w	8(a0),d4
+		bsr.w	SolidObject
+		move.w	8(a0),d0
+		andi.w	#$FF80,d0
+		sub.w	($FFFFF7DA).w,d0
+		cmpi.w	#$280,d0
+		bhi.w	DeleteObject
+		bra.w	DisplaySprite
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Unused sprite mappings
+; ---------------------------------------------------------------------------
+Obj3B_MapUnc_CD66:	incbin	"mappings/sprite/obj3B.bin"
+; ===========================================================================
+		align 4
+
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Object 3C - Breakable wall (leftover from S1) (mostly unused)
@@ -14536,7 +14539,7 @@ loc_D010:
 Obj_Index:
 		dc.l	Obj01			; Sonic
                 dc.l    Obj_0x02_Tails                    ; loc_10E38
-                dc.l    Obj_0x03_Layer_Switch             ; loc_144B0
+		dc.l	Obj03			; Collision plane/layer switcher
 		dc.l	Obj04			; Surface of the water
                 dc.l    Obj_0x05_Tails_Tail               ; loc_11F96 
                 dc.l    Obj_0x06_Spiral_Attributes        ; loc_1572C 
@@ -14592,7 +14595,7 @@ Obj_Index:
                 dc.l    Obj_0x38_Shield                   ; loc_125CE
                 dc.l    Obj_0x39_Time_Game_Over           ; loc_BD76
                 dc.l    Obj_0x3A_Level_Results            ; loc_BE38 
-                dc.l    Obj_0x3B                          ; loc_CD00
+		dc.l	Obj3B			; Purple rock (leftover from S1)
 		dc.l	Obj3C			; Breakable wall (leftover from S1) (mostly unused)
                 dc.l    Obj_0x3D_Break_Boost              ; loc_18E78   
                 dc.l    Obj_0x3E_Egg_Prison               ; loc_20E5C
@@ -24754,284 +24757,300 @@ loc_144A4:
                 dc.l    $F8050070, $0038FFF8
 loc_144AE:
                 dc.w    $0000                
-;=============================================================================== 
-; Object 0x03 - Layer Switch (Low / Hi Plane Switch)  
-; [ Begin ]
-;===============================================================================                 
-Obj_0x03_Layer_Switch: ; loc_144B0:
-                moveq   #$00, D0
-                move.b  $0024(A0), D0
-                move.w  loc_144CC(PC, D0), D1
-                jsr     loc_144CC(PC, D1)
-                tst.w   (Debug_mode_flag).w
-                beq     loc_D30C
-                jmp     MarkObjGone             ; loc_D2A0
-loc_144CC:
-                dc.w    loc_144D2-loc_144CC
-                dc.w    loc_14538-loc_144CC
-                dc.w    loc_1465C-loc_144CC
-loc_144D2:                
-                addq.b  #$02, $0024(A0)
-                move.l  #Layer_Switch_Mappings, $0004(A0) ; loc_147D0
-                move.w  #$26BC, $0002(A0)
-                bsr     Adjust2PArtPointer     ; loc_DC30
-                ori.b   #$04, $0001(A0)
-                move.b  #$10, $0019(A0)
-                move.b  #$05, $0018(A0)
-                move.b  $0028(A0), D0
-                btst    #$02, D0
-                beq.s   loc_14528                 
-                addq.b  #$02, $0024(A0)
-                andi.w  #$0007, D0
-                move.b  D0, $001A(A0)
-                andi.w  #$0003, D0
-                add.w   D0, D0
-                move.w  loc_14520(PC, D0), $0032(A0)
-                bra     loc_1465C
-loc_14520:
-                dc.w    $0020, $0040, $0080, $0100                
-loc_14528:
-                andi.w  #$0003, D0
-                move.b  D0, $001A(A0)
-                add.w   D0, D0
-                move.w  loc_14520(PC, D0), $0032(A0)
-loc_14538:
-                tst.w   (Debug_placement_mode).w
-                bne     loc_1465A
-                move.b  #$00, $0034(A0)
-                move.w  $0030(A0), D5
-                move.w  $0008(A0), D0
-                move.w  D0, D1
-                subq.w  #$08, D0
-                addq.w  #$08, D1
-                move.w  $000C(A0), D2
-                move.w  D2, D3
-                move.w  $0032(A0), D4
-                sub.w   D4, D2
-                add.w   D4, D3
-                lea     (loc_14780), A2
-                moveq   #$07, D6
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Object 03 - Collision plane/layer switcher
+; ---------------------------------------------------------------------------
+; Sprite_144B0: Obj_0x03_Layer_Switch:
+Obj03:
+		moveq	#0,d0
+		move.b	$24(a0),d0
+		move.w	Obj03_Index(pc,d0.w),d1
+		jsr	Obj03_Index(pc,d1.w)
+		tst.w	(Debug_mode_flag).w
+		beq.w	loc_D30C
+		jmp	(MarkObjGone).l
+; ===========================================================================
+; off_144CC:
+Obj03_Index:	dc.w	Obj03_Init-Obj03_Index
+		dc.w	Obj03_MainX-Obj03_Index
+		dc.w	Obj03_MainY-Obj03_Index
+; ===========================================================================
+; loc_144D2:
+Obj03_Init:
+		addq.b	#2,$24(a0)
+		move.l	#Obj03_MapUnc_147D0,4(a0)
+		move.w	#$26BC,2(a0)
+		bsr.w	Adjust2PArtPointer
+		ori.b	#4,1(a0)
+		move.b	#$10,$19(a0)
+		move.b	#5,$18(a0)
+		move.b	$28(a0),d0
+		btst	#2,d0
+		beq.s	Obj03_Init_CheckX
+
+; Obj03_Init_CheckY:
+		addq.b	#2,$24(a0)	; => Obj03_MainY
+		andi.w	#7,d0
+		move.b	d0,$1A(a0)
+		andi.w	#3,d0
+		add.w	d0,d0
+		move.w	Obj03_Sizes(pc,d0.w),$32(a0)
+		bra.w	Obj03_MainY
+; ===========================================================================
+; word_14520:
+Obj03_Sizes:	dc.w	$20,$40,$80,$100
+; ===========================================================================
+; loc_14528:
+Obj03_Init_CheckX:
+		andi.w	#3,d0
+		move.b	d0,$1A(a0)
+		add.w	d0,d0
+		move.w	Obj03_Sizes(pc,d0.w),$32(a0)
+
+; loc_14538:
+Obj03_MainX:
+		tst.w	(Debug_placement_mode).w
+		bne.w	return_1465A
+		move.b	#0,$34(a0)
+		move.w	$30(a0),d5
+		move.w	8(a0),d0
+		move.w	d0,d1
+		subq.w	#8,d0
+		addq.w	#8,d1
+		move.w	$C(a0),d2
+		move.w	d2,d3
+		move.w	$32(a0),d4
+		sub.w	d4,d2
+		add.w	d4,d3
+		lea	(Obj03_Characters).l,a2
+		moveq	#7,d6
+
 loc_1456A:
-                move.l  (A2)+, D4
-                beq     loc_1464A
-                move.l  D4, A1
-                move.w  $0008(A1), D4
-                cmp.w   D0, D4
-                bcs     loc_1459A
-                cmp.w   D1, D4
-                bcc     loc_1459A
-                move.w  $000C(A1), D4
-                cmp.w   D2, D4
-                bcs     loc_1459A
-                cmp.w   D3, D4
-                bcc     loc_1459A
-                ori.w   #$8000, D5
-                bra     loc_1464A
+		move.l	(a2)+,d4
+		beq.w	loc_1464A
+		move.l	d4,a1
+		move.w	8(a1),d4
+		cmp.w	d0,d4
+		bcs.w	loc_1459A
+		cmp.w	d1,d4
+		bcc.w	loc_1459A
+		move.w	$C(a1),d4
+		cmp.w	d2,d4
+		bcs.w	loc_1459A
+		cmp.w	d3,d4
+		bcc.w	loc_1459A
+		ori.w	#$8000,d5
+		bra.w	loc_1464A
+; ===========================================================================
+
 loc_1459A:
-                tst.w   D5
-                bpl     loc_1464A
-                swap.w  D0
-                move.b  $0028(A0), D0
-                bpl.s   loc_145B2
-                btst    #$01, $0022(A1)
-                bne     loc_14644
+		tst.w	d5
+		bpl.w	loc_1464A
+		swap.w	d0
+		move.b	$28(a0),d0
+		bpl.s	loc_145B2
+		btst	#1,$22(a1)
+		bne.w	loc_14644
+
 loc_145B2:
-                move.w  $0008(A1), D4
-                cmp.w   $0008(A0), D4
-                bcs.s   loc_145F6
-                btst    #$00, $0001(A0)
-                bne.s   loc_145E2
-                move.b  #$0C, $003E(A1)
-                move.b  #$0D, $003F(A1)
-                btst    #$03, D0
-                beq.s   loc_145E2
-                move.b  #$0E, $003E(A1)
-                move.b  #$0F, $003F(A1)
+		move.w	8(a1),d4
+		cmp.w	8(a0),d4
+		bcs.s	loc_145F6
+		btst	#0,1(a0)
+		bne.s	loc_145E2
+		move.b	#$C,$3E(a1)
+		move.b	#$D,$3F(a1)
+		btst	#3,d0
+		beq.s	loc_145E2
+		move.b	#$E,$3E(a1)
+		move.b	#$F,$3F(a1)
+
 loc_145E2:
-                bclr    #$07, $0002(A1)
-                btst    #$05, D0
-                beq.s   loc_1462E
-                bset    #$07, $0002(A1)
-                bra.s   loc_1462E
+		bclr	#7,2(a1)
+		btst	#5,d0
+		beq.s	loc_1462E
+		bset	#7,2(a1)
+		bra.s	loc_1462E
+; ===========================================================================
+
 loc_145F6:
-                btst    #$00, $0001(A0)
-                bne.s   loc_1461C
-                move.b  #$0C, $003E(A1)
-                move.b  #$0D, $003F(A1)
-                btst    #$04, D0
-                beq.s   loc_1461C
-                move.b  #$0E, $003E(A1)
-                move.b  #$0F, $003F(A1)
+		btst	#0,1(a0)
+		bne.s	loc_1461C
+		move.b	#$C,$3E(a1)
+		move.b	#$D,$3F(a1)
+		btst	#4,d0
+		beq.s	loc_1461C
+		move.b	#$E,$3E(a1)
+		move.b	#$F,$3F(a1)
+
 loc_1461C:
-                bclr    #$07, $0002(A1)
-                btst    #$06, D0
-                beq.s   loc_1462E
-                bset    #$07, $0002(A1)
+		bclr	#7,2(a1)
+		btst	#6,d0
+		beq.s	loc_1462E
+		bset	#7,2(a1)
+
 loc_1462E:
-                move.b  #$01, $0034(A0)
-                tst.w   (Debug_mode_flag).w
-                beq.s   loc_14644
-                move.w  #$00A1, D0
-                jsr     (PlaySound)              ; loc_14C6
+		move.b	#1,$34(a0)
+		tst.w	(Debug_mode_flag).w
+		beq.s	loc_14644
+		move.w	#$A1,d0
+		jsr	(PlaySound).l
+
 loc_14644:
-                swap.w  D0
-                andi.w  #$7FFF, D5
+		swap.w	d0
+		andi.w	#$7FFF,d5
+
 loc_1464A:
-                add.l   D5, D5
-                dbra    D6, loc_1456A
-                swap.w  D5
-                move.b  D5, $0030(A0)
-                bsr     loc_147A0
-loc_1465A:                
-                rts
-loc_1465C:
-                tst.w   (Debug_placement_mode).w
-                bne     loc_1477E
-                move.b  #$00, $0034(A0)
-                move.w  $0030(A0), D5
-                move.w  $0008(A0), D0
-                move.w  D0, D1
-                move.w  $0032(A0), D4
-                sub.w   D4, D0
-                add.w   D4, D1
-                move.w  $000C(A0), D2
-                move.w  D2, D3
-                subq.w  #$08, D2
-                addq.w  #$08, D3
-                lea     (loc_14780), A2
-                moveq   #$07, D6
+		add.l	d5,d5
+		dbf	d6,loc_1456A
+		swap.w	d5
+		move.b	d5,$30(a0)
+		bsr.w	loc_147A0
+
+return_1465A:
+		rts
+; ===========================================================================
+; loc_1465C:
+Obj03_MainY:
+		tst.w	(Debug_placement_mode).w
+		bne.w	return_1477E
+		move.b	#0,$34(a0)
+		move.w	$30(a0),d5
+		move.w	$08(a0),d0
+		move.w	d0,d1
+		move.w	$32(a0),d4
+		sub.w	d4,d0
+		add.w	d4,d1
+		move.w	$C(a0),d2
+		move.w	d2,d3
+		subq.w	#8,d2
+		addq.w	#8,d3
+		lea	(Obj03_Characters).l,a2
+		moveq	#7,d6
+
 loc_1468E:
-                move.l  (A2)+, D4
-                beq     loc_1476E
-                move.l  D4, A1
-                move.w  $0008(A1), D4
-                cmp.w   D0, D4
-                bcs     loc_146BE
-                cmp.w   D1, D4
-                bcc     loc_146BE
-                move.w  $000C(A1), D4
-                cmp.w   D2, D4
-                bcs     loc_146BE
-                cmp.w   D3, D4
-                bcc     loc_146BE
-                ori.w   #$8000, D5
-                bra     loc_1476E
+		move.l	(a2)+,d4
+		beq.w	loc_1476E
+		move.l	d4,a1
+		move.w	8(a1),d4
+		cmp.w	d0,d4
+		bcs.w	loc_146BE
+		cmp.w	d1,d4
+		bcc.w	loc_146BE
+		move.w	$C(a1),d4
+		cmp.w	d2,d4
+		bcs.w	loc_146BE
+		cmp.w	d3,d4
+		bcc.w	loc_146BE
+		ori.w	#$8000,d5
+		bra.w	loc_1476E
+; ===========================================================================
+
 loc_146BE:
-                tst.w   D5
-                bpl     loc_1476E
-                swap.w  D0
-                move.b  $0028(A0), D0
-                bpl.s   loc_146D6
-                btst    #$01, $0022(A1)
-                bne     loc_14768
+		tst.w	d5
+		bpl.w	loc_1476E
+		swap.w	d0
+		move.b	$28(a0),d0
+		bpl.s	loc_146D6
+		btst	#1,$22(a1)
+		bne.w	loc_14768
+
 loc_146D6:
-                move.w  $000C(A1), D4
-                cmp.w   $000C(A0), D4
-                bcs.s   loc_1471A
-                btst    #$00, $0001(A0)
-                bne.s   loc_14706
-                move.b  #$0C, $003E(A1)
-                move.b  #$0D, $003F(A1)
-                btst    #$03, D0
-                beq.s   loc_14706
-                move.b  #$0E, $003E(A1)
-                move.b  #$0F, $003F(A1)
+		move.w	$C(a1),d4
+		cmp.w	$C(a0),d4
+		bcs.s	loc_1471A
+		btst	#0,1(a0)
+		bne.s	loc_14706
+		move.b	#$C,$3E(a1)
+		move.b	#$D,$3F(a1)
+		btst	#3,d0
+		beq.s	loc_14706
+		move.b	#$E,$3E(a1)
+		move.b	#$F,$3F(a1)
+
 loc_14706:
-                bclr    #$07, $0002(A1)
-                btst    #$05, D0
-                beq.s   loc_14752
-                bset    #$07, $0002(A1)
-                bra.s   loc_14752
+		bclr	#7,2(a1)
+		btst	#5,d0
+		beq.s	loc_14752
+		bset	#7,2(a1)
+		bra.s	loc_14752
+; ===========================================================================
+
 loc_1471A:
-                btst    #$00, $0001(A0)
-                bne.s   loc_14740
-                move.b  #$0C, $003E(A1)
-                move.b  #$0D, $003F(A1)
-                btst    #$04, D0
-                beq.s   loc_14740
-                move.b  #$0E, $003E(A1)
-                move.b  #$0F, $003F(A1)
+		btst	#0,1(a0)
+		bne.s	loc_14740
+		move.b	#$C,$3E(a1)
+		move.b	#$D,$3F(a1)
+		btst	#4,d0
+		beq.s	loc_14740
+		move.b	#$E,$3E(a1)
+		move.b	#$F,$3F(a1)
+
 loc_14740:
-                bclr    #$07, $0002(A1)
-                btst    #$06, D0
-                beq.s   loc_14752
-                bset    #$07, $0002(A1)
+		bclr	#7,2(a1)
+		btst	#6,d0
+		beq.s	loc_14752
+		bset	#7,2(a1)
+
 loc_14752:
-                move.b  #$01, $0034(A0)
-                tst.w   (Debug_mode_flag).w
-                beq.s   loc_14768
-                move.w  #$00A1, D0
-                jsr     (PlaySound)              ; loc_14C6
+		move.b	#1,$34(a0)
+		tst.w	(Debug_mode_flag).w
+		beq.s	loc_14768
+		move.w	#$A1,d0
+		jsr	(PlaySound).l
+
 loc_14768:
-                swap.w  D0
-                andi.w  #$7FFF, D5
-loc_1476E:                
-                add.l   D5, D5
-                dbra    D6, loc_1468E
-                swap.w  D5
-                move.b  D5, $0030(A0)
-                bsr     loc_147A0
-loc_1477E:                
-                rts  
-loc_14780:    
-                dc.l    $FFFFB000, $FFFFB040, $00000000, $00000000
-                dc.l    $00000000, $00000000, $00000000, $00000000  
+		swap.w	d0
+		andi.w	#$7FFF,d5
+
+loc_1476E:
+		add.l	d5,d5
+		dbf	d6,loc_1468E
+		swap.w	d5
+		move.b	d5,$30(a0)
+		bsr.w	loc_147A0
+
+return_1477E:
+                rts
+; ===========================================================================
+; dword_14780:
+Obj03_Characters:
+		; character 1, character 2
+		dc.l	$FFFFB000,$FFFFB040
+		dc.l	0,0
+		dc.l	0,0
+		dc.l	0,0
+		even
+; ===========================================================================
+
 loc_147A0:
-                tst.b   $0034(A0)
-                beq.s   loc_147CE
-                tst.w   ($FFFFB002).w
-                bpl.s   loc_147B4
-                bset    #$07, ($FFFFB182).w
-                bra.s   loc_147BA
+		tst.b	$34(a0)
+		beq.s	return_147CE
+		tst.w	($FFFFB002).w
+		bpl.s	loc_147B4
+		bset	#7,($FFFFB182).w
+		bra.s	loc_147BA
+
 loc_147B4:
-                bclr    #$07, ($FFFFB182).w
+		bclr	#7,($FFFFB182).w
+
 loc_147BA:
-                tst.w   ($FFFFB042).w
-                bpl.s   loc_147C8
-                bset    #$07, ($FFFFB1C2).w
-                bra.s   loc_147CE
+		tst.w	($FFFFB042).w
+		bpl.s	loc_147C8
+		bset	#7,($FFFFB1C2).w
+		bra.s	return_147CE
+
 loc_147C8:
-                bclr    #$07, ($FFFFB1C2).w
-loc_147CE:
-                rts   
-Layer_Switch_Mappings:
-loc_147D0:
-                dc.w    loc_147E0-loc_147D0
-                dc.w    loc_14802-loc_147D0
-                dc.w    loc_14824-loc_147D0
-                dc.w    loc_14824-loc_147D0
-                dc.w    loc_14846-loc_147D0
-                dc.w    loc_14868-loc_147D0
-                dc.w    loc_1488A-loc_147D0
-                dc.w    loc_1488A-loc_147D0
-loc_147E0:
-                dc.w    $0004
-                dc.l    $E0050000, $0000FFF8, $F0050000, $0000FFF8
-                dc.l    $00050000, $0000FFF8, $10050000, $0000FFF8
-loc_14802:
-                dc.w    $0004
-                dc.l    $C0050000, $0000FFF8, $E0050000, $0000FFF8
-                dc.l    $00050000, $0000FFF8, $30050000, $0000FFF8
-loc_14824:
-                dc.w    $0004
-                dc.l    $80050000, $0000FFF8, $E0050000, $0000FFF8
-                dc.l    $00050000, $0000FFF8, $70050000, $0000FFF8
-loc_14846:
-                dc.w    $0004
-                dc.l    $F8050000, $0000FFE0, $F8050000, $0000FFF0
-                dc.l    $F8050000, $00000000, $F8050000, $00000010
-loc_14868:
-                dc.w    $0004
-                dc.l    $F8050000, $0000FFC0, $F8050000, $0000FFE0
-                dc.l    $F8050000, $00000000, $F8050000, $00000030
-loc_1488A:
-                dc.w    $0004
-                dc.l    $F8050000, $0000FF80, $F8050000, $0000FFE0
-                dc.l    $F8050000, $00000000, $F8050000, $00000070                                                    
-;=============================================================================== 
-; Object 0x03 - Layer Switch (Low / Hi Plane Switch)  
-; [ End ]
-;===============================================================================  
+		bclr	#7,($FFFFB1C2).w
+
+return_147CE:
+                rts
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; sprite mappings
+; ---------------------------------------------------------------------------
+Obj03_MapUnc_147D0:	incbin	"mappings/sprite/obj03.bin"
 
 ;=============================================================================== 
 ; Object 0x0B - Chemical Plant - Open / Close Platforms
@@ -41506,7 +41525,7 @@ Debug_GHz: ; loc_23DF2:  ; Green Hill
                 dc.b    $07, $00, $06, $80
                 dc.l    ($79<<$18)|Lamp_Post_Mappings          ; loc_13D8E
                 dc.b    $01, $00, $04, $7C
-                dc.l    ($03<<$18)|Layer_Switch_Mappings       ; loc_147D0
+                dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
                 dc.l    ($49<<$18)|Waterfall_Mappings          ; loc_15404
                 dc.b    $00, $00, $23, $AE
@@ -41562,7 +41581,7 @@ Debug_Mz: ; loc_23ECC:  ; Metropolis
                 dc.b    $07, $00, $06, $80
                 dc.l    ($79<<$18)|Lamp_Post_Mappings          ; loc_13D8E
                 dc.b    $01, $00, $04, $7C
-                dc.l    ($03<<$18)|Layer_Switch_Mappings       ; loc_147D0
+                dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
                 dc.l    ($42<<$18)|Steam_Vent_Mappings         ; loc_1A7FE                 
                 dc.b    $01, $07, $60, $00
@@ -41620,7 +41639,7 @@ Debug_HTz: ; loc_23FAE:  ; Hill Top
                 dc.b    $07, $00, $06, $80
                 dc.l    ($79<<$18)|Lamp_Post_Mappings          ; loc_13D8E
                 dc.b    $01, $00, $04, $7C
-                dc.l    ($03<<$18)|Layer_Switch_Mappings       ; loc_147D0
+                dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
                 dc.l    ($18<<$18)|Ghz_Platform_Mappings       ; loc_9078                    
                 dc.b    $01, $00, $40, $00
@@ -41676,7 +41695,7 @@ Debug_HPz: ; loc_24078:  ; Hidden Palace
                 dc.b    $04, $04, $E3, $15
                 dc.l    ($1A<<$18)|HPz_Collapsing_Platforms_Mappings ; loc_9858
                 dc.b    $00, $00, $43, $4A
-                dc.l    ($03<<$18)|Layer_Switch_Mappings       ; loc_147D0
+                dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
                 dc.l    ($4F<<$18)|Dinobot_Mappings            ; loc_1DFCA  
                 dc.b    $00, $00, $05, $00
@@ -41804,9 +41823,9 @@ Debug_CPz: ; loc_24228:  ; Chemical Plant
                 dc.b    $00, $00, $E4, $18
                 dc.l    ($7B<<$18)|Spring_Tubes_Mappings       ; loc_1D920
                 dc.b    $02, $00, $03, $E0
-                dc.l    ($03<<$18)|Layer_Switch_Mappings       ; loc_147D0
+                dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
-                dc.l    ($03<<$18)|Layer_Switch_Mappings       ; loc_147D0
+                dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $0D, $05, $26, $BC
                 dc.l    ($36<<$18)|Spike_Mappings              ; loc_CBA0
                 dc.b    $00, $00, $24, $34
@@ -41850,7 +41869,7 @@ Debug_NGHz: ; loc_242C2:  ; Neo Green Hill
                 dc.b    $90, $03, $04, $70    
                 dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
                 dc.b    $A0, $06, $04, $5C    
-                dc.l    ($03<<$18)|Layer_Switch_Mappings       ; loc_147D0
+                dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
                 dc.l    ($36<<$18)|Spike_Mappings              ; loc_CBA0
                 dc.b    $00, $00, $24, $34
