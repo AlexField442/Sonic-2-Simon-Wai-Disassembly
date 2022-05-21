@@ -1303,11 +1303,14 @@ loc_1730:
                 addq.w  #$02, D0
                 dbra    D5, loc_1730
                 bra.s   loc_16F6
-LoadPLC: ; loc_173C:
+
+
+; sub_173C:
+LoadPLC:
                 movem.l A1/A2, -(A7)
                 lea     (ArtLoadCues), A1       ; loc_24420
                 add.w   D0, D0 
-                move.w  $00(A1, D0), D0  
+                move.w  $00(A1, D0), D0
                 lea     $00(A1, D0), A1
                 lea     ($FFFFF680).w, A2 
 loc_1754:                
@@ -1324,7 +1327,10 @@ loc_1760:
                 dbra    D0, loc_1760
 loc_1768:                 
                 movem.l (A7)+, A1/A2
-                rts   
+                rts
+; End of function LoadPLC
+
+
 LoadPLC2: ; loc_176E:                  
                 movem.l A1/A2, -(A7)  
                 lea     (ArtLoadCues), A1       ; loc_24420
@@ -10104,7 +10110,7 @@ loc_8E18:
                 move.b  $0019(A0), D1
                 moveq   #$08, D3
                 move.w  (A7)+, D4
-                bsr     loc_F984
+                bsr     PlatformObject
                 bra.s   loc_8E3C
 loc_8E34:
                 bsr     loc_8EC4
@@ -10497,7 +10503,7 @@ loc_933C:
                 move.b  $0019(A0), D1
                 move.w  #$0010, D3
                 move.w  $0008(A0), D4
-                bsr     loc_F984
+                bsr     PlatformObject
                 bra     MarkObjGone             ; loc_D2A0
 loc_9352:
                 tst.b   $0038(A0)
@@ -14542,19 +14548,19 @@ Obj_Index:
 		dc.l	Obj03			; Collision plane/layer switcher
 		dc.l	Obj04			; Surface of the water
                 dc.l    Obj_0x05_Tails_Tail               ; loc_11F96 
-                dc.l    Obj_0x06_Spiral_Attributes        ; loc_1572C 
+		dc.l	Obj06			; Twisting spiral pathway in EHZ
                 dc.l    Obj_0x07                          ; loc_180D0 
                 dc.l    Obj_0x08_Water_Splash             ; loc_12B42 
                 dc.l    Obj_0x09_Sonic_In_Special_Stage   ; loc_21D40
                 dc.l    Obj_0x0A_Bubbles_And_Numbers      ; loc_1207C 
-                dc.l    Obj_0x0B_Open_Close_Platform      ; loc_148AC 
-                dc.l    Obj_0x0C                          ; loc_149FC
+		dc.l	Obj0B			; Section of pipe that tips you off from CPZ
+		dc.l	Obj0C			; Small floating platform (used in CPZ in the Nick Arcade prototype)
                 dc.l    Obj_0x0D_End_Panel                ; loc_F1F4 
                 dc.l    Obj_0x0E_Sonic_Tails              ; loc_B7B4 
                 dc.l    Obj_0x0F                          ; loc_B83A 
                 dc.l    Obj_0x10                          ; loc_223E2
                 dc.l    Obj_0x11_Bridge                   ; loc_7FDC 
-                dc.l    Obj_0x12_Emerald                  ; loc_14AFC 
+		dc.l	Obj12
                 dc.l    Obj_0x13_Hpz_Waterfalls           ; loc_14B78  
                 dc.l    Obj_0x14_See_Saw                  ; loc_15B8C 
                 dc.l    Obj_0x15_Swing_Platform           ; loc_85F8
@@ -18227,7 +18233,8 @@ loc_F960:
 loc_F97E:
                 andi.w  #$FFFE, D0
                 bra.s   loc_F93E
-loc_F984:
+; loc_F984:
+PlatformObject:
                 lea     ($FFFFB000).w, A1
                 moveq   #$03, D6
                 movem.l D1-D4, -(A7)
@@ -25052,244 +25059,251 @@ return_147CE:
 ; ---------------------------------------------------------------------------
 Obj03_MapUnc_147D0:	incbin	"mappings/sprite/obj03.bin"
 
-;=============================================================================== 
-; Object 0x0B - Chemical Plant - Open / Close Platforms
-; [ Begin ]                         
-;===============================================================================   
-Obj_0x0B_Open_Close_Platform: ; loc_148AC:              
-                moveq   #$00, D0
-                move.b  $0024(A0), D0
-                move.w  loc_148BA(PC, D0), D1
-                jmp     loc_148BA(PC, D1)
-loc_148BA:
-                dc.w    loc_148C0-loc_148BA
-                dc.w    loc_14914-loc_148BA
-                dc.w    loc_14922-loc_148BA
-loc_148C0:
-                addq.b  #$02, $0024(A0)
-                move.l  #Open_Close_Platform_Mappings, $0004(A0) ; loc_14996
-                move.w  #$E3B0, $0002(A0)
-                bsr     Adjust2PArtPointer     ; loc_DC30
-                ori.b   #$04, $0001(A0)
-                move.b  #$10, $0019(A0)
-                move.b  #$04, $0018(A0)
-                moveq   #$00, D0
-                move.b  $0028(A0), D0
-                andi.w  #$00F0, D0
-                addi.w  #$0010, D0
-                move.w  D0, D1
-                subq.w  #$01, D0
-                move.w  D0, $0030(A0)
-                move.w  D0, $0032(A0)
-                moveq   #$00, D0
-                move.b  $0028(A0), D0
-                andi.w  #$000F, D0
-                addq.w  #$01, D0
-                lsl.w   #$04, D0
-                move.b  D0, $0036(A0)
-loc_14914:
-                move.b  ($FFFFFE0F).w, D0
-                add.b   $0036(A0), D0
-                bne.s   loc_1494C
-                addq.b  #$02, $0024(A0)
-loc_14922:
-                subq.w  #$01, $0030(A0)
-                bpl.s   loc_14940
-                move.w  #$007F, $0030(A0)
-                tst.b   $001C(A0)
-                beq.s   loc_1493A
-                move.w  $0032(A0), $0030(A0)
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Object 0B - Section of pipe that tips you off from CPZ
+; ---------------------------------------------------------------------------
+; Sprite_148AC: Obj_0x0B_Open_Close_Platform:
+Obj0B:
+		moveq	#0,d0
+		move.b	$24(a0),d0
+		move.w	Obj0B_Index(pc,d0.w),d1
+		jmp	Obj0B_Index(pc,d1.w)
+; ===========================================================================
+; off_148BA:
+Obj0B_Index:	dc.w	Obj0B_Init-Obj0B_Index
+		dc.w	Obj0B_Main-Obj0B_Index
+		dc.w	Obj0B_Turn-Obj0B_Index
+; ===========================================================================
+; loc_148C0:
+Obj0B_Init:
+		addq.b	#2,$24(a0)
+		move.l	#Obj0B_MapUnc_14996,4(a0)
+		move.w	#$E3B0,2(a0)
+		bsr.w	Adjust2PArtPointer
+		ori.b	#4,1(a0)
+		move.b	#$10,$19(a0)
+		move.b	#4,$18(a0)
+		moveq	#0,d0
+		move.b	$28(a0),d0
+		andi.w	#$F0,d0
+		addi.w	#$10,d0
+		move.w	d0,d1
+		subq.w	#1,d0
+		move.w	d0,$30(a0)
+		move.w	d0,$32(a0)
+		moveq	#0,d0
+		move.b	$28(a0),d0
+		andi.w	#$F,d0
+		addq.w	#1,d0
+		lsl.w	#4,d0
+		move.b	d0,$36(a0)
+; loc_14914:
+Obj0B_Main:
+		move.b	($FFFFFE0F).w,d0
+		add.b	$36(a0),d0
+		bne.s	loc_1494C
+		addq.b	#2,$24(a0)
+
+; loc_14922:
+Obj0B_Turn:
+		subq.w	#1,$30(a0)
+		bpl.s	loc_14940
+		move.w	#$7F,$30(a0)
+		tst.b	$1C(a0)
+		beq.s	loc_1493A
+		move.w	$32(a0),$30(a0)
+
 loc_1493A:
-                bchg    #0, $001C(A0)
+		bchg	#0,$1C(a0)
+
 loc_14940:
-                lea     (loc_14982), A1
-                jsr     AnimateSprite           ; (loc_D412)
+		lea	(Ani_obj0B).l,a1
+		jsr	(AnimateSprite).l
+
 loc_1494C:
-                tst.b   $001A(A0)
-                bne.s   loc_14966
-                moveq   #$00, D1
-                move.b  $0019(A0), D1
-                moveq   #$11, D3
-                move.w  $0008(A0), D4
-                bsr     loc_F984
-                bra     MarkObjGone             ; loc_D2A0
+		tst.b	$1A(a0)
+		bne.s	loc_14966
+		moveq	#0,d1
+		move.b	$19(a0),d1
+		moveq	#$11,d3
+		move.w	8(a0),d4
+		bsr.w	PlatformObject
+		bra.w	MarkObjGone
+; ---------------------------------------------------------------------------
+
 loc_14966:
-                btst    #$03, $0022(A0)
-                beq.s   loc_1497E
-                lea     ($FFFFB000).w, A1
-                bclr    #$03, $0022(A1)
-                bclr    #$03, $0022(A0)
+		btst	#3,$22(a0)
+		beq.s	loc_1497E
+		lea	($FFFFB000).w,a1
+		bclr	#3,$22(a1)
+		bclr	#3,$22(a0)
+
 loc_1497E:
-                bra     MarkObjGone             ; loc_D2A0
-loc_14982:
-                dc.w    loc_14986-loc_14982
-                dc.w    loc_1498E-loc_14982
-loc_14986:
-                dc.b    $07
-                dc.b    $00, $01, $02, $03, $04, $FE, $01
-loc_1498E:
-                dc.b    $07
-                dc.b    $04, $03, $02, $01, $00, $FE, $01
-Open_Close_Platform_Mappings:                
-loc_14996:
-                dc.w    loc_149A0-loc_14996
-                dc.w    loc_149B2-loc_14996
-                dc.w    loc_149C4-loc_14996
-                dc.w    loc_149D6-loc_14996
-                dc.w    loc_149E8-loc_14996
-loc_149A0:
-                dc.w    $0002
-                dc.l    $F00C0000, $0000FFF0, $F80E0024, $0012FFF0
-loc_149B2:
-                dc.w    $0002
-                dc.l    $E80F0004, $0002FFF0, $F80E0024, $0012FFF0
-loc_149C4:
-                dc.w    $0002
-                dc.l    $F40F0014, $000AFFF0, $F80E0024, $0012FFF0
-loc_149D6:
-                dc.w    $0002
-                dc.l    $000F1004, $1002FFF0, $F80E0024, $0012FFF0
-loc_149E8:
-                dc.w    $0002
-                dc.l    $100C1000, $1000FFF0, $F80E0024, $0012FFF0
-;=============================================================================== 
-; Object 0x0B - Chemical Plant - Open / Close Platforms
-; [ End ]                         
-;===============================================================================  
-                nop                             ; Filler 
-;=============================================================================== 
-; Object 0x0C - 
-; [ Begin ]                         
-;===============================================================================  
-Obj_0x0C: ; loc_149FC:
-                moveq   #$00, D0
-                move.b  $0024(A0), D0
-                move.w  loc_14A0A(PC, D0), D1
-                jmp     loc_14A0A(PC, D1)
-loc_14A0A:
-                dc.w    loc_14A0E-loc_14A0A
-                dc.w    loc_14A6E-loc_14A0A
-loc_14A0E:
-                addq.b  #$02, $0024(A0)
-                move.l  #Obj_0x0C_Mappings, $0004(A0) ; loc_14AE6
-                move.w  #$E418, $0002(A0)
-                bsr     Adjust2PArtPointer     ; loc_DC30
-                ori.b   #$04, $0001(A0)
-                move.b  #$10, $0019(A0)
-                move.b  #$04, $0018(A0)
-                move.w  $000C(A0), D0
-                subi.w  #$0010, D0
-                move.w  D0, $003A(A0)
-                moveq   #$00, D0
-                move.b  $0028(A0), D0
-                andi.w  #$00F0, D0
-                addi.w  #$0010, D0
-                move.w  D0, D1
-                subq.w  #$01, D0
-                move.w  D0, $0030(A0)
-                move.w  D0, $0032(A0)
-                moveq   #$00, D0
-                move.b  $0028(A0), D0
-                andi.w  #$000F, D0
-                move.b  D0, $003E(A0)
-                move.b  D0, $003F(A0)
-loc_14A6E:
-                move.b  $003C(A0), D0
-                beq.s   loc_14AAC
-                cmpi.b  #$80, D0
-                bne.s   loc_14ABC
-                move.b  $003D(A0), D1
-                bne.s   loc_14A8E
-                subq.b  #$01, $003E(A0)
-                bpl.s   loc_14A8E
-                move.b  $003F(A0), $003E(A0)
-                bra.s   loc_14ABC
+		bra.w	MarkObjGone
+; ===========================================================================
+; animation script
+; off_14982:
+Ani_obj0B:	dc.w	byte_14986-Ani_obj0B
+		dc.w	byte_1498E-Ani_obj0B
+byte_14986:	dc.b	7,  0,  1,  2,  3,  4,  $FE,  1
+byte_1498E:	dc.b    7,  4,  3,  2,  1,  0,  $FE,  1
+		even
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; sprite mappings
+; ---------------------------------------------------------------------------
+Obj0B_MapUnc_14996:	incbin	"mappings/sprite/obj0B.bin"
+; ===========================================================================
+		align 4
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Object 0C - Small floating platform (used in CPZ in the Nick Arcade prototype)
+; ---------------------------------------------------------------------------
+; Sprite_149FC: Obj_0x0C:
+Obj0C:
+		moveq	#0,d0
+		move.b	$24(a0),d0
+		move.w	Obj0C_Index(pc,d0.w),d1
+		jmp	Obj0C_Index(pc,d1.w)
+; ===========================================================================
+; off_14A0A:
+Obj0C_Index:	dc.w	Obj0C_Init-Obj0C_Index
+		dc.w	Obj0C_Main-Obj0C_Index
+; ===========================================================================
+; loc_14A0E:
+Obj0C_Init:
+		addq.b	#2,$24(a0)
+		move.l	#Obj0C_MapUnc_14AE6,4(a0)
+		move.w	#$E418,2(a0)
+		bsr.w	Adjust2PArtPointer
+		ori.b	#4,1(a0)
+		move.b	#$10,$19(a0)
+		move.b	#4,$18(a0)
+		move.w	$C(a0),d0
+		subi.w	#$10,d0
+		move.w	d0,$3A(a0)
+		moveq	#0,d0
+		move.b	$28(a0),d0
+		andi.w	#$F0,d0
+		addi.w	#$10,d0
+		move.w	d0,d1
+		subq.w	#1,d0
+		move.w	d0,$30(a0)
+		move.w	d0,$32(a0)
+		moveq	#0,d0
+		move.b	$28(a0),d0
+		andi.w	#$F,d0
+		move.b	d0,$3E(a0)
+		move.b	d0,$3F(a0)
+; loc_14A6E:
+Obj0C_Main:
+		move.b	$3C(a0),d0
+		beq.s	loc_14AAC
+		cmpi.b	#$80,d0
+		bne.s	loc_14ABC
+		move.b	$3D(a0),d1
+		bne.s	loc_14A8E
+		subq.b	#1,$3E(a0)
+		bpl.s	loc_14A8E
+		move.b	$3F(a0),$3E(a0)
+		bra.s	loc_14ABC
+; ===========================================================================
+
 loc_14A8E:
-                addq.b  #$01, $003D(A0)
-                move.b  D1, D0
-                bsr     loc_14AF4
-                addi.w  #$0008, D0
-                asr.w   #$06, D0
-                subi.w  #$0010, D0
-                add.w   $003A(A0), D0
-                move.w  D0, $000C(A0)
-                bra.s   loc_14AD2
+		addq.b	#1,$3D(a0)
+		move.b	d1,d0
+		bsr.w	loc_14AF4
+		addi.w	#8,d0
+		asr.w	#6,d0
+		subi.w	#$10,d0
+		add.w	$3A(a0),d0
+		move.w	d0,$C(a0)
+		bra.s	loc_14AD2
+; ===========================================================================
+
 loc_14AAC:
-                move.w  ($FFFFFE0E).w, D1
-                andi.w  #$03FF, D1
-                bne.s   loc_14AC0
-                move.b  #$01, $003D(A0)
+		move.w	($FFFFFE0E).w,d1
+		andi.w	#$3FF,d1
+		bne.s	loc_14AC0
+		move.b	#1,$3D(a0)
+
 loc_14ABC:
-                addq.b  #$01, $003C(A0)
+		addq.b	#1,$3C(a0)
+
+
 loc_14AC0:
-                bsr     loc_14AF4
-                addi.w  #$0008, D1
-                asr.w   #$04, D1
-                add.w   $003A(A0), D1
-                move.w  D1, $000C(A0)
+		bsr.w	loc_14AF4
+		addi.w	#8,d1
+		asr.w	#4,d1
+		add.w	$3A(a0),d1
+		move.w	d1,$C(a0)
+
 loc_14AD2:
-                moveq   #$00, D1
-                move.b  $0019(A0), D1
-                moveq   #$09, D3
-                move.w  $0008(A0), D4
-                bsr     loc_F984
-                bra     MarkObjGone             ; loc_D2A0
-Obj_0x0C_Mappings:                
-loc_14AE6:
-                dc.w    loc_14AE8-loc_14AE6
-loc_14AE8:
-                dc.w    $0001
-                dc.l    $F80D0000, $0000FFF0
-;=============================================================================== 
-; Object 0x0C - 
-; [ End ]                         
-;===============================================================================  
-                nop                             ; Filler 
+		moveq	#0,d1
+		move.b	$19(a0),d1
+		moveq	#9,d3
+		move.w	8(a0),d4
+		bsr.w	PlatformObject
+		bra.w	MarkObjGone
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Unused sprite mappings
+; ---------------------------------------------------------------------------
+Obj0C_MapUnc_14AE6:	incbin	"mappings/sprite/obj0C.bin"
+
+; ===========================================================================
+		nop
+
 loc_14AF4:
-                jmp     CalcSine                ; loc_320A
-                dc.w    $0000                   ; Filler 
-;=============================================================================== 
-; Object 0x12 - Hidden Palace - Emerald 
-; [ Begin ]                         
-;===============================================================================                  
-Obj_0x12_Emerald: ; loc_14AFC:
-                moveq   #$00, D0
-                move.b  $0024(A0), D0
-                move.w  loc_14B0A(PC, D0), D1
-                jmp     loc_14B0A(PC, D1)
-loc_14B0A:                
-                dc.w    loc_14B0E-loc_14B0A
-                dc.w    loc_14B36-loc_14B0A
-loc_14B0E:
-                addq.b  #$02, $0024(A0)
-                move.l  #Emerald_Mappings, $0004(A0) ; loc_14B62
-                move.w  #$6392, $0002(A0)
-                bsr     Adjust2PArtPointer     ; loc_DC30
-                move.b  #$04, $0001(A0)
-                move.b  #$20, $0019(A0)
-                move.b  #$04, $0018(A0)
-loc_14B36:
-                move.w  #$0020, D1
-                move.w  #$0010, D2
-                move.w  #$0010, D3
-                move.w  $0008(A0), D4
-                bsr     SolidObject             ; loc_F4A0
-                move.w  $0008(A0), D0
-                andi.w  #$FF80, D0
-                sub.w   ($FFFFF7DA).w, D0
-                cmpi.w  #$0280, D0
-                bhi     DeleteObject            ; loc_D3B4
-                bra     DisplaySprite           ; loc_D3C2 
-Emerald_Mappings: ; loc_14B62:
-                dc.w    loc_14B64-Emerald_Mappings
-loc_14B64:
-                dc.w    $0002
-                dc.l    $F00F0000, $0000FFE0, $F00F0010, $00080000
-;=============================================================================== 
-; Object 0x12 - Hidden Palace - Emerald 
-; [ End ]                         
-;===============================================================================  
-                nop                             ; Filler
+		jmp	(CalcSine).l
+
+		align 4
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Object 12 - Emerald from Hidden Palace Zone
+; ---------------------------------------------------------------------------
+; Sprite_14AFC: Obj_0x12_Emerald:
+Obj12:
+		moveq	#0,d0
+		move.b	$024(a0),d0
+		move.w	Obj12_Index(pc,d0.w),d1
+		jmp	Obj12_Index(pc,d1.w)
+; ===========================================================================
+; off_14B0A:
+Obj12_Index:	dc.w	Obj12_Init-Obj12_Index
+		dc.w	Obj12_Main-Obj12_Index
+; ===========================================================================
+; loc_14B0E:
+Obj12_Init:
+		addq.b	#2,$24(a0)
+		move.l	#Obj12_MapUnc_14B62,4(a0)
+		move.w	#$6392,2(a0)
+		bsr.w	Adjust2PArtPointer
+		move.b	#4,1(a0)
+		move.b	#$20,$19(a0)
+		move.b	#4,$18(a0)
+; loc_14B36:
+Obj12_Main:
+		move.w	#$20,d1
+		move.w	#$10,d2
+		move.w	#$10,d3
+		move.w	8(a0),d4
+		bsr.w	SolidObject
+		move.w	8(a0),d0
+		andi.w	#$FF80,d0
+		sub.w	($FFFFF7DA).w,d0
+		cmpi.w	#$280,d0
+		bhi.w	DeleteObject
+		bra.w	DisplaySprite
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj12_MapUnc_14B62:	incbin	"mappings/sprite/obj12.bin"
+; ===========================================================================
+                nop
 ;=============================================================================== 
 ; Object 0x13 - Hidden Palace - Waterfalls 
 ; [ Begin ]                         
@@ -25892,31 +25906,39 @@ J_DisplaySprite_00: ; loc_15720:
                 jmp     DisplaySprite           ; loc_D3C2
 J_DeleteObject_09: ; loc_15726:
                 jmp     DeleteObject            ; loc_D3B4
-;=============================================================================== 
-; Object 0x06 - Green Hill / Metropolis - Spiral Loopings Attributes, ... 
-; [ Begin ]                         
-;===============================================================================                   
-Obj_0x06_Spiral_Attributes: ; loc_1572C:   
-                moveq   #$00, D0
-                move.b  $0024(A0), D0
-                move.w  loc_1575C(PC, D0), D1
-                jsr     loc_1575C(PC, D1)
-                tst.w   ($FFFFFFD8).w
-                beq.s   loc_15742
-                rts
-loc_15742:
-                move.w  $0008(A0), D0
-                andi.w  #$FF80, D0
-                sub.w   ($FFFFF7DA).w, D0
-                cmpi.w  #$0280, D0
-                bhi.s   J_DeleteObject_0A       ; loc_15756
-                rts
-J_DeleteObject_0A: ; loc_15756:
-                jmp     DeleteObject            ; loc_D3B4
-loc_1575C:
-                dc.w    loc_15762-loc_1575C
-                dc.w    loc_1577A-loc_1575C
-                dc.w    loc_15A6A-loc_1575C
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Object 06 - Twisting spiral pathway in EHZ
+; ---------------------------------------------------------------------------
+; Sprite_1572C: Obj_0x06_Spiral_Attributes:
+Obj06:
+		moveq	#0,d0
+		move.b	$24(a0),d0
+		move.w	Obj06_Index(pc,d0.w),d1
+		jsr	Obj06_Index(pc,d1.w)
+		tst.w	($FFFFFFD8).w
+		beq.s	Obj06_ChkDel
+		rts
+; ---------------------------------------------------------------------------
+; Deletes the object the instant it goes off screen in 1-player mode
+; loc_15742:
+Obj06_ChkDel:
+		move.w	8(a0),d0
+		andi.w	#$FF80,d0
+		sub.w	($FFFFF7DA).w,d0
+		cmpi.w	#$280,d0
+		bhi.s	J_DeleteObject_0A
+		rts
+; ---------------------------------------------------------------------------
+J_DeleteObject_0A:
+		jmp	(DeleteObject).l
+; ===========================================================================
+; off_1575C:
+Obj06_Index:	dc.w	loc_15762-Obj06_Index
+		dc.w	loc_1577A-Obj06_Index
+		dc.w	loc_15A6A-Obj06_Index
+; ===========================================================================
+
 loc_15762:
                 addq.b  #$02, $0024(A0)
                 move.b  #$D0, $0019(A0)
@@ -26018,13 +26040,22 @@ loc_15864:
                 move.w  D2, $000C(A1)
                 lsr.w   #$03, D0
                 andi.w  #$003F, D0
-                move.b  loc_15896(PC, D0), $0027(A1)
+                move.b  Obj06_FlipAngleTable(PC, D0), $0027(A1)
                 rts
-loc_15896:
-                dc.b    $00, $00, $01, $01, $16, $16, $16, $16, $2C, $2C, $2C, $2C, $42, $42, $42, $42
-                dc.b    $58, $58, $58, $58, $6E, $6E, $6E, $6E, $84, $84, $84, $84, $9A, $9A, $9A, $9A
-                dc.b    $B0, $B0, $B0, $B0, $C6, $C6, $C6, $C6, $DC, $DC, $DC, $DC, $F2, $F2, $F2, $F2
-                dc.b    $01, $01, $00, $00
+
+; ===========================================================================
+; Fun fact - Sega had a patent which included the original source code
+; for these tables: https://patents.google.com/patent/US5411272
+; byte_15896: sloopdirtbl:
+Obj06_FlipAngleTable:
+		dc.b	$00,$00
+		dc.b	$01,$01,$16,$16,$16,$16,$2C,$2C
+		dc.b	$2C,$2C,$42,$42,$42,$42,$58,$58
+                dc.b	$58,$58,$6E,$6E,$6E,$6E,$84,$84
+		dc.b	$84,$84,$9A,$9A,$9A,$9A,$B0,$B0
+                dc.b	$B0,$B0,$C6,$C6,$C6,$C6,$DC,$DC
+		dc.b	$DC,$DC,$F2,$F2,$F2,$F2,$01,$01
+                dc.b	$00,$00
 loc_158CA:
                 dc.b    $20, $20, $20, $20, $20, $20, $20, $20, $20, $20, $20, $20, $20, $20, $20, $20
                 dc.b    $20, $20, $20, $20, $20, $20, $20, $20, $20, $20, $20, $20, $20, $20, $1F, $1F
@@ -26513,7 +26544,7 @@ loc_16064:
                 move.b  $0019(A0), D1
                 move.w  #$FFD8, D3
                 move.w  (A7)+, D4
-                bsr     loc_F984
+                bsr     PlatformObject
                 bra     J_MarkObjGone_00        ; loc_1620A
 loc_16080:
                 moveq   #$00, D0
@@ -26651,7 +26682,7 @@ loc_162A0:
                 move.b  $0019(A0), D1
                 move.w  #$0010, D3
                 move.w  (A7)+, D4
-                bsr     loc_F984
+                bsr     PlatformObject
                 move.w  $0030(A0), D0
                 andi.w  #$FF80, D0
                 sub.w   ($FFFFF7DA).w, D0
@@ -33201,7 +33232,7 @@ J_SingleObjLoad_05: ; loc_1C2CC:
 J_Adjust2PArtPointer_17: ; loc_1C2D2:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
 loc_1C2D8:
-                jmp     (loc_F984)
+                jmp     (PlatformObject)
 J_SpeedToPos_0A: ; loc_1C2DE:
                 jmp     SpeedToPos              ; (loc_D27A)    
 ;=============================================================================== 
@@ -34738,7 +34769,7 @@ J_SingleObjLoad2_0A: ; loc_1D738:
 J_Adjust2PArtPointer_1E: ; loc_1D73E:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
 loc_1D744:
-                jmp     (loc_F984)
+                jmp     (PlatformObject)
                 dc.w    $0000                   ; Filler    
 ;=============================================================================== 
 ; Object 0x7B - Chemical Plant - Spring Over Tubes 
@@ -41803,7 +41834,7 @@ Debug_CPz: ; loc_24228:  ; Chemical Plant
                 dc.b    $00, $00, $26, $BC
                 dc.l    ($26<<$18)|Monitors_Mappings           ; loc_B6D2
                 dc.b    $07, $00, $06, $80
-                dc.l    ($0B<<$18)|Open_Close_Platform_Mappings ; loc_14996
+                dc.l    ($0B<<$18)|Obj0B_MapUnc_14996 ; loc_14996
                 dc.b    $70, $00, $E3, $B0
                 dc.l    ($1B<<$18)|Speed_Booster_Mappings      ; loc_1658A
                 dc.b    $00, $00, $E3, $9C
