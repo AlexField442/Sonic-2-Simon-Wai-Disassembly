@@ -480,7 +480,7 @@ loc_D28:
                 rts 
 loc_D2A:
                 bsr     loc_10BE
-                bsr     loc_17FE
+                bsr     ProcessDPLC
                 tst.w   ($FFFFF614).w
                 beq     loc_D3E
                 subq.w  #$01, ($FFFFF614).w 
@@ -550,7 +550,7 @@ loc_DB6:
 DemoTime: ; loc_E56:   
                 bsr     LoadTilesAsYouMove      ; loc_6E1A
                 jsr     HudUpdate               ; loc_23012
-                bsr     loc_181A
+                bsr     ProcessDPLC2
                 tst.w   ($FFFFF614).w
                 beq     DemoTime_End            ; loc_E70
                 subq.w  #$01, ($FFFFF614).w
@@ -641,7 +641,7 @@ loc_F7E:
                 movem.l D0-D1, ($FFFFEEA0).w
                 bsr     LoadTilesAsYouMove     ; loc_6E1A
                 jsr     HudUpdate              ; loc_23012
-                bsr     loc_17FE
+                bsr     ProcessDPLC
                 rts
 loc_1004:
                 bsr     loc_10BE
@@ -651,7 +651,7 @@ loc_1004:
 loc_1014:
                 bsr     loc_10BE 
                 move.w  ($FFFFF624).w, (A5)
-                bra     loc_17FE 
+                bra     ProcessDPLC 
 loc_1020:
                 move.w  #$0100, ($00A11100)
 loc_1028:                
@@ -1304,159 +1304,238 @@ loc_1730:
                 dbra    D5, loc_1730
                 bra.s   loc_16F6
 
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Subroutine to load pattern load cues (aka to queue pattern load requests)
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; ARGUMENTS
+; d0 = index of PLC list (see ArtLoadCues)
+
+; NOTICE: This subroutine does not check for buffer overruns. The programmer
+;	  (or hacker) is responsible for making sure that no more than
+;	  16 (well, 15 because of a bug in ProcessDPLC_Pop) load requests
+;         are copied into the buffer.
 
 ; sub_173C:
 LoadPLC:
-                movem.l A1/A2, -(A7)
-                lea     (ArtLoadCues), A1       ; loc_24420
-                add.w   D0, D0 
-                move.w  $00(A1, D0), D0
-                lea     $00(A1, D0), A1
-                lea     ($FFFFF680).w, A2 
-loc_1754:                
-                tst.l   (A2)
-                beq.s   loc_175C
-                addq.w  #$06, A2
-                bra.s   loc_1754
-loc_175C:                
-                move.w  (A1)+, D0
-                bmi.s   loc_1768
-loc_1760:                
-                move.l  (A1)+, (A2)+
-                move.w  (A1)+, (A2)+
-                dbra    D0, loc_1760
-loc_1768:                 
-                movem.l (A7)+, A1/A2
-                rts
+		movem.l	a1/a2,-(sp)
+		lea	(ArtLoadCues).l,a1
+		add.w	d0,d0
+		move.w	(a1,d0.w),d0
+		lea	(a1,d0.w),a1
+		lea	($FFFFF680).w,a2 
+
+loc_1754:
+		tst.l	(a2)
+		beq.s	loc_175C	; if it's zero, exit this loop
+		addq.w	#6,a2
+		bra.s	loc_1754
+
+loc_175C:
+		move.w	(a1)+,d0
+		bmi.s	loc_1768	; if it's negative, skip the next loop
+
+loc_1760:
+		move.l	(a1)+,(a2)+
+		move.w	(a1)+,(a2)+
+		dbf	D0, loc_1760
+
+loc_1768:
+		movem.l (sp)+,a1/a2
+		rts
 ; End of function LoadPLC
 
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Subroutine to load pattern load cues (but after we clear it)
+; ---------------------------------------------------------------------------
 
-LoadPLC2: ; loc_176E:                  
-                movem.l A1/A2, -(A7)  
-                lea     (ArtLoadCues), A1       ; loc_24420
-                add.w   D0, D0  
-                move.w  $00(A1, D0), D0 
-                lea     $00(A1, D0), A1
-                bsr.s   ClearPLC                ; loc_179A
-                lea     ($FFFFF680).w, A2 
-                move.w  (A1)+, D0
-                bmi.s   loc_1794
-loc_178C:                 
-                move.l  (A1)+, (A2)+
-                move.w  (A1)+, (A2)+
-                dbra    D0, loc_178C 
-loc_1794:   
-                movem.l (A7)+, A1/A2 
-                rts            
-ClearPLC: ; loc_179A:
-                lea     ($FFFFF680).w, A2
-                moveq   #$1F, D0
-loc_17A0:                
-                clr.l   (A2)+
-                dbra    D0, loc_17A0
-                rts
-RunPLC: ; loc_17A8:                
-                tst.l   ($FFFFF680).w
-                beq.s   loc_17FC
-                tst.w   ($FFFFF6F8).w
-                bne.s   loc_17FC
-                move.l  ($FFFFF680).w, A0
-                lea     NemDec_Output(PC), A3 ; loc_16BE              
-                nop
-                lea     ($FFFFAA00).w, A1
-                move.w  (A0)+, D2
-                bpl.s   loc_17CA
-                adda.w  #$000A, A3 
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_176E:
+LoadPLC2:
+		movem.l	a1/a2,-(sp)
+		lea	(ArtLoadCues).l,a1
+		add.w	d0,d0
+		move.w	(a1,d0.w),d0 
+		lea	(a1,d0.w),a1
+		bsr.s	ClearPLC
+		lea	($FFFFF680).w,a2 
+		move.w	(a1)+,d0
+		bmi.s	loc_1794	; if it's negative, skip the next loop
+
+loc_178C:
+		move.l	(a1)+,(a2)+
+		move.w	(a1)+,(a2)+
+		dbf	d0,loc_178C
+
+loc_1794:
+		movem.l	(sp)+,a1/a2
+		rts
+; End of function LoadPLC2
+
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; Clear the pattern load queue ($FFF680 - $FFF700)
+; loc_179A:
+ClearPLC:
+		lea	($FFFFF680).w,a2
+		moveq	#$1F,d0
+
+loc_17A0:
+		clr.l	(a2)+
+		dbf	d0,loc_17A0
+		rts
+; End of function ClearPLC
+
+; ---------------------------------------------------------------------------
+; Subroutine to use graphics listed in a pattern load cue
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_17A8: RunPLC:
+RunPLC_RAM:
+		tst.l	($FFFFF680).w
+		beq.s	return_17FC
+		tst.w	($FFFFF6F8).w
+		bne.s	return_17FC
+		move.l	($FFFFF680).w,a0
+		lea	NemDec_Output(pc),a3
+		nop
+		lea	($FFFFAA00).w,a1
+		move.w	(a0)+,d2
+		bpl.s	loc_17CA
+		adda.w	#$A,a3
+
 loc_17CA: 
-                andi.w  #$7FFF, D2
-                move.w  D2, ($FFFFF6F8).w
-                bsr     NemDec4             ; loc_16EA
-                move.b  (A0)+, D5
-                asl.w   #$08, D5
-                move.b  (A0)+, D5  
-                moveq   #$10, D6
-                moveq   #$00, D0
-                move.l  A0, ($FFFFF680).w
-                move.l  A3, ($FFFFF6E0).w
-                move.l  D0, ($FFFFF6E4).w
-                move.l  D0, ($FFFFF6E8).w
-                move.l  D0, ($FFFFF6EC).w
-                move.l  D5, ($FFFFF6F0).w 
-                move.l  D6, ($FFFFF6F4).w           
-loc_17FC:    
-                rts                           
-loc_17FE:
-                tst.w   ($FFFFF6F8).w 
-                beq     loc_1896
-                move.w  #$0009, ($FFFFF6FA).w                    
-                moveq   #$00, D0
-                move.w  ($FFFFF684).w, D0 
-                addi.w  #$0120, ($FFFFF684).w
-                bra.s   loc_1832                   
-loc_181A:
-                tst.w   ($FFFFF6F8).w 
-                beq.s   loc_1896
-                move.w  #$0003, ($FFFFF6FA).w 
-                moveq   #$00, D0
-                move.w  ($FFFFF684).w, D0 
-                addi.w  #$0060, ($FFFFF684).w
-loc_1832:                
-                lea     ($00C00004), A4
-                lsl.l   #$02, D0
-                lsr.w   #$02, D0
-                ori.w   #$4000, D0
-                swap.w  D0
-                move.l  D0, (A4)
-                subq.w  #$04, A4
-                move.l  ($FFFFF680).w, A0
-                move.l  ($FFFFF6E0).w, A3
-                move.l  ($FFFFF6E4).w, D0
-                move.l  ($FFFFF6E8).w, D1
-                move.l  ($FFFFF6EC).w, D2 
-                move.l  ($FFFFF6F0).w, D5
-                move.l  ($FFFFF6F4).w, D6
-                lea     ($FFFFAA00).w, A1
-loc_1866:                
-                move.w  #$0008, A5
-                bsr     NemDec3             ; loc_1688
-                subq.w  #$01, ($FFFFF6F8).w
-                beq.s   loc_1898
-                subq.w  #$01, ($FFFFF6FA).w
-                bne.s   loc_1866
-                move.l  A0, ($FFFFF680).w
-                move.l  A3, ($FFFFF6E0).w
-                move.l  D0, ($FFFFF6E4).w
-                move.l  D1, ($FFFFF6E8).w
-                move.l  D2, ($FFFFF6EC).w
-                move.l  D5, ($FFFFF6F0).w
-                move.l  D6, ($FFFFF6F4).w
-loc_1896:                 
-                rts               
-loc_1898:                 
-                lea     ($FFFFF680).w, A0
-                moveq   #$15, D0
-loc_189E:                
-                move.l  $0006(A0), (A0)+
-                dbra    D0, loc_189E
-                rts
-RunPLC_ROM: ; loc_18A8:
-                lea     (ArtLoadCues), A1       ; loc_24420
-                add.w   D0, D0
-                move.w  $00(A1, D0), D0
-                lea     $00(A1, D0), A1
-                move.w  (A1)+, D1
-loc_18BA:                
-                move.l  (A1)+, A0
-                moveq   #$00, D0
-                move.w  (A1)+, D0
-                lsl.l   #$02, D0
-                lsr.w   #$02, D0
-                ori.w   #$4000, D0
-                swap.w  D0
-                move.l  D0, ($00C00004)
-                bsr     NemDec              ; loc_15FC
-                dbra    D1, loc_18BA
-                rts
+		andi.w	#$7FFF,d2
+		move.w	d2,($FFFFF6F8).w
+		bsr.w	NemDec4
+		move.b	(a0)+,d5
+		asl.w	#8,d5
+		move.b	(A0)+,d5
+		moveq	#$10,d6
+		moveq	#0,d0
+		move.l	a0,($FFFFF680).w
+		move.l	a3,($FFFFF6E0).w
+		move.l	d0,($FFFFF6E4).w
+		move.l	d0,($FFFFF6E8).w
+		move.l	d0,($FFFFF6EC).w
+		move.l	d5,($FFFFF6F0).w
+		move.l	d6,($FFFFF6F4).w
+
+return_17FC:    
+		rts
+; End of function RunPLC_RAM
+
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+; Process one PLC from the queue
+; loc_17FE:
+ProcessDPLC:
+		tst.w	($FFFFF6F8).w
+		beq.w	return_1896
+		move.w	#9,($FFFFF6FA).w
+		moveq	#0,d0
+		move.w	($FFFFF684).w,d0
+		addi.w	#$120, ($FFFFF684).w
+		bra.s	ProcessDPLC_Main
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+; Process one PLC from the queue
+; loc_181A:
+ProcessDPLC2:
+		tst.w	($FFFFF6F8).w
+		beq.s	return_1896
+		move.w	#3,($FFFFF6FA).w
+		moveq	#0,d0
+		move.w	($FFFFF684).w,d0
+		addi.w	#$60,($FFFFF684).w
+; loc_1832:
+ProcessDPLC_Main:
+		lea	($C00004).l,a4
+		lsl.l	#2,d0
+		lsr.w	#2,d0
+		ori.w	#$4000,d0
+		swap.w	d0
+		move.l	d0,(a4)
+		subq.w	#4,a4
+		move.l	($FFFFF680).w,a0
+		move.l	($FFFFF6E0).w,a3
+		move.l	($FFFFF6E4).w,d0
+		move.l	($FFFFF6E8).w,d1
+		move.l	($FFFFF6EC).w,d2
+		move.l	($FFFFF6F0).w,d5
+		move.l	($FFFFF6F4).w,d6
+		lea	($FFFFAA00).w,a1
+
+loc_1866:
+		move.w	#8,a5
+		bsr.w	NemDec3
+		subq.w	#1,($FFFFF6F8).w
+		beq.s	ProcessDPLC_Pop
+		subq.w	#1,($FFFFF6FA).w
+		bne.s	loc_1866
+		move.l	a0,($FFFFF680).w
+		move.l	a3,($FFFFF6E0).w
+		move.l	d0,($FFFFF6E4).w
+		move.l	d1,($FFFFF6E8).w
+		move.l	d2,($FFFFF6EC).w
+		move.l	d5,($FFFFF6F0).w
+		move.l	d6,($FFFFF6F4).w
+
+return_1896:
+		rts
+; ===========================================================================
+; Pop one request off the buffer so that the next one can be filled, except
+; queue 16 can't be used due to a bug; link to the fix below:
+; https://forums.sonicretro.org/index.php?threads/how-to-fix-pattern-load-cues-queue-shifting-bug.28339/
+; loc_1898:
+ProcessDPLC_Pop:
+		lea	($FFFFF680).w,a0
+		moveq	#$15,d0
+
+loc_189E:
+		move.l	6(a0),(a0)+
+		dbf	d0,loc_189E
+		rts
+; End of function ProcessDPLC
+
+; ---------------------------------------------------------------------------
+; Subroutine to execute a pattern load cue directly from the ROM
+; rather than loading them into the queue first
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_18A8:
+RunPLC_ROM:
+		lea	(ArtLoadCues).l,a1
+		add.w	d0,d0
+		move.w	(a1,d0.w),d0
+		lea	(a1,d0.w),a1
+		move.w	(a1)+,d1
+
+loc_18BA:
+		move.l	(a1)+,a0
+		moveq	#0,d0
+		move.w	(a1)+,d0
+		lsl.l	#2,d0
+		lsr.w	#2,d0
+		ori.w	#$4000,d0
+		swap.w	d0
+		move.l	d0,($C00004).l
+		bsr.w	NemDec
+		dbf	d1,loc_18BA
+		rts
+; End of function RunPLC_ROM
+
+
 EniDec: ; loc_18DA:
                 movem.l D0-D7/A1-A5, -(A7)                 
                 move.w  D0, A3
@@ -1711,7 +1790,9 @@ loc_1AE4:
 loc_1AF4:
                 addq.l  #$02, A7
                 rts
-UnknownDec: ; loc_1AF8:                
+
+; sub_1AF8: UnknownDec:
+ChaDec:
                 moveq   #$00, D0
                 move.w  #$07FF, D4
                 moveq   #$00, D5
@@ -2635,7 +2716,7 @@ loc_25B8:
                 move.b  #$12, ($FFFFF62A).w
                 bsr     DelayProgram            ; loc_31D8
                 bsr.s   Pal_FadeIn              ; loc_25CE
-                bsr     RunPLC                  ; loc_17A8
+                bsr     RunPLC_RAM              ; loc_17A8
                 dbra    D4, loc_25B8
                 rts
 Pal_FadeIn: ; loc_25CE:                
@@ -2694,7 +2775,7 @@ loc_2644:
                 move.b  #$12, ($FFFFF62A).w
                 bsr     DelayProgram            ; loc_31D8
                 bsr.s   Pal_FadeOut             ; loc_265A
-                bsr     RunPLC                  ; loc_17A8
+                bsr     RunPLC_RAM              ; loc_17A8
                 dbra    D4, loc_2644
                 rts
 Pal_FadeOut: ; loc_265A:                
@@ -2754,7 +2835,7 @@ loc_26DC:
                 move.b  #$12, ($FFFFF62A).w
                 bsr     DelayProgram            ; loc_31D8
                 bsr.s   Pal_WhiteToBlack        ; loc_26F2
-                bsr     RunPLC                  ; loc_17A8
+                bsr     RunPLC_RAM              ; loc_17A8
                 dbra    D4, loc_26DC
                 rts
 Pal_WhiteToBlack: ; loc_26F2:
@@ -2815,7 +2896,7 @@ loc_276C:
                 move.b  #$12, ($FFFFF62A).w
                 bsr     DelayProgram            ; loc_31D8
                 bsr.s   Pal_ToWhite             ; loc_2782
-                bsr     RunPLC                  ; loc_17A8
+                bsr     RunPLC_RAM              ; loc_17A8
                 dbra    D4, loc_276C
                 rts
 Pal_ToWhite: ; loc_2782:
@@ -3529,7 +3610,7 @@ TitleScreen_Loop: ; loc_3948:
                 jsr     (RunObjects)          ; loc_CFD0
                 bsr     loc_5E38         ; Load Title Screen Background Scroll 
                 jsr     (Build_Sprites)         ; loc_D4DA
-                bsr     RunPLC                  ; loc_17A8
+                bsr     RunPLC_RAM              ; loc_17A8
                 tst.b   ($FFFFFFF8).w
                 bpl.s   Code_Sequence_J         ; loc_3974
                 lea     (Level_Select_Code_J), A0 ; loc_3B5A
@@ -3604,7 +3685,7 @@ LevelSelect_Loop: ; loc_3A48:
                 move.b  #$04, ($FFFFF62A).w
                 bsr     DelayProgram            ; loc_31D8
                 bsr     LevelSelect_Controls    ; loc_3C2E
-                bsr     RunPLC                  ; loc_17A8
+                bsr     RunPLC_RAM              ; loc_17A8
                 tst.l   ($FFFFF680).w
                 bne.s   LevelSelect_Loop        ; loc_3A48   
                 andi.b  #$F0, ($FFFFF605).w
@@ -3681,7 +3762,7 @@ Demo_Mode: ; loc_3B62:
 loc_3B68:                
                 move.b  #$04, ($FFFFF62A).w
                 bsr     DelayProgram            ; loc_31D8
-                bsr     RunPLC                  ; loc_17A8
+                bsr     RunPLC_RAM              ; loc_17A8
                 move.w  ($FFFFB008).w, D0
                 addq.w  #2, D0
                 move.w  D0, ($FFFFB008).w
@@ -4145,7 +4226,7 @@ LevelInit_TitleCard: ; loc_431E:
                 bsr     DelayProgram            ; loc_31D8
                 jsr     RunObjects            ; loc_CFD0
                 jsr     Build_Sprites           ; loc_D4DA
-                bsr     RunPLC                  ; loc_17A8
+                bsr     RunPLC_RAM              ; loc_17A8
                 move.w  ($FFFFB108).w, D0
                 cmp.w   ($FFFFB130).w, D0
                 bne.s   LevelInit_TitleCard     ; loc_431E 
@@ -4297,7 +4378,7 @@ loc_456E:
                 jsr     Load_Ring_Pos           ; loc_DE34
                 bsr     JumpToDynamic_Art_Cues  ; loc_51F8
                 bsr     PalCycle_Load           ; loc_1F18
-                bsr     RunPLC                  ; loc_17A8
+                bsr     RunPLC_RAM              ; loc_17A8
                 bsr     Oscillate_Num_Do        ; loc_4BBA
                 bsr     Change_Ring_Frame       ; loc_4C52
                 bsr     End_Level_Art_Load      ; loc_4CC0
@@ -5157,7 +5238,7 @@ loc_5480:
                 bsr     DelayProgram            ; loc_31D8
                 jsr     (RunObjects)          ; loc_CFD0
                 jsr     (Build_Sprites)         ; loc_D4DA
-                bsr     RunPLC                  ; loc_17A8
+                bsr     RunPLC_RAM              ; loc_17A8
                 tst.w   ($FFFFFE02).w
                 beq.s   loc_5480
                 tst.l   ($FFFFF680).w
@@ -8287,7 +8368,7 @@ loc_7820:
 ; [ Begin ]                         
 ;===============================================================================                  
 ;loc_782E:
-z                bra.s   loc_784E                
+                bra.s   loc_784E                
 ;loc_7830:
                 moveq   #$00, D1
                 moveq   #$00, D2
@@ -8296,7 +8377,7 @@ z                bra.s   loc_784E
                 lea     ($FFFF0000), A2
                 lea     ($FFFF8000).w, A3
 loc_7844:
-                bsr     UnknownDec              ; loc_1AF8
+                bsr     ChaDec              ; loc_1AF8
                 tst.w   D0
                 bmi.s   loc_7844
                 bra.s   Load_Level_Sprites      ; loc_785E
