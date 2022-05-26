@@ -16,7 +16,7 @@ Vectors:
 	dc.l    ErrorExcept, ErrorExcept, ErrorExcept, ErrorExcept
 	dc.l    ErrorExcept, ErrorExcept, ErrorExcept, ErrorExcept
 	dc.l    ErrorExcept, ErrorTrap, ErrorTrap, ErrorTrap
-	dc.l    HBlank, ErrorTrap, VBlank, ErrorTrap
+	dc.l    HBlank, ErrorTrap, V_Int, ErrorTrap
 	dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
 	dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
 	dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
@@ -338,46 +338,57 @@ Error_WaitForC: ; loc_5D8:
                 rts 
 Art_Text:	incbin	"data\sprites\art_menu.dat"
 		even
-VBlank: ; loc_B08:                  
-                movem.l D0-A6, -(A7) 
-                tst.b	($FFFFF62A).w
-                beq     loc_B82 
-loc_B14:                 
-                move.w	($00C00004), D0
-                andi.w	#$0008, D0
-                beq.s   loc_B14
-                move.l  #$40000010, ($00C00004)
-                move.l	($FFFFF616).w, ($00C00000)
-                btst	#$06, ($FFFFFFF8).w
-                beq.s   loc_B42
-                move.w  #$0700, D0
+; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+; vertical and horizontal interrupt handlers
+; VERTICAL INTERRUPT HANDLER:
+; loc_B08: VBlank:
+V_Int:
+		movem.l	d0-a6,-(sp)
+		tst.b	($FFFFF62A).w
+		beq.w	loc_B82
+
+loc_B14:
+		move.w	($C00004).l,d0
+		andi.w	#8,d0
+		beq.s	loc_B14
+		move.l	#$40000010,($C00004).l
+		move.l	($FFFFF616).w,($C00000).l
+		btst	#6,($FFFFFFF8).w
+		beq.s	loc_B42
+		move.w	#$700,d0
+
 loc_B3E: 
-                dbra    D0, loc_B3E 
-loc_B42:                 
-                move.b	($FFFFF62A).w, D0  
-                move.b	#$00, ($FFFFF62A).w
-		move.w	#$0001, ($FFFFF644).w  
-                andi.w	#$003E, D0         
-                move.w	loc_B68(PC, D0), D0   
-		jsr	loc_B68(pC, D0)   
-loc_B5E:		
-                addq.l	#$01, ($FFFFFE0C).w
-		movem.l (A7)+, D0-A6
+		dbf	d0,loc_B3E
+
+loc_B42:
+		move.b	($FFFFF62A).w,d0
+		move.b	#0,($FFFFF62A).w
+		move.w	#1,($FFFFF644).w
+		andi.w	#$3E,d0
+		move.w	Vint_SwitchTbl(pc,d0.w),d0
+		jsr	Vint_SwitchTbl(pc,d0.w)
+; loc_B5E:
+VintRet:
+		addq.l	#1,($FFFFFE0C).w
+		movem.l	(sp)+,d0-a6
 		rte
-loc_B68:  
-                dc.w    (loc_B82-loc_B68)
-                dc.w    (loc_CEC-loc_B68)
-                dc.w    (loc_D2A-loc_B68)
-                dc.w    (loc_D40-loc_B68)
-                dc.w    (loc_D50-loc_B68)
-                dc.w    (loc_E72-loc_B68)
-                dc.w    (loc_F18-loc_B68)
-                dc.w    (loc_1004-loc_B68)
-                dc.w    (loc_D46-loc_B68)
-                dc.w    (loc_1014-loc_B68)
-                dc.w    (loc_CFE-loc_B68)
-                dc.w    (loc_1020-loc_B68)
-                dc.w    (loc_F18-loc_B68)
+; ===========================================================================
+; off_B68:
+Vint_SwitchTbl:	dc.w	loc_B82-Vint_SwitchTbl
+		dc.w	loc_CEC-Vint_SwitchTbl
+		dc.w	loc_D2A-Vint_SwitchTbl
+		dc.w	loc_D40-Vint_SwitchTbl
+		dc.w	loc_D50-Vint_SwitchTbl
+		dc.w	loc_E72-Vint_SwitchTbl
+		dc.w	loc_F18-Vint_SwitchTbl
+		dc.w	loc_1004-Vint_SwitchTbl
+		dc.w	loc_D46-Vint_SwitchTbl
+		dc.w	loc_1014-Vint_SwitchTbl
+		dc.w	loc_CFE-Vint_SwitchTbl
+		dc.w	loc_1020-Vint_SwitchTbl
+		dc.w	loc_F18-Vint_SwitchTbl
+; ===========================================================================
+
 loc_B82:
                 cmpi.b  #$8C, ($FFFFF600).w 
                 beq.s   loc_BBC
@@ -389,9 +400,9 @@ loc_B82:
 loc_BA2:                   
                 btst	#$00, ($00A11100)
                 bne.s   loc_BA2
-                jsr     loc_12AC
+                jsr     sndDriverInput
                 move.w  #$0000, ($00A11100)
-                bra.s   loc_B5E
+                bra.s   VintRet
 loc_BBC:                  
                 tst.b	(Water_flag).w
                 beq     loc_C60
@@ -428,9 +439,9 @@ loc_C1E:
 loc_C42:                
                 move.w	($FFFFF624).w, (A5)
                 move.w	#$8230, ($00C00004) 
-                jsr     loc_12AC
+                jsr     sndDriverInput
                 move.w	#$0000, ($00A11100)
-                bra     loc_B5E
+                bra     VintRet
 loc_C60:                
                 move.w  ($00C00004), D0 
                 move.l	#$40000010, ($00C00004)
@@ -456,9 +467,9 @@ loc_CAC:
                 move.w	#$7800, (A5) 
                 move.w	#$0083, ($FFFFF640).w 
                 move.w  ($FFFFF640).w, (A5) 
-                jsr     loc_12AC
+                jsr     sndDriverInput
                 move.w	#$0000, ($00A11100)
-                bra     loc_B5E
+                bra     VintRet
 loc_CEC:
                 bsr     loc_10BE
                 tst.w   ($FFFFF614).w
@@ -534,7 +545,7 @@ loc_DB6:
                 move.w  #$0083, ($FFFFF640).w 
                 move.w  ($FFFFF640).w, (A5)
                 bsr     ProcessDMAQueue             ; loc_15CA
-                jsr     loc_12AC
+                jsr     sndDriverInput
                 move.w	#$0000, ($00A11100)
                 movem.l ($FFFFEE00).w, D0-D7
                 movem.l  D0-D7, ($FFFFEE60).w
@@ -584,7 +595,7 @@ loc_E7A:
                 move.w  #$0083, ($FFFFF640).w
                 move.w  ($FFFFF640).w, (A5)
                 bsr     ProcessDMAQueue             ; loc_15CA
-                jsr     loc_12AC
+                jsr     sndDriverInput
                 move.w  #$0000, ($00A11100)
                 bsr     S1_Pal_Cycle_Special_Stage ; loc_5584 
                 tst.w   ($FFFFF614).w
@@ -633,7 +644,7 @@ loc_F7E:
                 move.w  #$0083, ($FFFFF640).w
                 move.w  ($FFFFF640).w, (A5) 
                 bsr     ProcessDMAQueue             ; loc_15CA
-                jsr     loc_12AC
+                jsr     sndDriverInput
                 move.w  #$0000, ($00A11100)
                 movem.l ($FFFFEE00).w, D0-D7
                 movem.l D0-D7, ($FFFFEE60).w
@@ -679,7 +690,7 @@ loc_1028:
                 move.w  #$7C00, (A5)
                 move.w  #$0083, ($FFFFF640).w
                 move.w  ($FFFFF640).w, (A5) 
-                jsr     loc_12AC
+                jsr     sndDriverInput
                 move.w  #$0000, ($00A11100)
                 tst.w   ($FFFFF614).w
                 beq     loc_10BC
@@ -725,7 +736,7 @@ loc_1124:
                 move.w  #$7C00, (A5)
                 move.w  #$0083, ($FFFFF640).w
                 move.w  ($FFFFF640).w, (A5)
-                jsr     loc_12AC
+                jsr     sndDriverInput
                 move.w	#$0000, ($00A11100)
                 rts
 HBlank: ; loc_117C:                
@@ -818,35 +829,48 @@ loc_129A:
                 movem.l  D0-A6, -(A7)   
                 bsr     DemoTime                ; loc_E56  
                 movem.l (A7)+, D0-A6 
-                rte    
-loc_12AC:
-                lea     ($00FFFFE0), A0
-                lea	($00A01B80), A1
-                cmpi.b  #$80, $0008(A1)
-                bne.s   loc_12E0
-                move.b	$0000(A0), D0
-                beq.s   loc_12E0
-                clr.b   $0000(A0)
-                move.b	D0, D1
-                subi.b	#$FE, D1
-                bcs.s   loc_12DC
-                addi.b  #$7F, D1
-                move.b  D1, $0003(A1)
-                bra.s   loc_12E0
-loc_12DC: 
-                move.b	D0, $0008(A1)               
-loc_12E0:                
-                moveq	#$03, D1
-loc_12E2:                
-                move.b  $01(A0, D1), D0
-                beq.s   loc_12F6
-                tst.b   $09(A1, D1)
-                bne.s   loc_12F6
-                clr.b   $01(A0, D1)                 
-                move.b  D0, $09(A1, D1)  
-loc_12F6:                
-                dbra    D1, loc_12E2
-                rts 
+                rte
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+; Input our music/sound selection to the sound driver.
+; loc_12AC:
+sndDriverInput:
+		lea	($FFFFE0),a0
+		lea	($A01B80),a1
+
+		cmpi.b	#$80,8(a1)	; is the sound driver still processing a request?
+		bne.s	loc_12E0	; if yes, branch
+
+		move.b	0(a0),d0
+		beq.s	loc_12E0
+		clr.b	0(a0)
+		move.b	d0,d1
+		subi.b	#$FE,d1
+		bcs.s	loc_12DC
+		addi.b	#$7F,d1
+		move.b	d1,3(a1)
+		bra.s	loc_12E0
+
+loc_12DC:
+		move.b	d0,8(a1)
+
+loc_12E0:
+		moveq	#4-1,d1	; this is one digit too high, meaning the first byte of the voice table pointer is overwritten
+
+loc_12E2:
+		move.b	1(a0,d1.w),d0
+		beq.s	loc_12F6
+		tst.b	9(a1,d1.w)
+		bne.s	loc_12F6
+		clr.b	1(a0,d1.w)
+		move.b	d0,9(a1,d1.w)
+
+loc_12F6:
+		dbf	d1,loc_12E2
+		rts
+; End of function sndDriverInput
+
+
 JoypadInit: ; loc_12FC:
                 move.w  #$0100, ($00A11100)  
 JoypadInit_Z80Wait: ; loc_1304:
@@ -1791,6 +1815,18 @@ loc_1AF4:
                 addq.l  #$02, A7
                 rts
 
+; ---------------------------------------------------------------------------
+; Chameleon Decompression Algorithm
+; LZSS/dictionary-based, uses unrolling for fast decompression speeds
+
+; ARGUMENTS (I think...):
+; a0 = starting address
+; a1 = starting art tile
+; a2 = destination address
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
 ; sub_1AF8: UnknownDec:
 ChaDec:
                 moveq   #$00, D0
@@ -1812,13 +1848,14 @@ ChaDec:
                 beq     loc_1C24
                 subq.w  #$01, D2
                 beq     loc_1BAA
-loc_1B2E:                
+; loc_1B2E:
+ChaDec_BitPos0:
                 move.b  (A0)+, D1
                 add.b   D1, D1
-                bcs.s   loc_1BA8
+                bcs.s   ChaDec_BP0_DrcCpy
                 move.l  A2, A6
                 add.b   D1, D1
-                bcs.s   loc_1B50
+                bcs.s   ChaDec_BP0_LongRef
                 move.b  (A1)+, D5
                 suba.l  D5, A6
                 add.b   D1, D1
@@ -1830,7 +1867,8 @@ loc_1B44:
                 cmp.w   A2, D7
                 bls.s   loc_1B98
                 bra     loc_1CA2                
-loc_1B50: 
+; loc_1B50:
+ChaDec_BP0_LongRef: 
                 lsl.w   #$03, D1
                 move.w  D1, D6
                 and.w   D4, D6
@@ -1878,7 +1916,8 @@ loc_1BA0:
                 move.w  #$0001, D0
                 moveq   #$01, D2
                 rts
-loc_1BA8:     
+; loc_1BA8:
+ChaDec_BP0_DrcCpy:     
                 move.b  (A1)+, (A2)+ 
 loc_1BAA:                
                 add.b   D1, D1
@@ -1929,7 +1968,7 @@ loc_1BF6:
                 move.b  (A6)+, (A2)+
                 cmp.w   A2, D7
                 bls.s   loc_1C1A
-                bra     loc_1B2E
+                bra     ChaDec_BitPos0
 loc_1C04: 
                 move.w  #$0000, D0
                 rts
@@ -2169,7 +2208,7 @@ loc_1DB0:
                 move.b  (A6)+, (A2)+
                 cmp.w   A2, D7
                 bls.s   loc_1E08
-                bra     loc_1B2E
+                bra     ChaDec_BitPos0
 loc_1DBC:
                 add.w   D1, D1
                 move.b  (A0)+, D1
@@ -2359,7 +2398,7 @@ loc_1F0A:
                 rts
 loc_1F12:                
                 move.b  (A1)+, (A2)+ 
-                bra     loc_1B2E
+                bra     ChaDec_BitPos0
 PalCycle_Load: ; loc_1F18: ; Rotating Palette routine
                 bsr     loc_24A2
                 moveq   #$00, D2
@@ -3516,22 +3555,22 @@ loc_37C4:
 		move.l	d0,(a1)+
 		dbf	d1,loc_37C4
 
-		; leftover from Sonic 1, which had a "SONIC TEAM PRESENTS"
+		; Leftover from Sonic 1, which had a "SONIC TEAM PRESENTS"
 		; screen load Sonic's palette for the font
 		moveq	#3,d0
 		bsr.w	PalLoad1
 		bsr.w	Pal_FadeTo
 
 		move	#$2700,sr
-		move.l	#$40000000,($C00004)
-		lea	(Title_Screen_Bg_Wings),a0
+		move.l	#$40000000,($C00004).l
+		lea	(Title_Screen_Bg_Wings).l,a0
 		bsr.w	NemDec
-		move.l	#$40000001,($C00004)
-		lea	(Title_Screen_Sonic_Tails),a0
+		move.l	#$40000001,($C00004).l
+		lea	(Title_Screen_Sonic_Tails).l,a0
 		bsr.w	NemDec
-		lea	($C00000),a6
+		lea	($C00000).l,a6
 		move.l	#$50000003,4(a6)
-		lea	(Art_Text),a5
+		lea	(Art_Text).l,a5
 		move.w	#$28F,d1
 
 loc_3818:
@@ -3547,216 +3586,266 @@ loc_3818:
 		bsr.w	Pal_FadeFrom
 
 		move	#$2700,sr
-		lea	($FFFF0000).l,a1
+		lea	($FF0000).l,a1
 		lea	(TS_Wings_MapUnc_Sonic).l,a0
 		move.w	#0,d0
 		bsr.w	EniDec
-                lea     ($FFFF0000), A1
-                move.l  #$40000003, D0
-                moveq   #$27, D1
-                moveq   #$1B, D2
-                bsr     ShowVDPGraphics         ; loc_154C
-                lea     ($FFFF0000), A1
-                lea     (Title_Screen_Bg_Mappings), A0 ; loc_71024 Load Title Screen Background mappings
-                move.w  #$0000, D0
-                bsr     EniDec               ; loc_18DA
-                lea     ($FFFF0000), A1
-                move.l  #$60000003, D0
-                moveq   #$1F, D1
-                moveq   #$1B, D2
-                bsr     ShowVDPGraphics         ; loc_154C
-                lea     ($FFFF0000), A1
-                lea     (Title_Screen_R_Bg_Mappings), A0 ; loc_712D8 Load Title Screen Background mappings (Right Side) 
-                move.w  #$0000, D0
-                bsr     EniDec               ; loc_18DA
-                lea     ($FFFF0000), A1
-                move.l  #$60400003, D0
-                moveq   #$1F, D1
-                moveq   #$1B, D2
-                bsr     ShowVDPGraphics         ; loc_154C
-                moveq   #$01, D0                ; Load Title Screen Palette
-                bsr     PalLoad1                ; loc_28E2      
-                move.b  #$99, D0                ; Load Title Screen Music
-                bsr     PlayMusic              ; loc_14C0
-                move.b  #$00, (Debug_mode_flag).w
-                move.w  #$0000, ($FFFFFFD8).w
-                move.w  #$0178, ($FFFFF614).w
-                lea     ($FFFFB080).w, A1
-                moveq   #$00, D0
-                move.w  #$000F, D1
-loc_38EE:                
-                move.l  D0, (A1)+
-                dbra    D1, loc_38EE   
-                
-                move.b  #$0E, ($FFFFB040).w
-                move.b  #$0E, ($FFFFB080).w
-                move.b  #$01, ($FFFFB09A).w
-                jsr     (RunObjects)          ; loc_CFD0
-                jsr     (Build_Sprites)         ; loc_D4DA
-                moveq   #$00, D0
-                bsr     LoadPLC2                ; loc_176E
-                move.w  #$0000, ($FFFFFFD4).w
-                move.w  #$0000, ($FFFFFFD6).w
-                move.b  #$01, ($FFFFFFD0).w
-                move.w  #$0004, ($FFFFEED2).w
-                move.w  #$0000, ($FFFFE500).w
-                move.w  ($FFFFF60C).w, D0
-                ori.b   #$40, D0
-                move.w  D0, ($00C00004)
-                bsr     Pal_FadeTo              ; loc_2596
-TitleScreen_Loop: ; loc_3948:                
-                move.b  #$04, ($FFFFF62A).w
-                bsr     DelayProgram            ; loc_31D8
-                jsr     (RunObjects)          ; loc_CFD0
-                bsr     loc_5E38         ; Load Title Screen Background Scroll 
-                jsr     (Build_Sprites)         ; loc_D4DA
-                bsr     RunPLC_RAM              ; loc_17A8
-                tst.b   ($FFFFFFF8).w
-                bpl.s   Code_Sequence_J         ; loc_3974
-                lea     (Level_Select_Code_J), A0 ; loc_3B5A
-                bra.s   Level_Select_Cheat_Test ; loc_397A
-Code_Sequence_J: ; loc_3974:
-                lea     (Level_Select_Code_US), A0 ; loc_3B52
-Level_Select_Cheat_Test: ;  loc_397A:                
-                move.w  ($FFFFFFD4).w, D0
-                adda.w  D0, A0
-                move.b  ($FFFFF605).w, D0
-                andi.b  #$0F, D0
-                cmp.b   (A0), D0
-                bne.s   Title_Cheat_NoMatch     ; loc_39C0
-                addq.w  #1, ($FFFFFFD4).w
-                tst.b   D0
-                bne.s   Title_Cheat_CountC      ; loc_39D2
-                lea     ($FFFFFFD0).w, A0
-                move.w  ($FFFFFFD6).w, D1
-                lsr.w   #1, D1
-                andi.w  #$0003, D1
-                beq.s   Title_Cheat_PlayRing    ; loc_39B0
-                tst.b   ($FFFFFFF8).w
-                bpl.s   Title_Cheat_PlayRing    ; loc_39B0
-                moveq   #$01, D1
-                move.b  D1, $01(A0, D1)                   
-Title_Cheat_PlayRing: ; loc_39B0:
-                move.b  #$01, $00(A0, D1)
-                move.b  #$B5, D0
-                bsr     PlaySound                ; loc_14C6
-                bra.s   Title_Cheat_CountC      ; loc_39D2
-Title_Cheat_NoMatch: ; loc_39C0:                
-                tst.b   D0
-                beq.s   Title_Cheat_CountC      ; loc_39D2
-                cmpi.w  #$0009, ($FFFFFFD4).w
-                beq.s   Title_Cheat_CountC      ; loc_39D2
-                move.w  #$0000, ($FFFFFFD4).w
-Title_Cheat_CountC: ; loc_39D2:
-                move.b  ($FFFFF605).w, D0
-                andi.b  #$20, D0
-                beq.s   Title_Cheat_NoC         ; loc_39E0
-                addq.w  #$01, ($FFFFFFD6).w
-Title_Cheat_NoC: ; loc_39E0:
-                tst.w   ($FFFFF614).w
-                beq     Demo_Mode               ; loc_3B62
-                andi.b  #$80, ($FFFFF605).w
-                beq     TitleScreen_Loop        ; loc_3948
-loc_39F2:                
-                tst.b   ($FFFFFFD0).w
-                beq     PlayLevel               ; loc_3B12
-                btst    #6, ($FFFFF604).w
-                beq     PlayLevel               ; loc_3B12
-                move.b  #$8A, D0                ; Load Level Select Menu Music
-                bsr     PlayMusic              ; loc_14C0
-                moveq   #$02, D0
-                bsr     PalLoad2                ; loc_28FE
-                lea     ($FFFFE000).w, A1
-                moveq   #$00, D0
-                move.w  #$00DF, D1
-LevelSelect_ClearScroll: ; loc_3A1C:                
-                move.l  D0, (A1)+
-                dbra    D1, LevelSelect_ClearScroll ; loc_3A1C 
-                move.l  D0, ($FFFFF616).w
-                move    #$2700, SR
-                lea     ($00C00000), A6
-                move.l  #$60000003, ($00C00004)
-                move.w  #$03FF, D1
-LevelSelect_ClearVRAM: ; loc_3A3E:                
-                move.l  D0, (A6) 
-                dbra    D1, LevelSelect_ClearVRAM ; loc_3A3E
-                bsr     LevelSelect_TextLoad ; loc_3CC4
-LevelSelect_Loop: ; loc_3A48:                
-                move.b  #$04, ($FFFFF62A).w
-                bsr     DelayProgram            ; loc_31D8
-                bsr     LevelSelect_Controls    ; loc_3C2E
-                bsr     RunPLC_RAM              ; loc_17A8
-                tst.l   ($FFFFF680).w
-                bne.s   LevelSelect_Loop        ; loc_3A48   
-                andi.b  #$F0, ($FFFFF605).w
-                beq.s   LevelSelect_Loop        ; loc_3A48
-                move.w  #$0000, ($FFFFFFD8).w
-                btst    #4, ($FFFFF604).w
-                beq.s   loc_3A7C
-                move.w  #$0001, ($FFFFFFD8).w
+		lea	($FF0000).l,a1
+		move.l	#$40000003,d0
+		moveq	#$27,d1
+		moveq	#$1B,d2
+		bsr.w	ShowVDPGraphics
+		lea	($FF0000).l,a1
+		lea	(Title_Screen_Bg_Mappings).l,a0
+		move.w	#0,d0
+		bsr.w	EniDec
+		lea	($FF0000).l,a1
+		move.l	#$60000003,d0
+		moveq	#$1F,d1
+		moveq	#$1B,d2
+		bsr.w	ShowVDPGraphics
+		lea	($FF0000).l,a1
+		lea	(Title_Screen_R_Bg_Mappings).l,a0
+		move.w	#0,d0
+		bsr.w	EniDec
+		lea	($FF0000).l,a1
+		move.l	#$60400003,d0
+		moveq	#$1F,d1
+		moveq	#$1B,d2
+		bsr.w	ShowVDPGraphics
+		moveq	#1,d0
+		bsr.w	PalLoad1
+		move.b	#$99,d0
+		bsr.w	PlayMusic
+		move.b	#0,(Debug_mode_flag).w
+		move.w	#0,($FFFFFFD8).w
+		move.w	#$178,($FFFFF614).w
+		lea	($FFFFB080).w,a1
+		moveq	#0,d0
+		move.w	#$F,d1	; hilarious, they actually fixed the bug that caused the "PRESS START BUTTON" text to not display in Sonic 1
+
+loc_38EE:
+		move.l	d0,(a1)+
+		dbf	d1,loc_38EE
+
+		move.b	#$E,($FFFFB040).w
+		move.b	#$E,($FFFFB080).w
+		move.b	#1,($FFFFB09A).w
+		jsr	(RunObjects).l
+		jsr	(Build_Sprites).l
+		moveq	#0,d0
+		bsr.w	LoadPLC2
+		move.w	#0,($FFFFFFD4).w
+		move.w	#0,($FFFFFFD6).w
+		move.b	#1,($FFFFFFD0).w	; enable "level select" flag without using the cheat
+		move.w	#4,($FFFFEED2).w
+		move.w	#0,($FFFFE500).w
+		move.w	($FFFFF60C).w,d0
+		ori.b	#$40,d0
+		move.w	d0,($C00004).l
+		bsr.w	Pal_FadeTo
+; loc_3948:
+TitleScreen_Loop:
+		move.b	#4,($FFFFF62A).w
+		bsr.w	DelayProgram
+		jsr	(RunObjects).l
+		bsr.w	loc_5E38
+		jsr	(Build_Sprites).l
+		bsr.w	RunPLC_RAM
+
+; Title_ChkRegion:
+		tst.b	($FFFFFFF8).w
+		bpl.s	Title_RegionJ
+		lea	(LevelSelectCode_US).l,a0
+		bra.s	Title_EnterCheat
+; loc_3974: Code_Sequence_J:
+Title_RegionJ:
+		lea	(LevelSelectCode_J).l,a0
+; loc_397A: Level_Select_Cheat_Test:
+Title_EnterCheat:
+		move.w	($FFFFFFD4).w,d0
+		adda.w	d0,a0
+		move.b	($FFFFF605).w,d0
+		andi.b	#$F,d0
+		cmp.b	(a0),d0
+		bne.s	Title_CheatFail
+		addq.w	#1,($FFFFFFD4).w
+		tst.b	d0
+		bne.s	Title_CountC
+		lea	($FFFFFFD0).w,a0
+		move.w	($FFFFFFD6).w,d1
+		lsr.w	#1,d1
+		andi.w	#3,d1
+		beq.s	Title_PlayRing
+		tst.b	($FFFFFFF8).w
+		bpl.s	Title_PlayRing
+		moveq	#1,d1
+		move.b	d1,1(a0,d1.w)
+; loc_39B0:
+Title_PlayRing:
+		move.b	#1,(a0,d1.w)
+		move.b	#$B5,d0
+		bsr.w	PlaySound
+		bra.s	Title_CountC
+; ===========================================================================
+; loc_39C0: Title_Cheat_NoMatch:
+Title_CheatFail:
+		tst.b	d0
+		beq.s	Title_CountC
+		cmpi.w	#9,($FFFFFFD4).w
+		beq.s	Title_CountC
+		move.w	#0,($FFFFFFD4).w
+; loc_39D2:
+Title_CountC:
+		move.b	($FFFFF605).w,d0
+		andi.b	#$20,d0
+		beq.s	TitleScreen_SkipC
+		addq.w	#1,($FFFFFFD6).w
+
+; loc_39E0: Title_Cheat_NoC:
+TitleScreen_SkipC:
+		tst.w	($FFFFF614).w
+		beq.w	Demo_Mode
+		andi.b	#$80, ($FFFFF605).w
+		beq.w	TitleScreen_Loop
+; loc_39F2:
+Title_ChkLevSel:
+		tst.b	($FFFFFFD0).w
+		beq.w	PlayLevel
+		btst	#6,($FFFFF604).w
+		beq.w	PlayLevel
+		move.b	#$8A,d0
+		bsr.w	PlayMusic
+		moveq	#2,d0
+		bsr.w	PalLoad2
+		lea	($FFFFE000).w,a1
+		moveq	#0,d0
+		move.w	#$DF,d1
+; loc_3A1C: LevelSelect_ClearScroll:
+Title_ClrScroll:
+		move.l	d0,(a1)+
+		dbf	d1,Title_ClrScroll
+		move.l	d0,($FFFFF616).w
+		move	#$2700,sr
+		lea	($C00000).l,a6
+		move.l	#$60000003,($C00004).l
+		move.w	#$3FF,d1
+; loc_3A3E: LevelSelect_ClearVRAM:
+Title_ClrVram:
+		move.l	d0,(a6) 
+		dbf	d1,Title_ClrVram
+		bsr.w	LevelSelect_TextLoad
+; ===========================================================================
+; loc_3A48:
+LevelSelect_Loop:
+		move.b	#4,($FFFFF62A).w
+		bsr.w	DelayProgram
+		bsr.w	LevelSelect_Controls
+		bsr.w	RunPLC_RAM
+		tst.l	($FFFFF680).w
+		bne.s	LevelSelect_Loop
+		andi.b	#$F0,($FFFFF605).w
+		beq.s	LevelSelect_Loop
+		move.w	#0,($FFFFFFD8).w
+		btst	#4,($FFFFF604).w
+		beq.s	loc_3A7C
+		move.w	#1,($FFFFFFD8).w
+
 loc_3A7C:
-                move.w  ($FFFFFF82).w, D0
-                cmpi.w  #$001A, D0
-                bne.s   loc_3A9C
-                btst    #6, ($FFFFF605).w
-                bne.s   LevelSelect_Loop        ; loc_3A48
-                move.w  ($FFFFFF84).w, D0
-                addi.w  #$0080, D0
-                bsr     PlaySound                ; loc_14C6
-                bra.s   LevelSelect_Loop        ; loc_3A48
-loc_3A9C:
-                add.w   D0, D0               
-                move.w  Level_Select_Array(PC, D0), D0 ; loc_3AD4 Load Level Select Array
-                bmi     LevelSelect_Loop        ; loc_3A48
-                cmpi.w  #$8000, D0
-                bne.s   Level_Select_Level      ; loc_3B0A
-                move.b  #$10, ($FFFFF600).w
-                clr.w   ($FFFFFE10).w
-                move.b  #$03, ($FFFFFE12).w
-                moveq   #$00, D0
-                move.w  D0, ($FFFFFE20).w
-                move.l  D0, ($FFFFFE22).w
-                move.l  D0, ($FFFFFE26).w
-                move.l  #$00001388, ($FFFFFFC0).w
-                rts
-Level_Select_Array: ; loc_3AD4: ; Level Select Array
-                dc.w    $0000, $0001         ; GHz
-                dc.w    $0200, $0201         ; Wz
-                dc.w    $0400, $0401, $0500  ; Mz
-                dc.w    $0700, $0701         ; HTz
-                dc.w    $0800, $0801         ; HPz
-                dc.w    $0A00, $0A01         ; OOz
-                dc.w    $0B00, $0B01         ; DHz
-                dc.w    $0C00, $0C01         ; CNz
-                dc.w    $0D00, $0D01         ; CPz
-                dc.w    $0E00, $0E01         ; GCz
-                dc.w    $0F00, $0F01         ; NGHz
-                dc.w    $1000, $1001         ; Dez
-                dc.w    $8000                ; SS 
-                dc.w    $0000                ; Sound Test
-Level_Select_Level: ; loc_3B0A:
-                andi.w  #$3FFF, D0
-                move.w  D0, ($FFFFFE10).w
-PlayLevel: ; loc_3B12:                
-                move.b  #$0C, ($FFFFF600).w
-                move.b  #$03, ($FFFFFE12).w
-                moveq   #$00, D0
-                move.w  D0, ($FFFFFE20).w
-                move.l  D0, ($FFFFFE22).w
-                move.l  D0, ($FFFFFE26).w
-                move.b  D0, ($FFFFFE16).w
-                move.b  D0, ($FFFFFE57).w
-                move.l  D0, ($FFFFFE58).w
-                move.l  D0, ($FFFFFE5C).w
-                move.b  D0, ($FFFFFE18).w
-                move.l  #$00001388, ($FFFFFFC0).w
-                move.b  #$E0, D0
-                bsr     PlaySound                ; loc_14C6
-                rts  
-Level_Select_Code_US: ; loc_3B52:
-                dc.b    $01, $02, $02, $02, $02, $01, $00, $FF  ; Code sequence  
-Level_Select_Code_J:  ; loc_3B5A:
-                dc.b    $01, $02, $02, $02, $02, $01, $00, $FF  ; Code sequence      
+		move.w	($FFFFFF82).w,d0
+		cmpi.w	#$1A,d0
+		bne.s	LevelSelect_PressStart
+		btst	#6,($FFFFF605).w
+		bne.s	LevelSelect_Loop
+		move.w	($FFFFFF84).w,d0
+		addi.w	#$80,d0
+		bsr.w	PlaySound
+		bra.s	LevelSelect_Loop
+; ===========================================================================
+; loc_3A9C:
+LevelSelect_PressStart:
+		add.w	d0,d0
+		move.w	LevelSelect_Order(pc,d0.w),d0
+		bmi.w	LevelSelect_Loop
+		; The original value was seemingly a hackish way to make the
+		; Special Stages inaccessable, remove the '+1' from here and
+		; from LevelSelect_Order to "access" the remnants
+		cmpi.w	#$7FFF+1,d0
+		bne.s	LevelSelect_StartZone
+
+; LevelSelect_SpecialStage:
+		move.b	#$10,($FFFFF600).w
+		clr.w	($FFFFFE10).w
+		move.b	#3,($FFFFFE12).w
+		moveq	#0,d0
+		move.w	d0,($FFFFFE20).w
+		move.l	d0,($FFFFFE22).w
+		move.l	d0,($FFFFFE26).w
+		move.l	#5000,($FFFFFFC0).w
+		rts
+; ===========================================================================
+; word_A3D4: Level_Select_Array:
+LevelSelect_Order:
+		dc.w	0, 1			; GHZ
+		dc.w	$200, $201		; WZ
+		dc.w	$400, $401, $500	; MTZ
+		dc.w	$700, $701		; HTZ
+		dc.w	$800, $801		; HPZ
+		dc.w	$A00, $A01		; OOZ
+		dc.w	$B00, $B01		; DHZ
+		dc.w	$C00, $C01		; CNZ
+		dc.w	$D00, $D01		; CPZ
+		dc.w	$E00, $E01		; GCZ
+		dc.w	$F00, $F01		; NGHZ
+		dc.w	$1000, $1001		; DEZ
+		dc.w	$7FFF+1			; SS
+		dc.w	0			; Sound Test
+; ===========================================================================
+; loc_3B0A: Level_Select_Level:
+LevelSelect_StartZone:
+		andi.w	#$3FFF,d0
+		move.w	d0,($FFFFFE10).w
+; loc_3B12:
+PlayLevel:
+		move.b	#$C,($FFFFF600).w
+		move.b	#3,($FFFFFE12).w
+		moveq	#0,d0
+		move.w	d0,($FFFFFE20).w
+		move.l	d0,($FFFFFE22).w
+		move.l	d0,($FFFFFE26).w
+		move.b	d0,($FFFFFE16).w
+		move.b	d0,($FFFFFE57).w
+		move.l	d0,($FFFFFE58).w
+		move.l	d0,($FFFFFE5C).w
+		move.b	d0,($FFFFFE18).w
+		move.l	#5000,($FFFFFFC0).w
+		move.b	#$E0,d0
+		bsr.w	PlaySound
+		rts
+; ===========================================================================
+; byte_3B52:
+LevelSelectCode_J:
+		dc.b	1		; up
+		dc.b	2		; down
+		dc.b	2		; down
+		dc.b	2		; down
+		dc.b	2		; down
+		dc.b	1		; up
+		dc.b	0
+		dc.b	$FF
+		even
+; byte_3B5A:
+LevelSelectCode_US:
+		dc.b	1		; up
+		dc.b	2		; down
+		dc.b	2		; down
+		dc.b	2		; down
+		dc.b	2		; down
+		dc.b	1		; up
+		dc.b	0
+		dc.b	$FF
+		even
+; ===========================================================================
 Demo_Mode: ; loc_3B62:
                 move.w  #$001E, ($FFFFF614).w
 loc_3B68:                
@@ -3772,7 +3861,7 @@ loc_3B68:
                 rts
 Run_Demo_Mode: ; loc_3B8E:
                 andi.b  #$80, ($FFFFF605).w 
-                bne     loc_39F2
+                bne     Title_ChkLevSel
                 tst.w   ($FFFFF614).w
                 bne     loc_3B68
                 move.b  #$E0, D0
@@ -3809,91 +3898,106 @@ loc_3BF8:
 Demo_Mode_Level_Array: ; loc_3C16: ; Demo sequence array
                 dc.w    $0D00, $0000, $0800, $0700, $0500, $0500, $0500, $0500
                 dc.w    $0400, $0400, $0400, $0400
-LevelSelect_Controls: ; loc_3C2E:
-                move.b  ($FFFFF605).w, D1
-                andi.b  #$03, D1
-                bne.s   loc_3C3E
-                subq.w  #$01, ($FFFFFF80).w
-                bpl.s   loc_3C78
+; ===========================================================================
+; loc_3C2E:
+LevelSelect_Controls:
+		move.b	($FFFFF605).w,d1
+		andi.b	#3,d1
+		bne.s	loc_3C3E
+		subq.w	#1,($FFFFFF80).w
+		bpl.s	LevelSelect_Controls2
+
 loc_3C3E:
-                move.w  #$000B, ($FFFFFF80).w
-                move.b  ($FFFFF604).w, D1
-                andi.b  #$03, D1
-                beq.s   loc_3C78
-                move.w  ($FFFFFF82).w, D0
-                btst    #$00, D1
-                beq.s   loc_3C5E
-                subq.w  #$01, D0
-                bcc.s   loc_3C5E
-                moveq   #$1A, D0
+		move.w	#$B,($FFFFFF80).w
+		move.b	($FFFFF604).w,d1
+		andi.b	#3,d1
+		beq.s	LevelSelect_Controls2
+		move.w	($FFFFFF82).w,d0
+		btst	#0,d1
+		beq.s	loc_3C5E
+		subq.w	#1,d0
+		bcc.s	loc_3C5E
+		moveq	#$1A,d0
+
 loc_3C5E:
-                btst    #$01, D1
-                beq.s   loc_3C6E
-                addq.w  #$01, D0
-                cmpi.w  #$001B, D0
-                bcs.s   loc_3C6E
-                moveq   #$00, D0
+		btst	#1,d1
+		beq.s	loc_3C6E
+		addq.w	#1,d0
+		cmpi.w	#$1B,d0
+		bcs.s	loc_3C6E
+		moveq	#0,d0
+
 loc_3C6E:
-                move.w  D0, ($FFFFFF82).w
-                bsr     LevelSelect_TextLoad    ; loc_3CC4
-                rts
-loc_3C78:
-                cmpi.w  #$001A, ($FFFFFF82).w
-                bne.s   loc_3CC2
-                move.w  ($FFFFFF84).w, D0
-                move.b  ($FFFFF605).w, D1
-                andi.b  #$0C, D1
-                beq.s   loc_3CAA
-                btst    #$02, D1
-                beq.s   loc_3C9A
-                subq.b  #$01, D0
-                bcc.s   loc_3C9A
-                moveq   #$7F, D0
+		move.w	d0,($FFFFFF82).w
+		bsr.w	LevelSelect_TextLoad
+		rts
+; ===========================================================================
+; loc_3C78:
+LevelSelect_Controls2:
+		cmpi.w	#$1A,($FFFFFF82).w
+		bne.s	return_3CC2
+		move.w	($FFFFFF84).w,d0
+		move.b	($FFFFF605).w,d1
+		andi.b	#$C,d1
+		beq.s	loc_3CAA
+		btst	#2,d1
+		beq.s	loc_3C9A
+		subq.b	#1,d0
+		bcc.s	loc_3C9A
+		moveq	#$7F,d0
+
 loc_3C9A:
-                btst    #$03, D1
-                beq.s   loc_3CAA
-                addq.b  #$01, D0
-                cmpi.w  #$0080, D0
-                bcs.s   loc_3CAA
-                moveq   #$00, D0
+		btst	#3,d1
+		beq.s	loc_3CAA
+		addq.b	#1,d0
+		cmpi.w	#$80,d0
+		bcs.s	loc_3CAA
+		moveq	#0,d0
+
 loc_3CAA:
-                btst    #$06, ($FFFFF605).w
-                beq.s   loc_3CBA
-                addi.b  #$10, D0
-                andi.b  #$7F, D0
+		btst	#6,($FFFFF605).w
+		beq.s	loc_3CBA
+		addi.b	#$10,d0
+		andi.b	#$7F,d0
+
 loc_3CBA:
-                move.w  D0, ($FFFFFF84).w
-                bsr     LevelSelect_TextLoad    ; loc_3CC4
-loc_3CC2:                
-                rts
-LevelSelect_TextLoad: ;loc_3CC4:
-                lea     (Level_Select_Text), A1 ; loc_3D7C Load Level Select Menu - Text
-                lea     ($00C00000), A6
-                move.l  #$608C0003, D4
-                move.w  #$8680, D3
-                moveq   #$1A, D1
+		move.w	d0,($FFFFFF84).w
+		bsr.w	LevelSelect_TextLoad
+
+return_3CC2:                
+		rts
+; ===========================================================================
+; loc_3CC4:
+LevelSelect_TextLoad:
+		lea	(Level_Select_Text).l,a1
+		lea	($C00000).l,a6
+		move.l	#$608C0003,d4
+		move.w	#$8680,d3
+		moveq	#$1A,d1
+
 loc_3CDC:                
-                move.l  D4, $0004(A6)
-                bsr     loc_3D60
-                addi.l  #$00800000, D4
-                dbra    D1, loc_3CDC 
-                moveq   #$00, D0
-                move.w  ($FFFFFF82).w, D0
-                move.w  D0, D1
-                move.l  #$608C0003, D4
-                lsl.w   #$07, D0
-                swap.w  D0
-                add.l   D0, D4
-                lea     (Level_Select_Text), A1 ; loc_3D7C Load Level Select Menu - Text
-                mulu.w  #$001B, D1
-                adda.w  D1, A1
-                move.w  #$C680, D3
-                move.l  D4, $0004(A6)
-                bsr     loc_3D60
-                move.w  #$8680, D3
-                cmpi.w  #$001A, ($FFFFFF82).w
-                bne.s   loc_3D2A
-                move.w  #$C680, D3
+		move.l	d4,4(a6)
+		bsr.w	loc_3D60
+		addi.l	#$800000,d4
+		dbf	d1,loc_3CDC 
+		moveq	#0,d0
+		move.w	($FFFFFF82).w,d0
+		move.w	d0,d1
+		move.l	#$608C0003,d4
+		lsl.w	#7,d0
+		swap.w	d0
+		add.l	d0,d4
+		lea	(Level_Select_Text).l,a1
+		mulu.w	#$1B,d1
+		adda.w	d1,a1
+		move.w	#$C680,d3
+		move.l	d4,4(a6)
+		bsr.w	loc_3D60
+		move.w	#$8680,d3
+		cmpi.w	#$1A,($FFFFFF82).w
+		bne.s	loc_3D2A
+		move.w	#$C680,d3
+
 loc_3D2A:
                 move.l  #$6DB00003, ($00C00004)
                 move.w  ($FFFFFF84).w, D0
@@ -3904,6 +4008,7 @@ loc_3D2A:
                 move.b  D2, D0
                 bsr     loc_3D4C
                 rts
+
 loc_3D4C:
                 andi.w  #$000F, D0
                 cmpi.b  #$0A, D0
@@ -3927,6 +4032,7 @@ loc_3D72:
                 move.w  D0, (A6)
                 dbra    D2, loc_3D62
                 rts
+; ===========================================================================
 
 _0 = $00
 _1 = $01
@@ -3986,6 +4092,7 @@ Level_Select_Text: ; loc_3D7C: ; Level Select Menu Text
                 dc.b    __,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,_S,_T,_A,_G,_E,__,_1  
                 dc.b    _S,_P,_E,_C,_I,_A,_L,__,_S,_T,_A,_G,_E,__,__,__,__,__,__,__,__,__,__,__,__,__,__
                 dc.b    _S,_O,_U,_N,_D,__,_S,_E,_L,_E,_C,_T,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__
+
                 dc.b    $00 ; Filler
 Unused_Code1: ; loc_4056:                 
                 lea     ($FFFF0000), A1
@@ -19114,7 +19221,7 @@ loc_10128:
 Sonic_MoveLeft:
 		move.w	$14(a0),d0
 		beq.s	loc_10132	; is Sonic starting to move to the right?
-		bpl.s	loc_10164	; if not, branch
+		bpl.s	Sonic_TurnLeft	; if not, branch
 
 loc_10132:
 		bset	#0,$22(a0)
@@ -19138,8 +19245,8 @@ loc_10158:
 		move.b	#0,$1C(a0)	; use walking animation
 		rts
 ; ---------------------------------------------------------------------------
-
-loc_10164:
+; loc_10164:
+Sonic_TurnLeft:
 		sub.w	d4,d0
 		bcc.s	loc_1016C
 		move.w	#-$80,d0
@@ -19162,120 +19269,138 @@ return_1019A:
 ; End of subroutine Sonic_MoveLeft
 
 
-;=============================================================================== 
-; Sub Routine Sonic_MoveRight
-; [ Begin ]                         
-;===============================================================================                  
-Sonic_MoveRight: ; loc_1019C:
-                move.w  $0014(A0), D0
-                bmi.s   loc_101D0
-                bclr    #$00, $0022(A0)
-                beq.s   loc_101B6
-                bclr    #$05, $0022(A0)
-                move.b  #$01, $001D(A0)
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_1019C:
+Sonic_MoveRight:
+		move.w	$14(a0),d0
+		bmi.s	Sonic_TurnRight	; if Sonic is already moving to the left, branch
+		bclr	#0,$22(a0)
+		beq.s	loc_101B6
+		bclr	#5,$22(a0)
+		move.b	#1,$1D(a0)	; force walking animation to restart if it's already in-progress
+
 loc_101B6:
-                add.w   D5, D0
-                cmp.w   D6, D0
-                blt.s   loc_101C4
-                sub.w   D5, D0
-                cmp.w   D6, D0
-                bge.s   loc_101C4
-                move.w  D6, D0
+		add.w	d5,d0		; add acceleration to the right
+		cmp.w	d6,d0		; compare new speed with top speed
+		blt.s	loc_101C4	; if new speed is less than the maximum, branch
+		sub.w	d5,d0		; remove this frame's acceleration change
+		cmp.w	d6,d0		; compare speed with top speed
+		bge.s	loc_101C4	; if speed was already greater than the maximum, branch
+		move.w	d6,d0		; limit speed on ground going right
+
 loc_101C4:
-                move.w  D0, $0014(A0)
-                move.b  #$00, $001C(A0)
-                rts 
-loc_101D0:
-                add.w   D4, D0
-                bcc.s   loc_101D8
-                move.w  #$0080, D0
+		move.w	d0,$14(a0)
+		move.b	#0,$1C(a0)	; use walking animation
+		rts
+; ---------------------------------------------------------------------------
+; loc_101D0:
+Sonic_TurnRight:
+		add.w	d4,d0
+		bcc.s	loc_101D8
+		move.w	#$80,d0
+
 loc_101D8:
-                move.w  D0, $0014(A0)
-                move.b  $0026(A0), D0
-                addi.b  #$20, D0
-                andi.b  #$C0, D0
-                bne.s   loc_10206
-                cmpi.w  #$FC00, D0
-                bgt.s   loc_10206
-                move.b  #$0D, $001C(A0)
-                bset    #$00, $0022(A0)
-                move.w  #$00A4, D0
-                jsr     (PlaySound)              ; loc_14C6
-loc_10206:
-                rts
-;=============================================================================== 
-; Sub Routine Sonic_MoveRight
-; [ End ]                         
-;===============================================================================    
-                   
-;=============================================================================== 
-; Sub Routine Sonic_RollSpeed
-; [ Begin ]                         
-;===============================================================================                           
-Sonic_RollSpeed: ; loc_10208:
-                move.w  (Sonic_top_speed).w, D6
-                asl.w   #$01, D6
-                move.w  (Sonic_acceleration).w, D5
-                asr.w   #$01, D5
-                move.w  (Sonic_deceleration).w, D4
-                asr.w   #$02, D4
-                tst.b   ($FFFFF7CA).w
-                bne     loc_10284
-                tst.w   $002E(A0)
-                bne.s   loc_10240
-                btst    #$02, ($FFFFF602).w
-                beq.s   loc_10234
-                bsr     Sonic_RollLeft          ; loc_102BA
-loc_10234:                
-                btst    #$03, ($FFFFF602).w
-                beq.s   loc_10240
-                bsr     Sonic_RollRight         ; loc_102DE
-loc_10240:                
-                move.w  $0014(A0), D0                
-                beq.s   loc_10262
-                bmi.s   loc_10256
-                sub.w   D5, D0
-                bcc.s   loc_10250
-                move.w  #$0000, D0
+		move.w	d0,$14(a0)
+		move.b	$26(a0),d0
+		addi.b	#$20,d0
+		andi.b	#$C0,d0
+		bne.s	return_10206
+		cmpi.w	#-$400,d0
+		bgt.s	return_10206
+		move.b	#$D,$1C(a0)	; use "stopping" animation
+		bset	#0,$22(a0)
+		move.w	#$A4,d0
+		jsr	(PlaySound).l
+
+return_10206:
+		rts
+; End of subroutine Sonic_MoveRight
+
+; ---------------------------------------------------------------------------
+; Subroutine to change Sonic's speed as he rolls
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_10208:
+Sonic_RollSpeed:
+		move.w	(Sonic_top_speed).w,d6
+		asl.w	#1,d6
+		move.w	(Sonic_acceleration).w,d5
+		asr.w	#1,d5	; natural roll deceleration = 1/2 normal acceleration
+		; These two lines are unchanged from Sonic 1, the final would replace
+		; them with "move.w #$20,d4", which made Sonic decelerate much faster
+		; underwater, but they forgot to apply the change to Tails
+		move.w	(Sonic_deceleration).w,d4
+		asr.w	#2,d4
+		tst.b	($FFFFF7CA).w
+		bne.w	Sonic_SetRollSpeeds
+		tst.w	$2E(a0)
+		bne.s	Sonic_ApplyRollSpeed
+		btst	#2,($FFFFF602).w	; is left being pressed?
+		beq.s	loc_10234		; if not, branch
+		bsr.w	Sonic_RollLeft
+
+loc_10234:
+		btst	#3,($FFFFF602).w	; is right being pressed?
+		beq.s	Sonic_ApplyRollSpeed	; if not, branch
+		bsr.w	Sonic_RollRight
+; loc_10240:
+Sonic_ApplyRollSpeed:
+		move.w	$14(a0),d0
+		beq.s	Sonic_CheckRollStop
+		bmi.s	Sonic_ApplyRollSpeedLeft
+
+; Sonic_ApplyRollSpeedRight:
+		sub.w	d5,d0
+		bcc.s	loc_10250
+		move.w	#0,d0
+
 loc_10250:
-                move.w  D0, $0014(A0)
-                bra.s   loc_10262
-loc_10256:
-                add.w   D5, D0
-                bcc.s   loc_1025E
-                move.w  #$0000, D0
-loc_1025E:                
-                move.w  D0, $0014(A0) 
-loc_10262:                
-                tst.w   $0014(A0)
-                bne.s   loc_10284
-                bclr    #$02, $0022(A0)
-                move.b  #$13, $0016(A0)
-                move.b  #$09, $0017(A0)
-                move.b  #$05, $001C(A0)
-                subq.w  #$05, $000C(A0)
-loc_10284:                
-                move.b  $0026(A0), D0
-                jsr     CalcSine                ; loc_320A
-                muls.w  $0014(A0), D0
-                asr.l   #$08, D0
-                move.w  D0, $0012(A0)
-                muls.w  $0014(A0), D1
-                asr.l   #$08, D1
-                cmpi.w  #$1000, D1
-                ble.s   loc_102A8
-                move.w  #$1000, D1
+		move.w	d0,$14(a0)
+		bra.s	Sonic_CheckRollStop
+; ---------------------------------------------------------------------------
+; loc_10256:
+Sonic_ApplyRollSpeedLeft:
+		add.w	d5,d0
+		bcc.s	loc_1025E
+		move.w	#0,d0
+
+loc_1025E:
+		move.w	d0,$14(a0)
+; loc_10262:
+Sonic_CheckRollStop:
+		tst.w	$14(a0)
+		bne.s	Sonic_SetRollSpeeds
+		bclr	#2,$22(a0)
+		move.b	#$13,$16(a0)
+		move.b	#9,$17(a0)
+		move.b	#5,$1C(a0)
+		subq.w	#5,$C(a0)
+; ---------------------------------------------------------------------------
+; loc_10284:
+Sonic_SetRollSpeeds:
+		move.b	$26(a0),d0
+		jsr	(CalcSine).l
+		muls.w	$14(a0),d0
+		asr.l	#8,d0
+		move.w	d0,$12(a0)	; set y velocity based on $14 and angle
+		muls.w	$14(a0),d1
+		asr.l	#8,d1
+		cmpi.w	#$1000,d1
+		ble.s	loc_102A8
+		move.w	#$1000,d1	; limit Sonic's speed rolling right
+
 loc_102A8:
-                cmpi.w  #$F000, D1
-                bge.s   loc_102B2
-                move.w  #$F000, D1
+		cmpi.w	#-$1000,d1
+		bge.s	loc_102B2
+		move.w	#-$1000,d1	; limit Sonic's speed rolling left
+
 loc_102B2:
-                move.w  D1, $0010(A0)
-                bra     Obj01_CheckWallsOnGround   
-;=============================================================================== 
-; Sub Routine Sonic_RollSpeed
-; [ End ]                         
-;===============================================================================  
+		move.w	d1,$10(a0)	; set x velocity based on $14 and angle
+		bra.w	Obj01_CheckWallsOnGround
+; End of function Sonic_RollSpeed
 
 ;=============================================================================== 
 ; Sub Routine Sonic_RollLeft
@@ -31913,7 +32038,7 @@ Obj_0x67_Teleport_Attributes: ; loc_1B0C4:
                 beq     loc_1B518
                 lea     (loc_1B4BA), A1
                 bsr     J_AnimateSprite_03      ; loc_1B512
-                bra     J_DisplaySprite_09      ; loc_1B50C
+                bra     J_DisplaySprite_09      ; ChaDec_BP0_LongRefC
 loc_1B0EC:
                 dc.w    loc_1B0F0-loc_1B0EC
                 dc.w    loc_1B114-loc_1B0EC
@@ -32073,10 +32198,10 @@ loc_1B2DC:
                 move.w  D2, D3
                 move.w  D4, D0
                 sub.w   $0008(A1), D0
-                bge.s   loc_1B2EC
+                bge.s   ChaDec_BitPos0C
                 neg.w   D0
                 neg.w   D2
-loc_1B2EC:
+ChaDec_BitPos0C:
                 moveq   #$00, D1
                 move.w  D5, D1
                 sub.w   $000C(A1), D1
@@ -32225,7 +32350,7 @@ loc_1B4DA:
 ; Object 0x67 - Metropolis - Teleport Attributes
 ; [ End ]                         
 ;===============================================================================               
-J_DisplaySprite_09: ; loc_1B50C:
+J_DisplaySprite_09: ; ChaDec_BP0_LongRefC:
                 jmp     DisplaySprite           ; (loc_D3C2)
 J_AnimateSprite_03: ; loc_1B512:
                 jmp     AnimateSprite           ; (loc_D412)
@@ -46208,7 +46333,7 @@ Unknow_Data_0x04EE00: ; loc_4EE00:
                 dc.b    $00, $00, $00, $00, $00, $00, $00, $00                
 ;---------------------------------------------------------------------------------------
 ; Uncompressed art
-; Patterns for Sonic  ; ArtUnc_50000: ArtUnc_Sonic:
+; Patterns for Sonic  ; ArtUnc_50000:
 ;---------------------------------------------------------------------------------------
 	align $20
 ArtUnc_Sonic:	incbin  "art/uncompressed/Sonic's art.bin"
