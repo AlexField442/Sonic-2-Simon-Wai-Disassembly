@@ -1,28 +1,11 @@
 ; Sonic the Hedgehog 2 (Simon Wai prototype) disassembly
 ; Originally created by Esrael L.G. Neto around 2008
 
-align macro
-	cnop 0,\1
-	endm
+; For certain bits of information, search for "NOTE:"
 
+	include	"s2b.macrosetup.asm"
 	include	"s2b.constants.asm"
-
-; tells the Z80 to stop, and waits for it to finish stopping (acquire bus)
-stopZ80 macro
-	move.w	#$100,($A11100).l	; stop the Z80
-@loop:	btst	#0,($A11100).l
-	bne.s	@loop			; loop until it says it stopped
-	endm
-
-; tells the Z80 to start again
-startZ80 macro
-	move.w	#0,($A11100).l		; start the Z80
-	endm
-
-; macro to declare a little-endian 16-bit pointer for the Z80 sound driver
-rom_ptr_z80 macro addr
-	dc.w	((((addr&$FFFF)|$8000)>>8)|(((addr&$FFFF)|$8000)<<8))&$FFFF
-	endm
+	include	"s2b.macros.asm"
 
 StartOfRom:
 Vectors:	dc.l    $FFFFFE00, EntryPoint, BusError, AddressError                  
@@ -10062,7 +10045,7 @@ loc_8A92:
                 beq.s   loc_8AC0
                 moveq   #$00, D3
                 move.b  $0019(A0), D3
-                bsr     loc_8B94
+                bsr     JmpTo_ObjHitWallRight
                 tst.w   D1
                 bpl.s   loc_8AC0
                 add.w   D1, $0008(A0)
@@ -10130,10 +10113,22 @@ Dhz_Swing_Platforms_Map_04: ; loc_8B80:
 ; Object 0x15 - Swing Platforms - Dust Hill / Oil Ocean
 ; [ End ]
 ;===============================================================================   
-                nop                             ; Filler  
-loc_8B94:
-                jmp     ObjHitWallRight         ; (loc_1399E)    
-                dc.w    $0000                   ; Filler 
+		nop
+
+; NOTE:
+; It seems like the compiler the developers used (which evidently was for a
+; Macintosh-like environment) automatically generated these "Jump To"s blocks
+; whenever said subroutine referenced was very out of bounds; in fact, using
+; this, we can even predict where the blocks of code compiled begin and end.
+; This continued into the final game, only to be removed entirely in the Classics
+; and Jam re-releases, and even Sonic 3, suggesting a compiler switch (presumably
+; back to the DOS environment used for Sonic 1).
+
+; loc_8B94:
+JmpTo_ObjHitWallRight:
+		jmp	(ObjHitWallRight).l
+		align 4
+
 ;=============================================================================== 
 ; Object 0x17
 ; [ Begin ]
@@ -22304,11 +22299,11 @@ Obj05:
 		jmp	Obj05_Index(pc,d1.w)
 ; ===========================================================================
 ; loc_11FA4:
-Obj05_Index:	dc.w	loc_11FA8-Obj05_Index
-		dc.w	loc_11FD0-Obj05_Index
+Obj05_Index:	dc.w	Obj05_Init-Obj05_Index
+		dc.w	Obj05_Main-Obj05_Index
 ; ===========================================================================
-
-loc_11FA8:
+; loc_11FA8:
+Obj05_Init:
 		addq.b	#2,$24(a0)
 		move.l	#Tails_Mappings,4(a0)
 		move.w	#$7B0,2(a0)
@@ -22316,53 +22311,62 @@ loc_11FA8:
 		move.b	#2,$18(a0)
 		move.b	#$18,$19(a0)
 		move.b	#4,1(a0)
+; loc_11FD0:
+Obj05_Main:
+		move.b	($FFFFB066).w,$26(a0)
+		move.b	($FFFFB062).w,$22(a0)
+		move.w	($FFFFB048).w,8(a0)
+		move.w	($FFFFB04C).w,$C(a0)
+		moveq	#0,d0
+		move.b	($FFFFB05C).w,d0
+		cmp.b	$30(a0),d0
+		beq.s	loc_11FFE
+		move.b	d0,$30(a0)
+		move.b	Obj05AniSelection(pc,d0.w),$1C(a0)
 
-loc_11FD0:
-                move.b  ($FFFFB066).w, $0026(A0)
-                move.b  ($FFFFB062).w, $0022(A0)
-                move.w  ($FFFFB048).w, $0008(A0)
-                move.w  ($FFFFB04C).w, $000C(A0)
-                moveq   #$00, D0
-                move.b  ($FFFFB05C).w, D0
-                cmp.b   $0030(A0), D0
-                beq.s   loc_11FFE
-                move.b  D0, $0030(A0)
-                move.b  loc_12014(PC, D0), $001C(A0)
 loc_11FFE:
-                lea     (loc_12032), A1
-                bsr     Tails_Animate2          ; loc_11BA8
-                bsr     Load_Tails_Tail_Dynamic_PLC ; loc_11F1A
-                jsr     DisplaySprite           ; loc_D3C2
+		lea	(Obj05AniData).l,a1
+		bsr.w	Tails_Animate2
+		bsr.w	Load_Tails_Tail_Dynamic_PLC
+		jsr	(DisplaySprite).l
                 rts
-loc_12014:
-                dc.b    $00, $00, $03, $03, $00, $01, $00, $02, $01, $07, $00, $00, $00, $00, $00, $00
-                dc.b    $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-                           
-loc_12032:
-                dc.w    loc_12042-loc_12032
-                dc.w    loc_12045-loc_12032
-                dc.w    loc_1204C-loc_12032
-                dc.w    loc_12054-loc_12032
-                dc.w    loc_1205A-loc_12032
-                dc.w    loc_12060-loc_12032
-                dc.w    loc_12066-loc_12032
-                dc.w    loc_1206C-loc_12032
-loc_12042:
-                dc.b    $20, $00, $FF 
-loc_12045:    
-                dc.b    $07, $09, $0A, $0B, $0C, $0D, $FF
-loc_1204C: 
-                dc.b    $03, $09, $0A, $0B, $0C, $0D, $FD, $01 
-loc_12054:
-                dc.b    $FC, $49, $4A, $4B, $4C, $FF
-loc_1205A:
-                dc.b    $03, $4D, $4E, $4F, $50, $FF
-loc_12060:
-                dc.b    $03, $51, $52, $53, $54, $FF
-loc_12066:
-                dc.b    $03, $55, $56, $57, $58, $FF
-loc_1206C: 
-                dc.b    $02, $81, $82, $83, $84, $FF
+; ===========================================================================
+; Animation master script table for the Tails, chooses which tails animation
+; to run depending on Tails' current animation (sounds confusing, right?).
+; byte_12014:
+Obj05AniSelection:
+		dc.b	0,0
+		dc.b	3,3
+		dc.b	0
+		dc.b	1
+		dc.b	0
+		dc.b	2
+		dc.b	1
+		dc.b	7
+		dc.b	0,0,0,0,0,0,0
+		dc.b	0,0,0,0,0,0,0
+		dc.b	0,0,0,0,0,0
+		even
+; ---------------------------------------------------------------------------
+; Animation script - Tails' tails
+; ---------------------------------------------------------------------------
+; off_12032:
+Obj05AniData:	dc.w	loc_12042-Obj05AniData
+		dc.w	loc_12045-Obj05AniData
+		dc.w	loc_1204C-Obj05AniData
+		dc.w	loc_12054-Obj05AniData
+		dc.w	loc_1205A-Obj05AniData
+		dc.w	loc_12060-Obj05AniData
+		dc.w	loc_12066-Obj05AniData
+		dc.w	loc_1206C-Obj05AniData
+loc_12042:	dc.b	$20,  0,$FF
+loc_12045:	dc.b	  7,  9, $A, $B, $C, $D, $FF
+loc_1204C:	dc.b	  3,  9, $A, $B, $C, $D, $FD,  1
+loc_12054:	dc.b	$FC, $49, $4A, $4B, $4C, $FF
+loc_1205A:	dc.b      3, $4D, $4E, $4F, $50, $FF
+loc_12060:	dc.b      3, $51, $52, $53, $54, $FF
+loc_12066:	dc.b      3, $55, $56, $57, $58, $FF
+loc_1206C: 	dc.b      2, $81, $82, $83, $84, $FF
 ;=============================================================================== 
 ; Object 0x05 - Tails "Tail"
 ; [ End ]
@@ -47740,11 +47744,6 @@ Snd_SegaDup:	incbin	"data\all\sega.snd"
 ; $F8000 => Music $81 to $97
 ; $FF000 => Sounds $A0 to $E0
 
-	align $EC000
-    if *<>$EC000
-	inform 1,"Sound driver coding isn't located at $EC000! All sounds will break!"
-    endif
-
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Subroutine to load the sound driver
@@ -47897,222 +47896,13 @@ SaxDec_GetByte:
 ; program like SMPS2ASM
 ; ---------------------------------------------------------------------------
 
-Snd_Driver:
-                dc.w    $FFF3,$3180,$1BC3,$2D01,$00FF,$3A00,$4087,$38FA
-                dc.w    $C900,$FFDD,$CB01,$5628,$0218,$10FF,$F5CF,$F132
-                dc.w    $0040,$F5CF,$FF79,$3201,$40F1,$C900,$00EA,$0601
-                dc.w    $020B,$0203,$1103,$D9CD,$B9FF,$0BAF,$32AA,$11DD
-                dc.w    $2180,$FF1B,$3A83,$1BB7,$2806,$CDFF,$BD05,$C3E9
-                dc.w    $00DD,$3501,$FFCC,$F40A,$3A84,$1BB7,$C4EF,$0B0A
-                dc.w    $3A8E,$4700,$370B,$3AFF,$891B,$DDB6,$0ADD,$B60B
-                dc.w    $FFC4,$2106,$3A88,$1BFE,$80FF,$C45E,$063E,$FF32
-                dc.w    $871B,$FFDD,$2197,$1BDD,$CB00,$7EEF,$C4A9,$01AF
-                dc.w    $6900,$0606,$C5DF,$112A,$00DD,$1970,$02FE,$01DF
-                dc.w    $C110,$F006,$037D,$0896,$04FE,$8A00,$AF1E,$0121
-                dc.w    $0060,$731A,$A501,$77AA,$003E,$802C,$008D,$0A88
-                dc.w    $0FFA,$9A09,$77A7,$043A,$A811,$B7FA,$FF05,$01D9
-                dc.w    $0601,$F1FB,$C9F7,$3E80,$08E6,$00D6,$8132,$A8FF
-                dc.w    $1187,$87C6,$7532,$2201,$FFC6,$0232,$2601,$F121
-                dc.w    $3CFF,$01E3,$2A75,$0FED,$5B77,$FF0F,$0100,$01FB
-                dc.w    $C9CD,$88FF,$0AFB,$FD21,$7901,$1100,$FF00,$7AB3
-                dc.w    $28FC,$10FE,$F3DB,$3E2A,$0900,$7E07,$3310,$E60F
-                dc.w    $7F32,$5101,$08FD,$8600,$0F00,$6F08,$41FB,$002A
-                dc.w    $10F5,$F12D,$12AF,$417E,$231B,$3710,$6F3B,$16FB
-                dc.w    $F700,$C338,$1610,$0204,$0810,$FF20,$4080,$FFFE
-                dc.w    $FCF8,$F0FF,$E0C0,$151C,$0000,$3F1C,$FF69,$1CBD
-                dc.w    $1CE7,$1C11,$1DFF,$111D,$3B1D,$0000,$651D,$FF8F
-                dc.w    $1DB9,$1DE3,$1D0D,$1EFF,$0D1E,$DD35,$0BC0,$DD6E
-                dc.w    $FF03,$DD66,$047E,$23FE,$E0FF,$3806,$CDDF,$0BC3
-                dc.w    $B301,$FFB7,$F2D5,$01DD,$770D,$7EFF,$B7F2,$D401
-                dc.w    $DD7E,$0CDD,$FF77,$0BC3,$D801,$23CD,$6B7F,$02DD
-                dc.w    $7503,$DD74,$0470,$00FF,$56C0,$DD7E,$0DFE,$80C8
-                dc.w    $FFD6,$8187,$C68D,$32F3,$01DF,$ED4B,$8D0F,$79FB
-                dc.w    $0078,$32B7,$2901,$C997,$1020,$0D70,$00A6,$FFCD
-                dc.w    $1902,$CDDB,$03C3,$9CFF,$0BCD,$A502,$CDBD,$02C3
-                dc.w    $D3EB,$039B,$1370,$008E,$A117,$2302,$FFF5,$CDAC
-                dc.w    $0BF1,$B7F2,$41FF,$02CD,$4702,$7EB7,$FA7C,$FD02
-                dc.w    $C211,$C37C,$02D6,$8028,$FF14,$DD86,$0587,$C61B
-                dc.w    $32FF,$5602,$ED5B,$1B03,$DD73,$DF0D,$DD72,$0EC9
-                dc.w    $7000,$CEAF,$FEB1,$10DD,$770E,$C94F,$DD46,$DF02
-                dc.w    $1007,$DD77,$BB11,$C981,$A3C3,$6FC5,$15BA,$1270
-                dc.w    $0066,$D010,$10BF,$DD77,$0FDD,$3609,$FDF0,$00FF
-                dc.w    $5EC8,$DD6E,$11DD,$6612,$FFC3,$180E,$DD7E,$0FB7
-                dc.w    $C8AF,$DD35,$0FC0,$4D21,$D1FE,$F07E,$BFC2,$A305
-                dc.w    $C3AC,$0BA0,$2000,$F94E,$9B21,$8820,$7E13,$B728
-                dc.w    $0497,$DD35,$13EB,$1014,$9A10,$8C21,$23FF,$7EDD
-                dc.w    $7714,$DD7E,$16B7,$F720,$0F23,$CA21,$16DD,$7E15
-                dc.w    $DFED,$44DD,$7715,$EB10,$16DD,$FF6E,$17DD,$6618
-                dc.w    $0600,$DDFF,$4E15,$CB79,$CA0B,$0306,$FFFF,$09DD
-                dc.w    $7517,$DD74,$18FF,$DD4E,$0DDD,$460E,$09EB,$FFE9
-                dc.w    $5E02,$8402,$AB02,$D3FF,$02FE,$022D,$035C,$038F
-                dc.w    $FF03,$C503,$FF03,$3C04,$7CFF,$045E,$0A84,$0AAB
-                dc.w    $0AD3,$FF0A,$FE0A,$2D0B,$5C0B,$8FFF,$0BC5,$0BFF
-                dc.w    $0B3C,$0C7C,$FF0C,$5E12,$8412,$AB12,$D3FF,$12FE
-                dc.w    $122D,$135C,$138F,$FF13,$C513,$FF13,$3C14,$7CFF
-                dc.w    $145E,$1A84,$1AAB,$1AD3,$FF1A,$FE1A,$2D1B,$5C1B
-                dc.w    $8FFF,$1BC5,$1BFF,$1B3C,$1C7C,$FF1C,$5E22,$8422
-                dc.w    $AB22,$D3FF,$22FE,$222D,$235C,$238F,$FF23,$C523
-                dc.w    $FF23,$3C24,$7CFF,$245E,$2A84,$2AAB,$2AD3,$FF2A
-                dc.w    $FE2A,$2D2B,$5C2B,$8FFF,$2BC5,$2BFF,$2B3C,$2C7C
-                dc.w    $FF2C,$5E32,$8432,$AB32,$D3FF,$32FE,$322D,$335C
-                dc.w    $338F,$FF33,$C533,$FF33,$3C34,$7CFF,$345E,$3A84
-                dc.w    $3AAB,$3AD3,$FF3A,$FE3A,$2D3B,$5C3B,$8FFF,$3BC5
-                dc.w    $3BFF,$3B3C,$3C7C,$FD3C,$AC23,$5E0D,$DD56,$0E7A
-                dc.w    $EFB3,$CA42,$05CC,$1226,$00DD,$FF6E,$19CB,$7D28
-                dc.w    $0226,$FFFF,$194C,$DD7E,$01E6,$03C6,$FFA4,$D74D
-                dc.w    $D604,$D7C9,$56FF,$0326,$03F9,$02CE,$02A5,$FF02
-                dc.w    $8002,$5C02,$3A02,$1AFF,$02FB,$01DF,$01C4,$01AB
-                dc.w    $FF01,$9301,$7D01,$6701,$53FF,$0140,$012E,$011D
-                dc.w    $010D,$FF01,$FE00,$EF00,$E200,$D6FF,$00C9,$00BE
-                dc.w    $00B4,$00A9,$FF00,$A000,$9700,$8F00,$87FF,$007F
-                dc.w    $0078,$0071,$006B,$FF00,$6500,$5F00,$5A00,$55FF
-                dc.w    $0050,$004B,$0047,$0043,$FF00,$4000,$3C00,$3900
-                dc.w    $36FF,$0033,$0030,$002D,$002B,$FF00,$2800,$2600
-                dc.w    $2400,$22FF,$0020,$001F,$001D,$001B,$FF00,$1A00
-                dc.w    $1800,$1700,$167F,$0015,$0013,$0012,$0023,$10FC
-                dc.w    $3E00,$EE15,$B404,$CD04,$05C3,$DB4C,$05FE,$1147
-                dc.w    $0501,$2110,$05FE,$072F,$0BC3,$BE04,$B7F2,$D76F
-                dc.w    $04CD,$DD04,$292A,$8138,$3823,$FF0A,$32EC,$04ED
-                dc.w    $5B0A,$04B6,$4628,$3EFF,$5223,$C3A3,$D830,$0EF7
-                dc.w    $7E20,$38CE,$33DD,$7E00,$E6F9,$06DD,$3AEB,$30FE
-                dc.w    $E020,$023E,$FFC0,$477D,$E60F,$B032,$11DF,$7F7D
-                dc.w    $CB3C,$1F22,$501F,$1FF3,$E63F,$1E50,$4C22,$C9DD
-                dc.w    $7E08,$F696,$2046,$0635,$5128,$2721,$A9FF,$0F3D
-                dc.w    $875F,$1600,$197E,$FF23,$66DD,$8609,$6F8C,$95FF
-                dc.w    $677E,$DD34,$09B7,$F274,$FF05,$FE80,$282B,$80FE
-                dc.w    $109F,$3802,$3E0F,$47FE,$4376,$2120,$DD0A,$EB30
-                dc.w    $B0C6,$102C,$527E,$10B7,$B728,$F093,$2120,$EAEB
-                dc.w    $1009,$DC4C,$21CF,$1101,$F61F,$2C51,$2111,$FF7F
-                dc.w    $369F,$36BF,$36DF,$36FF,$FFC9,$FACD,$05FE,$02C8
-                dc.w    $FFDD,$3603,$02CD,$700A,$C3AF,$B105,$DDE5,$B150
-                dc.w    $006C,$0106,$EF07,$CDFA,$059F,$0CDD,$213B,$671D
-                dc.w    $0603,$C750,$2800,$DDE1,$4C21,$FB7E,$28BA,$0156
-                dc.w    $2013,$DD4E,$DD07,$EB33,$B4D7,$C535,$50CD,$76BB
-                dc.w    $0DC1,$B602,$10DA,$C95F,$02C0,$FF21,$891B,$3A80
-                dc.w    $1B4F,$06FF,$037E,$5F36,$0023,$FE81,$FF38,$22D6
-                dc.w    $A030,$057B,$32FF,$881B,$C9E5,$C630,$6FCE,$BD0F
-                dc.w    $5450,$B938,$054F,$2B61,$E1FF,$79B7,$F832,$801B
-                dc.w    $C910,$FFD3,$C9B7,$CA88,$0AF0,$DDFF,$3608,$80FE
-                dc.w    $A0DA,$E306,$FFFE,$A0D8,$FEE1,$DA95,$08FF,$FEF9
-                dc.w    $D8FE,$FED0,$D6F9,$FF87,$8732,$8206,$18FE,$C3FF
-                dc.w    $F609,$00C3,$9706,$00C3,$DF07,$0B00,$C314,$7B60
-                dc.w    $880A,$3F00,$3E2B,$0E80,$DF9F,$03DE,$017E,$A902
-                dc.b    $21
+Snd_Driver:	incbin	"sound/Z80.bin",$00,$631
 		rom_ptr_z80	Sega_Snd
-                dc.b    $11
-                dc.w    $BA30,$2D12,$F70E,$807E,$0F00,$2300
-                dc.w    $060C,$BB10,$FE5F,$00B9,$2010,$A667,$1BDF,$7AB3
-                dc.w    $C2B8,$0628,$003A,$95FF,$1B4F,$3E2B,$DFC9,$32A9
-                dc.w    $FF11,$FE98,$203B,$3A91,$1B67,$B720,$3C6C,$01B6
-                dc.w    $0006,$0A70,$0055,$960A,$60F8,$D952,$0670,$00BE
-                dc.w    $EB61,$F711,$371E,$3000,$01BB,$01ED,$DDB0,$AE00
-                dc.w    $911B,$AF45,$6018,$07FD,$AF0A,$7032,$901B,$CDAE
-                dc.w    $0AF3,$3AA9,$F800,$4850,$2188,$1119,$BF7E,$3293
-                dc.w    $1B21,$6927,$7047,$BFE6,$8032,$961B,$7847,$5121
-                dc.b    $EF
-		rom_ptr_z80	Music_81_To_97
-		dc.b    $19
-                dc.w    $E528,$00E1,$5E23,$FF56,$D5DD,$E1DD
-                dc.w    $5E00,$DDFF,$5601,$ED53,$8C1B,$DD7E,$FF05,$3292
-                dc.w    $1B47,$3A94,$1BFF,$B778,$2803,$3A93,$1B32,$FF82
-                dc.w    $1B32,$811B,$DDE5,$E1F7,$1106,$000F,$5002,$B7CA
-                dc.w    $F9DF,$0747,$FDE5,$FD6D,$014E,$04FF,$118B,$08FD
-                dc.w    $CB00,$FE1A,$FF13,$FD77,$01FD,$7102,$FDFF,$360A
-                dc.w    $2AFD,$3607,$C0FD,$FF36,$0B01,$D5C5,$FD7D,$C6FF
-                dc.w    $035F,$FD8C,$9357,$EDA0,$FCAB,$73B6,$00FD,$19C1
-                dc.w    $D110,$CCFB,$FDE1,$7470,$FE07,$2004,$AFFF,$4F18
-                dc.w    $183E,$280E,$06DF,$FF3E,$420E,$FF06,$04EF,$C6FF
-                dc.w    $0410,$FB3E,$B60E,$C0EF,$BF3E,$804F,$3295,$1BCD
-                dc.w    $60DD,$BF7E,$03B7,$CA45,$087B,$72BD,$C51C,$8271
-                dc.w    $9287,$7F9D,$7FAB,$7123,$7E2F,$23FD,$7708,$B375
-                dc.w    $CABC,$70F0,$62F4,$B601,$E951,$1CEB,$30B7,$FA60
-                dc.w    $08DF,$D602,$8718,$0627,$501F,$E6FF,$0FC6,$8932
-                dc.w    $6C08,$2A89,$7B01,$CBEA,$61DA,$DD21,$C17A,$00C4
-                dc.w    $1E20,$0A60,$F9DD,$50F0,$406C,$80C9,$06FE,$6711
-                dc.w    $0506,$80A0,$C04F,$DDFF,$7E11,$DDB6,$04DD,$B60E
-                dc.w    $FFC2,$7809,$79FE,$B520,$0FFF,$3AAB,$11B7,$2002
-                dc.w    $0ECE,$FF2F,$32AB,$11C3,$C508,$79FF,$FEA7,$200A
-                dc.w    $3AAC,$11B7,$EDC0,$AE00,$AC11,$9F0C
-                dc.b    $21
+		incbin	"sound/Z80.bin",$633,$8E
+		rom_ptr_z80	MusicPoint2
+		incbin	"sound/Z80.bin",$6C3,$14A
 		rom_ptr_z80	Sfx_A0_To_F9
-                dc.b    $D7
-                dc.w    $79D6,$A047,$556F,$4670,$23ED,$FF53,$6809,$4E23
-                dc.w    $4623,$C5BF,$AF32,$5F09,$E523,$2920,$01DD,$0949
-                dc.w    $80C3,$1A09,$DF80,$FEC0,$B720,$0CF5,$9952,$EE20
-                dc.w    $1E50,$F1D6,$4E86,$2009,$5981,$D67A,$502B,$09FF
-                dc.w    $DD2A,$9901,$DD5D,$DD54,$FFD5,$6B62,$3600,$1301
-                dc.w    $29DF,$00ED,$B0D1,$E1AB,$71C1,$C5AF,$DD71,$02DD
-                dc.w    $0C80,$DD95,$707B,$EFC6,$015F,$8AA9,$773E,$00B7
-                dc.w    $F8EF,$1099,$7023,$10DD,$731C,$DD72,$7F1D,$C105
-                dc.w    $C2EF,$08C3,$2901,$AE46,$60CD,$7809,$EF63,$C570
-                dc.w    $01CA,$B3EC,$09F5,$6243,$81BF,$091D,$22DD,$69E5
-                dc.w    $4980,$5480,$AA16,$9089,$01E7,$62BC,$4E20,$0063
-                dc.w    $DDE1,$C3EC,$8690,$A389,$058B,$904E,$86D3,$959C
-                dc.w    $1251,$3C50,$1BF6,$1E50,$DDE1,$B602,$C105,$1091
-                dc.w    $FFC9,$CD7D,$093E,$0332,$85DF,$1B3E,$2832,$840C
-                dc.w    $7097,$1B3F,$3294,$1BC9,$3A85,$3500,$BB20,$F505
-                dc.w    $EB10,$044D,$60DD,$3605,$03F8,$BB50,$6382,$E852
-                dc.w    $11DD,$3406,$F2FD,$39E6,$61BE,$1805,$C5CD,$E7EE
-                dc.w    $0565,$E206,$03E8,$5434,$063E,$BF10,$DDBE,$06D2
-                dc.w    $5E20,$A308,$9DC5,$3A50,$CD7C,$0506,$65E5,$503E
-                dc.w    $FF28,$0603,$480D,$DFCB,$D1DF,$DF10,$F83E,$30D0
-                dc.w    $7060,$DFA7,$EF3C,$10F1,$0086,$6179,$E171,$27F7
-                dc.w    $0E00,$DF30,$0011,$811B,$366F,$0001,$B602,$0672
-                dc.w    $881B,$B554,$D630,$00DD,$46EE,$2011,$4CA0,$14DD
-                dc.w    $FB4E,$104C,$A009,$DD4E,$0AC5,$FA84,$A6BA,$0570
-                dc.w    $C1DD,$7009,$DD7B,$710A,$C2A0,$14DD,$7110,$C2A0
-                dc.w    $AF00,$DD71,$1191,$A83A,$6872,$21FD,$A2E1,$6334
-                dc.w    $1910,$FCC9,$0639,$80D8,$6164,$7028,$0F18,$EC20
-                dc.w    $F7A2,$AB92,$1B02,$000B,$6773,$78F5,$9132,$FF39
-                dc.w    $1E32,$381E,$7832,$4BEF,$1EC9,$3A8F,$FB93,$0FC9
-                dc.w    $3AFD,$90DA,$600D,$3A97,$1BE6,$FBDE,$F290,$AF32
-                dc.w    $8E1B,$EB10,$10DD,$F736,$0F02,$0DAA,$08DD,$3506
-                dc.w    $EA27,$A8EB,$33A4,$1257,$B0DD,$7E06,$1663,$53C5
-                dc.w    $4750,$A7E1,$E551,$6B53,$9750,$DFF0,$4F3E,$28DF
-                dc.w    $89B2,$14C0,$FF3E,$28DD,$4E01,$DFC9,$3AD5,$96DA
-                dc.w    $6010,$8A6C,$C99F,$0CC9,$D6BD,$E06A,$60E9,$0B7E
-                dc.w    $236F,$6052,$AF0C,$00C3,$70DA,$B074,$DAB0,$78FA
-                dc.w    $DAB0,$8BDA,$B00C,$0D00,$C310,$AAEE,$B019,$EEB0
-                dc.w    $1FEE,$B026,$EEB0,$2DAA,$EEB0,$34EE,$B049,$EEB0
-                dc.w    $50EE,$B056,$FAEE,$B058,$EEB0,$0D0E,$00C3,$36AA
-                dc.w    $1AC0,$3C1A,$C0D0,$1AC0,$E01A,$C0E6,$EA1A,$C0EA
-                dc.w    $1AC0,$ED1A,$C00B,$0F00,$37C3,$240F,$FDF1,$7EF8
-                dc.w    $CC12,$8380,$7F07,$E637,$B1DD,$7707,$8380,$FEF9
-                dc.w    $53C9,$DD77,$19C9,$3286,$7640,$B04E,$0AED,$20E5
-                dc.w    $E109,$CD81,$FB0C,$0CC6,$A0C9,$2137,$1E11,$3C01
-                dc.w    $74C6,$6197,$1BF6,$04F2,$902F,$B086,$95B0,$914F
-                dc.w    $F360,$6380,$E856,$A190,$0637,$81DD,$77F4,$6156
-                dc.w    $204B,$A001,$6A42,$33A4,$0E4D,$2171,$81A8,$C307
-                dc.w    $63E5,$AE00,$B58E,$EB91,$900C,$7091,$1BC9,$64C1
-                dc.w    $FDC1,$3C01,$7702,$C9DD,$8606,$B6AB,$C0C3,$E7F0
-                dc.w    $11E6,$2B5D,$C00F,$F7DD,$7710,$FDC0,$05DD,$7705
-                dc.w    $65C9,$6773,$C90D,$A1E0,$6577,$026B,$816C,$E551
-                dc.w    $FFC2,$C9AF,$B080,$2BC9,$0BD1,$FB08,$4FCC,$12E5
-                dc.w    $CD67,$0DE1,$BFC9,$3AAA,$11B7,$7955,$B06E,$FF1C
-                dc.w    $DD66,$1D18,$032A,$8CFF,$1BE5,$4F06,$0087,$6F60
-                dc.w    $FF29,$295D,$5429,$1909,$D1EE,$4B50,$32BB,$0D54
-                dc.w    $C4B0,$D7D6,$BF80,$0604,$4E23,$D7D5,$70F9,$DFF5
-                dc.w    $C610,$0610,$89D4,$C624,$FEF4,$50D7,$DD75,$1EDD
-                dc.w    $741F,$FF3E,$00E6,$07C6,$DF5F,$16FF,$0D1A,$DD77
-                dc.w    $1A5F,$DD56,$FB06,$F187,$D1CB,$1B30,$05F5,$EF7A
-                dc.w    $814F,$F18B,$D1F0,$C908,$1ECD,$D00C,$0E0E,$0FA1
-                dc.w    $219B,$21CF,$10EB,$5E1A,$EB33,$40B6,$D0CB,$7AC0
-                dc.w    $FFE5,$DD6E,$1EDD,$661F,$CDF9,$CC52,$D070,$00DE
-                dc.w    $2BDD,$7511,$FFDD,$7412,$DD7D,$C613,$5F3D,$DDA8
-                dc.w    $767E,$23CB,$3FD8,$2051,$203F,$17DD,$7718,$C92B
-                dc.w    $FBD1,$4C21,$F9BE,$F111,$A121,$200C,$3A87,$1B2F
-                dc.w    $B7FA,$CE0E,$1E20,$1870,$8155,$D167,$F2CD,$0E0D
-                dc.w    $7142,$82A5,$0E8C,$957B,$770E,$9694,$56CA,$A00E
-                dc.w    $E251,$9C9B,$9ACA,$5DE1,$C1C1,$21D0,$4E86,$B4F8
-                dc.w    $62E5,$C69F,$8EE3,$3601,$E0DD,$77A6,$6F01,$56C0
-                dc.w    $2C51,$24E1,$9E45,$D1C9,$FF66,$6FC9,$4E23,$E5C6
-                dc.w    $20F9,$6FDE,$301C,$9019,$7EB7,$2001,$DF71,$35E1
-                dc.w    $2805,$CD81,$C923,$FD23,$5820,$7E0A,$D602,$DD77
-                dc.w    $FF0A,$4623,$EBDD,$856F,$DDFE,$5350,$7323,$7260
-                dc.w    $69C9,$3EBF,$880E,$0FDF,$3E8C,$14F0,$2B57,$C980
-                dc.w    $701F,$F568,$1FF0,$602A,$F1A4,$2CF0,$1FF6,$7F31
-                dc.w    $F91F,$F180,$4EFC,$90FE,$5EF1
-
+		incbin	"sound/Z80.bin",$80F,$4BB
 		rom_ptr_z80	DAC_Sample01
 		dc.w	(((DAC_Sample01_End-DAC_Sample01)>>8)|((DAC_Sample01_End-DAC_Sample01)<<8))&$FFFF
 		rom_ptr_z80	DAC_Sample02
@@ -48125,766 +47915,100 @@ Snd_Driver:
 		dc.w	(((DAC_Sample05_End-DAC_Sample05)>>8)|((DAC_Sample05_End-DAC_Sample05)<<8))&$FFFF
 		rom_ptr_z80	DAC_Sample06
 		dc.b	(DAC_Sample06_End-DAC_Sample06)&$FF,$FF,((DAC_Sample06_End-DAC_Sample06)>>8)&$FF
+		incbin	"sound/Z80.bin",$CE5,$10D
 
-                dc.b    $81
-                dc.w    $1782,$0183,$1784,$FF04,$851B
-                dc.w    $860A,$0000,$85FF,$1285,$1585,$1C85,$1D86,$FF0A
-                dc.w    $860E,$8613,$C30F,$DAFF,$0FE1,$0FF2,$0F0C,$10FD
-                dc.w    $FF0F,$3610,$5210,$7A10,$8BBF,$10C9,$10E5,$1065
-                dc.w    $8041,$01FF,$0101,$0202,$0203,$0303,$FF04,$0404
-                dc.w    $0505,$0506,$06FF,$0607,$8000,$0204,$0608,$8310
-                dc.w    $80B2,$F1B8,$F1BE,$F1C4,$F0C6,$F000,$2102,$D6F2
-                dc.w    $7E80,$BAF0,$B7F0,$02B4,$F081,$4001,$00CE,$F0FA
-                dc.w    $F5B4,$F004,$08EE,$F1EE,$F1BA,$F002,$1A02,$04F9
-                dc.w    $F40D,$07BA,$F7DE,$F127,$0A19,$0320,$BDF0,$BEF2
-                dc.w    $C1F2,$DBF1,$C6F0,$01E2,$F03C,$00FF,$0809,$0A0B
-                dc.w    $0C0D,$0E0F,$00F9,$FF89,$0F0D,$0A18,$0720,$01BD
-                dc.w    $F0EB,$F30B,$0900,$B006,$ECF1,$8F0F,$9F09,$A10F
-                dc.w    $0319,$5502,$171C,$E05A,$022B,$1C5F,$023F,$1C66
-                dc.w    $0103,$8080,$FF81,$8283,$8485,$8687,$88FF,$898A
-                dc.w    $8B8C,$8D8E,$8F8F,$BF90,$9192,$9394,$9468,$0305
-                dc.w    $FF05,$0772,$7326,$1508,$FF03,$0520,$7E1F,$8412
-                dc.w    $7902 
-                
-                cnop    $0000,$1000                 
-DAC_Sample01:
-                dc.w    $03BC,$7FD5,$2DD5,$3BF7,$D0F7,$6ED7,$EFE8,$D64E
-                dc.w    $E77E,$96E6,$53D5,$41D5,$0000,$0000,$D4A1,$EEDC
-                dc.w    $4FD5,$DDDE,$CCB9,$0000,$04AB,$259B,$34C3,$244B
-                dc.w    $A434,$4495,$1443,$4534,$2444,$3444,$2432,$4342
-                dc.w    $B431,$93B3,$A4C0,$3BB2,$C1BB,$BABB,$BCBA,$BCBB
-                dc.w    $CCBB,$CBCB,$CBBB,$CCAC,$ABBB,$CB9A,$BBB0,$AB90
-                dc.w    $A190,$A320,$0330,$2322,$3333,$3133,$3333,$3333
-                dc.w    $3233,$2343,$B242,$3222,$1321,$1122,$1110,$9039
-                dc.w    $AA22,$A9A1,$00AA,$009A,$9AB0,$90BA,$A9B2,$ABA1
-                dc.w    $0BA0,$1CA3,$A09A,$A02A,$900A,$2A02,$0A02,$A20A
-                dc.w    $2B22,$2AA2,$002B,$993A,$A009,$A00B,$2AA2,$9B1A
-                dc.w    $B01A,$9AB3,$1BC2,$2092,$0BA4,$2B12,$1102,$3B04
-                dc.w    $3AB3,$24A2,$B433,$C342,$A409,$04A2,$203A,$211A
-                dc.w    $3A0A,$32BC,$3100,$0AB2,$1B92,$0AA2,$AB39,$BB23
-                dc.w    $BB09,$B902,$BC94,$BB91,$A901,$AA03,$9B20,$0B22
-                dc.w    $2CA4,$9B9B,$029A,$A22A,$9121,$2210,$B4A2,$2A03
-                dc.w    $1010,$9221,$39A0,$3299,$23BA,$23AA,$2A91,$0919
-                dc.w    $A30A,$921B,$13AA,$A301,$A903,$9193,$A922,$0210
-                dc.w    $001A,$23B0,$A209,$19A9,$91B0,$2A99,$001A,$A12A
-                dc.w    $9992,$B21A,$B12A,$BA20,$B12A,$AA30,$A2A0,$291A
-                dc.w    $12AA,$20A2,$2A92,$2A30,$0002,$2990,$0292,$B13B
-                dc.w    $1A3B,$22A2,$21A1,$3A12,$011A,$1929,$093A,$B24B
-                dc.w    $AA30,$A31A,$11A2,$A92A,$0099,$AA4B,$BB32,$3B2A
-                dc.w    $219B,$23AA,$10AA,$03BA,$A190,$AB20,$AA90,$4CB3
-                dc.w    $3BA0,$0939,$AA22,$9920,$A30A,$933C,$339A,$32B0
-                dc.w    $2110,$0920,$A21A,$922A,$A3B2,$0A19,$13AC,$24CA
-                dc.w    $31AA,$310B,$2292,$29A9,$24BB,$0320,$20A3,$3999
-                dc.w    $331B,$0021,$3B00,$0A99,$00B0,$9091,$CA32,$AAA9
-                dc.w    $2A02,$A901,$2AB1,$2AB2,$1AA2,$B101,$A991,$90A1
-                dc.w    $991A,$21A9,$A201,$1A0A,$23B1,$20A2,$2A11,$1A22
-                dc.w    $9102,$2A13,$0001,$1A13,$92A3,$31B3,$30A3,$292A
-                dc.w    $109A,$2999,$0BA0,$39BA,$2A23,$B923,$BA33,$BA29
-                dc.w    $B02A,$B10B,$0090,$190A,$220C,$3300,$0B99,$12AB
-                dc.w    $11AB,$229A,$3AA3,$1A00,$0019,$2A91,$3AA0,$2091
-                dc.w    $1AA2,$2991,$9012,$0A11,$2A09,$912A,$A121,$AA30
-                dc.w    $0200,$2122,$9931,$2010,$1022,$A011,$19A1,$A202
-                dc.w    $A900,$9009,$0A19,$A91A,$2A9A,$019A,$10A9,$1990
-                dc.w    $019A,$A1A9,$90A0,$2A09,$1090,$1909,$2091,$9001
-                dc.w    $9011,$0A10,$0020,$A100,$0190,$1091,$021A,$1212
-                dc.w    $0001,$1200,$1020,$0119,$1191,$1001,$0010,$0001
-                dc.w    $0900,$0919,$1900,$0009,$9100,$9990,$0991,$A900
-                dc.w    $9900,$9009
-DAC_Sample01_End: 
-DAC_Sample02:   
-                dc.w    $3567,$F472,$F2E7,$D2DD,$DEDC,$DDAD,$55FD,$7F27
-                dc.w    $7FD8,$4FF6,$66ED,$7FF5,$66DD,$6F56,$6E54,$69E6
-                dc.w    $CD6F,$65E6,$4E34,$7581,$57DC,$6343,$DEF7,$20CD
-                dc.w    $C0D4,$DBCB,$0AA0,$2901,$0ACE,$EC35,$5545,$5555
-                dc.w    $2433,$4045,$654E,$DDED,$DEE4,$7ED7,$2E56,$CE66
-                dc.w    $E492,$E75A,$DDE1,$DCCB,$CCCE,$45DD,$E675,$ECBE
-                dc.w    $564C,$453E,$B66E,$A47D,$F56D,$E415,$3456,$5E36
-                dc.w    $6CDE,$4DDD,$DDE4,$CD54,$DE5D,$ED46,$7536,$C6C6
-                dc.w    $9FC4,$ED44,$EDB7,$2E46,$D464,$5034,$E3D4,$914B
-                dc.w    $5E5B,$DDEB,$E465,$2655,$BEC6,$CDD5,$CED6,$CDE6
-                dc.w    $63DE,$D4DC,$5554,$3ED5,$D66C,$D315,$4444,$5C55
-                dc.w    $44E1,$6EDD,$55EE,$D6DE,$C605,$56A4,$AAED,$454E
-                dc.w    $C2BB,$DC6D,$DDBE,$34C5,$2565,$D555,$73ED,$41CC
-                dc.w    $ECDD,$B51D,$DBB2,$57DD,$C5C5,$5D66,$EC52,$6DED
-                dc.w    $5D1E,$55EC,$4E4B,$C756,$DE26,$EBAE,$404B,$4DCE
-                dc.w    $45DC,$63D5,$6601,$46BD,$E64E,$CCED,$DF75,$4CE7
-                dc.w    $CE7C,$BCEB,$5A7D,$D66E,$DC6E,$EDD2,$4ACD,$D56E
-                dc.w    $A6C5,$5C55,$E64D,$DCD4,$65D5,$55CE,$D36E,$44EB
-                dc.w    $D51B,$D4CC,$37EE,$A436,$D2D4,$6DD6,$5AB4,$AD4A
-                dc.w    $EBD3,$AED4,$C356,$BC66,$E5CC,$E53B,$D462,$4C04
-                dc.w    $DD5C,$54E4,$413E,$56AD,$E4D4,$6CC4,$EC42,$5355
-                dc.w    $B52A,$40E3,$BE05,$55CD,$AD5D,$DB5C,$5EB5,$D6D6
-                dc.w    $2DC5,$65ED,$444C,$CCA6,$A0DD,$64E4,$D5C4,$D156
-                dc.w    $ADC2,$E3CC,$A4CE,$EA56,$65BC,$2636,$C5ED,$66ED
-                dc.w    $C5EE,$64AD,$DCAF,$666E,$E55D,$565C,$3646,$EDCC
-                dc.w    $D53A,$D4DD,$55D4,$CEC5,$DE6C,$53A4,$C36C,$5D3A
-                dc.w    $C644,$4AE5,$CD21,$BB4E,$5BD5,$0DC3,$6CD5,$55DD
-                dc.w    $C4DE,$35C4,$5001,$665C,$EC54,$3D4D,$34CE,$B2A4
-                dc.w    $D3DC,$CEA5,$65C4,$44B6,$623C,$DE25,$5EED,$94A2
-                dc.w    $EB4C,$41D6,$1305,$653D,$5345,$5DCC,$24D4,$DECD
-                dc.w    $DCCC,$E56A,$1356,$D956,$CC6D,$4429,$CBCC,$DCDA
-                dc.w    $4DD1,$456E,$9515,$4AD4,$4AC2,$4CDA,$D4AD,$4A65
-                dc.w    $DC5D,$3D44,$4444,$ABD2,$5E4E,$6DBD,$D55D,$DAD6
-                dc.w    $6CC5,$6E24,$2454,$A14D,$0C25,$B3DC,$D4EC,$C1B9
-                dc.w    $0DB5,$644D,$3553,$325B,$CC34,$DDE6,$5DDC,$9CB2
-                dc.w    $46CD,$EB7A,$22C4,$DC55,$CED1,$C29D,$45C3,$535B
-                dc.w    $5B65,$4CDC,$AE6B,$DCDE,$54D2,$332C,$945D,$4454
-                dc.w    $04B3,$425D,$DCCC,$C5DE,$B64A,$D4CB,$454A,$CCC4
-                dc.w    $5CD3,$64B3,$DD94,$C354,$E904,$BDE2,$6644,$D393
-                dc.w    $B53A,$A42C,$DBD2,$C49C,$D5C4,$04B9,$4454,$DCCD
-                dc.w    $D5DD,$4556,$DCB5,$2A50,$B3C5,$3CBC,$C044,$DDE5
-                dc.w    $6BEB,$ACD5,$2A45,$5D94,$61DA,$3554,$5BDC,$A325
-                dc.w    $CDEC,$0D4B,$1CC5,$1C34,$3435,$5CDC,$D5BA,$4CDC
-                dc.w    $443B,$46D9,$5DB5,$9CCB,$0BCC,$5A24,$AB2B,$654E
-                dc.w    $C4DC,$C56D,$C44A,$BDD5,$0DCA,$4BB2,$44CC,$4CD6
-                dc.w    $9CD2,$4CC4,$694C,$3A5B,$1D4C,$334B,$BCAC,$44DA
-                dc.w    $CB42,$A2A4,$BD55,$9C5A,$2C45,$5DD4,$D3CC,$C54D
-                dc.w    $D5AC,$2A13,$4CD4,$9CAD,$53B6,$3C4C,$B42A,$BA4C
-                dc.w    $DCDA,$64B0,$B034,$523C,$A62D,$DC33,$DC4D,$C53D
-                dc.w    $C454,$10A5,$BCC5,$594C,$DC4C,$DDA2,$49A3,$B50B
-                dc.w    $244C,$E955,$DC44,$5234,$DB5A,$D2C5,$AD49,$354C
-                dc.w    $31C4,$2D45,$DC9D,$C92C,$BCA4,$5B10,$413C,$05C4
-                dc.w    $55DE,$4539,$BA4A,$C0CB,$42CA,$A2A4,$39BB,$3544
-                dc.w    $BBE2,$C254,$9BC4,$1D44,$CB92,$D431,$2AC1,$0345
-                dc.w    $4DD4,$4ACB,$DAB1,$3C45,$43C3,$25CD,$55DD,$4035
-                dc.w    $9C4C,$432D,$D4D5,$430A,$DB12,$D043,$3AAC,$DB40
-                dc.w    $3123,$C45A,$A423,$235C,$AB4D,$BBBB,$44BD,$3D34
-                dc.w    $0D34,$44C5,$222C,$B04C,$C49B,$C04A,$3233,$CA24
-                dc.w    $ACB3,$4ABD,$CC1C,$ACC4,$4C56,$42C3,$4CAC,$55BD
-                dc.w    $4CC4,$2922,$A2DD,$1531,$43AC,$2C34,$52CC,$C09A
-                dc.w    $DC5C,$BBD0,$5254,$4DA5,$CDC1,$4C0C,$B455,$43AD
-                dc.w    $B5BC,$2ACB,$4A15,$4CC0,$40C2,$2249,$CBA2,$55CC
-                dc.w    $4BC9,$CCB2,$BDD2,$2C43,$4AC4,$5534,$1CD3,$4C4B
-                dc.w    $C24C,$BCBB,$4A43,$C332,$3442,$AA24,$ADBB,$CDC2
-                dc.w    $4453,$A4C2,$32B2,$BBB3,$35CC,$914C,$C3CB,$53CC
-                dc.w    $CA2A,$CB2A,$C52C,$243C,$CA55,$3DD1,$554C,$043B
-                dc.w    $20CB,$D244,$2394,$9DD4,$9CCC,$BB45,$354A,$BAA1
-                dc.w    $B1BC,$13C1,$CC50,$43C4,$4CA2,$0CD4,$B45B,$CDB4
-                dc.w    $5CB4,$4102,$33C0,$B344,$B292,$BCCD,$192C,$A341
-                dc.w    $B332,$52AB,$CB90,$C45A,$BCC5,$29BC,$CABC,$4345
-                dc.w    $C44C,$A45C,$4B41,$ACCB,$BDCC,$B2A1,$4442,$C342
-                dc.w    $AC55,$ADC4,$4239,$CCCA,$C24C,$AB1B,$539B,$94CB
-                dc.w    $BA24,$415C,$D9B2,$54AB,$D203,$BD45,$AA4B,$429C
-                dc.w    $3944,$CCA2,$BBCA,$C230,$4A34,$93CB,$B4BC,$AB42
-                dc.w    $43C3,$0BD2,$4430,$BC04,$4309,$CDA4,$4090,$B300
-                dc.w    $22A0,$0CB0,$2BC4,$543C,$C1C5,$3CC9,$3BCA,$243C
-                dc.w    $BAA4,$9B42,$AAC4,$2B14,$32A3,$BCB4,$A2BA,$10B0
-                dc.w    $C93A,$2233,$3513,$C2AA,$41BB,$BCCD,$54AC,$245A
-                dc.w    $32DC,$AB13,$0022,$290B,$99BB,$4BBB,$B432,$3CC3
-                dc.w    $A34A,$41C0,$C153,$0B3B,$33A3,$19B4,$43BC,$BBB3
-                dc.w    $2BB3,$34BC,$A20C,$C942,$B133,$ACC3,$449B,$CB42
-                dc.w    $233B,$C323,$BCBB,$A223,$AB4B,$443B,$2AAC,$24C1
-                dc.w    $B30A,$3BAB,$053A,$B23A,$BC41,$C293,$4BB9,$92A1
-                dc.w    $A04B,$12BB,$49BA,$B3C2,$AB2A,$90C1,$4343,$ABB0
-                dc.w    $32BC,$323B,$4233,$ABCA,$21AA,$CB0A,$241C,$1330
-                dc.w    $B220,$4034,$2A1C,$B3C2,$49CB,$1BB9,$0932,$0990
-                dc.w    $3CA3,$AA4C,$A4A2,$441B,$41A4,$ACAA,$B3BC,$A433
-                dc.w    $BC94,$910C,$CC11,$A944,$4392,$1BCB,$50CA,$BB19
-                dc.w    $0234,$3130,$BCC4,$13CC,$0332,$1233,$232A,$ABC2
-                dc.w    $9CBA,$229A,$4BBA,$B430,$BB33,$4212,$4139,$AB0A
-                dc.w    $02BC,$A00C,$BA22,$B94B,$B935,$32CC,$B221,$31BA
-                dc.w    $3224,$413C,$B932,$BC01,$21CC,$AAB9,$220B,$22A2
-                dc.w    $3A14,$32AA,$03B0,$0132,$A1AB,$940A,$B332,$A22B
-                dc.w    $AC00,$BA03,$ABB2,$BB33,$43CB,$3235,$2BB3,$B09B
-                dc.w    $CCBA,$9C24,$4CB1,$1233,$43AB,$413C,$A2A0,$9B19
-                dc.w    $12AA,$33CA,$2993,$421B,$32A1,$AB23,$AB0A,$C9B9
-                dc.w    $24CC,$B34A,$9192,$3A45,$0CB3,$3BC3,$29A9,$0B40
-                dc.w    $BCAB,$BB44,$9C24,$2342,$902A,$C941,$CB23,$2ACB
-                dc.w    $143A,$91AC,$9432,$19A9,$23A0,$90AC,$A109,$B101
-                dc.w    $B13C,$3459,$B043,$0AB0,$221B,$CBA9,$BB03,$3BB3
-                dc.w    $9B24,$331A,$30BB,$39BA,$BBA2,$2312,$1A90,$BB34
-                dc.w    $0A0A,$042A,$9120,$CAC9,$3202,$1B03,$40A2,$AAA2
-                dc.w    $43BB,$00A3,$9A30,$CA2A,$C402,$2ACB,$AA31,$9232
-                dc.w    $1B91,$9A2A,$1A33,$BB22,$0B19,$AB09,$A222,$1B33
-                dc.w    $AA19,$3A90,$0A13,$2A1A,$B022,$21C9,$3333,$A133
-                dc.w    $A01B,$CA0B,$B2AB,$9B90,$3424,$1AA0,$BB43,$0B93
-                dc.w    $3221,$B34A,$BCB9,$22B0,$24BA,$22AA,$201B,$BA12
-                dc.w    $AA23,$120A,$A200,$00BA,$0020,$1234,$2A13,$BA13
-                dc.w    $ACB9,$3AB2,$20BA,$3220,$1CA9,$2032,$9032,$9AA2
-                dc.w    $1AA2,$2B9B,$12A0,$2AA9,$A9AB,$3232,$B13B,$A3AB
-                dc.w    $332B,$030B,$032A,$BB93,$3290,$220C,$932B,$2209
-                dc.w    $B319,$2231,$B391,$CB33,$12A0,$1ABB,$A31A,$A9BA
-                dc.w    $0011,$1299,$1232,$09B3,$AB23,$0B3A,$BA09,$10A3
-                dc.w    $AA33,$2CB2,$42BA,$A9BB,$1221,$1B02,$9312,$2A23
-                dc.w    $0BA1
-                dc.b    $13
-DAC_Sample02_End: 
-DAC_Sample05:
-                dc.w    $4655,$6303,$32DE,$FE57,$DEDE,$DC05,$3DEB,$B576
-                dc.w    $6643,$5EFB,$BDCC,$EB34,$AB73,$C03D,$DC93,$21BC
-                dc.w    $CCA3,$6425,$6566,$5009,$DDCC,$253D,$DDC6,$AEFE
-                dc.w    $DD41,$3063,$DD56,$CEB5,$DC45,$4554,$3454,$AB42
-                dc.w    $39BC,$CCCC,$DC2A,$DCDC,$5550,$5665,$4559,$2CEA
-                dc.w    $339B,$3DD0,$3CDB,$9BEE,$DA9C,$EC43,$4445,$5CD9
-                dc.w    $64DC,$1C44,$6646,$6CD4,$53DE,$EEBB,$D355,$5533
-                dc.w    $23CC,$9559,$243D,$CABB,$BECC,$A54B,$444D,$DACC
-                dc.w    $DCDD,$CE46,$5BBA,$4444,$4313,$6555,$3ABA,$351B
-                dc.w    $B342,$BCDB,$3CDE,$DC46,$545B,$ED40,$DCDA,$2C44
-                dc.w    $3352,$DA55,$CDDD,$B149,$EDA5,$6C25,$DC66,$453D
-                dc.w    $2434,$5225,$4ABA,$DB4A,$D23C,$42BB,$CCEE,$143C
-                dc.w    $BC34,$934A,$CDDC,$2C45,$49C4,$5544,$5CDC,$BB03
-                dc.w    $BDA5,$5A45,$352A,$CB65,$CA1B,$9CDD,$54C3,$52DC
-                dc.w    $D450,$DDCC,$DC1C,$CDBB,$B454,$ADA5,$BC55,$B443
-                dc.w    $49C4,$4454,$D963,$C4DD,$C9AB,$455C,$B45C,$DC54
-                dc.w    $EDCC,$C2AA,$54A2,$AB64,$CDDD,$E3A0,$BA30,$3A4A
-                dc.w    $24CA,$5543,$2B2A,$9C44,$0549,$43B4,$495C,$E45D
-                dc.w    $04DC,$0BD5,$0E45,$3BCB,$33DC,$DC54,$CC25,$9D56
-                dc.w    $3ECA,$DACA,$4403,$5315,$42A2,$324A,$14CD,$244C
-                dc.w    $A103,$5045,$CDD9,$CD24,$1DD1,$3D45,$3CC3,$B2B1
-                dc.w    $BBB3,$444C,$D933,$53D3,$5CA4,$4132,$BC9B,$3225
-                dc.w    $5CC9,$155D,$CBDC,$40C5,$4D95,$BCA3,$33CC,$CD42
-                dc.w    $EC53,$D245,$33CC,$143C,$9AB3,$40B5,$4A25,$422A
-                dc.w    $D0A1,$53C9,$9CC3,$3B33,$CB3C,$A5CC,$2BC2,$33AB
-                dc.w    $C1B2,$4349,$CCD1,$54CC,$3BDB,$5432,$1443,$CCC5
-                dc.w    $4CC3,$BB45,$4ACC,$A450,$AAB4,$3DC0,$3CCB,$44BA
-                dc.w    $A14B,$CBAB,$BB41,$DA43,$C350,$B9C3,$1C34,$3320
-                dc.w    $3CB4,$4294,$BC24,$441D,$CABC,$45B9,$CC44,$32CB
-                dc.w    $4BB0,$BCAB,$AADB,$4345,$9CB9,$2C44,$2CAB,$B144
-                dc.w    $C042,$AC25,$4BC3,$3CC3,$3332,$04AC,$3A29,$CB34
-                dc.w    $B2AC,$A33A,$C2BC,$A449,$CB1C,$C232,$AC02,$2423
-                dc.w    $BC45,$A92B,$B013,$39A4,$3BC3,$454B,$A4CD,$A322
-                dc.w    $BCDA,$20B4,$54DD,$B143,$9BBB,$BA04,$2C34,$3929
-                dc.w    $C04B,$C439,$BB45,$CD34,$124C,$C243,$23A0,$3ACA
-                dc.w    $5ACA,$4332,$ABBC,$2BCA,$42CD,$143B,$CA04,$2B14
-                dc.w    $4CDB,$A019,$A231,$2444,$313C,$B339,$33BB,$3430
-                dc.w    $DC55,$CDC4,$4CB4,$BDC4,$53BB,$CC23,$902A,$CB33
-                dc.w    $B11C,$1342,$C13A,$9031,$242A,$CCA1,$3334,$3CA4
-                dc.w    $421A,$C930,$333C,$DCA3,$3333,$A144,$BACD,$DB44
-                dc.w    $1AB3,$ACC4,$49AB,$B1A0,$4343,$BDC3,$5420,$1390
-                dc.w    $2201,$232A,$A121,$B932,$BC93,$BA1B,$CA43,$AC0B
-                dc.w    $B24B,$BA20,$A32B,$CAA3,$3921,$133B,$3429,$BB34
-                dc.w    $21BC,$11BB,$43A2,$340C,$B92A,$3390,$31AB,$B03A
-                dc.w    $CC44,$2CA9,$BB93,$ACCB,$1442,$00CC,$2222,$99B4
-                dc.w    $5913,$BB33,$A321,$2032,$4ACA,$10A4,$0CB9,$A22A
-                dc.w    $B2BA,$2ACC,$0332,$BB9A,$9923,$3AC3,$40CB,$3224
-                dc.w    $2014,$2CAB,$00A2,$49BB,$3349,$B912,$3932,$BBA1
-                dc.w    $A99A,$2310,$1BA3,$10BC,$BABA,$A33A,$2BBA,$9ABA
-                dc.w    $4491,$1220,$A029,$0003,$2343,$0B0B,$243C,$A343
-                dc.w    $ACA9,$A0AB,$12BC,$2AA2,$ACB2,$A233,$A11B,$B222
-                dc.w    $3ABA,$BC34,$3230,$229A,$339A,$339B,$BA33,$0A1C
-                dc.w    $1441,$CC13,$3923,$ABAA,$B34B,$CC93,$439B,$ABBB
-                dc.w    $11CB,$933B,$141C,$B933,$AB04,$539B,$A991,$3309
-                dc.w    $3430,$AA9B,$B122,$1AC0,$32BC,$922A,$CB24,$BCB1
-                dc.w    $A220,$0A11,$0092,$222B,$A311,$2000,$3221,$32AB
-                dc.w    $A933,$00AB,$B243,$ABCB,$3419,$22BC,$A431,$1ABA
-                dc.w    $09A9,$BBB9,$331B,$A0AA,$ABBB,$9443,$3B23,$0BC2
-                dc.w    $4439,$1212,$39A0,$2AB9,$3323,$2BBB,$A0AA,$B930
-                dc.w    $BC02,$103B,$CCA2,$2221,$9000,$1329,$9B14,$3190
-                dc.w    $1000,$221B,$B934,$2902,$BB93,$9921,$2AB0,$2109
-                dc.w    $0001,$1A12,$BB9A,$222A,$CBAB,$931A,$A232,$AAA0
-                dc.w    $AB03,$3202,$3322,$2100,$BA24,$3012,$2B91,$A030
-                dc.w    $AB92,$AA2A,$BB9B,$BAB2,$30BB,$9332,$BB99,$2192
-                dc.w    $2229,$A332,$19B1,$3232,$9909,$0AB3,$3910,$A099
-                dc.w    $43BB,$21CA,$9102,$2909,$120A,$21BA,$CA02,$9232
-                dc.w    $BCAA,$10A9,$2192,$1122,$0921,$A934,$2333,$1A9A
-                dc.w    $13AA,$A033,$0BAA,$BA1A,$AABA,$3102,$9BBC,$A010
-                dc.w    $0010,$9022,$339B,$91A1,$3331,$0A91,$3191,$2AA0
-                dc.w    $3201,$2ABA,$A901,$2221,$BB91,$32BB,$1219,$1290
-                dc.w    $9A99,$AABB,$1299,$AB02,$211A,$BA02,$2333,$320A
-                dc.w    $2319,$0091,$333A,$A923,$9AAA,$A9AA,$32AB,$BBAA
-                dc.w    $AA11,$090A,$A010,$A01A,$A012,$3199,$1233,$2229
-                dc.w    $A992,$3319,$AAB9,$2299,$1112,$0009,$BAA2,$2190
-                dc.w    $9913,$190A,$BBA1,$0B92,$2A00,$AB91,$1010,$AB12
-                dc.w    $321A,$9091,$3232,$3322,$0190,$21AB,$A233,$19BB
-                dc.w    $AB00,$A10A,$A00B,$AAA0,$AB99,$A933,$219A,$0221
-                dc.w    $22A0,$0913,$4091,$9A22,$90A9,$2222,$AA00,$A010
-                dc.w    $0009,$9220,$ABBA,$0123,$1AA1,$229A,$BAAA,$B000
-                dc.w    $9012,$29AB,$A122,$2220,$0122,$2122,$19A0,$4332
-                dc.w    $0A9A,$A920,$AB90,$A9AA,$99AB,$BA93,$102A,$B99A
-                dc.w    $1222,$ABB3,$3322,$0AA1,$2321,$1901,$2211,$0AA0
-                dc.w    $2999,$229A,$A220,$9AB9,$0022,$0119,$90AA,$AA03
-                dc.w    $0B90,$0112,$ABBB,$A220,$9912,$0122,$10A0,$3302
-                dc.w    $2223,$29A9,$1222,$009A,$0119,$AABA,$B9AA,$9990
-                dc.w    $9100,$9AB0,$1992,$20AA,$1202,$3190,$9133,$2111
-                dc.w    $AA12,$399A,$9010,$0121,$99AB,$9122,$0AAA,$2209
-                dc.w    $9909,$1091,$22AA,$C0AA,$0221,$AAA9,$220B,$A911
-                dc.w    $2222,$2311,$9022,$2101,$1221,$0109,$AA01,$11A0
-                dc.w    $29BB,$AA9B,$BAAA,$A023,$009A,$9012,$100A,$0321
-                dc.w    $0000,$0232,$221A,$9120,$0009,$AAA0,$331A,$AA02
-                dc.w    $109A,$BA92,$320A,$9910,$99AA,$9911,$3AAA,$09AB
-                dc.w    $0000,$1112,$09A0,$2201,$1222,$2222,$1110,$0122
-                dc.w    $0909,$A019,$9AAB,$9991,$1A9B,$BAB9,$9012,$9901
-                dc.w    $1222,$0090,$9232,$100A,$9022,$2200,$1122,$19AA
-                dc.w    $BA23,$19AA,$9012,$29AA,$0010,$9A00,$0001,$9000
-                dc.w    $AAA0,$9900,$1109,$A909,$AA02,$2091,$2333,$1991
-                dc.w    $1222,$2112,$19A9,$009A,$0109,$99AA,$AA0A,$AAA9
-                dc.w    $AA12,$00AA,$A002,$221A,$0222,$2220,$90A2,$2229
-                dc.w    $9110,$0190,$0190,$1110,$9AAA,$010A,$9000,$0021
-                dc.w    $299A,$0900,$0000,$AAA0,$9A99,$9991,$1212,$1000
-                dc.w    $9A00,$1223,$2222,$2019,$0021,$1111,$0A9A,$AAAA
-                dc.w    $9999,$0000,$AAAB,$AA01,$0900,$1212,$09A0,$1222
-                dc.w    $3011,$0111,$1109,$9011,$1009,$AA91,$1099,$0022
-                dc.w    $199A,$9110,$9A9A,$9210,$0001,$9A90,$99AA,$0019
-                dc.w    $0000,$9990,$2101,$2231,$0009,$1232,$9012,$2219
-                dc.w    $0999,$9000,$A9AA,$AAAA,$99A9,$9190,$010A,$AA09
-                dc.w    $1211,$2222,$2101,$1001,$0001,$2009,$0000,$0010
-                dc.w    $0090,$10AA,$0109,$9091,$1110,$09A9,$0AA0,$1009
-                dc.w    $9011,$0099,$AAA0,$1199,$0121,$0900,$2212,$2222
-                dc.w    $2110,$AA92,$2201,$1000,$09AA,$ABA9,$AA99,$999A
-                dc.w    $9910,$0100,$1120,$9A90,$2220,$0112,$2222,$1990
-                dc.w    $0900,$1000,$9009,$0010,$9A00,$0901,$9009,$0A21
-                dc.w    $2009,$9900,$00B9,$9009,$9011,$0900,$0090,$A901
-                dc.w    $0122,$2211,$1212,$2112,$110A,$9A99,$9001,$0000
-                dc.w    $99AA,$BAAA,$A900,$0001,$9A91,$1201,$1012,$2210
-                dc.w    $0000,$0222,$2109,$0090,$9099,$A901,$2000,$9990
-                dc.w    $0001,$0990,$0100,$0900,$0000,$00A9,$9999,$0099
-                dc.w    $9000,$1111,$1901,$0110,$0211,$2221,$1100,$2190
-                dc.w    $0109,$999A,$AA99,$9000,$0BA9,$99A9,$0909,$9122
-                dc.w    $2101,$0100,$0132,$2109,$0010,$1900,$0100,$000A
-                dc.w    $9A00,$1009,$0010,$0109,$A000,$0100,$9010,$090A
-                dc.w    $A910,$0900,$0909,$0009,$9901,$1122,$2100,$0111
-                dc.w    $1121,$0111,$1000,$0A99,$0209,$AAAA,$9BA9,$A990
-                dc.w    $0110,$0009,$9001,$1121,$1012,$1110,$1901,$1112
-                dc.w    $0009,$A900,$0009,$9000,$0099,$0001,$1009,$9001
-                dc.w    $090A,$9021,$0000,$0000,$AAA0,$9901,$0009,$0910
-                dc.w    $1111,$0121,$2212,$1100,$1009,$0011,$9999,$0099
-                dc.w    $AA90,$0AA9,$A99A,$9901,$0012,$1011,$1010,$0003
-                dc.w    $0201,$0101,$1000,$0900,$1000,$9999,$9900,$0000
-                dc.w    $0100,$0090,$0100,$0900,$0001,$900A,$A090,$1009
-                dc.w    $9990,$0901,$2100,$1010,$2111,$1011,$1211,$0000
-                dc.w    $9009,$0090,$0999,$AA0B,$9999,$0090,$9090,$0000
-                dc.w    $0121,$2221,$0110,$0000,$1111,$0900,$0010,$0999
-                dc.w    $0009,$0990,$AA00,$3010,$0011,$190A,$90AA,$0121
-                dc.w    $0000,$0A99,$0090,$9900,$1000,$0090,$1113,$0111
-                dc.w    $1111,$1010,$9011,$0099,$9009,$99A9,$90AA,$9999
-                dc.w    $9090,$0000,$0010,$1111,$0112,$2120,$0101,$0009
-                dc.w    $9909,$0001,$1000,$9000,$0099,$900A,$9000,$0022
-                dc.w    $0010,$0000,$990A,$9091,$0009,$0990,$0009,$0101
-                dc.w    $0011,$0002,$1011,$2211,$1090,$0100,$9090,$1099
-                dc.w    $AAAA,$A099,$9990,$0100,$0909,$0111,$2110,$0002
-                dc.w    $1100,$1211,$0100,$0099,$9990,$9009,$0100,$1090
-                dc.w    $9000,$0000,$0000,$0001,$0900,$1000,$9000,$AA99
-                dc.w    $0000,$0000,$0001,$0011,$2101,$1111,$1000,$0011
-                dc.w    $1009,$9009,$0999,$9990,$0AAA,$9999,$0001,$0100
-                dc.w    $0110,$1010,$3011,$0100,$1000,$0101,$0009,$9099
-                dc.w    $0990,$0000,$0000,$0001,$0090,$0000,$1000,$9000
-                dc.w    $0000,$0000,$0A90,$9990,$0000,$0001,$1121,$0010
-                dc.w    $1111,$1000,$0010,$0000,$0000,$099A,$9A0B,$9909
-                dc.w    $0090,$9900,$0011,$1111,$1211,$0001,$0010,$0100
-                dc.w    $1019,$0909,$0090,$0909,$0000,$0000,$0000,$0010
-                dc.w    $0000,$0900,$0001,$900A,$9000,$0009,$0000,$0090
-                dc.w    $9900,$1113,$0111,$1110,$0001,$0000,$0090,$0990
-                dc.w    $9009,$990A,$A999,$9909,$0101,$0100,$1011,$0301
-                dc.w    $1101,$0009,$0000,$1001,$0900,$9099,$9000,$0000
-                dc.w    $00A9,$2100,$0000,$1000,$0090,$1009,$0000,$0A99
-                dc.w    $0900,$0000,$0100,$0000,$0010,$2112,$1110,$1010
-                dc.w    $0900,$0909,$0090,$99A0,$AA00,$0090,$9990,$9009
-                dc.w    $1011,$1113,$0010,$1010,$1100,$0000,$9990,$0000
-                dc.w    $0009,$0900,$0000,$A902,$1010,$0000,$0000,$0000
-                dc.w    $0009,$0000,$A999,$0000,$0000,$0001,$0010,$2101
-                dc.w    $0100,$1011,$1010,$0010,$0909,$9099,$9990,$A999
-                dc.w    $A990,$0011,$1000,$0000,$0101,$1211,$2101,$0000
-                dc.w    $0000,$9009,$0999,$0000,$0000,$0000,$0000,$0001
-                dc.w    $0100,$0909,$0000,$0000,$0000,$0A99,$0990,$0001
-                dc.w    $0000,$0101,$0211,$1101,$1100,$1900,$0000,$0090
-                dc.w    $0099,$9990,$AA99,$9909,$0001,$0010,$1111,$2100
-                dc.w    $0001,$0011,$0110,$0000,$9090,$9900,$9000,$000A
-                dc.w    $9000,$2101,$0001,$0000,$9000,$0009,$0000,$00A9
-                dc.w    $0009,$0909,$0000,$0001,$0112,$1101,$0110,$1100
-                dc.w    $0010,$0009,$9909,$0009,$9090,$AA99,$9090,$9010
-                dc.w    $1011,$0010,$1210,$1110,$0000,$0000,$0100,$0090
-                dc.w    $9090,$900A,$9021,$0000,$0000,$0110,$1000,$0009
-                dc.w    $9090,$0000,$A900,$9009,$0000,$0000,$0000,$0112
-                dc.w    $1011,$1111,$0000,$0010,$9009,$0909,$0909,$900A
-                dc.w    $A099,$0909,$0090,$1011,$1112,$1011,$0010,$0100
-                dc.w    $0000,$0900,$9900,$0000,$9000,$0000,$0A20,$0001
-                dc.w    $0000,$0101,$0000,$0909,$090A,$A090,$0000,$0000
-                dc.w    $0000,$1001,$0021,$0101,$0111,$0110,$0190,$0900
-                dc.w    $9909,$9990,$A990,$9090,$9000,$0000,$0100,$1110
-                dc.w    $2111,$0100,$1000,$0000,$0090,$9090,$900A,$9021
-                dc.w    $0000,$0000,$0010,$0000,$0100,$0000,$0000,$0909
-                dc.w    $0AA9,$9090,$0010,$0100,$1001,$0211,$0111,$0010
-                dc.w    $0000,$0100,$0190,$9909,$9990,$AA09,$0909,$0000
-                dc.w    $0010,$0101,$1021,$0010,$0110,$0100,$0000,$9009
-                dc.w    $0900,$0900,$0A90,$0002,$1001,$0100,$0000,$0900
-                dc.w    $0100,$0090
-                dc.b    $90 
+		cnop 0,$1000
+; loc_ED000:
+DAC_Sample01:	incbin	"sound/DAC/Sample 1.bin"
+DAC_Sample01_End:
+
+DAC_Sample02:	incbin	"sound/DAC/Sample 2.bin"
+DAC_Sample02_End:
+
+DAC_Sample05:	incbin	"sound/DAC/Sample 5.bin"
 DAC_Sample05_End:
-DAC_Sample06: 
-                dc.w    $0123,$5456,$E4F5,$E5CF,$D56C,$D76D,$BC46,$CAF7
-                dc.w    $6F74,$C525,$6DDE,$2DCE,$5FD5,$5EC6,$9EED,$C6B4
-                dc.w    $5CC2,$6366,$4445,$4C55,$64AD,$DD0D,$EC2D,$DE14
-                dc.w    $CCDD,$C223,$C444,$556B,$E355,$B6A4,$5542,$C15C
-                dc.w    $3DBA,$BCDD,$9BDD,$99DD,$D4BB,$3935,$9CB5,$25A5
-                dc.w    $5355,$CC96,$553B,$B4BD,$14EE,$B4DD,$BDD4,$DDD1
-                dc.w    $5A5D,$4553,$4A4D,$5455,$3023,$53BB,$63BE,$14CE
-                dc.w    $55EE,$1DC0,$3C34,$4BD3,$C50B,$1A1D,$3445,$A5B5
-                dc.w    $5553,$524A,$D1D9,$DCCC,$D1CC,$AC3C,$2CD3,$4C54
-                dc.w    $12C3,$4C3A,$4B25,$4434,$441C,$CB4C,$2C94,$B343
-                dc.w    $4CDB,$BC0B,$CCCD,$C044,$D4A5,$3B43,$4B53,$39CA
-                dc.w    $0313,$B4B3,$935D,$4900,$B213,$BBCB,$CC24,$D9AC
-                dc.w    $B449,$CDA2,$3494,$A3C5,$C45A,$B023,$359C,$412C
-                dc.w    $42AA,$CB3B,$CA4B,$9BAB,$CAC2,$ACA2,$2104,$939B
-                dc.w    $A044,$9242,$12B4,$3BC4,$03CC,$5B1A,$2A2B,$2133
-                dc.w    $ACCD,$22A2,$9B14,$B03A,$B3B3,$C9BB,$43A2,$3439
-                dc.w    $BB94,$B439,$B942,$3A34,$31CB,$C1AC,$C3AC,$9A49
-                dc.w    $02AC,$B229,$29BB,$B329,$A410,$3334,$44A2,$29B9
-                dc.w    $3C0A,$A13A,$92B0,$BB4B,$2BAB,$A2CA,$A3CA,$CA93
-                dc.w    $B042,$2411,$3342,$A110,$1292,$A223,$A143,$B9AC
-                dc.w    $B39B,$CB39,$C0BB,$2BBA,$C320,$A340,$1313,$2300
-                dc.w    $1313,$A1A4,$B341,$291A,$ABCB,$9AA0,$1BAA,$B9AA
-                dc.w    $BBB9,$0242,$2A33,$3429,$AACA,$B492,$3213,$3393
-                dc.w    $B21B,$33AA,$BBB9,$9A9C,$1A9A,$22A2,$202B,$12AB
-                dc.w    $0B12,$0A09,$3924,$AB09,$4312,$1323,$3A12,$BB0B
-                dc.w    $120C,$2AAA,$9BAA,$AA02,$022B,$AA0B,$B9B1,$1333
-                dc.w    $3220,$3393,$2312,$3402,$209B,$9ACB,$9CC0,$1BBB
-                dc.w    $19C4,$B002,$0A02,$A3A9,$3132,$3404,$3121,$030A
-                dc.w    $1B29,$BAB0,$BB9A,$BAA9,$0000,$30B2,$B09A,$A123
-                dc.w    $2A22,$2323,$2392,$9911,$999B,$B911,$2AAA,$99B3
-                dc.w    $12C0,$1911,$3912,$114B,$01AA,$11BA,$2AAA,$A223
-                dc.w    $0B1A,$2A22,$1A92,$B9B1,$013A,$9303,$321A,$0201
-                dc.w    $AA91,$B090,$B332,$A0A1,$A09B,$3BBB,$1A92,$292B
-                dc.w    $3122,$3AA0,$3112,$321A,$B9A0,$2A00,$9211,$21A9
-                dc.w    $A92A,$20BA,$AA11,$3BB0,$1A1A,$21AA,$0913,$0021
-                dc.w    $121B,$0300,$0220,$2222,$2122,$AAB9,$0ABA,$BAA1
-                dc.w    $AA21,$A110,$0BBA,$1BA3,$1A22,$313A,$3302,$2331
-                dc.w    $2930,$A399,$B0BA,$AAAA,$90B1,$A2A0,$ABA9,$B29A
-                dc.w    $A22A,$2A22,$2222,$3232,$2323,$A010,$2009,$0AB9
-                dc.w    $9BA9,$A0AA,$0919,$A99A,$A990,$0B00,$1222,$2032
-                dc.w    $3002,$2221,$110A,$92A0,$0091,$2A90,$1AA0,$A990
-                dc.w    $0A99,$0BA0,$A091,$9911,$2001,$010A,$2121,$1222
-                dc.w    $2231,$20A0,$000A,$9A2A,$A919,$2AA1,$ABA9,$9AB1
-                dc.w    $A091,$1093,$0092,$1102,$2211,$3012,$0092,$2900
-                dc.w    $9A01,$0AA1,$99A9,$AB09,$AA2A,$9002,$2122,$2112
-                dc.w    $1999,$1910,$0909,$A92A,$992A,$1A01,$A121,$9313
-                dc.w    $9100,$9001,$0A02,$0099,$2010,$A9A0,$9ABA,$09AB
-                dc.w    $0900,$2910,$2312,$2222,$2921,$1199,$9229,$1100
-                dc.w    $0A10,$BA0A,$0A0B,$BA00,$AA02,$0919,$1022,$29A0
-                dc.w    $2102,$3121,$2029,$1109,$92A0,$920A,$0990,$09A0
-                dc.w    $9A9A,$A990,$A019,$0110,$0110,$1100,$1193,$0000
-                dc.w    $1902,$2022,$11A2,$A092,$90AA,$090A,$90B0,$9991
-                dc.w    $9990,$90A9,$A212,$1200,$1230,$0309,$0110,$0100
-                dc.w    $2920,$1A90,$900A,$0AA0,$AAA0,$90AA,$A001,$1210
-                dc.w    $1211,$9001,$0022,$1000,$2029,$1299,$119A,$99A9
-                dc.w    $0A9A,$0901,$1A00,$0111,$0090,$0000,$1210,$00A2
-                dc.w    $1010,$0119,$000A,$9AA0,$1900,$0910,$0913,$0000
-                dc.w    $2110,$9009,$0001,$90A0,$0000,$00A9,$A20A,$0000
-                dc.w    $1900,$1019,$1910,$2100,$1210,$0000,$0999,$1990
-                dc.w    $000A,$2000,$0000,$0A99,$0009,$1091,$1090,$0121
-                dc.w    $00A2,$0000,$0000,$0000,$0190,$0109,$1901,$1020
-                dc.w    $9001,$AA00,$0000,$A900,$9099,$9901,$0900,$1110
-                dc.w    $2221,$0101,$1090,$1000,$1909,$0099,$0099,$190A
-                dc.w    $2B9A,$9900,$0090,$1111,$0110,$3101,$1100,$0191
-                dc.w    $1900,$9190,$9099,$0900,$0A99,$9090,$0910,$0109
-                dc.w    $1191,$1021,$0000,$1910,$9000,$0101,$0010,$9000
-                dc.w    $9190,$9109,$00A2,$0000,$0000,$00A9,$00A0,$0101
-                dc.w    $9001,$0000,$0910,$0221,$1009,$1000,$9919,$1920
-                dc.w    $9009,$0900,$0AA0,$0091,$0990,$0001,$1001,$2101
-                dc.w    $1000,$0000,$0990,$0000,$0000,$0000,$1090,$0000
-                dc.w    $0000,$000A,$2000,$0000,$0A90,$9100,$2100,$00A2
-                dc.w    $0A99,$0012,$A210,$0010,$1000,$0010,$9000,$0009
-                dc.w    $0900,$0000,$A999,$9000,$0000,$1101,$0210,$0019
-                dc.w    $1000,$1910,$0000,$0091,$0190,$0090,$090A,$9900
-                dc.w    $0000,$0090,$0000,$0010,$1021,$0019,$1000,$9100
-                dc.w    $0091,$0001,$9100,$0010,$9199,$9000,$AA90,$9010
-                dc.w    $0010,$102A,$210A,$9000,$0002,$1001,$0100,$1000
-                dc.w    $0009,$0919,$0090,$0000,$00A9,$0090,$9010,$0091
-                dc.w    $0000,$0091,$0102,$1010,$1010,$0019,$0090,$9009
-                dc.w    $0000,$0000,$A909,$0000,$0010,$0000,$9100
-                dc.b    $00
+
+DAC_Sample06:	incbin	"sound/DAC/Sample 6.bin"
 DAC_Sample06_End:
-DAC_Sample03:  
-                dc.w    $5E35,$E67F,$F47D,$E5C5,$5053,$EE6B,$61EC,$4135
-                dc.w    $DC54,$E53D,$62DC,$A34A,$20B3,$0A3B,$AA30,$B3AA
-                dc.w    $32A6,$8A88,$7778,$D7FF,$776C,$1FB4,$6E55,$EE67
-                dc.w    $BF3C,$6D2C,$553D,$1CB5,$33CC,$92D5,$5D29,$C4AA
-                dc.w    $3AC2,$44BA,$AC23,$3AB0,$321C,$B33F,$77DF,$E67E
-                dc.w    $F666,$7FDE,$E57F,$5D7D,$EE55,$64EE,$416D,$D5B9
-                dc.w    $25DB,$4BC0,$054B,$AC2C,$414C,$0C78,$77E6,$FF77
-                dc.w    $FEC5,$653D,$E452,$06E5,$6E9E,$5DD6,$62E6,$D06F
-                dc.w    $65E2,$D4A5,$D3A6,$EB5C,$5E7E,$E5E3,$6136,$F6BD
-                dc.w    $51EC,$56CA,$1E5C,$6CE6,$6DF5,$C564,$5E3C,$DBC6
-                dc.w    $4E6E,$7F45,$C5E5,$DC66,$EDC4,$66F0,$D606,$25ED
-                dc.w    $ED65,$4AE6,$D5E2,$646F,$EC64,$651E,$ED46,$7FC4
-                dc.w    $C6E1,$C162,$F66C,$2E5D,$6E6D,$A5DB,$25B5,$DDB4
-                dc.w    $4B4C,$AC46,$E5DB,$6DAD,$D555,$ADBD,$5C55,$EC5D
-                dc.w    $410C,$64EC,$D562,$CDD4,$963C,$EA53,$59E2,$5D45
-                dc.w    $D45E,$D62D,$3432,$C41D,$435D,$9CB5,$4DBB,$53B3
-                dc.w    $BD54,$BAD5,$CC5D,$53CC,$235D,$BAA4,$44CD,$33C3
-                dc.w    $5D3B,$30BC,$244A,$AAAC,$243C,$3AD5,$243D,$C53C
-                dc.w    $0000,$3B01,$BB41,$33D4,$0B9C,$52CB,$310D,$53B1
-                dc.w    $C24C,$3B4A,$92C1,$0A40,$4C3A,$C033,$ABB3,$22B0
-                dc.w    $23AB,$33A9,$CB44,$BC39,$4C2A,$2B2A,$A339,$B132
-                dc.w    $AB94,$1BC2,$339A,$2991,$B2A3,$3AAB,$23A0,$9B12
-                dc.w    $3A0C,$413B,$CA33,$3BAA,$331A,$C131,$B93A,$221A
-                dc.w    $002A,$B2A3,$29BB,$2923,$1AAA,$3021,$AB02,$1109
-                dc.w    $19A2,$19AA,$302A,$A22A,$1BA3,$1002,$A0A9,$211B
-                dc.w    $2290,$B312,$AB22,$2A01,$AB92,$23AB,$3009,$A3AA
-                dc.w    $A32A,$2BA3,$1029,$A0AA,$3A22,$2BAA,$B332,$2BB1
-                dc.w    $2A02,$21BA,$0329,$9AA1,$2101,$0900,$11A1,$B931
-                dc.w    $9109,$B032,$2B0B,$1210,$A22A,$A201,$20A9,$0B3B
-                dc.w    $3019,$0019,$0191,$BA23,$29AA,$AA42,$AB21,$90A2
-                dc.w    $0012,$A9AA,$0301,$09B1,$39A2,$0A22,$B200,$029B
-                dc.w    $0002,$1000,$0A21,$199B,$3001,$900A,$2019,$0010
-                dc.w    $BA31,$000A,$2A20,$2A00,$19B9,$231A,$0001,$90B9
-                dc.w    $2309,$029B,$2111,$BA30,$0190,$B130,$09AA,$0300
-                dc.w    $129B,$2A2A,$2019,$A2A2,$1090,$2AA2,$A211,$A0AA
-                dc.w    $1211,$09A2,$0A20,$0119,$9A92,$AA32,$2ABA,$1320
-                dc.w    $9B00,$0221,$AB10,$212A,$A2A9,$2100,$A200,$0000
-                dc.w    $0AA3,$1900,$0000,$0000,$0190,$0000,$0001,$09A2
-                dc.w    $0001,$9019,$AA31,$900A
-DAC_Sample03_End:      
-DAC_Sample04: 
-                dc.w    $AABC,$DC94,$9C40,$BA10,$3124,$2B30,$0222,$9023
-                dc.w    $23A9,$0214,$1213,$033A,$A922,$4002,$0214,$B21A
-                dc.w    $2200,$0210,$B9CA,$CDED,$677C,$DCCC,$CBBA,$ACA0
-                dc.w    $A9BA,$A9A2,$C1AA,$90AB,$2B1A,$9AA2,$00BA,$9A92
-                dc.w    $A0A0,$B93B,$0A00,$A9AB,$30B9,$A00A,$9ABA,$BCDE
-                dc.w    $D466,$51BA,$1003,$9242,$02A2,$0310,$0000,$0000
-                dc.w    $0BA9,$2A0B,$90B3,$BA90,$2AB9,$B9A4,$9BAB,$2123
-                dc.w    $B003,$BBC0,$31BA,$1312,$A022,$A224,$A020,$0392
-                dc.w    $312A,$2221,$0333,$0A02,$A3A2,$2233,$0212,$A022
-                dc.w    $3300,$22A0,$23AB,$056C,$D0CC,$BB44,$3BDD,$567D
-                dc.w    $EB43,$DBA2,$AA92,$1A92,$A0B3,$0BA2,$A90B,$9B30
-                dc.w    $BA2B,$10A0,$0A90,$B00A,$9A2A,$00AB,$9A9B,$BDD3
-                dc.w    $5523,$4CB0,$2AA2,$2A0A,$9021,$A9B0,$3C3A,$2B1A
-                dc.w    $A020,$BA1A,$433B,$BBBA,$ABBA,$ABB0,$AABB,$BCCD
-                dc.w    $DBA4,$652A,$ACAC,$3555,$BDAC,$BB2B,$000A,$203B
-                dc.w    $A020,$A203,$1B93,$BBCD,$9455,$5445,$4CBC,$BA02
-                dc.w    $0A20,$2A21,$0A92,$BBDD,$C556,$553C,$CBCA,$A002
-                dc.w    $AA2A,$BBAC,$DD45,$6544,$3CCC,$1A9A,$0ABC,$CDE0
-                dc.w    $5564,$2444,$CCCB,$CAAC,$BCDD,$D556,$5343,$DCBC
-                dc.w    $AB20,$0BAB,$CBDE,$C565,$633C,$CCA0,$BAB0,$CBCD
-                dc.w    $DD35,$6662,$DD1C,$DA3B,$31BA,$BABB,$DDD3,$6673
-                dc.w    $CECD,$2B21,$2000,$0A2B,$200A,$ACDD,$C946,$763D
-                dc.w    $DDDB,$0CB2,$0A2B,$ACCC,$BB55,$675B,$EDED,$B31B
-                dc.w    $B943,$3AAC,$BA2B,$DE47,$75CD,$ECCD,$CCC3,$400C
-                dc.w    $AADD,$A765,$5DDD,$CCB0,$2CBD,$B30B,$CCDD,$9774
-                dc.w    $5DDE,$DE1C,$CC0C,$CD67,$73CE,$DECC,$DCBB,$CCC4
-                dc.w    $775B,$DECD,$CBCD,$CCBC,$DA67,$71CD,$EDCB,$CCDC
-                dc.w    $DDC9,$7764,$DDED,$CBCD,$CED9,$6776,$DEDE,$ACCC
-                dc.w    $DECC,$4674,$BBBA,$B212,$2A02,$1030,$0039,$02BB
-                dc.w    $DA46,$54BD,$CCBA,$CAAC,$ACBB,$A9AA,$BA0B,$2B9B
-                dc.w    $9AA2,$ACCD,$E966,$54CB,$A02A,$CD36,$76DE,$DD23
-                dc.w    $20CB,$0202,$10A9,$2A0A,$CCEE,$C666,$77EE,$EED4
-                dc.w    $321A,$0ADD,$ED27,$774D,$EFDA,$49CD,$DDD3,$7765
-                dc.w    $DDEE,$CB02,$1BBD,$CDDD,$578D,$EEFC,$A9A2,$22BC
-                dc.w    $BDDC,$578C,$EFFC,$BDB4,$0DB6,$775D,$EEED,$BABB
-                dc.w    $BBCD,$A677,$5EEE,$DDBC,$1B90,$ABD2,$6765,$DDED
-                dc.w    $DBAB,$BCA9,$2BC5,$772D,$DEDD,$D0BB,$39CC,$B277
-                dc.w    $4DDD,$DDCC,$CA22,$21A0,$00CB,$5766,$BEEF,$4BC1
-                dc.w    $4430,$2BDC,$C676,$90ED,$EDCB,$334B,$BCCB,$6763
-                dc.w    $CEED,$DBAA,$90AB,$BCA6,$76CD,$DDBA,$CDDD,$CC0B
-                dc.w    $B677,$CDEE,$EDAA,$20CB,$AD57,$7DC9,$D9CD,$DD9B
-                dc.w    $DCBB,$ACC6,$77BD,$CEDD,$DCAB,$CBCC,$D067,$7ADE
-                dc.w    $EDDC,$A0A9,$CBCC,$5774,$CEDE,$CDCB,$C433,$AACD
-                dc.w    $C477,$5BEE,$EDCC,$DCBC,$3776,$0DEE,$EDBC,$42A2
-                dc.w    $1D96,$77DD,$EEED,$100A,$CCBC,$5771,$BCED,$ED00
-                dc.w    $B93B,$BABB,$D676,$5DCE,$EDA9,$A0BA,$BCBC,$1676
-                dc.w    $5CEE,$DDBC,$CABB,$ACA6,$77AD,$EEEC,$AA9A,$CA0C
-                dc.w    $D677,$6FEE,$EA45,$3BCC,$B20D,$2776,$DEDE,$DD9A
-                dc.w    $2BDD,$DC68,$5BDC,$EDDC,$C2AD,$DDD2,$686C,$EDEE
-                dc.w    $DA31,$CCDD,$D677,$6EEE,$ECCC,$CCAC,$4752,$AAC3
-                dc.w    $121A,$2A32,$3AB0,$2332,$CC22,$213C,$9020,$0A0A
-                dc.w    $92AB,$AACA,$9DD1,$764D,$EBDC,$BBCC,$BB2A,$ABAA
-                dc.w    $2B2B,$1A2C,$1A0C,$DDB6,$632B,$931A,$4CDC,$677D
-                dc.w    $EEDC,$BAA4,$A122,$3A9A,$20A9,$CBEE,$D675,$769E
-                dc.w    $DEDC,$1231,$000B,$BDEE,$D677,$61DE,$DEBB,$332B
-                dc.w    $ACCD,$DED7,$77DE,$EEB3,$10AC,$CCCD,$DC77,$6AED
-                dc.w    $EBDC,$3BBD,$CDDA,$6765,$5DDE,$CDBB,$CBDA,$DEC4
-                dc.w    $776D,$DCE3,$BBDC,$CBCD,$CCB5,$774E,$DDC4,$4ADD
-                dc.w    $CCAC,$CDB3,$5766,$2DDE,$B9CC,$D1CD,$DB45,$766D
-                dc.w    $DBDC,$CCCB,$BCDD,$CA57,$665E,$CDDB,$BABB,$A9AC
-                dc.w    $CDCD,$4776,$CEDD,$DCAB,$B92B,$CCBD,$C577,$54DE
-                dc.w    $ED3D,$C934,$32AD,$EEB6,$77EF,$60E3,$62C4,$3555
-                dc.w    $DEEE,$4750,$CEE6,$5544,$CDDD,$ACEC,$A565,$333C
-                dc.w    $C5AC,$054E,$EC00,$02AA,$20AB,$A9B1,$C1AB,$DED5
-                dc.w    $87EF,$EDB2,$334A,$1A02,$21AA,$CDDD,$3776,$5EEE
-                dc.w    $CB04,$12A3,$902B,$ACCC,$CDB6,$766D,$DDDC,$CACB
-                dc.w    $902B,$BBDB,$BDC6,$7554,$DCCD,$ACDC,$B10A,$BCCD
-                dc.w    $BDD6,$765C,$CCEB,$BCCC,$9CA2,$BBCC,$1BDC,$5766
-                dc.w    $CECD,$CCBC,$CCB3,$30AC,$CBCB,$C476,$6DE2,$D3AC
-                dc.w    $BADC,$1333,$2B0C,$DBBB,$2675,$4CDC,$D0AC,$BCCB
-                dc.w    $1492,$A0BB,$CABC,$1765,$ACCC,$CCA9,$2CAB,$CB42
-                dc.w    $000B,$ACCD,$DB67,$7DCD,$DCC2,$1BCC,$D123,$1302
-                dc.w    $AC1C,$BCDE,$677D,$CCC3,$B2AB,$CCCC,$DAA2,$4302
-                dc.w    $AA9B,$0ACD,$ED68,$5BDD,$EECC,$D244,$4433,$0BBB
-                dc.w    $A2AA,$CCDD,$D576,$54CD,$CD10,$CBCB,$CB02,$A212
-                dc.w    $000A,$BBBA,$ACBD,$DC77,$053D,$EEDC,$0455,$5BCB
-                dc.w    $DCC9,$0BBC,$ABCB,$CDD6,$7639,$DDBC,$3B12,$3A32
-                dc.w    $2A2A,$0BAD,$A200,$CBCB,$0A0B,$BCCD,$B577,$BADD
-                dc.w    $CBC9,$0AAC,$CCC2,$3122,$1200,$A492,$ABAB,$ABA9
-                dc.w    $CD47,$655C,$EC0B,$3000,$BA9A,$2BBC,$C0A2,$0002
-                dc.w    $AABB,$CA3D,$DC56,$64B9,$AA12,$33A2,$A222,$10A2
-                dc.w    $49C3,$BA21,$0A9A,$2AAB,$3200,$0CA2,$3BCC,$B22A
-                dc.w    $2BA1,$B2BC,$0AAB,$B41C,$B002,$1A2A,$ACCA,$C565
-                dc.w    $DEA5,$5CCB,$93BB,$9CDC,$5776,$EEEC,$BA41,$A20A
-                dc.w    $22A0,$A202,$1030,$0039,$0202,$A4B2,$303A,$231B
-                dc.w    $3021,$22A4,$B2A3,$921A,$9B49,$A9B0,$030B,$0A20
-                dc.w    $A9A0,$0A9C,$1A20,$AA9B,$3B0A,$AB0B,$AAC2,$AA22
-                dc.w    $B90C,$BCDC,$5644,$BBA0,$A20A,$0200,$A20C,$4AAA
-                dc.w    $92A0,$412A,$0BAC,$BBB0,$B9BA,$CACA,$0233,$3A0C
-                dc.w    $C9CC,$C2B3,$02A2,$21A2,$214B,$0223,$3022,$131B
-                dc.w    $3321,$AAC0,$5542,$1223,$0203,$4249,$210A,$9B04
-                dc.w    $90AB,$2302,$233A,$9CB2,$A223,$B1AA,$B9A9,$4B94
-                dc.w    $3AA1,$2B2B,$BCCA,$0A22,$210A,$900A,$00A2,$C149
-                dc.w    $BADC,$1652,$B032,$39A2,$0000,$A0A2,$A92A,$00BA
-                dc.w    $BB2B,$A9A0,$0BB1,$0A9A,$BA10,$AA2A,$A92A,$000B
-                dc.w    $9AA9,$02BC,$D056,$2A2A,$2229,$04BC,$9B32,$214B
-                dc.w    $BAAC,$2444,$49DE,$E544,$553C,$DCB2,$2BC9,$02AA
-                dc.w    $9022,$900A,$3032,$10A0,$B3B3,$BCC1,$5641,$44BB
-                dc.w    $B2BB,$24B9,$49C1,$43AC,$2229,$C33A,$CA3A,$AA34
-                dc.w    $9CBB,$A921,$0221,$02B3,$BAB0,$ACAA,$CCC3,$6654
-                dc.w    $3CD0,$410C,$CC45,$530C,$CDCC,$BC00,$4443,$CBBA
-                dc.w    $AAB2,$21A2,$C2BD,$DD35,$6649,$0445,$CC9C,$1A9A
-                dc.w    $CC13,$42AB,$BBBA,$2BBC,$4C12,$1B9C,$DDEE,$5666
-                dc.w    $5A34,$54D9,$D124,$0CCC,$A90C,$A240,$BA2A,$A1A0
-                dc.w    $C1BC,$EE34,$4566,$644C,$DCC4,$00CB,$BA92,$1B9A
-                dc.w    $BB0A,$000C,$1ACC,$CEED,$5677,$30EE,$CA55,$4CCC
-                dc.w    $DA44,$3BB2,$A2BD,$DBCE,$E556,$6665,$DE0D,$300C
-                dc.w    $3BAB,$A00C,$CCEE,$B146,$774C,$EECC,$A0B9,$31BA
-                dc.w    $BA0C,$DDEC,$4567,$7CEE,$CCAC,$1BCB,$CDDD,$B565
-                dc.w    $4574,$CEE0,$B923,$9CBD,$DDD9,$5659,$C567,$BDEE
-                dc.w    $90CC,$EDDA,$566D,$D576,$DCDE,$D332,$2ADC,$CDDD
-                dc.w    $B256,$773E,$FCBA,$BACD,$DD35,$6006,$74DD,$EDA2
-                dc.w    $0BAB,$CDDC,$B664,$CD66,$64DE,$ECBB,$ABDE,$C565
-                dc.w    $666A,$DDEC,$CABB,$ADEE,$4665,$76BE,$EDDD,$EED5
-                dc.w    $777E,$EC4C,$EC5C,$CCAB,$DEC5,$5367,$6CFD,$CCBC
-                dc.w    $DEC5,$64B6,$75DF,$CCDD,$DDB4,$6779,$EF3C,$BDDD
-                dc.w    $DA57,$751E,$EDCC,$BDCE,$3546,$666B,$EFA9,$BBCE
-                dc.w    $D567,$7CEF,$CDDD,$4644,$6652,$EFDE,$2655,$4563
-                dc.w    $4CEE,$EDC5,$6514,$5524,$0EEE,$CC56,$6CC5,$5134
-                dc.w    $DFEC,$3666,$5B12,$DFEB,$674C,$DBC4,$0C40,$C131
-                dc.w    $2A0A,$A94A,$9200,$A200,$CB44,$10A3,$54EF,$A666
-                dc.w    $CDD9,$2232,$20C4,$00C1,$0322,$1CE4,$6552,$AEFC
-                dc.w    $67AC,$DDD6,$5530,$EFD6,$64B5,$5340,$FF26,$7B04
-                dc.w    $4350,$EFE5,$74B5,$545C,$FEED,$6664,$654C,$EFCE
-                dc.w    $D367,$751F,$FED3,$6655,$655D,$FEDE,$2556,$765E
-                dc.w    $FEDE,$0577,$6DFE,$DEC3,$5656,$70EF,$DDEC,$5776
-                dc.w    $EFCD,$ED36,$676D,$FDDE,$D167,$7CEE,$EDDD,$4676
-                dc.w    $4EFB,$EC35,$6666,$EFDE,$C465,$665B,$FDDE,$B576
-                dc.w    $61EF,$ADE4,$6666,$5EF1,$DDDA,$677E,$EEDD,$EC66
-                dc.w    $76EF,$DEC3,$676C,$FCED,$A567,$6CEF,$BDD9,$6666
-                dc.w    $9EEE,$CDC5,$676C,$FDDD,$DC67,$6CF0,$DEC1,$6674
-                dc.w    $DFDE,$B456,$75DF,$CDDD,$A576,$6FED,$EC26,$764E
-                dc.w    $EEDE,$4667,$5EEE,$DDD3,$6763,$EEDD,$CEC5,$773E
-                dc.w    $EEEE,$5775,$FEEE,$4665,$39CA,$0A20,$2310,$B0AA
-                dc.w    $1002,$1AAA,$9AAD,$C673,$EF4C,$CDDB,$6659,$CDC3
-                dc.w    $67EF,$BDDD,$C677,$CFEC,$DDD4,$6765,$EFDE,$C366
-                dc.w    $76EF,$DDEB,$677E,$FDEC,$4676,$4EEE,$EC46,$76CF
-                dc.w    $DED3,$6760,$EEEE,$C677,$EFDD,$E567,$6DFD,$ED67
-                dc.w    $64EE,$EE36,$76EE,$EDD5,$764E,$FCD4,$676E,$EEED
-                dc.w    $676C,$FDEC,$676C,$FDEC,$577D,$FDDE,$3676,$EEEE
-                dc.w    $1676,$EFCD,$A676,$EFDD,$3675,$EEED,$B676,$EFCE
-                dc.w    $3667,$DFDE,$1676,$EFDD,$5666,$CEEE,$C576,$0FDE
-                dc.w    $2766,$FDEC,$9576,$BFDE,$A567,$4EEE,$E576,$5FDD
-                dc.w    $E676,$EFD5,$75EF,$4553,$43AC,$A22A,$0A22,$13C3
-                dc.w    $0A20,$A200,$3BBD,$A662,$EEDC,$A555,$2BA9,$65EE
-                dc.w    $DD35,$5565,$EFBD,$576C,$FDD1,$763F,$EC46,$75EF
-                dc.w    $DC47,$63FD,$E367,$6EFD,$D576,$EFB2,$567D,$FEB3
-                dc.w    $674F,$ED46,$74EF,$C267,$3EFC,$2576,$DFEC,$2666
-                dc.w    $CF15,$65BE,$D0CC,$D475,$EF45,$665E,$F2D4,$675E
-                dc.w    $FDB5,$67DF,$EB56,$7BFE,$C366,$6DFC,$D466,$6EFB
-                dc.w    $5665,$EF14,$5662,$EEE5,$566B,$FD95,$664E,$F256
-                dc.w    $64EF,$4566,$5EF1,$5656,$CFE5,$5662,$EF46,$556C
-                dc.w    $FE56,$456C,$FE56,$555E,$ED65,$0AAB,$2BBC,$4554
-                dc.w    $CEEC,$655A,$D2B3,$BA31,$2B2B,$3B45,$9EE6,$51C9
-                dc.w    $55DE,$D554,$60EE,$0555,$5CEE,$5545,$5BEE,$9635
-                dc.w    $5AEE,$3552,$54CE,$D355,$6CEE,$2555,$5DED,$5555
-                dc.w    $DED5,$555D,$ED55,$444C,$ED55,$54AE,$D055,$A342
-                dc.w    $DE35,$5B44,$3EE3,$5555,$1EE1,$5445,$49EE,$5554
-                dc.w    $5CEE,$4565,$0EEC,$6345,$4CEE,$5555,$5DFC,$56A5
-                dc.w    $51EE,$A556,$5DFD,$5645,$5DFC,$6505,$54EF,$1656
-                dc.w    $6DFE,$5656,$5DFE,$5645,$69EF,$C656,$55EF,$D660
-                dc.w    $569E,$FD66,$456C,$FED6,$666E,$FE56,$75EF,$E665
-                dc.w    $3CCC,$0004,$A10C,$141A,$0BA1,$2292,$C420,$BB33
-                dc.w    $ACD5,$66DF,$ED57,$5CCD,$C366,$3FEE,$3665,$0265
-                dc.w    $EF45,$2322,$0000,$0000,$0000,$0000,$0000,$0A0B
-DAC_Sample04_End:     
 
-                cnop    $0000,$F0000
-		rom_ptr_z80	Music_98
-		rom_ptr_z80	Music_99
-		rom_ptr_z80	Music_9A
-		rom_ptr_z80	Music_9B
-		rom_ptr_z80	Music_9C
-		rom_ptr_z80	Music_9D
+DAC_Sample03:	incbin	"sound/DAC/Sample 3.bin"
+DAC_Sample03_End:
 
-Music_98: ; loc_F000C:             
-                incbin  'data\sounds\1up_98.snd'                
-Music_99: ; loc_F00F9:                
-                incbin  'data\sounds\tscrn_99.snd'
-Music_9A: ; loc_F02A5:              
-                incbin  'data\sounds\rscrn_9A.snd'
-Music_9B: ; loc_F03FA:                           
-                incbin  'data\sounds\tgovr_9B.snd'
-Music_9C: ; loc_F0549:
-                incbin  'data\sounds\cont_9C.snd'
-Music_9D: ; loc_F06A6:
-                incbin  'data\sounds\emrld_9D.snd'
+DAC_Sample04:	incbin	"sound/DAC/Sample 4.bin"
+DAC_Sample04_End:
+
+	cnop 0,$F0000
+    if *<>$F0000
+	inform 1,"Too much stuff before $F0000, all music/sounds with break!"
+    endif
+
+; ---------------------------------------------------------------------------
+; Music pointers
+; ---------------------------------------------------------------------------
+; loc_F0000:
+MusicPoint1:	rom_ptr_z80	Mus_ExtraLife	; $98
+		rom_ptr_z80	Mus_Title	; $99
+		rom_ptr_z80	Mus_ActClear	; $9A
+		rom_ptr_z80	Mus_GameOver	; $9B
+		rom_ptr_z80	Mus_Continue	; $9C
+		rom_ptr_z80	Mus_Emerald	; $9D-$9F
+; loc_F000C:
+Mus_ExtraLife:	incbin	"data\sounds\1up_98.snd"
+Mus_Title:	incbin	"data\sounds\tscrn_99.snd"
+Mus_ActClear:	incbin	"data\sounds\rscrn_9A.snd"
+Mus_GameOver:	incbin	"data\sounds\tgovr_9B.snd"
+Mus_Continue:	incbin	"data\sounds\cont_9C.snd"
+Mus_Emerald:	incbin	"data\sounds\emrld_9D.snd"
 
                 cnop    $000000, $0F1E8C
 Sega_Snd: ; loc_F1E8C:                
                 incbin  'data\sounds\sega.snd'                 
                 
                 cnop    $000000, $0F8000
-Music_81_To_97: ; loc_F8000:                
-		rom_ptr_z80	Music_81
-		rom_ptr_z80	Music_82
-		rom_ptr_z80	Music_83
-		rom_ptr_z80	Music_84
-		rom_ptr_z80	Music_85
-		rom_ptr_z80	Music_86
-		rom_ptr_z80	Music_87
-		rom_ptr_z80	Music_88
-		rom_ptr_z80	Music_89
-		rom_ptr_z80	Music_8A
-		rom_ptr_z80	Music_8B
-		rom_ptr_z80	Music_8C
-		rom_ptr_z80	Music_8D
-		rom_ptr_z80	Music_8E
-		rom_ptr_z80	Music_8F
-		rom_ptr_z80	Music_90
-		rom_ptr_z80	Music_92
-		rom_ptr_z80	Music_93
-		rom_ptr_z80	Music_94
-		rom_ptr_z80	Music_95
-		rom_ptr_z80	Music_96
+; loc_F8000: Music_81_To_97:
+MusicPoint2:	rom_ptr_z80	Mus_OOZ		; $81
+		rom_ptr_z80	Mus_GHZ		; $82
+		rom_ptr_z80	Mus_MTZ		; $83
+		rom_ptr_z80	Mus_CNZ		; $84
+		rom_ptr_z80	Mus_DHZ		; $85
+		rom_ptr_z80	Mus_HPZ		; $86
+		rom_ptr_z80	Mus_NGHZ	; $87
+		rom_ptr_z80	Mus_DEZ		; $88
+		rom_ptr_z80	Mus_SpecStg	; $89
+		rom_ptr_z80	Mus_LevelSel	; $8A
+		rom_ptr_z80	Mus_LevelSel	; $8B ; yes, the same song is referenced twice
+		rom_ptr_z80	Mus_FinalBoss	; $8C
+		rom_ptr_z80	Mus_CPZ		; $8D
+		rom_ptr_z80	Mus_Boss	; $8E
+		rom_ptr_z80	Mus_RWZ		; $8F
+		rom_ptr_z80	Mus_SSZ		; $90 and $91
+		rom_ptr_z80	Mus_Unused1	; $92
+		rom_ptr_z80	Mus_Unused2	; $93
+		rom_ptr_z80	Mus_Unused3	; $94
+		rom_ptr_z80	Mus_Invinc	; $95
+		rom_ptr_z80	Mus_HTZ		; $96 and $97
+; loc_F802A:
+Mus_OOZ:	incbin	"data\sounds\ooz_81.snd"	; CNZ 2-player theme in final
+Mus_GHZ:	incbin	"data\sounds\ghz_82.snd"
+Mus_MTZ:	incbin	"data\sounds\mz_wz_83.snd"
+Mus_CNZ:	incbin	"data\sounds\cnz_84.snd"
+Mus_DHZ:	incbin	"data\sounds\dhz_85.snd"
+Mus_HPZ:	incbin	"data\sounds\hpz_86.snd"	; DHZ/MCZ 2-player theme in final
+Mus_NGHZ:	incbin	"data\sounds\nghz_87.snd"
+Mus_DEZ:	incbin	"data\sounds\music_88.snd"
+Mus_SpecStg:	incbin	"data\sounds\ss_89.snd"
+Mus_LevelSel:	incbin	"data\sounds\menu_8A.snd"
+Mus_FinalBoss:	incbin	"data\sounds\music_8C.snd"
+Mus_CPZ:	incbin	"data\sounds\cpz_8D.snd"
+Mus_Boss	incbin	"data\sounds\boss_8E.snd"
+Mus_RWZ:	incbin	"data\sounds\music_8F.snd"	; SCZ theme in final
+Mus_SSZ:	incbin	"data\sounds\music_90.snd"	; OOZ theme in final
+Mus_Unused1:	incbin  "data\sounds\music_92.snd"	; WFZ theme in final
+Mus_Unused2:	incbin  "data\sounds\music_93.snd"	; GHZ/EHZ 2-player theme in final
+Mus_Unused3:	incbin	"data\sounds\music_94.snd"	; 2-player results theme in final
+Mus_Invinc:	incbin	"data\sounds\invcb_95.snd"	; invincibility theme in final
+Mus_HTZ:	incbin	"data\sounds\htz_96.snd"
 
-Music_81: ; loc_F802A:
-                incbin  'data\sounds\ooz_81.snd'
-Music_82: ; loc_F85AC: 
-                incbin  'data\sounds\ghz_82.snd'
-Music_83: ; loc_F8D1D:
-                incbin  'data\sounds\mz_wz_83.snd'
-Music_84: ; loc_F927A: 
-                incbin  'data\sounds\cnz_84.snd'               
-Music_85: ; loc_F9DEE: 
-                incbin  'data\sounds\dhz_85.snd' 
-Music_86: ; loc_FA49E: 
-                incbin  'data\sounds\hpz_86.snd' 
-Music_87: ; loc_FA8E7: 
-                incbin  'data\sounds\nghz_87.snd' 
-Music_88: ; loc_FB10A: 
-                incbin  'data\sounds\music_88.snd' 
-Music_89: ; loc_FB778:  
-                incbin  'data\sounds\ss_89.snd' 
-Music_8A:                 
-Music_8B: ; loc_FBD7F:   
-                incbin  'data\sounds\menu_8A.snd' 
-Music_8C: ; loc_FBED8:  
-                incbin  'data\sounds\music_8C.snd'
-Music_8D: ; loc_FC249:    
-                incbin  'data\sounds\cpz_8D.snd' 
-Music_8E: ; loc_FC8AE:   
-                incbin  'data\sounds\boss_8E.snd'
-Music_8F: ; loc_FCB08:  
-                incbin  'data\sounds\music_8F.snd'
-Music_90:
-Music_91: ; loc_FCF0B:                 
-                incbin  'data\sounds\music_90.snd'
-Music_92: ; loc_FD322:  
-                incbin  'data\sounds\music_92.snd'
-Music_93: ; loc_FD73B:  
-                incbin  'data\sounds\music_93.snd'
-Music_94: ; loc_FDC54:   
-                incbin  'data\sounds\music_94.snd'
-Music_95: ; loc_FE0B7:  
-                incbin  'data\sounds\invcb_95.snd'
-Music_96:
-Music_97: ; loc_FE3BE:              
-                incbin  'data\sounds\htz_96.snd'              
-                                
                 cnop    $000000, $0FF000 
 Sfx_A0_To_F9: ; loc_FF000:      
 		rom_ptr_z80	Sfx_A0
@@ -49264,5 +48388,4 @@ Sfx_E0: ; loc_FFD73:
                 dc.b    $BF, $00, $1C, $00, $80
            
                 cnop    $000000, $0FFFFE
-                dc.w    $0000
-               
+		dc.w	0
