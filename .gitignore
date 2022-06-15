@@ -1,5 +1,7 @@
 # Compiler Crap
 s2built.bin
 s2built.prev.bin
-s2.log
-s2.lst
+s2b.log
+s2b.lst
+s2b.p
+s2b.h

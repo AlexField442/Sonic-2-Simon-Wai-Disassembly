@@ -3,6 +3,7 @@
 
 ; For certain bits of information, search for "NOTE:"
 
+	CPU 68000
 	include	"s2b.macrosetup.asm"
 	include	"s2b.constants.asm"
 	include	"s2b.macros.asm"
@@ -70,7 +71,7 @@ SkipSecurity: ; loc_234:
                 move.w  (A4), D0
                 moveq   #$00, D0
                 move.l  D0, A6
-                move.l  A6, USP
+                move    A6, USP
                 moveq   #$17, D1
 VDPInitLoop: ; loc_23E:                
                 move.b  (A5)+, D5
@@ -340,7 +341,7 @@ Error_WaitForC: ; loc_5D8:
                 cmpi.b  #$20, ($FFFFF605).w
                 bne     Error_WaitForC          ; loc_5D8
                 rts 
-Art_Text:	incbin	"data\sprites\art_menu.dat"
+Art_Text:	BINCLUDE	"data\sprites\art_menu.dat"
 		even
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; vertical and horizontal interrupt handlers
@@ -831,7 +832,7 @@ PalToCRAM:
 		move.l	#$C0000000,4(a1)	; set VDP to write to CRAM address $00
 	rept 32
 		move.l	(a0)+,(a1)	; move palette to CRAM (all 64 colors at once)
-	endr
+	endm
 		move.w	#$8ADF,4(a1)	; write %1101 %1111 to register 10 (interrupt every 224th line)
 		movem.l	(sp)+,a0-a1
 		tst.b	($FFFFF64F).w
@@ -1113,7 +1114,7 @@ ShowVDPGraphics_TileLoop: ; loc_155E:
 ; loc_154C: DMA_68KtoVRAM: QueueCopyToVRAM: QueueVDPCommand: Add_To_DMA_Queue:
 QueueDMATransfer:
 		movea.l	($FFFFDCFC).w,a1
-		cmpa.w	#$FFFFDCFC,a1
+		cmpa.w	#$DCFC,a1
 		beq.s	QueueDMATransfer_Done	; return if there's no more room in the buffer
 
 		; piece together some VDP commands and store them for later...
@@ -1149,7 +1150,7 @@ QueueDMATransfer:
 		move.l	d2,(a1)+	; store command
 
 		move.l	a1,($FFFFDCFC).w	; set the next free slot address
-		cmpa.w	#$FFFFDCFC,a1
+		cmpa.w	#$DCFC,a1
 		beq.s	QueueDMATransfer_Done	; return if there's no more room in the buffer
 		move.w	#0,(a1)			; put a stop token at the end of the used part of the buffer
 ; loc_15C8:
@@ -1498,7 +1499,7 @@ ProcessDPLC_Main:
 		lsl.l	#2,d0
 		lsr.w	#2,d0
 		ori.w	#$4000,d0
-		swap.w	d0
+		swap	d0
 		move.l	d0,(a4)
 		subq.w	#4,a4
 		move.l	($FFFFF680).w,a0
@@ -1564,7 +1565,7 @@ loc_18BA:
 		lsl.l	#2,d0
 		lsr.w	#2,d0
 		ori.w	#$4000,d0
-		swap.w	d0
+		swap	d0
 		move.l	d0,(VDP_control_port).l
 		bsr.w	NemDec
 		dbf	d1,loc_18BA
@@ -1775,13 +1776,13 @@ KosDec:
 KosDec_Loop:
 		lsr.w	#1,d5
 		move	sr,d6
-		dbf	d4,@chkbit
+		dbf	d4,.chkbit
 		move.b	(a0)+,1(sp)
 		move.b	(a0)+,(sp)
 		move.w	(sp),d5
 		moveq	#$F,d4
 ; loc_1A76:
-@chkbit:
+.chkbit:
 		move	d6,ccr
 		bcc.s	KosDec_RLE
 		move.b	(a0)+,(a1)+
@@ -1792,32 +1793,32 @@ KosDec_RLE:
 		moveq	#0,d3
 		lsr.w	#1,d5
 		move	sr,d6
-		dbf	d4,@chkbit
+		dbf	d4,.chkbit
 		move.b	(a0)+,1(sp)
 		move.b	(a0)+,(sp)
 		move.w	(sp),d5
 		moveq	#$F,d4
 ; loc_1A92:
-@chkbit:
+.chkbit:
 		move	d6,ccr
 		bcs.s	KosDec_SeparateRLE
 		lsr.w	#1,d5
-		dbf	d4,@loop
+		dbf	d4,+
 		move.b	(a0)+,1(sp)
 		move.b	(a0)+,(sp) 
 		move.w	(sp),d5
 		moveq	#$F,d4
 ; loc_1AA6:
-@loop:
++
 		roxl.w	#1,d3
 		lsr.w	#1,d5
-		dbf	d4,@loop2
+		dbf	d4,+
 		move.b	(a0)+,1(sp)
 		move.b	(a0)+,(sp)
 		move.w	(sp),d5
 		moveq	#$F,d4
 ; loc_1AB8:
-@loop2:
++
 		roxl.w	#1,d3
 		addq.w	#1,d3
 		moveq	#-1,d2
@@ -3183,7 +3184,7 @@ PalPointers: ; loc_294E: ; Palette List
                 dc.l    Pal_CPzWater, $FB00001F ; Chemical Plant Underwater  
                 dc.l    Pal_NGHzWater, $FB00001F ; Neo Green Hill Underwater
                 dc.l    Pal_SpecialStage, $FB00001F
-Pal_SegaBG:		incbin	"art/palettes/Sega screen.bin"
+Pal_SegaBG:		BINCLUDE	"art/palettes/Sega screen.bin"
 Pal_Title: ; loc_2A96: ; Title Screen
                 dc.w    $0C00, $0002, $0800, $0026, $0048, $006C, $008E, $00AE
                 dc.w    $04A0, $0040, $0060, $0080, $00A0, $06A4, $0000, $0000
@@ -3202,8 +3203,8 @@ Pal_LevelSelect: ; loc_2B16: ; Level Select Menu
                 dc.w    $068A, $0468, $0024, $0246, $08AC, $068A, $0000, $00EE
                 dc.w    $0C00, $0024, $0246, $0468, $068A, $08AC, $0ACE, $08AC
                 dc.w    $068A, $0468, $0ACE, $0ACE, $0468, $0246, $0002, $0000 
-Pal_SonicTails:		incbin	"art/palettes/Sonic and Tails.bin"
-Pal_GHZ:		incbin	"art/palettes/GHZ.bin"       
+Pal_SonicTails:		BINCLUDE	"art/palettes/Sonic and Tails.bin"
+Pal_GHZ:		BINCLUDE	"art/palettes/GHZ.bin"       
 Pal_Wz: ; loc_2C16: ; Wood              
                 dc.w    $0002, $0000, $0E64, $0A68, $0E86, $0044, $0EEE, $0AAA
                 dc.w    $0888, $0444, $0666, $0000, $00EE, $0088, $0EA8, $0ECA
@@ -3328,10 +3329,10 @@ loc_31F0:
                 asl.l   #$03, D1
                 add.l   D0, D1                
                 move.w  D1, D0
-                swap.w  D1
+                swap  D1
                 add.w   D1, D0
                 move.w  D0, D1
-                swap.w  D1
+                swap  D1
                 move.l  D1, ($FFFFF636).w
                 rts
 CalcSine: ; loc_320A:                
@@ -4017,7 +4018,7 @@ loc_3CDC:
 		move.w	d0,d1
 		move.l	#$608C0003,d4
 		lsl.w	#7,d0
-		swap.w	d0
+		swap	d0
 		add.l	d0,d4
 		lea	(Level_Select_Text).l,a1
 		mulu.w	#$1B,d1
@@ -5430,9 +5431,9 @@ loc_551A:
                 dbra    D6, loc_54F4
                 addi.l  #$10000000, D3
                 bpl.s   loc_5544
-                swap.w  D3
+                swap  D3
                 addi.l  #$0000C000, D3
-                swap.w  D3
+                swap  D3
 loc_5544:
                 adda.w  #$0080, A2
                 dbra    D7, loc_54E6
@@ -5572,7 +5573,7 @@ loc_5832:
                 moveq   #$00, D0
                 move.w  ($FFFFEE08).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 lea     (loc_58ED), A1
                 lea     ($FFFFAA00).w, A3
                 moveq   #$09, D3
@@ -5611,7 +5612,7 @@ loc_58A0:
                 lea     ($FFFFE000).w, A1
                 move.w  ($FFFFEE18).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 moveq   #$00, D3
                 move.b  (A2)+, D3
                 move.w  ($FFFFEE0C).w, D2
@@ -5739,8 +5740,8 @@ loc_5AF4:
                 bsr     Background_Scroll_Speed ; loc_5B8A
                 rts
 Player_Start_Position_Array: ; loc_5B02: ; Player Start Position Array              
-		incbin	"startpos/GHZ_1.bin"	; $00 - GHZ
-		incbin	"startpos/GHZ_2.bin"
+		BINCLUDE	"startpos/GHZ_1.bin"	; $00 - GHZ
+		BINCLUDE	"startpos/GHZ_2.bin"
                 dc.l    $0060028F, $004002AF ; $01
                 dc.l    $006001AC, $004001AC ; $02 - Wood
                 dc.l    $0060028F, $004002AF ; $03
@@ -6023,7 +6024,7 @@ Bg_Scroll_GHz: ; loc_5E5C: ; $00 - Green Hill Background Scroll
                 move.w  ($FFFFEE00).w, D0
                 neg.w   D0
                 move.w  D0, D2
-                swap.w  D0
+                swap  D0
 loc_5E78:                
                 move.w  #$0000, D0
                 move.w  #$0015, D1
@@ -6075,7 +6076,7 @@ loc_5EF0:
                 move.l  D0, (A1)+
                 dbra    D1, loc_5EF0
                 move.l  D0, D4
-                swap.w  D4
+                swap  D4
                 move.w  D2, D0
                 asr.w   #$01, D0
                 move.w  D2, D1
@@ -6093,9 +6094,9 @@ loc_5EF0:
 loc_5F1A:                
                 move.w  D4, (A1)+
                 move.w  D3, (A1)+
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 dbra    D1, loc_5F1A
                 move.w  #$0008, D1               
 loc_5F2C:
@@ -6103,10 +6104,10 @@ loc_5F2C:
                 move.w  D3, (A1)+
                 move.w  D4, (A1)+
                 move.w  D3, (A1)+
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 dbra    D1, loc_5F2C
                 move.w  #$000E, D1
 loc_5F44:                
@@ -6116,11 +6117,11 @@ loc_5F44:
                 move.w  D3, (A1)+
                 move.w  D4, (A1)+
                 move.w  D3, (A1)+
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
                 add.l   D0, D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 dbra    D1, loc_5F44               
                 rts   
 loc_5F60:                 
@@ -6153,7 +6154,7 @@ loc_5FB0:
 loc_5FF8:
                 neg.w   D0
                 move.w  D0, D2
-                swap.w  D0
+                swap  D0
                 move.w  #$0000, D0
 loc_6002:
                 move.l  D0, (A1)+
@@ -6213,9 +6214,9 @@ loc_6062:
 loc_6088:                
                 move.w  D2, (A1)+
                 move.w  D3, (A1)+
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 dbra    D1, loc_6088    
                 rts                  
 Bg_Scroll_Wz: ; loc_6098: ; Wood Background Scroll
@@ -6231,7 +6232,7 @@ Bg_Scroll_Wz: ; loc_6098: ; Wood Background Scroll
                 move.w  #$00DF, D1
                 move.w  ($FFFFEE00).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 move.w  ($FFFFEE08).w, D0
                 neg.w   D0
 loc_60C8:
@@ -6251,7 +6252,7 @@ Bg_Scroll_Mz: ; loc_60D0: ; Metropolis Background Scroll
                 move.w  #$00DF, D1
                 move.w  ($FFFFEE00).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 move.w  ($FFFFEE08).w, D0
                 neg.w   D0
 loc_6100:
@@ -6268,7 +6269,7 @@ Bg_Scroll_HTz: ; loc_6108: ; Hill Top Background Scroll
                 move.w  ($FFFFEE00).w, D0
                 neg.w   D0
                 move.w  D0, D2
-                swap.w  D0
+                swap  D0
                 move.w  D2, D0
                 asr.w   #$03, D0
                 move.w  #$007F, D1
@@ -6292,33 +6293,33 @@ loc_6134:
                 lea     ($FFFFA800).w, A2
                 moveq   #$00, D3
                 move.w  D1, D3
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 move.w  D3, (A2)+
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 move.w  D3, (A2)+
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 move.w  D3, (A2)+
                 move.w  D3, (A2)+
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 moveq   #$03, D1
 loc_6188:
                 move.w  D3, (A2)+
                 move.w  D3, (A2)+
                 move.w  D3, (A2)+
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
                 add.l   D0, D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 dbra    D1, loc_6188
                 add.l   D0, D0
                 add.l   D0, D0
@@ -6326,56 +6327,56 @@ loc_6188:
                 move.l  D4, (A1)+
                 move.l  D4, (A1)+
                 move.l  D4, (A1)+
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 move.w  D3, D4
                 move.l  D4, (A1)+
                 move.l  D4, (A1)+
                 move.l  D4, (A1)+
                 move.l  D4, (A1)+
                 move.l  D4, (A1)+
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 move.w  D3, D4
                 move.w  #$0006, D1
 loc_61C6:
                 move.l  D4, (A1)+
                 dbra    D1, loc_61C6
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 move.w  D3, D4
                 move.w  #$0007, D1
 loc_61DA:
                 move.l  D4, (A1)+
                 dbra    D1, loc_61DA
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 move.w  D3, D4
                 move.w  #$0009, D1
 loc_61EE:
                 move.l  D4, (A1)+
                 dbra    D1, loc_61EE
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
                 add.l   D0, D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 move.w  D3, D4
                 move.w  #$000E, D1
 loc_6204:
                 move.l  D4, (A1)+
                 dbra    D1, loc_6204
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
                 add.l   D0, D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 move.w  #$0002, D2
 loc_6218:
                 move.w  D3, D4
@@ -6383,12 +6384,12 @@ loc_6218:
 loc_621E:
                 move.l  D4, (A1)+
                 dbra    D1, loc_621E
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
                 add.l   D0, D3
                 add.l   D0, D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 dbra    D2, loc_6218 
                 rts
 loc_6236:
@@ -6425,7 +6426,7 @@ loc_6292:
                 move.w  ($FFFFEE00).w, D0
                 add.w   D2, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 move.w  ($FFFFEE08).w, D0
                 add.w   D2, D0
                 neg.w   D0
@@ -6449,7 +6450,7 @@ loc_62B4:
                 move.w  #$006F, D1
                 move.w  ($FFFFEE00).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 move.w  ($FFFFEE08).w, D0
                 neg.w   D0
 loc_62F4:
@@ -6469,7 +6470,7 @@ loc_62F4:
                 move.w  #$0073, D1
                 move.w  ($FFFFEE20).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 move.w  ($FFFFEE28).w, D0
                 neg.w   D0
 loc_633C:
@@ -6510,30 +6511,30 @@ loc_6378:
                 move.w  D2, D3
                 asr.w   #$01, D3
                 lea     ($FFFFA860).w, A2
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 move.w  D3, (A1)+
                 move.w  D3, (A1)+
                 move.w  D3, (A1)+
                 move.w  D3, -(A2)
                 move.w  D3, -(A2)
                 move.w  D3, -(A2)
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 move.w  D3, (A1)+
                 move.w  D3, (A1)+
                 move.w  D3, -(A2)
                 move.w  D3, -(A2)
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 move.w  D3, (A1)+
                 move.w  D3, -(A2)
-                swap.w  D3
+                swap  D3
                 add.l   D0, D3
-                swap.w  D3
+                swap  D3
                 move.w  D3, (A1)+
                 move.w  D3, -(A2)
                 move.w  ($FFFFEE08).w, D0
@@ -6569,7 +6570,7 @@ Bg_Scroll_OOz: ; loc_640A: ; Oil Ocean Background Scroll
                 move.w  #$00DF, D1
                 move.w  ($FFFFEE00).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 move.w  ($FFFFEE08).w, D0
                 neg.w   D0
 loc_643A:
@@ -6590,7 +6591,7 @@ loc_6462:
                 divu.w  #$0006, D0
                 subi.w  #$0010, D0
 loc_646A:   
-                swap.w  D0
+                swap  D0
                 moveq   #$06, D6
                 bsr     loc_6D5A
                 move.w  ($FFFFEE0C).w, ($FFFFF618).w
@@ -6604,52 +6605,52 @@ loc_646A:
                 asl.l   #$04, D0
                 asl.l   #$08, D0
                 move.l  D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $000E(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $000C(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $000A(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $0008(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $0006(A2)
                 move.w  D1, $0010(A2)
                 move.w  D1, $001C(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $0004(A2)
                 move.w  D1, $0012(A2)
                 move.w  D1, $001A(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $0002(A2)
                 move.w  D1, $0014(A2)
                 move.w  D1, $0018(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, (A2)
                 move.w  D1, $0016(A2)
@@ -6668,7 +6669,7 @@ loc_6526:
                 move.w  #$00DF, D2
                 move.w  ($FFFFEE00).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 move.w  (A2)+, D0
                 neg.w   D0
 loc_6542:
@@ -6709,52 +6710,52 @@ loc_658A:
                 asl.l   #$04, D0
                 asl.l   #$08, D0
                 move.l  D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $000E(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $000C(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $000A(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $0008(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $0006(A2)
                 move.w  D1, $0010(A2)
                 move.w  D1, $001C(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $0004(A2)
                 move.w  D1, $0012(A2)
                 move.w  D1, $001A(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $0002(A2)
                 move.w  D1, $0014(A2)
                 move.w  D1, $0018(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, (A2)
                 move.w  D1, $0016(A2)
@@ -6774,7 +6775,7 @@ loc_664A:
                 move.w  #$006F, D2
                 move.w  ($FFFFEE00).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 move.w  (A2)+, D0
                 neg.w   D0
 loc_6666:
@@ -6820,52 +6821,52 @@ loc_66AE:
                 asl.l   #$04, D0
                 asl.l   #$08, D0
                 move.l  D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $000E(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $000C(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $000A(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $0008(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $0006(A2)
                 move.w  D1, $0010(A2)
                 move.w  D1, $001C(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $0004(A2)
                 move.w  D1, $0012(A2)
                 move.w  D1, $001A(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, $0002(A2)
                 move.w  D1, $0014(A2)
                 move.w  D1, $0018(A2)
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, (A2)
                 move.w  D1, $0016(A2)
@@ -6887,7 +6888,7 @@ loc_6782:
                 move.w  #$0073, D2
                 move.w  ($FFFFEE20).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 move.w  (A2)+, D0
                 neg.w   D0
 loc_679C:
@@ -6916,7 +6917,7 @@ Bg_Scroll_CNz: ; loc_67AE: ; Casino Night Background Scroll
                 move.w  #$00DF, D1
                 move.w  ($FFFFEE00).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 move.w  ($FFFFEE08).w, D0
                 neg.w   D0
 loc_67EA:
@@ -6938,7 +6939,7 @@ loc_67F2:
                 move.w  #$006F, D1
                 move.w  ($FFFFEE00).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 move.w  ($FFFFEE08).w, D0
                 neg.w   D0
 loc_682C:
@@ -6958,7 +6959,7 @@ loc_682C:
                 move.w  #$0073, D1
                 move.w  ($FFFFEE20).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 move.w  ($FFFFEE28).w, D0
                 neg.w   D0
 loc_6874:
@@ -7002,7 +7003,7 @@ loc_68CC:
                 move.w  #$000E, D1
                 move.w  ($FFFFEE00).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 andi.w  #$000F, D2
                 move.w  ($FFFFEE08).w, D0
                 cmpi.b  #$12, D4
@@ -7090,36 +7091,36 @@ loc_69A2:
                 asl.l   #$04, D0
                 asl.l   #$08, D0
                 move.l  D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
-                swap.w  D1
+                swap  D1
                 add.l   D1, D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
-                swap.w  D1
+                swap  D1
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  D1, (A3)+
                 move.w  D1, (A2)
                 move.w  D1, $0004(A2)
@@ -7143,7 +7144,7 @@ loc_6A36:
                 move.w  #$00DF, D2
                 move.w  ($FFFFEE00).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 move.w  (A2)+, D0
                 neg.w   D0
 loc_6A52:
@@ -7171,7 +7172,7 @@ Bg_Scroll_Null: ; loc_6A70: ; Null Background Scroll
                 move.w  #$00DF, D1
                 move.w  ($FFFFEE00).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 move.w  ($FFFFEE08).w, D0
                 neg.w   D0
 loc_6AA0:             
@@ -7183,7 +7184,7 @@ loc_6AA8:
                 move.w  #$000E, D1
                 move.w  ($FFFFEE00).w, D0
                 neg.w   D0
-                swap.w  D0
+                swap  D0
                 andi.w  #$000F, D2
                 add.w   D2, D2
                 move.w  (A2)+, D0
@@ -7347,7 +7348,7 @@ loc_6C28:
                 ext.l   D1    
                 asl.l   #$08, D1
                 add.l   (A1), D1
-                swap.w  D1
+                swap  D1
 loc_6C32:                
                 cmp.w   ($FFFFEECC).w, D1
                 bgt.s   loc_6C84
@@ -7366,7 +7367,7 @@ loc_6C5A:
                 ext.l   D1
                 asl.l   #$08, D1
                 add.l   (A1), D1
-                swap.w  D1
+                swap  D1
 loc_6C62:                
                 cmp.w   ($FFFFEECE).w, D1
                 blt.s   loc_6C84
@@ -7380,7 +7381,7 @@ loc_6C80:
                 move.w  ($FFFFEECE).w, D1
 loc_6C84:
                 move.w  (A1), D4
-                swap.w  D1
+                swap  D1
                 move.l  D1, D3
                 sub.l   (A1), D3
                 ror.l   #$08, D3
@@ -7407,7 +7408,7 @@ Scroll_Block1: ; loc_6CB4:
                 add.l   D4, D0
                 move.l  D0, ($FFFFEE08).w
                 move.l  D0, D1
-                swap.w  D1
+                swap  D1
                 andi.w  #$0010, D1
                 move.b  ($FFFFEE42).w, D3
                 eor.b   D3, D1
@@ -7425,7 +7426,7 @@ loc_6CE8:
                 add.l   D5, D0
                 move.l  D0, ($FFFFEE0C).w
                 move.l  D0, D1
-                swap.w  D1
+                swap  D1
                 andi.w  #$0010, D1
                 move.b  ($FFFFEE43).w, D2
                 eor.b   D2, D1
@@ -7445,7 +7446,7 @@ Scroll_Block2: ;  loc_6D1E:
                 add.l   D4, D0
                 move.l  D0, ($FFFFEE08).w
                 move.l  D0, D1
-                swap.w  D1
+                swap  D1
                 andi.w  #$0010, D1
                 move.b  ($FFFFEE42).w, D3
                 eor.b   D3, D1
@@ -7467,7 +7468,7 @@ Scroll_Block3: ; loc_6D52:
 loc_6D5A:                
                 move.l  D0, ($FFFFEE0C).w
                 move.l  D0, D1
-                swap.w  D1
+                swap  D1
                 andi.w  #$0010, D1
                 move.b  ($FFFFEE43).w, D2
                 eor.b   D2, D1
@@ -7488,7 +7489,7 @@ Scroll_Block4: ; loc_6D86:
                 add.l   D4, D0
                 move.l  D0, ($FFFFEE10).w
                 move.l  D0, D1
-                swap.w  D1
+                swap  D1
                 andi.w  #$0010, D1
                 move.b  ($FFFFEE44).w, D3
                 eor.b   D3, D1
@@ -7509,7 +7510,7 @@ loc_6DB8:
                 add.l   D4, D0
                 move.l  D0, ($FFFFEE18).w
                 move.l  D0, D1
-                swap.w  D1
+                swap  D1
                 andi.w  #$0010, D1
                 move.b  ($FFFFEE46).w, D3
                 eor.b   D3, D1
@@ -8040,10 +8041,10 @@ loc_7358:
                 lea     ($FFFFEF00).w, A2
                 move.l  D0, D1
                 or.w    D2, D1
-                swap.w  D1
+                swap  D1
                 move.l  D1, -(A7)
                 move.l  D1, (A5)
-                swap.w  D1
+                swap  D1
                 bsr     loc_745C
 loc_7376:                    
                 move.w  (A0), D3              
@@ -8056,9 +8057,9 @@ loc_7376:
                 addq.b  #$04, D1
                 bpl.s   loc_7398
                 andi.b  #$7F, D1
-                swap.w  D1
+                swap  D1
                 move.l  D1, (A5)
-                swap.w  D1
+                swap  D1
 loc_7398:
                 addi.w  #$0010, D5
                 move.w  D5, D0
@@ -8071,16 +8072,16 @@ loc_73A8:
                 addi.l  #$00800000, D1
                 lea     ($FFFFEF00).w, A2   
                 move.l  D1, (A5)
-                swap.w  D1
+                swap  D1
                 move.w  (A7)+, D6  
 loc_73BE:
                 move.l  (A2)+, (A6)
                 addq.b  #4, D1
                 bmi.s   loc_73CE
                 ori.b   #$80, D1
-                swap.w  D1
+                swap  D1
                 move.l  D1, (A5)
-                swap.w  D1
+                swap  D1
 loc_73CE:
                 dbra    D6, loc_73BE
                 move.l  (A7)+, A2
@@ -8088,9 +8089,9 @@ loc_73CE:
 loc_73D6:
                 move.l  D0, D1
                 or.w    D2, D1
-                swap.w  D1
+                swap  D1
                 move.l  D1, (A5)
-                swap.w  D1
+                swap  D1
                 tst.b   D1
                 bmi.s   loc_7420
                 bsr     loc_745C
@@ -8105,9 +8106,9 @@ loc_73E8:
                 addq.b  #$04, D1
                 bpl.s   loc_740A
                 andi.b  #$7F, D1
-                swap.w  D1
+                swap  D1
                 move.l  D1, (A5)
-                swap.w  D1
+                swap  D1
 loc_740A:
                 addi.w  #$0010, D5
                 move.w  D5, D0
@@ -8130,9 +8131,9 @@ loc_7424:
                 addq.b  #$04, D1
                 bmi.s   loc_7446
                 ori.b   #$80, D1
-                swap.w  D1
+                swap  D1
                 move.l  D1, (A5)
-                swap.w  D1
+                swap  D1
 loc_7446:
                 addi.w  #$0010, D5
                 move.w  D5, D0
@@ -8174,11 +8175,11 @@ loc_7492:
 loc_74A4:
                 move.l  (A1)+, D3
                 eori.l  #$08000800, D3
-                swap.w  D3
+                swap  D3
                 move.l  D3, (A6)
                 move.l  (A1)+, D3
                 eori.l  #$08000800, D3
-                swap.w  D3
+                swap  D3
                 move.l  D3, (A2)+
                 rts
 loc_74BE:
@@ -8195,10 +8196,10 @@ loc_74DA:
                 move.l  (A1)+, D0
                 move.l  (A1)+, D3
                 eori.l  #$18001800, D3
-                swap.w  D3
+                swap  D3
                 move.l  D3, (A6)
                 eori.l  #$18001800, D0
-                swap.w  D0
+                swap  D0
                 move.l  D0, (A2)+
                 rts  
 loc_74F4:
@@ -8211,7 +8212,7 @@ loc_74F4:
 loc_7504:
                 move.l  (A1)+, D3
                 eori.l  #$08000800, D3
-                swap.w  D3
+                swap  D3
                 move.l  D3, (A6)
                 rts
 loc_7512:
@@ -8224,12 +8225,12 @@ loc_7512:
 loc_7524:
                 move.l  (A1)+, D3
                 eori.l  #$18001800, D3
-                swap.w  D3
+                swap  D3
                 move.l  D3, (A6)
                 rts
 loc_7532:
                 or.w    D2, D0
-                swap.w  D0
+                swap  D0
                 btst    #$03, (A0)
                 bne.s   loc_756E
                 btst    #$02, (A0)
@@ -8244,13 +8245,13 @@ loc_754E:
                 move.l  D0, (A5)
                 move.l  (A1)+, D3
                 eori.l  #$08000800, D3
-                swap.w  D3
+                swap  D3
                 move.l  D3, (A6)
                 add.l   D7, D0
                 move.l  D0, (A5)
                 move.l  (A1)+, D3
                 eori.l  #$08000800, D3
-                swap.w  D3
+                swap  D3
                 move.l  D3, (A6)
                 rts
 loc_756E:
@@ -8274,18 +8275,18 @@ loc_7594:
                 move.l  (A1)+, D5
                 move.l  (A1)+, D3
                 eori.l  #$18001800, D3
-                swap.w  D3
+                swap  D3
                 move.l  D3, (A6)
                 add.l   D7, D0
                 move.l  D0, (A5)
                 eori.l  #$18001800, D5
-                swap.w  D5
+                swap  D5
                 move.l  D5, (A6)
                 move.l  (A7)+, D5
                 rts
 loc_75B8:
                 or.w    D2, D0
-                swap.w  D0
+                swap  D0
                 btst    #$03, (A0)
                 bne.s   loc_75DE
                 btst    #$02, (A0)
@@ -8297,7 +8298,7 @@ loc_75CE:
                 move.l  D0, (A5)
                 move.l  (A1)+, D3
                 eori.l  #$08000800, D3
-                swap.w  D3
+                swap  D3
                 move.l  D3, (A6)
                 rts
 loc_75DE:
@@ -8312,7 +8313,7 @@ loc_75F2:
                 move.l  D0, (A5)
                 move.l  (A1)+, D3
                 eori.l  #$18001800, D3
-                swap.w  D3
+                swap  D3
                 move.l  D3, (A6)
                 rts
 loc_7602:
@@ -8353,7 +8354,7 @@ loc_7646:
                 lsr.w   #$02, D5
                 add.w   D5, D4
                 moveq   #$03, D0
-                swap.w  D0
+                swap  D0
                 move.w  D4, D0
                 rts
 loc_7666:
@@ -8365,7 +8366,7 @@ loc_766A:
                 lsr.w   #2, D5
                 add.w   D5, D4
                 moveq   #$03, D0
-                swap.w  D0
+                swap  D0
                 move.w  D4, D0
                 rts
 loc_7680:
@@ -8379,7 +8380,7 @@ loc_7680:
                 lsr.w   #2, D5
                 add.w   D5, D4
                 moveq   #$02, D0
-                swap.w  D0
+                swap  D0
                 move.w  D4, D0
                 rts
 loc_76A2:
@@ -8391,7 +8392,7 @@ loc_76A2:
                 lsr.w   #2, D5
                 add.w   D5, D4
                 moveq   #$02, D0
-                swap.w  D0
+                swap  D0
                 move.w  D4, D0
                 rts  
 Load_Tiles_From_Start: ; loc_76BE:
@@ -9283,14 +9284,14 @@ loc_8036:
                 lsr.w   #$01, D0
                 lsl.w   #$04, D0
                 sub.w   D0, D3
-                swap.w  D1
+                swap  D1
                 move.w  #$0008, D1
                 bsr.s   loc_8098
                 move.w  $0028(A1), D0
                 subq.w  #$08, D0
                 move.w  D0, $0008(A1)
                 move.l  A1, $0030(A0)
-                swap.w  D1
+                swap  D1
                 subq.w  #$08, D1
                 bls.s   loc_8096
                 move.w  D1, D4
@@ -9493,7 +9494,7 @@ loc_8282:
 loc_8294:                
                 moveq   #$00, D2
                 move.b  loc_82C1(PC, D0), D2
-                swap.w  D2
+                swap  D2
                 move.b  loc_82C0(PC, D0), D2
                 moveq   #$00, D0
                 tst.w   ($FFFFB050).w
@@ -9504,7 +9505,7 @@ loc_8294:
 loc_82B2:                
                 moveq   #$00, D6
                 move.b  loc_82C1(PC, D0), D6
-                swap.w  D6
+                swap  D6
                 move.b  loc_82C0(PC, D0), D6
                 bra.s   loc_82D0
 loc_82C0:
@@ -9557,15 +9558,15 @@ loc_832A:
                 subq.w  #$01, D4
                 cmp.b   D3, D5
                 bne.s   loc_8336
-                swap.w  D2
+                swap  D2
                 move.w  D2, D0
-                swap.w  D2
+                swap  D2
 loc_8336:
                 cmp.b   D4, D5
                 bne.s   loc_8340
-                swap.w  D6
+                swap  D6
                 move.w  D6, D0
-                swap.w  D6
+                swap  D6
 loc_8340:
                 move.b  D0, (A1)
                 addq.w  #$01, D5
@@ -9605,7 +9606,7 @@ loc_839C:
                 addq.w  #$01, D0
                 mulu.w  D5, D0
                 mulu.w  D4, D0
-                swap.w  D0
+                swap  D0
                 add.w   $003C(A0), D0
                 move.w  D0, (A1)
                 addq.w  #$06, A1
@@ -9635,7 +9636,7 @@ loc_83E2:
                 addq.w  #$01, D0
                 mulu.w  D5, D0
                 mulu.w  D4, D0
-                swap.w  D0
+                swap  D0
                 add.w   $003C(A0), D0
                 move.w  D0, (A1)
                 addq.w  #$06, A1
@@ -9882,8 +9883,8 @@ loc_87D4:
                 lea     $0010(A1), A2
 loc_881E:                
                 movem.l D4/D5, -(A7)
-                swap.w  D4
-                swap.w  D5
+                swap  D4
+                swap  D5
                 add.w   D2, D4
                 add.w   D3, D5
                 move.w  D5, (A2)+
@@ -9893,8 +9894,8 @@ loc_881E:
                 add.l   D1, D5
                 addq.w  #$02, A2
                 dbra    D6, loc_881E
-                swap.w  D4
-                swap.w  D5
+                swap  D4
+                swap  D5
                 add.w   D2, D4
                 add.w   D3, D5
                 move.w  $0028(A1), D0
@@ -10427,7 +10428,7 @@ loc_8EAA:
                 bsr     CalcSine                ; loc_320A
                 move.w  #$0400, D1
                 muls.w  D1, D0
-                swap.w  D0
+                swap  D0
                 add.w   $002C(A0), D0
                 move.w  D0, $000C(A0)
                 rts
@@ -12452,11 +12453,12 @@ Obj25:
 		jmp	Obj25_Index(pc,d1.w)
 ; ===========================================================================
 ; off_AC36: Rings_Index
-Obj25_Index:	dc.w    Obj25_MakeRings-Obj25_Index
-		dc.w    Obj25_Animate-Obj25_Index
-		dc.w    Obj25_Collect-Obj25_Index
-		dc.w    Obj25_Sparkle-Obj25_Index
-		dc.w    Obj25_Delete-Obj25_Index
+Obj25_Index:	offsetTable
+		offsetTableEntry.w Obj25_MakeRings
+		offsetTableEntry.w Obj25_Animate
+		offsetTableEntry.w Obj25_Collect
+		offsetTableEntry.w Obj25_Sparkle
+		offsetTableEntry.w Obj25_Delete
 ; ===========================================================================
 ; This was used in Sonic 1, which didn't have a separate ring manager
 ; byte_AC40: Obj25_PosData:
@@ -12489,7 +12491,7 @@ Obj25_MakeRings:
 		bra.s	loc_AC76
 
 loc_AC6E:
-		swap.w	d1
+		swap	d1
 		bsr.w	SingleObjLoad
 		bne.s	Obj25_Animate
 
@@ -12511,7 +12513,7 @@ loc_AC76:
 		addq.w	#1,d1
 		add.w	d5,d2
 		add.w	d6,d3
-		swap.w	d1
+		swap	d1
 		dbf	d1,loc_AC6E
 ; loc_ACCE:
 Obj25_Animate:
@@ -12815,7 +12817,7 @@ loc_B02E:
 ; ---------------------------------------------------------------------------
 ; Sprite mappings
 ; ---------------------------------------------------------------------------
-Obj25_MapUnc_B036:	incbin	"mappings/sprite/obj25.bin"
+Obj25_MapUnc_B036:	BINCLUDE	"mappings/sprite/obj25.bin"
 
 Big_Ring_Mappings: ; loc_B09A:
                 dc.w    Big_Ring_Map_01-Big_Ring_Mappings
@@ -13230,7 +13232,7 @@ loc_B6CC:
 ; ---------------------------------------------------------------------------
 ; Sprite mappings
 ; ---------------------------------------------------------------------------
-Obj26_MapUnc_B6D2:	incbin	"mappings/sprite/obj26.bin"
+Obj26_MapUnc_B6D2:	BINCLUDE	"mappings/sprite/obj26.bin"
 ; ===========================================================================
 		nop
 ; ===========================================================================
@@ -14293,7 +14295,7 @@ loc_CA26:
                 addq.w  #$01, D3
                 move.w  (A7)+, D4
                 bsr     SolidObject             ; loc_F4A0
-                swap.w  D6
+                swap  D6
                 andi.w  #$0003, D6
                 beq.s   loc_CA7A
                 move.b  D6, D0
@@ -14322,7 +14324,7 @@ loc_CA82:
                 addq.w  #$01, D3
                 move.w  $0008(A0), D4
                 bsr     SolidObject             ; loc_F4A0
-                swap.w  D6
+                swap  D6
                 andi.w  #$000C, D6
                 beq.s   loc_CAC8
                 move.b  D6, D0
@@ -14480,8 +14482,9 @@ Obj3B:
 		jmp	Obj3B_Index(pc,d1.w)
 ; ===========================================================================
 ; off_CD0E:
-Obj3B_Index:	dc.w	Obj3B_Init-Obj3B_Index
-		dc.w	Obj3B_Main-Obj3B_Index
+Obj3B_Index:	offsetTable
+		offsetTableEntry.w Obj3B_Init
+		offsetTableEntry.w Obj3B_Main
 ; ===========================================================================
 ; loc_CD12:
 Obj3B_Init:
@@ -14509,7 +14512,7 @@ Obj3B_Main:
 ; ---------------------------------------------------------------------------
 ; Unused sprite mappings
 ; ---------------------------------------------------------------------------
-Obj3B_MapUnc_CD66:	incbin	"mappings/sprite/obj3B.bin"
+Obj3B_MapUnc_CD66:	BINCLUDE	"mappings/sprite/obj3B.bin"
 ; ===========================================================================
 		align 4
 
@@ -14526,10 +14529,10 @@ Obj3C:
 		bra.w	MarkObjGone
 ; ===========================================================================
 ; off_CD8E:
-Obj3C_Index:
-                dc.w    Obj3C_Init-Obj3C_Index
-                dc.w    Obj3C_Main-Obj3C_Index
-                dc.w    Obj3C_Fragment-Obj3C_Index
+Obj3C_Index:	offsetTable
+		offsetTableEntry.w Obj3C_Init
+		offsetTableEntry.w Obj3C_Main
+		offsetTableEntry.w Obj3C_Fragment
 ; ===========================================================================
 ; loc_CD94:
 Obj3C_Init:
@@ -14661,7 +14664,7 @@ Obj3C_FragmentSpeeds_RightToLeft:
 ; ---------------------------------------------------------------------------
 ; Unused sprite mappings
 ; ---------------------------------------------------------------------------
-Obj3C_MapUnc_CF04:	incbin	"mappings/sprite/obj3C.bin"
+Obj3C_MapUnc_CF04:	BINCLUDE	"mappings/sprite/obj3C.bin"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -15408,7 +15411,7 @@ loc_D684:
 		bcs.s	BuildSprites_MultiDraw_NextObj	; if there are 0, go to next object
 
 loc_D698:
-		swap.w	d0
+		swap	d0
 		move.w	(a6)+,d3	; get X pos
 		sub.w	(a4),d3
 		addi.w	#128,d3
@@ -15427,7 +15430,7 @@ loc_D698:
 		bsr.w	ChkDrawSprite
 
 loc_D6C4:
-		swap.w	d0
+		swap	d0
 		dbf	d0,loc_D698	; repeat for number of child sprites
 ; loc_D6CA:
 BuildSprites_MultiDraw_NextObj:
@@ -15848,7 +15851,7 @@ loc_DB02:
                 subq.w  #$01, D0
                 bcs.s   loc_DB48
 loc_DB16:                
-                swap.w  D0
+                swap  D0
                 move.w  (A6)+, D3
                 sub.w   (A4), D3
                 addi.w  #$0080, D3
@@ -15866,7 +15869,7 @@ loc_DB16:
                 bmi.s   loc_DB42
                 bsr     loc_DC68
 loc_DB42:
-                swap.w  D0
+                swap  D0
                 dbra    D0, loc_DB16
 loc_DB48:
                 move.l  (A7)+, A4
@@ -15932,7 +15935,7 @@ loc_DBE4:
                 subq.w  #$01, D0
                 bcs.s   loc_DC2A
 loc_DBF8:                
-                swap.w  D0
+                swap  D0
                 move.w  (A6)+, D3
                 sub.w   (A4), D3
                 addi.w  #$0080, D3
@@ -15950,7 +15953,7 @@ loc_DBF8:
                 bmi.s   loc_DC24
                 bsr     loc_DC68
 loc_DC24:
-                swap.w  D0
+                swap  D0
                 dbra    D0, loc_DBF8    
 loc_DC2A:
                 move.l  (A7)+, A4
@@ -16546,7 +16549,7 @@ loc_E1DC:
                 move.l  (A2), D0
                 move.l  D0, (A1)
                 move.l  D1, (A2)
-                swap.w  D0
+                swap  D0
 loc_E1EE:
                 lea     $0006(A2), A2
                 dbra    D4, loc_E1DC
@@ -18762,11 +18765,12 @@ Obj01_Normal:
 		jmp	Obj01_Index(pc,d1)
 ; ===========================================================================
 ; loc_FC62: Sonic_Index:
-Obj01_Index:	dc.w	Obj01_Init-Obj01_Index
-		dc.w	Obj01_Control-Obj01_Index
-		dc.w	Sonic_Hurt-Obj01_Index
-		dc.w	Sonic_Death-Obj01_Index
-		dc.w	Sonic_ResetLevel-Obj01_Index
+Obj01_Index:	offsetTable
+		offsetTableEntry.w Obj01_Init
+		offsetTableEntry.w Obj01_Control
+		offsetTableEntry.w Sonic_Hurt
+		offsetTableEntry.w Sonic_Death
+		offsetTableEntry.w Sonic_ResetLevel
 ; ===========================================================================
 ; loc_FC6C: Sonic_Main:
 Obj01_Init:
@@ -18844,10 +18848,12 @@ loc_FD5A:
 		bra.w	LoadSonicDynPLC
 ; ===========================================================================
 ; loc_FD5E:
-Obj01_Modes:	dc.w	Obj01_MdNormal-Obj01_Modes	; 0 - not airborne or rolling
-		dc.w	Obj01_MdAir-Obj01_Modes		; 2 - airborne
-		dc.w	Obj01_MdRoll-Obj01_Modes	; 4 - rolling
-		dc.w	Sonic_MdJump-Obj01_Modes	; 6 - jumping
+Obj01_Modes:	offsetTable
+		offsetTableEntry.w Obj01_MdNormal	; 0 - not airborne or rolling
+		offsetTableEntry.w Obj01_MdAir		; 2 - airborne
+		offsetTableEntry.w Obj01_MdRoll		; 4 - rolling
+		offsetTableEntry.w Obj01_MdJump		; 6 - jumping
+; ===========================================================================
 ; byte_FD66:
 Sonic_MusicList:dc.b	$82
 		dc.b	$82
@@ -18952,7 +18958,7 @@ Sonic_RecordPos:
 		lea	($FFFFE600).w,a1
 		lea	(a1,d0.w),a2
 		move.w	8(a0),d1
-		swap.w	d1
+		swap	d1
 		move.w	$C(a0),d1
 		cmp.l	(a2),d1
 		beq.s	return_FE4C
@@ -19080,7 +19086,7 @@ Obj01_MdRoll:
 ; Start of subroutine Obj01_MdJump (an Obj01_MdAir clone)
 ; Called if Sonic is in a ball and airborne (he could be jumping but not necessarily)
 ; loc_FF5E: Sonic_MdJump2:
-Sonic_MdJump:
+Obj01_MdJump:
 		bsr.w	Sonic_JumpHeight
 		bsr.w	Sonic_ChgJumpDir
 		bsr.w	Sonic_LevelBound
@@ -19595,7 +19601,7 @@ Sonic_LevelBound:
                 ext.l   D0
                 asl.l   #$08, D0
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  ($FFFFEEC8).w, D0
                 addi.w  #$0010, D0
                 cmp.w   D1, D0
@@ -21295,7 +21301,7 @@ Tails_LevelBoundaries: ; loc_114FE:
                 ext.l   D0
                 asl.l   #$08, D0
                 add.l   D0, D1
-                swap.w  D1
+                swap  D1
                 move.w  ($FFFFEEC8).w, D0
                 addi.w  #$0010, D0
                 cmp.w   D1, D0
@@ -22334,8 +22340,9 @@ Obj05:
 		jmp	Obj05_Index(pc,d1.w)
 ; ===========================================================================
 ; loc_11FA4:
-Obj05_Index:	dc.w	Obj05_Init-Obj05_Index
-		dc.w	Obj05_Main-Obj05_Index
+Obj05_Index:	offsetTable
+		offsetTableEntry.w Obj05_Init
+		offsetTableEntry.w Obj05_Main
 ; ===========================================================================
 ; loc_11FA8:
 Obj05_Init:
@@ -23932,8 +23939,8 @@ loc_13684:
                 ext.l   D1
                 asl.l   #$08, D1
                 add.l   D1, D2
-                swap.w  D2
-                swap.w  D3
+                swap  D2
+                swap  D3
                 move.b  D0, (Primary_Angle).w
                 move.b  D0, (Secondary_Angle).w
                 move.b  D0, D1
@@ -25071,9 +25078,10 @@ Obj03:
 		jmp	(MarkObjGone).l
 ; ===========================================================================
 ; off_144CC:
-Obj03_Index:	dc.w	Obj03_Init-Obj03_Index
-		dc.w	Obj03_MainX-Obj03_Index
-		dc.w	Obj03_MainY-Obj03_Index
+Obj03_Index:	offsetTable
+		offsetTableEntry.w Obj03_Init
+		offsetTableEntry.w Obj03_MainX
+		offsetTableEntry.w Obj03_MainY
 ; ===========================================================================
 ; loc_144D2:
 Obj03_Init:
@@ -25146,7 +25154,7 @@ loc_1456A:
 loc_1459A:
 		tst.w	d5
 		bpl.w	loc_1464A
-		swap.w	d0
+		swap	d0
 		move.b	$28(a0),d0
 		bpl.s	loc_145B2
 		btst	#1,$22(a1)
@@ -25197,13 +25205,13 @@ loc_1462E:
 		jsr	(PlaySound).l
 
 loc_14644:
-		swap.w	d0
+		swap	d0
 		andi.w	#$7FFF,d5
 
 loc_1464A:
 		add.l	d5,d5
 		dbf	d6,loc_1456A
-		swap.w	d5
+		swap	d5
 		move.b	d5,$30(a0)
 		bsr.w	loc_147A0
 
@@ -25249,7 +25257,7 @@ loc_1468E:
 loc_146BE:
 		tst.w	d5
 		bpl.w	loc_1476E
-		swap.w	d0
+		swap	d0
 		move.b	$28(a0),d0
 		bpl.s	loc_146D6
 		btst	#1,$22(a1)
@@ -25300,13 +25308,13 @@ loc_14752:
 		jsr	(PlaySound).l
 
 loc_14768:
-		swap.w	d0
+		swap	d0
 		andi.w	#$7FFF,d5
 
 loc_1476E:
 		add.l	d5,d5
 		dbf	d6,loc_1468E
-		swap.w	d5
+		swap	d5
 		move.b	d5,$30(a0)
 		bsr.w	loc_147A0
 
@@ -25349,7 +25357,7 @@ return_147CE:
 ; ---------------------------------------------------------------------------
 ; sprite mappings
 ; ---------------------------------------------------------------------------
-Obj03_MapUnc_147D0:	incbin	"mappings/sprite/obj03.bin"
+Obj03_MapUnc_147D0:	BINCLUDE	"mappings/sprite/obj03.bin"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -25363,9 +25371,10 @@ Obj0B:
 		jmp	Obj0B_Index(pc,d1.w)
 ; ===========================================================================
 ; off_148BA:
-Obj0B_Index:	dc.w	Obj0B_Init-Obj0B_Index
-		dc.w	Obj0B_Main-Obj0B_Index
-		dc.w	Obj0B_Turn-Obj0B_Index
+Obj0B_Index:	offsetTable
+		offsetTableEntry.w Obj0B_Init
+		offsetTableEntry.w Obj0B_Main
+		offsetTableEntry.w Obj0B_Turn
 ; ===========================================================================
 ; loc_148C0:
 Obj0B_Init:
@@ -25445,7 +25454,7 @@ byte_1498E:	dc.b    7,  4,  3,  2,  1,  0,  $FE,  1
 ; ---------------------------------------------------------------------------
 ; sprite mappings
 ; ---------------------------------------------------------------------------
-Obj0B_MapUnc_14996:	incbin	"mappings/sprite/obj0B.bin"
+Obj0B_MapUnc_14996:	BINCLUDE	"mappings/sprite/obj0B.bin"
 ; ===========================================================================
 		align 4
 
@@ -25461,8 +25470,9 @@ Obj0C:
 		jmp	Obj0C_Index(pc,d1.w)
 ; ===========================================================================
 ; off_14A0A:
-Obj0C_Index:	dc.w	Obj0C_Init-Obj0C_Index
-		dc.w	Obj0C_Main-Obj0C_Index
+Obj0C_Index:	offsetTable
+		offsetTableEntry.w Obj0C_Init
+		offsetTableEntry.w Obj0C_Main
 ; ===========================================================================
 ; loc_14A0E:
 Obj0C_Init:
@@ -25543,7 +25553,7 @@ loc_14AD2:
 ; ---------------------------------------------------------------------------
 ; Unused sprite mappings
 ; ---------------------------------------------------------------------------
-Obj0C_MapUnc_14AE6:	incbin	"mappings/sprite/obj0C.bin"
+Obj0C_MapUnc_14AE6:	BINCLUDE	"mappings/sprite/obj0C.bin"
 
 ; ===========================================================================
 		nop
@@ -25564,8 +25574,9 @@ Obj12:
 		jmp	Obj12_Index(pc,d1.w)
 ; ===========================================================================
 ; off_14B0A:
-Obj12_Index:	dc.w	Obj12_Init-Obj12_Index
-		dc.w	Obj12_Main-Obj12_Index
+Obj12_Index:	offsetTable
+		offsetTableEntry.w Obj12_Init
+		offsetTableEntry.w Obj12_Main
 ; ===========================================================================
 ; loc_14B0E:
 Obj12_Init:
@@ -25593,7 +25604,7 @@ Obj12_Main:
 ; ---------------------------------------------------------------------------
 ; Sprite mappings
 ; ---------------------------------------------------------------------------
-Obj12_MapUnc_14B62:	incbin	"mappings/sprite/obj12.bin"
+Obj12_MapUnc_14B62:	BINCLUDE	"mappings/sprite/obj12.bin"
 ; ===========================================================================
                 nop
 ;=============================================================================== 
@@ -25865,9 +25876,10 @@ Obj04:
 		jmp	Obj04_Index(pc,d1.w)
 ; ===========================================================================
 ; off_1509E:
-Obj04_Index:	dc.w	Obj04_Init-Obj04_Index
-		dc.w	Obj04_Action-Obj04_Index
-		dc.w	Obj04_Action2-Obj04_Index
+Obj04_Index:	offsetTable
+		offsetTableEntry.w Obj04_Init
+		offsetTableEntry.w Obj04_Action
+		offsetTableEntry.w Obj04_Action2
 ; ===========================================================================
 ; loc_150A4:
 Obj04_Init:
@@ -25952,11 +25964,11 @@ loc_151BE:
 ; ---------------------------------------------------------------------------
 ; Sprite mappings
 ; ---------------------------------------------------------------------------
-Obj04_MapUnc_151C2:	incbin	"mappings/sprite/obj04_a.bin"
+Obj04_MapUnc_151C2:	BINCLUDE	"mappings/sprite/obj04_a.bin"
 ; ---------------------------------------------------------------------------
 ; Sprite mappings
 ; ---------------------------------------------------------------------------
-Obj04_MapUnc_152B2:	incbin	"mappings/sprite/obj04_b.bin"	; took me awhile to realize I accidentally incbin'd the above mappings twice, oops
+Obj04_MapUnc_152B2:	BINCLUDE	"mappings/sprite/obj04_b.bin"	; took me awhile to realize I accidentally BINCLUDE'd the above mappings twice, oops
 
 ;=============================================================================== 
 ; Object 0x49 - Green Hill - Waterfalls 
@@ -26449,7 +26461,7 @@ loc_15B42:
                 move.b  (A2), D0
                 bsr     loc_15B84
                 muls.w  #$2800, D1
-                swap.w  D1
+                swap  D1
                 move.w  $000C(A0), D2
                 add.w   D1, D2
                 moveq   #$00, D1
@@ -27652,13 +27664,13 @@ loc_16A9E:
                 moveq   #$00, D1
                 move.w  D5, D1
                 sub.w   $000C(A1), D1
-                swap.w  D1
+                swap  D1
                 divs.w  D3, D1
                 moveq   #$00, D0
                 move.w  D4, D0
                 sub.w   $0008(A1), D0
                 beq.s   loc_16ABC
-                swap.w  D0
+                swap  D0
                 divs.w  D1, D0
 loc_16ABC:
                 move.w  D0, $0010(A1)
@@ -27673,13 +27685,13 @@ loc_16AD0:
                 moveq   #$00, D0
                 move.w  D4, D0
                 sub.w   $0008(A1), D0
-                swap.w  D0
+                swap  D0
                 divs.w  D2, D0
                 moveq   #$00, D1
                 move.w  D5, D1
                 sub.w   $000C(A1), D1
                 beq.s   loc_16AEA
-                swap.w  D1
+                swap  D1
                 divs.w  D0, D1
 loc_16AEA:
                 move.w  D1, $0012(A1)
@@ -28682,7 +28694,7 @@ loc_17D46:
                 add.l   $0032(A0), D1
                 move.l  D1, $000C(A0)
                 addi.l  #$00003800, $0032(A0)
-                swap.w  D1
+                swap  D1
                 cmp.w   $0030(A0), D1
                 bcs.s   loc_17D80
                 move.l  $0032(A0), D0
@@ -28763,7 +28775,7 @@ loc_17E68:
                 add.l   $0032(A0), D1
                 move.l  D1, $000C(A0)
                 addi.l  #$00003800, $0032(A0)
-                swap.w  D1
+                swap  D1
                 move.w  $0030(A0), D0
                 subi.w  #$007D, D0
                 cmp.w   D0, D1
@@ -30975,7 +30987,7 @@ loc_1A192:
                 andi.w  #$000F, D0
                 subq.w  #$08, D0
                 add.w   D0, $0008(A1)
-                swap.w  D0
+                swap  D0
                 andi.w  #$000F, D0
                 subq.w  #$08, D0
                 add.w   D0, $000C(A1)
@@ -31024,7 +31036,7 @@ loc_1A252:
                 add.l   D0, D3
                 move.l  D2, $0030(A0)
                 move.l  D3, $0034(A0)
-                swap.w  D2
+                swap  D2
                 andi.w  #$0003, D3
                 addq.w  #$04, D3
                 add.w   D3, $0012(A0)
@@ -32300,13 +32312,13 @@ loc_1B2FA:
                 moveq   #$00, D1
                 move.w  D5, D1
                 sub.w   $000C(A1), D1
-                swap.w  D1
+                swap  D1
                 divs.w  D3, D1
                 moveq   #$00, D0
                 move.w  D4, D0
                 sub.w   $0008(A1), D0
                 beq.s   loc_1B318
-                swap.w  D0
+                swap  D0
                 divs.w  D1, D0
 loc_1B318:
                 move.w  D0, $0010(A1)
@@ -32321,13 +32333,13 @@ loc_1B32C:
                 moveq   #$00, D0
                 move.w  D4, D0
                 sub.w   $0008(A1), D0
-                swap.w  D0
+                swap  D0
                 divs.w  D2, D0
                 moveq   #$00, D1
                 move.w  D5, D1
                 sub.w   $000C(A1), D1
                 beq.s   loc_1B346
-                swap.w  D1
+                swap  D1
                 divs.w  D0, D1
 loc_1B346:
                 move.w  D1, $0012(A1)
@@ -33446,7 +33458,7 @@ loc_1C13A:
 loc_1C150:
                 move.w  D0, $0010(A0)
                 move.w  D3, $0012(A0)
-                swap.w  D0
+                swap  D0
                 move.w  D0, $000A(A0)
                 clr.w   $000E(A0)
                 rts
@@ -33461,7 +33473,7 @@ loc_1C164:
 loc_1C176:
                 move.w  D1, $0012(A0)
                 move.w  D2, $0010(A0)
-                swap.w  D1
+                swap  D1
                 move.w  D1, $000E(A0)
                 clr.w   $000A(A0)
                 rts    
@@ -34180,7 +34192,7 @@ loc_1CC62:
                 dc.w    loc_1CDFE-loc_1CC62
 loc_1CC68:
                 addq.b  #$02, $0024(A0)
-                move.l  #Rotating_Obj25_MapUnc_B036, $0004(A0) ; loc_1CE1C
+                move.l  #MapUnc_Obj73_1CE1C, $0004(A0) ; loc_1CE1C
                 move.w  #$26BC, $0002(A0)
                 bsr     J_Adjust2PArtPointer_1A ; loc_1CE3A
                 move.b  #$04, $0001(A0)
@@ -34307,7 +34319,7 @@ loc_1CDFE:
                 bsr     J_SolidObject_0E        ; loc_1CE40
                 move.w  $0008(A0), $0036(A0)
                 bra     J_DisplaySprite_0B      ; loc_1CE28  
-Rotating_Obj25_MapUnc_B036:                     
+MapUnc_Obj73_1CE1C:                     
 loc_1CE1C:
                 dc.w    loc_1CE1E-loc_1CE1C
 loc_1CE1E:
@@ -34422,8 +34434,8 @@ loc_1CF4A:
                 lea     $0010(A1), A2
 loc_1CF84:                
                 movem.l D4/D5, -(A7)
-                swap.w  D4
-                swap.w  D5
+                swap  D4
+                swap  D5
                 add.w   D2, D4
                 add.w   D3, D5
                 move.w  D5, (A2)+
@@ -34433,8 +34445,8 @@ loc_1CF84:
                 add.l   D1, D5
                 addq.w  #$02, A2
                 dbra    D6, loc_1CF84
-                swap.w  D4
-                swap.w  D5
+                swap  D4
+                swap  D5
                 add.w   D2, D4
                 add.w   D3, D5
                 move.w  D5, $0008(A0)
@@ -34552,7 +34564,7 @@ loc_1D0DE:
                 move.w  D2, D3
                 addq.w  #$01, D3
                 bsr     J_SolidObject_10        ; loc_1D1FC
-                swap.w  D6
+                swap  D6
                 andi.w  #$0003, D6
                 beq.s   loc_1D142
                 move.b  D6, D0
@@ -34808,7 +34820,7 @@ loc_1D474:
                 move.w  #$0011, D3
                 move.w  $0008(A0), D4
                 bsr     J_SolidObject_12        ; loc_1D588
-                swap.w  D6
+                swap  D6
                 or.b    D6, $002E(A2)
                 rts
 loc_1D4AC:
@@ -34868,15 +34880,15 @@ loc_1D528:
                 addq.w  #$01, (A1)
                 moveq   #$00, D1
                 move.w  (A1)+, D1
-                swap.w  D1
+                swap  D1
                 lsr.l   #$01, D1
                 move.l  D1, D2
                 lsr.l   #$01, D1
                 move.l  D1, D3
                 add.l   D2, D3
-                swap.w  D1
-                swap.w  D2
-                swap.w  D3
+                swap  D1
+                swap  D2
+                swap  D3
                 move.w  D3, (A1)+
                 move.w  D2, (A1)+
                 move.w  D1, (A1)+
@@ -34889,15 +34901,15 @@ loc_1D552:
                 subq.w  #$01, (A1)
                 moveq   #$00, D1
                 move.w  (A1)+, D1
-                swap.w  D1
+                swap  D1
                 asr.l   #$01, D1
                 move.l  D1, D2
                 asr.l   #$01, D1
                 move.l  D1, D3
                 add.l   D2, D3
-                swap.w  D1
-                swap.w  D2
-                swap.w  D3
+                swap  D1
+                swap  D2
+                swap  D3
                 move.w  D3, (A1)+
                 move.w  D2, (A1)+
                 move.w  D1, (A1)+
@@ -38430,8 +38442,9 @@ Obj8A:
 		jmp	Obj8A_Index(pc,d1.w)
 ; ===========================================================================
 ; off_2074E:
-Obj8A_Index:	dc.w	Obj8A_Init-Obj8A_Index
-		dc.w	Obj8A_Display-Obj8A_Index
+Obj8A_Index:	offsetTable
+		offsetTableEntry.w Obj8A_Init
+		offsetTableEntry.w Obj8A_Display
 ; ===========================================================================
 ; loc_20752:
 Obj8A_Init:
@@ -38465,7 +38478,7 @@ Obj8A_Display:
 ; ---------------------------------------------------------------------------
 ; Sprite mappings
 ; ---------------------------------------------------------------------------
-Obj8A_MapUnc_207C6:	incbin	"mappings/sprite/obj8A.bin"
+Obj8A_MapUnc_207C6:	BINCLUDE	"mappings/sprite/obj8A.bin"
 ; ===========================================================================
 		nop
 ; loc_20E54:
@@ -39029,13 +39042,13 @@ S1_SS_Show_Layout: ; loc_21508:
                 moveq   #$00, D2
                 move.w  ($FFFFEE00).w, D2
                 divu.w  #$0018, D2
-                swap.w  D2
+                swap  D2
                 neg.w   D2
                 addi.w  #$FF4C, D2
                 moveq   #$00, D3
                 move.w  ($FFFFEE04).w, D3
                 divu.w  #$0018, D3
-                swap.w  D3
+                swap  D3
                 neg.w   D3
                 addi.w  #$FF4C, D3
                 move.w  #$000F, D7
@@ -40026,17 +40039,17 @@ loc_22094:
 loc_220A8:
                 lea     ($FFFF0000), A1
                 moveq   #$00, D4
-                swap.w  D2
+                swap  D2
                 move.w  D2, D4
-                swap.w  D2
+                swap  D2
                 addi.w  #$0044, D4
                 divu.w  #$0018, D4
                 mulu.w  #$0080, D4
                 adda.l  D4, A1
                 moveq   #$00, D4
-                swap.w  D3
+                swap  D3
                 move.w  D3, D4
-                swap.w  D3
+                swap  D3
                 addi.w  #$0014, D4
                 divu.w  #$0018, D4
                 adda.w  D4, A1
@@ -40402,7 +40415,7 @@ loc_2244E:
                 add.w   D1, D0
                 subi.w  #$0010, D0
                 divu.w  #$0030, D0
-                swap.w  D0
+                swap  D0
                 cmp.b   $0001(A3), D0
                 beq.s   loc_224C0
                 move.b  D0, $0001(A3)
@@ -41225,14 +41238,14 @@ loc_231DC:
                 lsr.w   #7, D1
                 move.w  ($FFFFFE04).w, D1
                 lsr.w   #6, D1
-                swap.w  D1
+                swap  D1
                 move.w  ($FFFFB008).w, D1 
                 bsr.s   loc_2320E
                 move.w  ($FFFFEE04).w, D1
                 move.w  ($FFFFEE08).w, D1
                 lsr.w   #7, D1
                 move.b  ($FFFFFE78).w, D1
-                swap.w  D1
+                swap  D1
                 move.w  ($FFFFB00C).w, D1
 loc_2320E:
                 moveq   #$07, D6
@@ -41255,7 +41268,7 @@ loc_23228:
                 move.l  (A3)+, (A6)
                 move.l  (A3)+, (A6)
                 move.l  (A3)+, (A6)
-                swap.w  D1
+                swap  D1
                 dbra    D6, loc_23216
                 rts
 loc_23246:
@@ -41499,11 +41512,11 @@ loc_2343C:
                 dbra    D5, loc_2343C
                 bra.s   loc_2342A                                     
 loc_23448:  
-                incbin  'data\sprites\bignumbr.dat' 
+                BINCLUDE  "data\sprites\bignumbr.dat" 
 loc_23748:                
-                incbin  'data\sprites\smallnum.dat'             
+                BINCLUDE  "data\sprites\smallnum.dat"             
 loc_23888:
-                incbin  'data\sprites\debugnum.dat'
+                BINCLUDE  "data\sprites\debugnum.dat"
 J_Adjust2PArtPointer_27: ; loc_23B68:
                 jmp     Adjust2PArtPointer     ; loc_DC30
                 dc.w    $0000                   ; Filler
@@ -41581,7 +41594,7 @@ loc_23C5A:
                 moveq   #$00, D1
                 move.b  ($FFFFFE0B).w, D1
                 addq.w  #$01, D1
-                swap.w  D1
+                swap  D1
                 asr.l   #$04, D1
                 move.l  $000C(A0), D2
                 move.l  $0008(A0), D3
@@ -41590,7 +41603,7 @@ loc_23C5A:
                 sub.l   D1, D2
                 moveq   #$00, D0
                 move.w  ($FFFFEECC).w, D0
-                swap.w  D0
+                swap  D0
                 cmp.l   D0, D2
                 bge.s   loc_23C84
                 move.l  D0, D2
@@ -41601,7 +41614,7 @@ loc_23C84:
                 moveq   #$00, D0
                 move.w  ($FFFFEEC6).w, D0
                 addi.w  #$00DF, D0
-                swap.w  D0
+                swap  D0
                 cmp.l   D0, D2
                 blt.s   loc_23C9E
                 move.l  D0, D2
@@ -41960,7 +41973,7 @@ Debug_DHz: ; loc_24194:  ; Dust Hill
                 dc.b    $48, $02, $00, $00
                 dc.l    ($1F<<$18)|Dhz_Collapsing_Platforms_Mappings ; loc_9942
                 dc.b    $00, $00, $63, $F4
-                dc.l    ($73<<$18)|Rotating_Obj25_MapUnc_B036     ; loc_1CE1C
+                dc.l    ($73<<$18)|MapUnc_Obj73_1CE1C     ; loc_1CE1C
                 dc.b    $F5, $00, $26, $BC
                 dc.l    ($6A<<$18)|Rotating_Boxes_Mappings     ; loc_1BCB0
                 dc.b    $18, $00, $63, $D4
@@ -43619,59 +43632,59 @@ loc_24A30:
                 dc.b    $20, $08, $21, $08, $22, $00, $12, $00, $16, $00, $10, $00, $10, $08, $F7, $08
                 dc.b    $F7, $00, $10, $00, $10, $00, $16, $00, $12, $00, $10, $00, $10, $00, $12, $00
 Ghz_Flower_1:            ; loc_28000:
-                incbin  'data\ghz\flower_1.dat'
+                BINCLUDE  "data\ghz\flower_1.dat"
 Ghz_Flower_2:            ; loc_28080: 
-                incbin  'data\ghz\flower_2.dat'
+                BINCLUDE  "data\ghz\flower_2.dat"
 Ghz_Flower_3:            ; loc_28100:  
-                incbin  'data\ghz\flower_3.dat'
+                BINCLUDE  "data\ghz\flower_3.dat"
 Ghz_Flower_4:            ; loc_28180:         
-                incbin  'data\ghz\flower_4.dat'                 
+                BINCLUDE  "data\ghz\flower_4.dat"                 
 Ghz_Dyn_Wall:            ; loc_28200:
-                incbin  'data\ghz\dyn_wall.dat'                
+                BINCLUDE  "data\ghz\dyn_wall.dat"                
 Hill_Top_Background:     ; loc_28300:
-                incbin  'data\htz\backgnd.nem'
+                BINCLUDE  "data\htz\backgnd.nem"
 Hill_Top_Background_Unc: ; loc_28C2A:                
-                incbin  'data\htz\backgnd.dat'                    
+                BINCLUDE  "data\htz\backgnd.dat"                    
 Mz_Spinnig_Cylinder:     ; loc_2902A:
-                incbin  'data\mz\spin_cyl.dat'
+                BINCLUDE  "data\mz\spin_cyl.dat"
 Mz_Lava:                 ; loc_2A02A:
-                incbin  'data\mz\lava.dat'  
+                BINCLUDE  "data\mz\lava.dat"  
 Mz_Pistons:              ; loc_2A06A:
-                incbin  'data\mz\pistons.dat' 
+                BINCLUDE  "data\mz\pistons.dat" 
 Mz_Drills:               ; loc_2A86A:
-                incbin  'data\mz\drills.dat'                                               
+                BINCLUDE  "data\mz\drills.dat"                                               
 HPz_Dyn_Background:      ; loc_2B06A: Unused - Left over from previous build
-                incbin  'data\hpz\backgnd.dat' 
+                BINCLUDE  "data\hpz\backgnd.dat" 
 HPz_Orbs:                ; loc_2B46A:
-                incbin  'data\hpz\orbs.dat' 
+                BINCLUDE  "data\hpz\orbs.dat" 
 OOz_Red_Balls:           ; loc_2B76A:
-                incbin  'data\ooz\red_ball.dat'  
+                BINCLUDE  "data\ooz\red_ball.dat"  
 OOz_Rotating_Square_1:   ; loc_2B8EA:
-                incbin  'data\ooz\r_squar1.dat'                             
+                BINCLUDE  "data\ooz\r_squar1.dat"                             
 OOz_Rotating_Square_2:   ; loc_2BAEA:
-                incbin  'data\ooz\r_squar2.dat'  
+                BINCLUDE  "data\ooz\r_squar2.dat"  
 OOz_Oil_1:               ; loc_2BCEA:
-                incbin  'data\ooz\oil_1.dat'   
+                BINCLUDE  "data\ooz\oil_1.dat"   
 OOz_Oil_2:               ; loc_2C4EA:
-                incbin  'data\ooz\oil_2.dat'                                 
+                BINCLUDE  "data\ooz\oil_2.dat"                                 
 CPz_Dyn_Background:      ; loc_2CCEA:
-                incbin  'data\cpz\backgnd.dat'  
+                BINCLUDE  "data\cpz\backgnd.dat"  
 NGHz_Water_Falls_1:      ; loc_2CEEA:
-                incbin  'data\nghz\water_f1.dat'                
+                BINCLUDE  "data\nghz\water_f1.dat"                
 NGHz_Water_Falls_2:      ; loc_2CFEA:
-                incbin  'data\nghz\water_f2.dat'                 
+                BINCLUDE  "data\nghz\water_f2.dat"                 
 NGHz_Water_Falls_3:      ; loc_2D0EA:
-                incbin  'data\nghz\water_f3.dat' 
+                BINCLUDE  "data\nghz\water_f3.dat" 
 ;=============================================================================== 
 ; Colision Array
 ; [ Begin ]
 ;===============================================================================                 
 AngleMap: ; loc_2D1EA:  
-		incbin	"collision/Curve and resistance mappings.bin"
+		BINCLUDE	"collision/Curve and resistance mappings.bin"
 Colision_Array_1: ; loc_2D2EA: 
-		incbin	"collision/Collision array 1.bin"
+		BINCLUDE	"collision/Collision array 1.bin"
 Colision_Array_2: ; loc_2E2EA: 
-		incbin	"collision/Collision array 2.bin"
+		BINCLUDE	"collision/Collision array 2.bin"
 ;=============================================================================== 
 ; Colision Array
 ; [ End ]
@@ -43681,33 +43694,33 @@ Colision_Array_2: ; loc_2E2EA:
 ; [ Begin ]
 ;===============================================================================                                          
 Green_Hill_Colision_1:     ; loc_2F2EA:                
-		incbin	"collision/GHZ primary 16x16 collision index.bin"
+		BINCLUDE	"collision/GHZ primary 16x16 collision index.bin"
 Green_Hill_Colision_2:     ; loc_2F5EA:                
-		incbin	"collision/GHZ secondary 16x16 collision index.bin"
+		BINCLUDE	"collision/GHZ secondary 16x16 collision index.bin"
 Wood_Colision:             ; loc_2F8EA:
-                incbin  'data\wz\wz_col.dat' 
+                BINCLUDE  "data\wz\wz_col.dat" 
 Metropolis_Colision:       ; loc_2FBEA:
-                incbin  'data\mz\mz_col.dat' 
+                BINCLUDE  "data\mz\mz_col.dat" 
 Hidden_Palace_Colision_1:  ; loc_2FEEA:                
-                incbin  'data\hpz\hpz_col1.dat'
+                BINCLUDE  "data\hpz\hpz_col1.dat"
 Hidden_Palace_Colision_2:  ; loc_301EA:                
-                incbin  'data\hpz\hpz_col2.dat' 
+                BINCLUDE  "data\hpz\hpz_col2.dat" 
 Oil_Ocean_Colision:        ; loc_304EA:                
-                incbin  'data\ooz\ooz_col.dat' 
+                BINCLUDE  "data\ooz\ooz_col.dat" 
 Dust_Hill_Colision:        ; loc_307EA:                
-                incbin  'data\dhz\dhz_col.dat'  
+                BINCLUDE  "data\dhz\dhz_col.dat"  
 Casino_Night_Colision_1:   ; loc_30AEA:                
-                incbin  'data\cnz\cnz_col1.dat'  
+                BINCLUDE  "data\cnz\cnz_col1.dat"  
 Casino_Night_Colision_2:   ; loc_30DEA:                
-                incbin  'data\cnz\cnz_col2.dat'  
+                BINCLUDE  "data\cnz\cnz_col2.dat"  
 Chemical_Plant_Colision_1: ; loc_310EA:                
-                incbin  'data\cpz\cpz_col1.dat' 
+                BINCLUDE  "data\cpz\cpz_col1.dat" 
 Chemical_Plant_Colision_2: ; loc_313EA:                
-                incbin  'data\cpz\cpz_col2.dat' 
+                BINCLUDE  "data\cpz\cpz_col2.dat" 
 Neo_Green_Hill_Colision_1: ; loc_316EA:                
-                incbin  'data\nghz\nghzcol1.dat'
+                BINCLUDE  "data\nghz\nghzcol1.dat"
 Neo_Green_Hill_Colision_2: ; loc_319EA:                
-                incbin  'data\nghz\nghzcol2.dat'                                                                                                                                                                              
+                BINCLUDE  "data\nghz\nghzcol2.dat"                                                                                                                                                                              
 ;=============================================================================== 
 ; 16x16 Colision Index
 ; [ End ]
@@ -43717,17 +43730,17 @@ Neo_Green_Hill_Colision_2: ; loc_319EA:
 ; [ Begin ]
 ;===============================================================================        
 Special_Stage_1: ; loc_31CEA:
-                IncBin  ".\data\ss\stage_1.eni"  
+                BINCLUDE  ".\data\ss\stage_1.eni"  
 Special_Stage_2: ; loc_31F64:
-                IncBin  ".\data\ss\stage_2.eni"  
+                BINCLUDE  ".\data\ss\stage_2.eni"  
 Special_Stage_3: ; loc_32376:        
-                IncBin  ".\data\ss\stage_3.eni"  
+                BINCLUDE  ".\data\ss\stage_3.eni"  
 Special_Stage_4: ; loc_326D2:
-                IncBin  ".\data\ss\stage_4.eni"  
+                BINCLUDE  ".\data\ss\stage_4.eni"  
 Special_Stage_5: ; loc_32BAC:
-                IncBin  ".\data\ss\stage_5.eni"  
+                BINCLUDE  ".\data\ss\stage_5.eni"  
 Special_Stage_6: ; loc_3305C:
-                IncBin  ".\data\ss\stage_6.eni"                                                               
+                BINCLUDE  ".\data\ss\stage_6.eni"                                                               
 ;=============================================================================== 
 ; Special Stage Layout
 ; [ End ]
@@ -43772,47 +43785,47 @@ Level_Layout: ; loc_3334E:
                 dc.w    Null_Layout_6-Level_Layout,Null_Layout_6-Level_Layout ; $1000
                 dc.w    Null_Layout_6-Level_Layout,Null_Layout_6-Level_Layout ; $1001                     
 Ghz_1_Foreground:  ; loc_333D6:               
-		incbin	"level/layout/GHZ_1.bin"
+		BINCLUDE	"level/layout/GHZ_1.bin"
 Ghz_2_Foreground:  ; loc_33BD8:                
-		incbin	"level/layout/GHZ_2.bin"
+		BINCLUDE	"level/layout/GHZ_2.bin"
 
 Ghz_Background:    ; loc_343DA:            
-		incbin	"level/layout/GHZ_BG.bin"
+		BINCLUDE	"level/layout/GHZ_BG.bin"
 Null_Layout_1:     ; loc_343E4:             
                 dc.b    $00, $00, $00, $00                  
 Wz_1_Foreground:   ; loc_343E8:           
-                incbin  'data\wz\foreact1.dat'
+                BINCLUDE  "data\wz\foreact1.dat"
 Wz_2_Foreground:   ; loc_34BEA: 
-                incbin  'data\wz\foreact2.dat'
+                BINCLUDE  "data\wz\foreact2.dat"
 Wz_1_Background:   ; loc_353EC: 
-                incbin  'data\wz\backact1.dat'   
+                BINCLUDE  "data\wz\backact1.dat"   
 Wz_2_Background:   ; loc_35BEE:  
-                incbin  'data\wz\backact2.dat'
+                BINCLUDE  "data\wz\backact2.dat"
 Null_Layout_2:     ; loc_363F0:             
                 dc.b    $00, $00, $00, $00                  
 Mz_1_Foreground:   ; loc_363F4: 
-                incbin  'data\mz\foreact1.dat'                                    
+                BINCLUDE  "data\mz\foreact1.dat"                                    
 Mz_2_Foreground:   ; loc_36BF6: 
-                incbin  'data\mz\foreact2.dat'   
+                BINCLUDE  "data\mz\foreact2.dat"   
 Mz_Background:     ; loc_373F8:            
                 dc.b    $05, $05 ; x / y
                 dc.b    $60, $61, $62, $63, $64, $F2, $70, $71, $72, $73, $74, $60, $E0, $E1, $E2, $E3
                 dc.b    $E4, $70, $F0, $F1, $F2, $F3, $F4, $E2, $62, $61, $60, $63, $64, $62, $72, $71
                 dc.b    $70, $73, $74, $72                
 Mz_3_Foreground:   ; loc_3741E:  
-                incbin  'data\mz\foreact3.dat'               
+                BINCLUDE  "data\mz\foreact3.dat"               
 Null_Layout_3:     ; loc_37C20:            
                 dc.b    $00, $00, $00, $00                                                
 Htz_1_Foreground:  ; loc_37C24: 
-                incbin  'data\htz\foreact1.dat'
+                BINCLUDE  "data\htz\foreact1.dat"
 Htz_2_Foreground:  ; loc_38426:  
-                incbin  'data\htz\foreact2.dat'              
+                BINCLUDE  "data\htz\foreact2.dat"              
 Htz_1_Background:  ; loc_38C28:              
-                incbin  'data\htz\backact1.dat'                                 
+                BINCLUDE  "data\htz\backact1.dat"                                 
 Htz_2_Background:  ; loc_3942A:               
-                incbin  'data\htz\backact2.dat'                              
+                BINCLUDE  "data\htz\backact2.dat"                              
 Hpz_Foreground:    ; loc_39C2C:  
-                incbin  'data\hpz\foreact1.dat'                   
+                BINCLUDE  "data\hpz\foreact1.dat"                   
 Hpz_Background:    ; loc_3942E:                             
                 dc.b    $07, $08 ; x / y
                 dc.b    $A3, $A3, $A3, $A3, $A3, $A3, $A3, $A3, $A0, $A1, $A0, $A1, $A0, $A1, $A0, $A1
@@ -43823,33 +43836,33 @@ Hpz_Background:    ; loc_3942E:
 Null_Layout_4:     ; loc_3A478:            
                 dc.b    $00, $00, $00, $00                                          
 OOz_1_Foreground:  ; loc_3A47C:  
-                incbin  'data\ooz\foreact1.dat'                        
+                BINCLUDE  "data\ooz\foreact1.dat"                        
 OOz_2_Foreground:  ; loc_3AC7E:   
-                incbin  'data\ooz\foreact2.dat'                         
+                BINCLUDE  "data\ooz\foreact2.dat"                         
 OOz_Background:    ; loc_3B480:             
                 dc.b    $05, $03  ; x / y
                 dc.b    $00, $00, $00, $00, $00, $00, $02, $4F, $02, $1F, $02, $1F, $49, $4A, $4B, $23
                 dc.b    $54, $6C, $4C, $4D, $4E, $32, $5A, $74                  
 Dhz_1_Foreground:  ; loc_3B49A:  
-                incbin  'data\dhz\foreact1.dat'                
+                BINCLUDE  "data\dhz\foreact1.dat"                
 Dhz_2_Foreground:  ; loc_3BC9C:               
-                incbin  'data\dhz\foreact2.dat'                
+                BINCLUDE  "data\dhz\foreact2.dat"                
 Dhz_Background:    ; loc_3C49E:              
                 dc.b    $03, $03 ; x / y
                 dc.b    $58, $5C, $63, $64, $65, $66, $6E, $6F, $73, $80, $86, $A3, $B0, $E7, $E8, $E9   
 Cnz_1_Foreground:  ; loc_3C4B0:  
-                incbin  'data\cnz\foreact1.dat' 
+                BINCLUDE  "data\cnz\foreact1.dat" 
 Cnz_2_Foreground:  ; loc_3CCB2:          
-                incbin  'data\cnz\foreact2.dat'
+                BINCLUDE  "data\cnz\foreact2.dat"
 Cnz_1_Background:  ; loc_3D4B4:
-                incbin  'data\cnz\backact1.dat' 
+                BINCLUDE  "data\cnz\backact1.dat" 
 Cnz_2_Background:  ; loc_3DCB6: 
                 dc.b    $03, $01 ; x / y
                 dc.b    $8B, $8C, $8D, $8E, $8F, $90, $91, $92
 Cpz_1_Foreground:  ; loc_3DCC0:  
-                incbin  'data\cpz\foreact1.dat'                
+                BINCLUDE  "data\cpz\foreact1.dat"                
 Cpz_2_Foreground:  ; loc_3E4C2: 
-                incbin  'data\cpz\foreact2.dat'                
+                BINCLUDE  "data\cpz\foreact2.dat"                
 Cpz_Background:    ; loc_3ECC4: 
                 dc.b    $05, $06 ; x / y
                 dc.b    $A0, $A1, $A2, $00, $A4, $A5, $B0, $B1, $B2, $B3, $B4, $B5, $C0, $C1, $C2, $C3
@@ -43858,13 +43871,13 @@ Cpz_Background:    ; loc_3ECC4:
 Null_Layout_5:     ; loc_3ECF0:            
                 dc.b    $00, $00, $00, $00      
 Nghz_1_Foreground: ; loc_3ECF4:    
-                incbin  'data\nghz\foreact1.dat'                
+                BINCLUDE  "data\nghz\foreact1.dat"                
 Nghz_2_Foreground: ; loc_3F4F6: 
-                incbin  'data\nghz\foreact2.dat'                 
+                BINCLUDE  "data\nghz\foreact2.dat"                 
 Nghz_1_Background: ; loc_3ECF8:  
-                incbin  'data\nghz\backact1.dat'                 
+                BINCLUDE  "data\nghz\backact1.dat"                 
 Nghz_2_Background: ; loc_404FA:  
-                incbin  'data\nghz\backact2.dat'                            
+                BINCLUDE  "data\nghz\backact2.dat"                            
 Null_Layout_6:     ; loc_40CFC:             
                 dc.b    $00, $00, $00, $00    
 ;=============================================================================== 
@@ -43872,17 +43885,17 @@ Null_Layout_6:     ; loc_40CFC:
 ; [ End ]
 ;===============================================================================                    
 loc_40D00: ; Big Ring - Left Over from Sonic 1                
-                incbin  'data\sprites\bigring.dat'
+                BINCLUDE  "data\sprites\bigring.dat"
 loc_41940: ; Neo Green Hill Foreground Act 2 overwrite by Big Ring- Left Over from previous build ???                 
-                incbin  'data\nghz\fgunused.dat'  
+                BINCLUDE  "data\nghz\fgunused.dat"  
 loc_41B72: ; Neo Green Hill Background Act 1 - Left Over from previous build ???                 
-                incbin  'data\nghz\backact1.dat'                                
+                BINCLUDE  "data\nghz\backact1.dat"                                
 loc_42374: ; Neo Green Hill Background Act 2 - Left Over from previous build ???                 
-                incbin  'data\nghz\bgunused.dat'  
+                BINCLUDE  "data\nghz\bgunused.dat"  
 loc_42B76: ; Filler for Null Level Layout - Left Over from previous build ???                                
                 dc.b    $00, $00, $00, $00                                    
 loc_42B7A: ; Another Big Ring - Left Over from Sonic 1  
-                incbin  'data\sprites\bigring.dat'       
+                BINCLUDE  "data\sprites\bigring.dat"       
 Unknow_Pallete_0x0437BA: ; loc_437BA:
                 dc.w    $0000, $0262, $02A4, $04E8, $0000, $0EEE                
 Unknow_Data_0x0437C6: ; loc_437C6:
@@ -44067,41 +44080,41 @@ Objects_Layout: ; loc_44000:
 
 	; These things act as boundaries for the object layout parser, so it doesn't read past the end/beginning of the file
 	ObjectLayoutBoundary
-Ghz_1_Objects_Layout:	incbin	"level/objects/GHZ_1.bin"
+Ghz_1_Objects_Layout:	BINCLUDE	"level/objects/GHZ_1.bin"
 	ObjectLayoutBoundary
-Ghz_2_Objects_Layout:	incbin	"level/objects/GHZ_2.bin"
+Ghz_2_Objects_Layout:	BINCLUDE	"level/objects/GHZ_2.bin"
 	ObjectLayoutBoundary
 Mz_1_Objects_Layout:   ; loc_445C0:
-                incbin  'data\mz\obj_act1.dat'
+                BINCLUDE  "data\mz\obj_act1.dat"
 Mz_2_Objects_Layout:   ; loc_4488A:
-                incbin  'data\mz\obj_act2.dat'
+                BINCLUDE  "data\mz\obj_act2.dat"
 Mz_3_Objects_Layout:   ; loc_44B30:
-                incbin  'data\mz\obj_act3.dat'
+                BINCLUDE  "data\mz\obj_act3.dat"
 Htz_1_Objects_Layout:  ; loc_44EFC:
-                incbin  'data\htz\obj_act1.dat'
+                BINCLUDE  "data\htz\obj_act1.dat"
 Htz_2_Objects_Layout:  ; loc_45130:
-                incbin  'data\htz\obj_act2.dat'
+                BINCLUDE  "data\htz\obj_act2.dat"
 Hpz_1_Objects_Layout:  ; loc_4554A:
-                incbin  'data\hpz\obj_act1.dat'
+                BINCLUDE  "data\hpz\obj_act1.dat"
 Hpz_2_Objects_Layout:  ; loc_45652:
                 dc.w    $FFFF, $0000, $0000 
                 dc.w    $FFFF, $0000, $0000 
 OOz_1_Objects_Layout:  ; loc_4565E: 
-                incbin  'data\ooz\obj_act1.dat'
+                BINCLUDE  "data\ooz\obj_act1.dat"
 OOz_2_Objects_Layout:  ; loc_457C0:
-                incbin  'data\ooz\obj_act2.dat'
+                BINCLUDE  "data\ooz\obj_act2.dat"
 Dhz_1_Objects_Layout:  ; loc_459AC:
-                incbin  'data\dhz\obj_act1.dat'
+                BINCLUDE  "data\dhz\obj_act1.dat"
 Dhz_2_Objects_Layout:  ; loc_45A24:
                 dc.w    $FFFF, $0000, $0000 
 Cpz_1_Objects_Layout:  ; loc_45A2A:
-                incbin  'data\cpz\obj_act1.dat'
+                BINCLUDE  "data\cpz\obj_act1.dat"
 Cpz_2_Objects_Layout:  ; loc_45CC4:
-                incbin  'data\cpz\obj_act2.dat'
+                BINCLUDE  "data\cpz\obj_act2.dat"
 Nghz_1_Objects_Layout: ; loc_4605A:
-                incbin  'data\nghz\obj_act1.dat'
+                BINCLUDE  "data\nghz\obj_act1.dat"
 Nghz_2_Objects_Layout: ; loc_46216:
-                incbin  'data\nghz\obj_act2.dat'
+                BINCLUDE  "data\nghz\obj_act2.dat"
 Null_Objects_Layout:   ; loc_46348:
                 dc.w    $FFFF, $0000, $0000 
 ;=============================================================================== 
@@ -44595,8 +44608,8 @@ Rings_Layout: ; loc_48000:
                 dc.w    GCz_1_Rings_Layout-Rings_Layout, GCz_2_Rings_Layout-Rings_Layout
                 dc.w    NGHz_1_Rings_Layout-Rings_Layout, NGHz_2_Rings_Layout-Rings_Layout 
                 dc.w    DEz_1_Rings_Layout-Rings_Layout, DEz_2_Rings_Layout-Rings_Layout
-Ghz_1_Rings_Layout:	incbin	"level/rings/GHZ_1.bin"
-Ghz_2_Rings_Layout:	incbin	"level/rings/GHZ_2.bin"
+Ghz_1_Rings_Layout:	BINCLUDE	"level/rings/GHZ_1.bin"
+Ghz_2_Rings_Layout:	BINCLUDE	"level/rings/GHZ_2.bin"
 Id_0100_Rings_Layout: ; loc_483DC:                                   
                 dc.w    $FFFF            
 Id_0101_Rings_Layout: ; loc_483DE:                                   
@@ -44622,11 +44635,11 @@ Id_0600_Rings_Layout: ; loc_483F0:
 Id_0601_Rings_Layout: ; loc_483F2:                                 
                 dc.w    $FFFF                
 Htz_1_Rings_Layout:   ; loc_483F4:             
-                incbin  'data\htz\rng_act1.dat'             
+                BINCLUDE  "data\htz\rng_act1.dat"             
 Htz_2_Rings_Layout:   ; loc_484EA:                
-                incbin  'data\htz\rng_act2.dat' 
+                BINCLUDE  "data\htz\rng_act2.dat" 
 Hpz_1_Rings_Layout:   ; loc_48654:             
-                incbin  'data\hpz\rng_act1.dat'            
+                BINCLUDE  "data\hpz\rng_act1.dat"            
 Hpz_2_Rings_Layout:   ; loc_487C6:                 
                 dc.w    $FFFF                                              
 Id_0900_Rings_Layout: ; loc_487C8:                                   
@@ -44634,9 +44647,9 @@ Id_0900_Rings_Layout: ; loc_487C8:
 Id_0901_Rings_Layout: ; loc_487CA:                                 
                 dc.w    $FFFF                                            
 OOz_1_Rings_Layout:   ; loc_487CC:               
-                incbin  'data\ooz\rng_act1.dat'      
+                BINCLUDE  "data\ooz\rng_act1.dat"      
 OOz_2_Rings_Layout:   ; loc_4889E:             
-                incbin  'data\ooz\rng_act2.dat'                
+                BINCLUDE  "data\ooz\rng_act2.dat"                
 DHz_1_Rings_Layout:   ; loc_48968:               
                 dc.w    $FFFF     
 DHz_2_Rings_Layout:   ; loc_4896A:               
@@ -44646,17 +44659,17 @@ CNz_1_Rings_Layout:   ; loc_4896C:
 CNz_2_Rings_Layout:   ; loc_4896E:                
                 dc.w    $FFFF                
 CPz_1_Rings_Layout:   ; loc_48970:               
-                incbin  'data\cpz\rng_act1.dat'                                               
+                BINCLUDE  "data\cpz\rng_act1.dat"                                               
 CPz_2_Rings_Layout:   ; loc_48A3E:                
-                incbin  'data\cpz\rng_act2.dat'             
+                BINCLUDE  "data\cpz\rng_act2.dat"             
 GCz_1_Rings_Layout:   ; loc_48B94:                
                 dc.w    $FFFF    
 GCz_2_Rings_Layout:   ; loc_48B96:                
                 dc.w    $FFFF               
 NGHz_1_Rings_Layout:  ; loc_48B98:                
-                incbin  'data\nghz\rng_act1.dat'                                               
+                BINCLUDE  "data\nghz\rng_act1.dat"                                               
 NGHz_2_Rings_Layout:  ; loc_48C76:                
-                incbin  'data\nghz\rng_act2.dat'  
+                BINCLUDE  "data\nghz\rng_act2.dat"  
 DEz_1_Rings_Layout:   ; loc_48DB0:              
                 dc.w    $FFFF    
 DEz_2_Rings_Layout:   ; loc_48DB2:               
@@ -45335,7 +45348,7 @@ Unknow_Data_0x048DB4: ; loc_48DB4:
                 dc.b    $03, $04, $03, $01, $03, $01, $03, $04, $03, $01, $03, $01, $03, $04, $0B, $08
                 dc.b    $09, $0A, $84, $E9, $00, $0D, $00, $00
 Rock_Splashing: ; loc_4B76C: 
-                incbin  'data\sprites\rockspsh.dat'                                
+                BINCLUDE  "data\sprites\rockspsh.dat"                                
 Unknow_Palett_0x04BAAC: ; loc_4BAAC:
                 dc.w    $0000, $0A20, $0666, $0888, $0CAA, $0ECC, $0246, $0008
                 dc.w    $000E, $046A, $068C, $08CE, $0E22, $0E62, $0000, $0EEE
@@ -46071,9 +46084,9 @@ Unknow_Data_0x04BC4C: ; loc_4BC4C:
                 dc.b    $01, $06, $07, $01, $06, $07, $01, $06, $07, $01, $06, $07, $01, $06, $07, $01
                 dc.b    $06, $07, $01, $06, $07, $14, $15, $13, $14, $85, $9E, $00, $00, $10, $CB, $BB                
 Fire_In_Bowl: ; loc_4E86C:
-                incbin  'data\sprites\firebowl.dat'  
+                BINCLUDE  "data\sprites\firebowl.dat"  
 Filler_1: ; loc_4EC6C: ; Filler
-                cnop    $000000, $04EE00
+		org $4EE00
 Unknow_Data_0x04EE00: ; loc_4EE00:
                 dc.b    $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
                 dc.b    $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
@@ -46302,26 +46315,26 @@ Unknow_Data_0x04EE00: ; loc_4EE00:
 ; Patterns for Sonic  ; ArtUnc_50000:
 ;---------------------------------------------------------------------------------------
 	align $20
-ArtUnc_Sonic:	incbin	"art/uncompressed/Sonic's art.bin"
+ArtUnc_Sonic:	BINCLUDE	"art/uncompressed/Sonic's art.bin"
 ;--------------------------------------------------------------------------------------
 ; Sprite Mappings
 ; Sonic			; MapUnc_614C0: Sonic_Mappings:
 ;--------------------------------------------------------------------------------------
-MapUnc_Sonic:	incbin	"mappings/sprite/Sonic.bin"
+MapUnc_Sonic:	BINCLUDE	"mappings/sprite/Sonic.bin"
 Tails_Sprites: ; loc_6254C:
-                incbin  'data\sprites\tails.dat'              
+                BINCLUDE  "data\sprites\tails.dat"              
 ;--------------------------------------------------------------------------------------
 ; Sprite Dynamic Pattern Reloading
 ; Sonic DPLCs   		; MapRUnc_6DA4C: Sonic_Dyn_Script:
 ;--------------------------------------------------------------------------------------
-MapRUnc_Sonic:	incbin	"mappings/spriteDPLC/Sonic.bin"
+MapRUnc_Sonic:	BINCLUDE	"mappings/spriteDPLC/Sonic.bin"
 
 Shield: ; loc_6DF8E:
-                incbin  'data\sprites\shield.nem'  
+                BINCLUDE  "data\sprites\shield.nem"  
 Invencibility_Stars: ; loc_6E114:                              
-                incbin  'data\sprites\invstars.nem'  
+                BINCLUDE  "data\sprites\invstars.nem"  
 Unused_Dust: ; loc_6E1FC:   
-                incbin  'data\sprites\dust.dat'                 
+                BINCLUDE  "data\sprites\dust.dat"                 
 Tails_Mappings: ; loc_6FB3C: 
                 dc.w    loc_6FC46-Tails_Mappings
                 dc.w    loc_6FC48-Tails_Mappings
@@ -47402,370 +47415,370 @@ loc_7095A:
                 dc.w    $0002
                 dc.w    $759C, $35A4                             
 SegaLogo: ; loc_70960:                
-                incbin  'data\sprites\sega.nem'
+                BINCLUDE  "data\sprites\sega.nem"
 SegaLogo_Mappings: ; loc_70DD0:
-                incbin  'data\all\sega.eni'
+                BINCLUDE  "data\all\sega.eni"
 TS_Wings_MapUnc_Sonic: ; loc_70ECC: 
-                incbin  'data\all\titlescr.eni'
+                BINCLUDE  "data\all\titlescr.eni"
 Title_Screen_Bg_Mappings: ; loc_71024:
-                incbin  'data\all\titscrbg.eni'
+                BINCLUDE  "data\all\titscrbg.eni"
 Title_Screen_R_Bg_Mappings: ; loc_712D8:                
-                incbin  'data\all\titscrb2.eni'
+                BINCLUDE  "data\all\titscrb2.eni"
 Title_Screen_Bg_Wings: ; loc_71520: 
-                incbin  'data\sprites\titlescr.nem' ; Title Screen Wings and background
+                BINCLUDE  "data\sprites\titlescr.nem" ; Title Screen Wings and background
 Title_Screen_Sonic_Tails: ; loc_72E82: 
-                incbin  'data\sprites\sontascr.nem' ; Sonic And Tails in Title Screen  
+                BINCLUDE  "data\sprites\sontascr.nem" ; Sonic And Tails in Title Screen  
 FireBall: ; loc_739C6:                 
-                incbin  'data\sprites\fireball.nem'
+                BINCLUDE  "data\sprites\fireball.nem"
 Ghz_Waterfall: ; loc_73B3C:  
-                incbin  'data\ghz\watrfall.nem'  
+                BINCLUDE  "data\ghz\watrfall.nem"  
 Htz_Lava_Bubble: ; loc_73C42:   
-                incbin  'data\htz\lvbubble.nem'              
+                BINCLUDE  "data\htz\lvbubble.nem"              
 Ghz_Bridge: ; loc_73D90: 
-                incbin  'data\ghz\bridge.nem'                  
+                BINCLUDE  "data\ghz\bridge.nem"                  
 Htz_Teleferic:  ; loc_73E68: 
-                incbin  'data\htz\telefrcs.nem' 
+                BINCLUDE  "data\htz\telefrcs.nem" 
 Htz_Automatic_Door: ; loc_7415C: 
-                incbin  'data\htz\autodoor.nem' 
+                BINCLUDE  "data\htz\autodoor.nem" 
 Htz_See_saw: ; loc_741D4: 
-                incbin  'data\htz\see-saw.nem'
+                BINCLUDE  "data\htz\see-saw.nem"
 Fireball_1: ; loc_7436C: 
-                incbin  'data\sprites\firebal1.nem'                
+                BINCLUDE  "data\sprites\firebal1.nem"                
 Htz_Rock:; loc_7447A: 
-                incbin  'data\htz\rock.nem'             
+                BINCLUDE  "data\htz\rock.nem"             
 Htz_See_saw_badnick: ; loc_745B0: 
-                incbin  'data\htz\see-sawb.nem' 
+                BINCLUDE  "data\htz\see-sawb.nem" 
 Mz_Rotating_Gear: ; loc_7461C:      
-                incbin  'data\mz\gear.nem'   
+                BINCLUDE  "data\mz\gear.nem"   
 Mz_Machine_Ball: ; loc_74A74: 
-                incbin  'data\mz\m_ball.nem'  
+                BINCLUDE  "data\mz\m_ball.nem"  
 Mz_Block: ; loc_74B1C:     
-                incbin  'data\mz\block.nem'  
+                BINCLUDE  "data\mz\block.nem"  
 Mz_Steam: ; loc_74BEA:  
-                incbin  'data\mz\steam.nem'                 
+                BINCLUDE  "data\mz\steam.nem"                 
 Mz_Harpoon: ; loc_74CF4:     
-                incbin  'data\mz\harpoon.nem'  
+                BINCLUDE  "data\mz\harpoon.nem"  
 Mz_Screw_Nut: ; loc_74DB6:  
-                incbin  'data\mz\screwnut.nem'                                                            
+                BINCLUDE  "data\mz\screwnut.nem"                                                            
 Mz_Lava_Bubble: ; loc_74E2C:   
-                incbin  'data\mz\lvbubble.nem' 
+                BINCLUDE  "data\mz\lvbubble.nem" 
 loc_74EE2:  
-                incbin  'data\mz\0x074EE2.nem'                  
+                BINCLUDE  "data\mz\0x074EE2.nem"                  
 Mz_Parallelogram_Elevator: ; loc_74F52:  
-                incbin  'data\mz\parallel.nem' 
+                BINCLUDE  "data\mz\parallel.nem" 
 loc_751FE:  
-                incbin  'data\mz\0x0751FE.nem'  
+                BINCLUDE  "data\mz\0x0751FE.nem"  
 Mz_Mini_Gear: ; loc_752A0:  
-                incbin  'data\mz\minigear.nem'                                 
+                BINCLUDE  "data\mz\minigear.nem"                                 
 Mz_Teleport: ; Mz_Four_Block: ; loc_75382:                 
                 dc.b    $00, $04, $86, $71, $00, $FF, $00, $00, $00, $00, $00, $00                                 
 Hpz_Bridge: ; loc_7538E: 
-                incbin  'data\hpz\bridge.nem'
+                BINCLUDE  "data\hpz\bridge.nem"
 Hpz_Waterfall: ; loc_75506: 
-                incbin  'data\hpz\watrfall.nem'               
+                BINCLUDE  "data\hpz\watrfall.nem"               
 Hpz_Emerald: ; loc_75868: 
-                incbin  'data\hpz\emerald.nem'                                 
+                BINCLUDE  "data\hpz\emerald.nem"                                 
 Hpz_Platform: ; loc_75ADA: 
-                incbin  'data\hpz\platform.nem'               
+                BINCLUDE  "data\hpz\platform.nem"               
 Hpz_Orbs_Comp: ; loc_75B9A: ; Compressed 
-                incbin  'data\hpz\orbs.nem'                
+                BINCLUDE  "data\hpz\orbs.nem"                
 Hpz_Unknow_Platform: ; loc_75DD6: 
-                incbin  'data\hpz\unkptfm.nem'  
+                BINCLUDE  "data\hpz\unkptfm.nem"  
 OOz_Elevator: ; loc_75F70:  
-                incbin  'data\ooz\elevator.nem' 
+                BINCLUDE  "data\ooz\elevator.nem" 
 OOz_Giant_Spikeball: ; loc_76060:  
-                incbin  'data\ooz\gspkball.nem'   
+                BINCLUDE  "data\ooz\gspkball.nem"   
 OOz_Touch_Boost_Up: ; loc_76258:  
-                incbin  'data\ooz\boost_up.nem'   
+                BINCLUDE  "data\ooz\boost_up.nem"   
 OOz_Break_Boost: ; loc_762EE:  
-                incbin  'data\ooz\brkboost.nem'                    
+                BINCLUDE  "data\ooz\brkboost.nem"                    
 OOz_Oil: ; loc_7635A:  
-                incbin  'data\ooz\oil.nem' 
+                BINCLUDE  "data\ooz\oil.nem" 
 OOz_Tube_Oil: ; loc_764D6:  
-                incbin  'data\ooz\tube_oil.nem'   
+                BINCLUDE  "data\ooz\tube_oil.nem"   
 OOz_Ball: ; loc_76602:  
-                incbin  'data\ooz\ball.nem'     
+                BINCLUDE  "data\ooz\ball.nem"     
 OOz_Cannon: ; loc_76722:  
-                incbin  'data\ooz\cannon.nem'  
+                BINCLUDE  "data\ooz\cannon.nem"  
 OOz_Collapsing_Platform: ; loc_76A12:  
-                incbin  'data\ooz\platform.nem'  
+                BINCLUDE  "data\ooz\platform.nem"  
 OOz_Spring_Push_Boost: ; loc_76CA6:   
-                incbin  'data\ooz\spngpush.nem'  
+                BINCLUDE  "data\ooz\spngpush.nem"  
 OOz_Swing_Platform: ; loc_76E68:   
-                incbin  'data\ooz\swngptfm.nem' 
+                BINCLUDE  "data\ooz\swngptfm.nem" 
 Dhz_Box: ; loc_7708A:   
-                incbin  'data\dhz\box.nem' 
+                BINCLUDE  "data\dhz\box.nem" 
 Dhz_Collapsing_Platform: ; loc_772C8:   
-                incbin  'data\dhz\clp_ptfm.nem' 
+                BINCLUDE  "data\dhz\clp_ptfm.nem" 
 Dhz_Vines: ; loc_77472:   
-                incbin  'data\dhz\vines.nem' 
+                BINCLUDE  "data\dhz\vines.nem" 
 Dhz_Vines_1: ; loc_7756A:   
-                incbin  'data\dhz\vines_1.nem'  
+                BINCLUDE  "data\dhz\vines_1.nem"  
 Dhz_Bridge: ; loc_77614:   
-                incbin  'data\dhz\bridge.nem' 
+                BINCLUDE  "data\dhz\bridge.nem" 
 Cpz_Elevator: ; loc_77684:      
-                incbin  'data\cpz\elevator.nem'                                                                                                                                                                                                                                      
+                BINCLUDE  "data\cpz\elevator.nem"                                                                                                                                                                                                                                      
 Water_Surface: ; loc_777D2: 
-                incbin  'data\sprites\watrsurf.nem'  
+                BINCLUDE  "data\sprites\watrsurf.nem"  
 Cpz_Speed_Booster: ; loc_77942:      
-                incbin  'data\cpz\speedbst.nem' 
+                BINCLUDE  "data\cpz\speedbst.nem" 
 Cpz_Worms: ; loc_779AA:      
-                incbin  'data\cpz\worms.nem'                                 
+                BINCLUDE  "data\cpz\worms.nem"                                 
 Cpz_Metal_Structure: ; loc_77A1C:      
-                incbin  'data\cpz\metal_st.nem' 
+                BINCLUDE  "data\cpz\metal_st.nem" 
 loc_77C26:      
-                incbin  'data\cpz\0x077C26.nem'                
+                BINCLUDE  "data\cpz\0x077C26.nem"                
 Cpz_Automatic_Door: ; loc_77C66:      
-                incbin  'data\cpz\autodoor.nem' 
+                BINCLUDE  "data\cpz\autodoor.nem" 
 Cpz_Open_Close_Platform: ; loc_77CD2:      
-                incbin  'data\cpz\oc_ptfrm.nem'   
+                BINCLUDE  "data\cpz\oc_ptfrm.nem"   
 Cpz_Platforms: ; loc_77EB4:      
-                incbin  'data\cpz\platform.nem'                   
+                BINCLUDE  "data\cpz\platform.nem"                   
 Cpz_Spring_Tubes: ; loc_78074:      
-                incbin  'data\cpz\spgtubes.nem' 
+                BINCLUDE  "data\cpz\spgtubes.nem" 
 Nghz_Water_Surface: ; loc_78270:      
-                incbin  'data\nghz\watrsurf.nem'   
+                BINCLUDE  "data\nghz\watrsurf.nem"   
 Nghz_Leaves: ; loc_78356:     
-                incbin  'data\nghz\leaves.nem'                                                 
+                BINCLUDE  "data\nghz\leaves.nem"                                                 
 Nghz_Arrow_Shooter: ; loc_783E2:                                  
-                incbin  'data\nghz\arrow_s.nem' 
+                BINCLUDE  "data\nghz\arrow_s.nem" 
 Nghz_Water_Splash: ; loc_78540:                                  
-                incbin  'data\nghz\w_splash.nem'                                                             
+                BINCLUDE  "data\nghz\w_splash.nem"                                                             
 Switch: ; loc_78580:      
-                incbin  'data\sprites\switch.nem'   
+                BINCLUDE  "data\sprites\switch.nem"   
 Vertical_Spring: ; loc_78658: 
-                incbin  'data\sprites\v_spring.nem' 
+                BINCLUDE  "data\sprites\v_spring.nem" 
 Horizontal_Spring: ; loc_78774: 
-                incbin  'data\sprites\h_spring.nem'                       
+                BINCLUDE  "data\sprites\h_spring.nem"                       
 Diagonal_Spring: ; loc_7883E: 
-                incbin  'data\sprites\d_spring.nem'                   
+                BINCLUDE  "data\sprites\d_spring.nem"                   
 Head_up_display_Sprites: ; loc_78A12: 
-                incbin  'data\sprites\hud.nem' ; Head-up display  
+                BINCLUDE  "data\sprites\hud.nem" ; Head-up display  
 Head_up_display_Sonic: ; loc_78B1A:
-		incbin	"art/nemesis/Sonic lives counter.bin"
+		BINCLUDE	"art/nemesis/Sonic lives counter.bin"
 ; --------------------------------------------------------------------------------------
 ; Nemesis compressed art (14 blocks)
 ; Ring				ArtNem_78C30: Rings:
 		even
-ArtNem_Ring:	incbin	"art/nemesis/Ring.bin"
+ArtNem_Ring:	BINCLUDE	"art/nemesis/Ring.bin"
 ; --------------------------------------------------------------------------------------
 ; Nemesis compressed art (14 blocks)
 ; Ring				ArtNem_78D24: Monitors:
 		even
-ArtNem_Powerups:	incbin	"art/nemesis/Monitor and contents.bin"
+ArtNem_Powerups:	BINCLUDE	"art/nemesis/Monitor and contents.bin"
 
 Spikes: ; loc_7914E:                
-                incbin  'data\sprites\spikes.nem' 
+                BINCLUDE  "data\sprites\spikes.nem" 
 Enemy_Points_Spr: ; loc_7919E:
-                incbin  'data\sprites\points.nem'                                               
+                BINCLUDE  "data\sprites\points.nem"                                               
 Lamp_Post: ; loc_79278:                
-                incbin  'data\sprites\lamppost.nem' 
+                BINCLUDE  "data\sprites\lamppost.nem" 
 End_Panel: ; loc_7931E:  
-                incbin  'data\sprites\endpanel.nem' 
+                BINCLUDE  "data\sprites\endpanel.nem" 
 Diagonal_Spring_1: ; loc_798F4:                
-                incbin  'data\sprites\dspring1.nem'                 
+                BINCLUDE  "data\sprites\dspring1.nem"                 
 Dhz_Horizontal_Spikes: ; loc_79A44:                
-                incbin  'data\dhz\h_spikes.nem' 
+                BINCLUDE  "data\dhz\h_spikes.nem" 
 Air_Bubbles_Numbers: ; loc_79AC0: 
-                incbin  'data\sprites\airbubls.nem'                     
+                BINCLUDE  "data\sprites\airbubls.nem"                     
 Hpz_Crocobot: ; loc_7A11A: 
-                incbin  'data\hpz\Crocobot.nem' 
+                BINCLUDE  "data\hpz\Crocobot.nem" 
 Ghz_Buzzer_Bomber: ; loc_7A4BC: 
-                incbin  'data\ghz\buzzbomb.nem'                  
+                BINCLUDE  "data\ghz\buzzbomb.nem"                  
 Hpz_Batbot: ; loc_7A6A2: 
-                incbin  'data\hpz\batbot.nem' 
+                BINCLUDE  "data\hpz\batbot.nem" 
 OOz_Octus: ; loc_7A9F8: 
-                incbin  'data\ooz\octus.nem'                 
+                BINCLUDE  "data\ooz\octus.nem"                 
 Hpz_Rhinobot: ; loc_7AD18: 
-                incbin  'data\hpz\rhinobot.nem'                                 
+                BINCLUDE  "data\hpz\rhinobot.nem"                                 
 Hpz_Dinobot: ; loc_7B114: 
-                incbin  'data\hpz\dinobot.nem'                  
+                BINCLUDE  "data\hpz\dinobot.nem"                  
 Hpz_Piranha: ; loc_7B4EA: 
-                incbin  'data\hpz\piranha.nem'  
+                BINCLUDE  "data\hpz\piranha.nem"  
 OOz_Aquis: ; loc_7B9E2: 
-                incbin  'data\ooz\aquis.nem' 
+                BINCLUDE  "data\ooz\aquis.nem" 
 Spinning_Ball: ; loc_7BE30: 
-                incbin  'data\sprites\spinball.nem'   
+                BINCLUDE  "data\sprites\spinball.nem"   
 Blink: ; loc_7C0C6: 
-                incbin  'data\sprites\blink.nem'    
+                BINCLUDE  "data\sprites\blink.nem"    
 Bubble_Monster: ; loc_7C2F2: 
-                incbin  'data\sprites\bmonster.nem'                                                                 
+                BINCLUDE  "data\sprites\bmonster.nem"                                                                 
 Ghz_Motobug: ; loc_7C514: 
-                incbin  'data\ghz\motobug.nem'                   
+                BINCLUDE  "data\ghz\motobug.nem"                   
 Crawl: ; loc_7C710: 
-                incbin  'data\cnz\crawl.nem'                
+                BINCLUDE  "data\cnz\crawl.nem"                
 Ghz_Chopper: ; loc_7CA92: 
-                incbin  'data\ghz\chopper.nem'
+                BINCLUDE  "data\ghz\chopper.nem"
 Robotnik_Ship: ; loc_7CC9E: 
-                incbin  'data\sprites\robotnik.nem'  
+                BINCLUDE  "data\sprites\robotnik.nem"  
 Cpz_Boss: ; loc_7D3DA: 
-                incbin  'data\cpz\boss.nem' 
+                BINCLUDE  "data\cpz\boss.nem" 
 Boss_Explosions: ; loc_7D938: 
-                incbin  'data\sprites\bossexpl.nem'                 
+                BINCLUDE  "data\sprites\bossexpl.nem"                 
 Ship_Boost: ; loc_7DFC0: 
-                incbin  'data\sprites\shpboost.nem'    
+                BINCLUDE  "data\sprites\shpboost.nem"    
 Boss_Smoke: ; loc_7E03E: 
-                incbin  'data\sprites\b_smoke.nem'                                                                                           
+                BINCLUDE  "data\sprites\b_smoke.nem"                                                                                           
 Ghz_Boss_Car: ; loc_7E124: 
-                incbin  'data\ghz\boss_car.nem'                                                                                
+                BINCLUDE  "data\ghz\boss_car.nem"                                                                                
 Ghz_Boss_Blades: ; loc_7E910: 
-                incbin  'data\ghz\b_blades.nem'                 
+                BINCLUDE  "data\ghz\b_blades.nem"                 
 Title_Cards: ; loc_7EA04:                 
-                incbin  'data\sprites\titlcard.nem' ; Title Cards
+                BINCLUDE  "data\sprites\titlcard.nem" ; Title Cards
 Explosion: ; loc_7F012:  
-                incbin  'data\sprites\explosn.nem'
+                BINCLUDE  "data\sprites\explosn.nem"
 Game_Time_Over: ; loc_7F678:
-                incbin  'data\sprites\gt_over.nem'
+                BINCLUDE  "data\sprites\gt_over.nem"
 Vertical_Springs_Sonic_1: ; loc_7F80A:                
-                incbin  'data\sprites\vspng_s1.nem'  
+                BINCLUDE  "data\sprites\vspng_s1.nem"  
 Horizontal_Springs_Sonic_1: ; loc_7F90C:                
-                incbin  'data\sprites\hspng_s1.nem'                 
+                BINCLUDE  "data\sprites\hspng_s1.nem"                 
 Big_Ring_Flash: ; loc_7F9E8:
-                incbin  'data\sprites\rngflash.nem'                  
+                BINCLUDE  "data\sprites\rngflash.nem"                  
 Hidden_Points: ; loc_7FB5C:
-                incbin  'data\sprites\h_points.nem' 
+                BINCLUDE  "data\sprites\h_points.nem" 
 Sonic_Continue_Screen: ; loc_7FE5E:
-                incbin  'data\sprites\sonicctn.nem'   
+                BINCLUDE  "data\sprites\sonicctn.nem"   
 Continue_Special_Stage_Results_Screen: ; loc_8010E:
-                incbin  'data\sprites\cont_ss.nem'                                                                               
+                BINCLUDE  "data\sprites\cont_ss.nem"                                                                               
 Rabbit: ; loc_80348:
-                incbin  'data\sprites\rabbit.nem'
+                BINCLUDE  "data\sprites\rabbit.nem"
 White_Bird: ; loc_804A0:  
-                incbin  'data\sprites\wthebird.nem'
+                BINCLUDE  "data\sprites\wthebird.nem"
 Black_Bird: ; loc_805FC:  
-                incbin  'data\sprites\blckbird.nem'     
+                BINCLUDE  "data\sprites\blckbird.nem"     
 Seal: ; loc_80778:  
-                incbin  'data\sprites\seal.nem' 
+                BINCLUDE  "data\sprites\seal.nem" 
 Pig: ; loc_80894:  
-                incbin  'data\sprites\pig.nem' 
+                BINCLUDE  "data\sprites\pig.nem" 
 Blue_Bird: ; loc_809CA:  
-                incbin  'data\sprites\bluebird.nem'                                                     
+                BINCLUDE  "data\sprites\bluebird.nem"                                                     
 Bear: ; loc_80B04:  
-                incbin  'data\sprites\bear.nem'                                                            
+                BINCLUDE  "data\sprites\bear.nem"                                                            
 ;----------------------------------------------------------------------------------
 ; GHZ 16x16 block mappings (uncompressed)
 ; LevBlock_80C60: Green_Hill_16x16_Map:
-BM16_GHZ:	incbin	"mappings/16x16/GHZ.bin"
+BM16_GHZ:	BINCLUDE	"mappings/16x16/GHZ.bin"
 ;-----------------------------------------------------------------------------------
 ; GHZ/HTZ main level patterns (Nemesis compression)
 ; ArtNem_81C00: Green_Hill_8x8_Tiles:
-ArtNem_GHZ:	incbin	"art/nemesis/GHZ and HTZ primary.bin"
+ArtNem_GHZ:	BINCLUDE	"art/nemesis/GHZ and HTZ primary.bin"
 ;-----------------------------------------------------------------------------------
 Hill_Top_16x16_Map: ; loc_84A50:    
-                incbin  'data\htz\htz_16.dat'                                  
+                BINCLUDE  "data\htz\htz_16.dat"                                  
 Hill_Top_8x8_Tiles: ; loc_85200:  
-                incbin  'data\htz\htz_8.nem'                                
+                BINCLUDE  "data\htz\htz_8.nem"                                
 Htz_Init_Sprites_Dyn_Reload: ; loc_86626:    
-                incbin  'data\htz\init_spr.nem'                             
+                BINCLUDE  "data\htz\init_spr.nem"                             
 ;-----------------------------------------------------------------------------------
 ; EHZ/HTZ 128x128 block mappings (Kosinski compression)
 ; LevChunk_8692E: Green_Hill_128x128_Map:
-BM128_GHZ:	incbin	"mappings/128x128/GHZ and HTZ.bin"
+BM128_GHZ:	BINCLUDE	"mappings/128x128/GHZ and HTZ.bin"
 		dc.w	0
 
 Wood_16x16_Map: ; loc_89B8E:  
-                incbin  'data\wz\wz_16.dat'                 
+                BINCLUDE  "data\wz\wz_16.dat"                 
 Wood_8x8_Tiles: ; loc_8AB2E: 
-                incbin  'data\wz\wz_8.nem'                
+                BINCLUDE  "data\wz\wz_8.nem"                
 Waterfall: ; loc_8E6C6:  
-                incbin  'data\sprites\watrfall.nem'                
+                BINCLUDE  "data\sprites\watrfall.nem"                
 Wood_128x128_Map: ; loc_8E826:                
-                incbin  'data\wz\wz_128.kos'  
+                BINCLUDE  "data\wz\wz_128.kos"  
                 dc.w    $0000, $0000, $0000, $0000, $0000, $0000 ; Filler
 Metropolis_16x16_Map: ; loc_90456:
-                incbin  'data\mz\mz_16.dat'
+                BINCLUDE  "data\mz\mz_16.dat"
 Metropolis_8x8_Tiles: ; loc_91716:
-                incbin  'data\mz\mz_8.nem'                                 
+                BINCLUDE  "data\mz\mz_8.nem"                                 
 Mz_Init_Sprites_Dyn_Reload: ; loc_94994:  
-                incbin  'data\mz\init_spr.nem'                  
+                BINCLUDE  "data\mz\init_spr.nem"                  
 Metropolis_128x128_Map: ; loc_94C56:                 
-                incbin  'data\mz\mz_128.kos'    
+                BINCLUDE  "data\mz\mz_128.kos"    
                 dc.w    $0000, $0000, $0000, $0000, $0000, $0000 ; Filler           
 Hidden_Palace_16x16_Map: ; loc_97596:
-                incbin  'data\hpz\hpz_16.dat'
+                BINCLUDE  "data\hpz\hpz_16.dat"
 Hidden_Palace_8x8_Tiles: ; loc_98B76:
-                incbin  'data\hpz\hpz_8.nem'                                
+                BINCLUDE  "data\hpz\hpz_8.nem"                                
 Hpz_Init_Sprites_Dyn_Reload: ; loc_9B884: ;  Orbs
-                incbin  'data\hpz\init_spr.nem'  
+                BINCLUDE  "data\hpz\init_spr.nem"  
 Hidden_Palace_128x128_Map: ; loc_9B9F8:                 
-                incbin  'data\hpz\hpz_128.kos'                
+                BINCLUDE  "data\hpz\hpz_128.kos"                
                 dc.w    $0000, $0000, $0000 ; Filler                     
 Oil_Ocean_16x16_Map: ; loc_9D778:
-                incbin  'data\ooz\ooz_16.dat'
+                BINCLUDE  "data\ooz\ooz_16.dat"
 Oil_Ocean_8x8_Tiles: ; loc_9ED58:  
-                incbin  'data\ooz\ooz_8.nem'                                 
+                BINCLUDE  "data\ooz\ooz_8.nem"                                 
 OOz_Init_Sprites_Dyn_Reload: ; loc_A186A: ;  red ball, oil ...
-                incbin  'data\ooz\init_spr.nem' 
+                BINCLUDE  "data\ooz\init_spr.nem" 
 Oil_Ocean_128x128_Map: ; loc_A1A58:                 
-                incbin  'data\ooz\ooz_128.kos'                
+                BINCLUDE  "data\ooz\ooz_128.kos"                
                 dc.w    $0000, $0000, $0000, $0000, $0000 ; Filler           
 Dust_Hill_16x16_Map: ; loc_A3F88:
-                incbin  'data\dhz\dhz_16.dat' 
+                BINCLUDE  "data\dhz\dhz_16.dat" 
 Dust_Hill_8x8_Tiles: ; loc_A5248:  
-                incbin  'data\dhz\dhz_8.nem'
+                BINCLUDE  "data\dhz\dhz_8.nem"
 Dust_Hill_128x128_Map: ; loc_A8B6A:               
-                incbin  'data\dhz\dhz_128.kos'                
+                BINCLUDE  "data\dhz\dhz_128.kos"                
                 dc.w    $0000, $0000, $0000, $0000, $0000 ; Filler    
 Casino_Night_16x16_Map: ; loc_AB5CA:
-                incbin  'data\cnz\cnz_16.dat'  
+                BINCLUDE  "data\cnz\cnz_16.dat"  
 Casino_Night_8x8_Tiles: ; loc_ABF2A: 
-                incbin  'data\cnz\cnz_8.nem'    
+                BINCLUDE  "data\cnz\cnz_8.nem"    
 Cnz_Cards: ; loc_AEF3C:               
-                incbin  'data\cnz\cards.nem'
+                BINCLUDE  "data\cnz\cards.nem"
 Casino_Night_128x128_Map: ; loc_AF026:                
-                incbin  'data\cnz\cnz_128.kos'                
+                BINCLUDE  "data\cnz\cnz_128.kos"                
                 dc.w    $0000, $0000, $0000, $0000, $0000, $0000, $0000 ; Filler    
 Chemical_Plant_16x16_Map: ; loc_B0F26:  
-                incbin  'data\cpz\cpz_16.dat'  
+                BINCLUDE  "data\cpz\cpz_16.dat"  
 Chemical_Plant_8x8_Tiles: ; loc_B2506: 
-                incbin  'data\cpz\cpz_8.nem'
+                BINCLUDE  "data\cpz\cpz_8.nem"
 Cpz_Init_Sprites_Dyn_Reload: ; loc_B602E:  
-                incbin  'data\cpz\init_spr.nem' 
+                BINCLUDE  "data\cpz\init_spr.nem" 
 Chemical_Plant_128x128_Map: ; loc_B6058:                 
-                incbin  'data\cpz\cpz_128.kos'                
+                BINCLUDE  "data\cpz\cpz_128.kos"                
                 dc.w    $0000, $0000, $0000 ; Filler  
 Neo_Green_Hill_16x16_Map: ; loc_B8558:
-                incbin  'data\nghz\nghz_16.dat'   
+                BINCLUDE  "data\nghz\nghz_16.dat"   
 Neo_Green_Hill_8x8_Tiles: ; loc_B9E58:
-                incbin  'data\nghz\nghz_8.nem'                                
+                BINCLUDE  "data\nghz\nghz_8.nem"                                
 Nghz_Init_Sprites_Dyn_Reload: ; loc_BF408:  Waterfalls
-                incbin  'data\nghz\init_spr.nem'  
+                BINCLUDE  "data\nghz\init_spr.nem"  
 Neo_Green_Hill_128x128_Map: ; loc_BF568:                  
-                incbin  'data\nghz\nghz_128.kos'                 
+                BINCLUDE  "data\nghz\nghz_128.kos"                 
 loc_C2138: ; Leftover end of compressed Nghz 128x128 mappings...
                 dc.w    $C00B, $F8C4, $C00B, $5200, $F8C0, $F80E, $00F0, $0000  
 Unknow_Uncompressed_12x128_Map: ; loc_C2148:                                            
-                incbin  'data\all\unk_128.dat' 
+                BINCLUDE  "data\all\unk_128.dat" 
 Chemical_Plant_16x16_Map_Previous_Builder: ; loc_C943C:                                            
-                incbin  'data\all\cpz_16.dat'                 
+                BINCLUDE  "data\all\cpz_16.dat"                 
 Chemical_Plant_8x8_Tiles_Previous_Builder: ; loc_CAA1C:                                            
-                incbin  'data\sprites\cpz_8.nem'  
+                BINCLUDE  "data\sprites\cpz_8.nem"  
 Cpz_Building: ; loc_CDFC6: ;  Left over                                                        
-                incbin  'data\sprites\building.nem'   
+                BINCLUDE  "data\sprites\building.nem"   
 Chemical_Plant_128x128_Map_Previous_Builder:  ; loc_CE03A:                                              
-                incbin  'data\all\cpz_128.dat'                  
+                BINCLUDE  "data\all\cpz_128.dat"                  
 Neo_Green_Hill_16x16_Map_Previous_Builder: ; loc_D603A:                                            
-                incbin  'data\all\nghz_16.dat'                              
+                BINCLUDE  "data\all\nghz_16.dat"                              
 Neo_Green_Hill_8x8_Tiles_Previous_Builder: ; loc_D793A:                                            
-                incbin  'data\nghz\nghz_8.nem'                                             
+                BINCLUDE  "data\nghz\nghz_8.nem"                                             
 Nghz_Init_Sprites_Dyn_Reload_2: ; loc_DCEEA: ; Waterfalls  ; Left over
-                incbin  'data\nghz\init_spr.nem'                  
+                BINCLUDE  "data\nghz\init_spr.nem"                  
 Neo_Green_Hill_128x128_Map_Previous_Builder: ; loc_DD04A:                                   
-                incbin  'data\all\nghz_128.dat'                  
+                BINCLUDE  "data\all\nghz_128.dat"                  
 Neo_Green_Hill_8x8_Incomplete_Tiles_Previous_Builder: ; loc_E504A:                                   
-                incbin  'data\sprites\nghz_8.nem'                                
+                BINCLUDE  "data\sprites\nghz_8.nem"                                
 Nghz_Init_Sprites_Dyn_Reload_3: ; loc_E57E6: ; Waterfalls  ; Left over
-                incbin  'data\nghz\init_spr.nem'
+                BINCLUDE  "data\nghz\init_spr.nem"
 
 ; ===========================================================================
 ; Uncompiled Neo Green Hill Zone chunk data; it can be opened in any
 ; text editor, but the Japanese at the top won't display correctly.
 ; loc_E5946: Uncompiled_ASM:
-		incbin	"Data/all/Uncompiled chunk data for NGHZ.bin"
+		BINCLUDE	"Data/all/Uncompiled chunk data for NGHZ.bin"
 
 ; ===========================================================================
 ; Unused duplicate Sega sound
-Snd_SegaDup:	incbin	"data\all\sega.snd"
+Snd_SegaDup:	BINCLUDE	"data\all\sega.snd"
 
 ; ===========================================================================
 ; All the music/sound effects use HARDCODED pointers, meaning they break
@@ -47798,16 +47811,14 @@ SoundDriverLoad:
 		move.w	d1,(a3)	; get Z80 bus
 		move.w	d1,(a2)	; release Z80 reset (was held high by console on startup)
 
-@loop1:
-		btst	d2,(a3)
-		bne.s	@loop1	; wait until the 68000 has the bus
+-		btst	d2,(a3)
+		bne.s	-	; wait until the 68000 has the bus
 		jsr	DecompressSoundDriver(pc)
 		move.w	d2,(a2)
 		move.w	d2,(a3)
 		moveq	#$17,d0
 
-@loop2:
-		dbf	d0,@loop2	; wait for 2,314 cycles
+-		dbf	d0,-		; wait for 2,314 cycles
 		move.w	d1,(a2)		; release Z80 reset
 		movem.l	(sp)+,d0-a6
 		move	(sp)+,sr
@@ -47832,7 +47843,9 @@ SoundDriverLoad:
 ; loc_EC03E: Sound_Driver_002: 
 DecompressSoundDriver:
 		lea	Snd_Driver(pc),a6
-		move.w	#$DF3,d7
+
+movewz80CompSize:
+		move.w	#Snd_Driver_End-Snd_Driver,d7 ; patched (by fixpointer.exe) after compression since the exact size can't be known beforehand
 		moveq	#0,d6		; the decompressor knows it's run out of descriptor bits when it starts reading 0's in bit 8
 		lea	($A00000).l,a5
 		moveq	#0,d5
@@ -47841,12 +47854,12 @@ DecompressSoundDriver:
 SaxDec_Loop:                
 		lsr.w	#1,d6		; next descriptor bit
 		btst	#8,d6		; check if we've run out of bits
-		bne.s	@nobitsleft	; (lsr 'shifts in' 0's)
+		bne.s	.nobitsleft	; (lsr 'shifts in' 0's)
 		jsr	SaxDec_GetByte(pc)
 		move.b	d0,d6
 		ori.w	#$FF00,d6	; these set bits will disappear from the high byte as the register is shifted
 ; loc_EC066:
-@nobitsleft:  
+.nobitsleft:  
 		btst	#0,d6
 		beq.s	SaxDec_ReadCompressed
 
@@ -47889,10 +47902,9 @@ SaxDec_ReadCompressed:
 		add.w	d3,d5
 		addq.w	#1,d5
 
-@loop:
-		move.b	#0,(a5)+
+-		move.b	#0,(a5)+
 		addq.w	#1, d4
-		dbf	d3,@loop
+		dbf	d3,-
 		bra.w	SaxDec_Loop
 ; ---------------------------------------------------------------------------
 
@@ -47900,10 +47912,9 @@ SaxDec_IsDictionaryReference:
 		add.w	d3,d5
 		addq.w	#1,d5
 
-@loop:
-		move.b	(a4,d4.w),(a5)+
+-		move.b	(a4,d4.w),(a5)+
 		addq.w	#1,d4
-		dbf	d3,@loop
+		dbf	d3,-
 
 		bra.w	SaxDec_Loop
 ; End of function DecompressSoundDriver
@@ -47915,10 +47926,9 @@ SaxDec_IsDictionaryReference:
 SaxDec_GetByte:                
 		move.b	(a6)+,d0
 		subq.w	#1,d7	; decrement the remaining number of bytes
-		bne.s	@skip
+		bne.s	+
 		addq.w	#4,sp	; exit the decompressor by messing with the track
-
-@skip:
++
 		rts
 ; End of function SaxDec_GetByte
 
@@ -47931,55 +47941,54 @@ SaxDec_GetByte:
 ; program like SMPS2ASM
 ; ---------------------------------------------------------------------------
 
-Snd_Driver:	incbin	"sound/Z80.bin",$00,$631
-		rom_ptr_z80	Sega_Snd
-		incbin	"sound/Z80.bin",$633,$8E
-		rom_ptr_z80	MusicPoint2
-		incbin	"sound/Z80.bin",$6C3,$14A
-		rom_ptr_z80	Sfx_A0_To_F9
-		incbin	"sound/Z80.bin",$80F,$4BB
-		rom_ptr_z80	DAC_Sample01
-		dc.w	(((DAC_Sample01_End-DAC_Sample01)>>8)|((DAC_Sample01_End-DAC_Sample01)<<8))&$FFFF
-		rom_ptr_z80	DAC_Sample02
-		dc.b	(DAC_Sample02_End-DAC_Sample02)&$FF,$FF,((DAC_Sample02_End-DAC_Sample02)>>8)&$FF
-		rom_ptr_z80	DAC_Sample03
-		dc.w	(((DAC_Sample03_End-DAC_Sample03)>>8)|((DAC_Sample03_End-DAC_Sample03)<<8))&$FFFF
-		rom_ptr_z80	DAC_Sample04
-		dc.b	(DAC_Sample04_End-DAC_Sample04)&$FF,$FF,((DAC_Sample04_End-DAC_Sample04)>>8)&$FF
-		rom_ptr_z80	DAC_Sample05
-		dc.w	(((DAC_Sample05_End-DAC_Sample05)>>8)|((DAC_Sample05_End-DAC_Sample05)<<8))&$FFFF
-		rom_ptr_z80	DAC_Sample06
-		dc.b	(DAC_Sample06_End-DAC_Sample06)&$FF,$FF,((DAC_Sample06_End-DAC_Sample06)>>8)&$FF
-		incbin	"sound/Z80.bin",$CE5,$10D
+Snd_Driver:
+	save
+	include "s2b.sounddriver.asm" ; CPU Z80
+	restore
+	padding off
+	!org (Snd_Driver+Size_of_Snd_driver_guess) ; don't worry; I know what I'm doing
+Snd_Driver_End:
 
-		cnop 0,$1000
+; ---------------------------------------------------------------------------
+; Filler (free space)
+; ---------------------------------------------------------------------------
+	; the DAC data has to line up with the end of the bank.
+
+	; actually it only has to fit within one bank, but we'll line it up to the end anyway
+	; because the padding gives the sound driver some room to grow
+	cnop -Size_of_DAC_samples, $8000
 ; ---------------------------------------------------------------------------
 ; DAC samples
 ; ---------------------------------------------------------------------------
 ; loc_ED000:
-DAC_Sample01:	incbin	"sound/DAC/Sample 1.bin"
+DACSamples_Start:
+DAC_Sample01:	BINCLUDE	"sound/DAC/Sample 1.bin"
 DAC_Sample01_End:
 
-DAC_Sample02:	incbin	"sound/DAC/Sample 2.bin"
+DAC_Sample02:	BINCLUDE	"sound/DAC/Sample 2.bin"
 DAC_Sample02_End:
 
-DAC_Sample05:	incbin	"sound/DAC/Sample 5.bin"
+DAC_Sample05:	BINCLUDE	"sound/DAC/Sample 5.bin"
 DAC_Sample05_End:
 
-DAC_Sample06:	incbin	"sound/DAC/Sample 6.bin"
+DAC_Sample06:	BINCLUDE	"sound/DAC/Sample 6.bin"
 DAC_Sample06_End:
 
-DAC_Sample03:	incbin	"sound/DAC/Sample 3.bin"
+DAC_Sample03:	BINCLUDE	"sound/DAC/Sample 3.bin"
 DAC_Sample03_End:
 
-DAC_Sample04:	incbin	"sound/DAC/Sample 4.bin"
+DAC_Sample04:	BINCLUDE	"sound/DAC/Sample 4.bin"
 DAC_Sample04_End:
+DACSamples_End:
 
-	cnop 0,$F0000
-    if *<>$F0000
-	inform 1,"Too much stuff before $F0000, all music/sounds with break!"
-    endif
+	if DACSamples_End - DACSamples_Start > $8000
+		fatal "DAC samples must fit within $8000 bytes, but you have $\{DACSamples_End-DACSamples_Start } bytes of DAC samples."
+	endif
+	if DACSamples_End - DACSamples_Start > Size_of_DAC_samples
+		fatal "Size_of_DAC_samples = $\{Size_of_DAC_samples}, but you have $\{DACSamples_End-DACSamples_Start} bytes of DAC samples."
+	endif
 
+	org $F0000
 ; ---------------------------------------------------------------------------
 ; Music pointers
 ; ---------------------------------------------------------------------------
@@ -47991,22 +48000,34 @@ MusicPoint1:	rom_ptr_z80	Mus_ExtraLife	; $98
 		rom_ptr_z80	Mus_Continue	; $9C
 		rom_ptr_z80	Mus_Emerald	; $9D-$9F
 ; loc_F000C:
-Mus_ExtraLife:	incbin	"data\sounds\1up_98.snd"
-Mus_Title:	incbin	"data\sounds\tscrn_99.snd"
-Mus_ActClear:	incbin	"data\sounds\rscrn_9A.snd"
-Mus_GameOver:	incbin	"data\sounds\tgovr_9B.snd"
-Mus_Continue:	incbin	"data\sounds\cont_9C.snd"
-Mus_Emerald:	incbin	"data\sounds\emrld_9D.snd"
+Mus_ExtraLife:	BINCLUDE	"data\sounds\1up_98.snd"
+Mus_Title:	BINCLUDE	"data\sounds\tscrn_99.snd"
+Mus_ActClear:	BINCLUDE	"data\sounds\rscrn_9A.snd"
+Mus_GameOver:	BINCLUDE	"data\sounds\tgovr_9B.snd"
+Mus_Continue:	BINCLUDE	"data\sounds\cont_9C.snd"
+Mus_Emerald:	BINCLUDE	"data\sounds\emrld_9D.snd"
 
-		cnop 0, $F1E8C
+; ----------------------------------------------------------------------------------
+; Filler (free space)
+; ----------------------------------------------------------------------------------
+	; the PCM data has to line up with the end of the bank.
+	cnop -Size_of_SEGA_sound, $8000
 ; -------------------------------------------------------------------------------
 ; Sega Intro Sound
 ; 8-bit unsigned raw audio at 16Khz
 ; -------------------------------------------------------------------------------
 ; loc_F1E8C:
-Sega_Snd:	incbin	"data\sounds\sega.snd"
+Sega_Snd:	BINCLUDE	"data\sounds\sega.snd"
+Sega_Snd_End:
 
-		cnop 0, $F8000
+	if Sega_Snd_End - Sega_Snd > $8000
+		fatal "Sega sound must fit within $8000 bytes, but you have a $\{Sega_Snd_End-Sega_Snd} byte Sega sound."
+	endif
+	if Sega_Snd_End - Sega_Snd > Size_of_SEGA_sound
+		fatal "Size_of_SEGA_sound = $\{Size_of_SEGA_sound}, but you have a $\{Sega_Snd_End-Sega_Snd} byte Sega sound."
+	endif
+
+	org $F8000
 ; ------------------------------------------------------------------------------
 ; Music pointers
 ; ------------------------------------------------------------------------------
@@ -48033,28 +48054,28 @@ MusicPoint2:	rom_ptr_z80	Mus_OOZ		; $81
 		rom_ptr_z80	Mus_Invinc	; $95
 		rom_ptr_z80	Mus_HTZ		; $96 and $97
 ; loc_F802A:
-Mus_OOZ:	incbin	"data\sounds\ooz_81.snd"	; CNZ 2-player theme in final
-Mus_GHZ:	incbin	"data\sounds\ghz_82.snd"
-Mus_MTZ:	incbin	"data\sounds\mz_wz_83.snd"
-Mus_CNZ:	incbin	"data\sounds\cnz_84.snd"
-Mus_DHZ:	incbin	"data\sounds\dhz_85.snd"
-Mus_HPZ:	incbin	"data\sounds\hpz_86.snd"	; DHZ/MCZ 2-player theme in final
-Mus_NGHZ:	incbin	"data\sounds\nghz_87.snd"
-Mus_DEZ:	incbin	"data\sounds\music_88.snd"
-Mus_SpecStg:	incbin	"data\sounds\ss_89.snd"
-Mus_LevelSel:	incbin	"data\sounds\menu_8A.snd"
-Mus_FinalBoss:	incbin	"data\sounds\music_8C.snd"
-Mus_CPZ:	incbin	"data\sounds\cpz_8D.snd"
-Mus_Boss	incbin	"data\sounds\boss_8E.snd"
-Mus_RWZ:	incbin	"data\sounds\music_8F.snd"	; SCZ theme in final
-Mus_SSZ:	incbin	"data\sounds\music_90.snd"	; OOZ theme in final
-Mus_Unused1:	incbin  "data\sounds\music_92.snd"	; WFZ theme in final
-Mus_Unused2:	incbin  "data\sounds\music_93.snd"	; GHZ/EHZ 2-player theme in final
-Mus_Unused3:	incbin	"data\sounds\music_94.snd"	; 2-player results theme in final
-Mus_Invinc:	incbin	"data\sounds\invcb_95.snd"	; invincibility theme in final
-Mus_HTZ:	incbin	"data\sounds\htz_96.snd"
+Mus_OOZ:	BINCLUDE	"data\sounds\ooz_81.snd"	; CNZ 2-player theme in final
+Mus_GHZ:	BINCLUDE	"data\sounds\ghz_82.snd"
+Mus_MTZ:	BINCLUDE	"data\sounds\mz_wz_83.snd"
+Mus_CNZ:	BINCLUDE	"data\sounds\cnz_84.snd"
+Mus_DHZ:	BINCLUDE	"data\sounds\dhz_85.snd"
+Mus_HPZ:	BINCLUDE	"data\sounds\hpz_86.snd"	; DHZ/MCZ 2-player theme in final
+Mus_NGHZ:	BINCLUDE	"data\sounds\nghz_87.snd"
+Mus_DEZ:	BINCLUDE	"data\sounds\music_88.snd"
+Mus_SpecStg:	BINCLUDE	"data\sounds\ss_89.snd"
+Mus_LevelSel:	BINCLUDE	"data\sounds\menu_8A.snd"
+Mus_FinalBoss:	BINCLUDE	"data\sounds\music_8C.snd"
+Mus_CPZ:	BINCLUDE	"data\sounds\cpz_8D.snd"
+Mus_Boss	BINCLUDE	"data\sounds\boss_8E.snd"
+Mus_RWZ:	BINCLUDE	"data\sounds\music_8F.snd"	; SCZ theme in final
+Mus_SSZ:	BINCLUDE	"data\sounds\music_90.snd"	; OOZ theme in final
+Mus_Unused1:	BINCLUDE	"data\sounds\music_92.snd"	; WFZ theme in final
+Mus_Unused2:	BINCLUDE	"data\sounds\music_93.snd"	; GHZ/EHZ 2-player theme in final
+Mus_Unused3:	BINCLUDE	"data\sounds\music_94.snd"	; 2-player results theme in final
+Mus_Invinc:	BINCLUDE	"data\sounds\invcb_95.snd"	; invincibility theme in final
+Mus_HTZ:	BINCLUDE	"data\sounds\htz_96.snd"
 
-                cnop    $000000, $0FF000 
+	org $FF000
 Sfx_A0_To_F9: ; loc_FF000:      
 		rom_ptr_z80	Sfx_A0
 		rom_ptr_z80	Sfx_A1
@@ -48434,3 +48455,6 @@ Sfx_E0: ; loc_FFD73:
            
                 cnop    $000000, $0FFFFE
 		dc.w	0
+
+		shared movewz80CompSize
+		END
