@@ -119,8 +119,8 @@ InitValues: ; loc_294:
                 dc.l    $00A00000               ; Z80 bus request
                 dc.l    $00A11100               ; Z80 reset
                 dc.l    $00A11200               ; VDP data port
-                dc.l    $00C00000               ; VDP control port
-                dc.l    $00C00004
+                dc.l    VDP_data_port               ; VDP control port
+                dc.l    VDP_control_port
                 dc.w    $0414, $303C, $076C, $0000, $0000, $FF00, $8137, $0001
                 dc.w    $0100, $00FF, $FF00, $0080, $4000, $0080, $AF01, $D91F
                 dc.w    $1127, $0021, $2600, $F977, $EDB0, $DDE1, $FDE1, $ED47
@@ -130,7 +130,7 @@ InitValues: ; loc_294:
 ; ===========================================================================
 ; loc_300:
 GameProgram:
-		tst.w	($C00004).l
+		tst.w	(VDP_control_port).l
 		btst	#6,($A1000D).l
 		beq.s	ChecksumTest
 		cmpi.l	#'init',($FFFFFFFC).w
@@ -196,11 +196,11 @@ GameModesArray:
 ; Leftover from Sonic 1, turned the screen red if the checksum ever failed
 ChecksumError:
 		bsr.w	VDPRegSetup
-		move.l	#$C0000000,($C00004).l	; write to CRAM
+		move.l	#$C0000000,(VDP_control_port).l	; write to CRAM
 		moveq	#$3F,d7
 ; loc_3C0:
 Checksum_Red:
-		move.w	#$E,($C00000).l		; color a line red
+		move.w	#$E,(VDP_data_port).l		; color a line red
 		dbf	d7,Checksum_Red		; repeat $3F times
 ; loc_3CC:
 Checksum_Loop:
@@ -268,8 +268,8 @@ ErrorMsg_Wait: ; loc_470:
 ; ===========================================================================
 ; loc_480:
 ShowErrorMsg:
-		lea	($C00000).l,a6
-		move.l	#$78000003,($C00004).l
+		lea	(VDP_data_port).l,a6
+		move.l	#$78000003,(VDP_control_port).l
 		lea	(Art_Text),a0
 		move.w	#$27F,d1
 ; loc_49A;
@@ -280,7 +280,7 @@ Error_LoadGfx:
 		move.b	($FFFFFC44).w,d0	; load error code
 		move.w	ErrorTextTbl(pc,d0.w),d0
 		lea	ErrorTextTbl(pc,d0.w),a0
-		move.l	#$46040003,($C00004).l	; position on screen
+		move.l	#$46040003,(VDP_control_port).l	; position on screen
 		moveq	#$12,d1			; number of characters
 ; loc_4BA:
 Error_LoopChars:
@@ -352,11 +352,11 @@ V_Int:
 		beq.w	Vint_Lag
 
 loc_B14:
-		move.w	($C00004).l,d0
+		move.w	(VDP_control_port).l,d0
 		andi.w	#8,d0
 		beq.s	loc_B14
-		move.l	#$40000010,($C00004).l
-		move.l	($FFFFF616).w,($C00000).l
+		move.l	#$40000010,(VDP_control_port).l
+		move.l	($FFFFF616).w,(VDP_data_port).l
 		btst	#6,($FFFFFFF8).w
 		beq.s	loc_B42
 		move.w	#$700,d0
@@ -408,7 +408,7 @@ Vint_Lag:
 loc_BBC:
 		tst.b	(Water_flag).w
 		beq.w	Vint0_NoWater
-		move.w	($C00004).l,d0
+		move.w	(VDP_control_port).l,d0
 		btst	#6,($FFFFFFF8).w
 		beq.s	loc_BDA
 		move.w	#$700,d0
@@ -421,7 +421,7 @@ loc_BDA:
 		stopZ80
 		tst.b	(Water_fullscreen_flag).w
 		bne.s	loc_C1E
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
@@ -432,7 +432,7 @@ loc_BDA:
 ; ---------------------------------------------------------------------------
 
 loc_C1E:
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9540,(a5)
 		move.w	#$977F,(a5)
@@ -442,16 +442,16 @@ loc_C1E:
 
 loc_C42:
 		move.w	($FFFFF624).w,(a5)
-		move.w	#$8230,($C00004).l
+		move.w	#$8230,(VDP_control_port).l
 		jsr	(sndDriverInput).l
 		startZ80
 		bra.w	VintRet
 ; ---------------------------------------------------------------------------
 ; loc_C60:
 Vint0_NoWater:
-		move.w	($C00004).l,d0
-		move.l	#$40000010,($C00004).l
-		move.l	($FFFFF616).w,($C00000).l
+		move.w	(VDP_control_port).l,d0
+		move.l	#$40000010,(VDP_control_port).l
+		move.l	($FFFFF616).w,(VDP_data_port).l
 		btst	#6,($FFFFFFF8).w
 		beq.s	loc_C88
 		move.w	#$700,d0
@@ -461,11 +461,11 @@ loc_C84:
 
 loc_C88:
 		move.w	#1,($FFFFF644).w
-		move.w	($FFFFF624).w,($C00004).l
-		move.w	#$8230,($C00004).l
+		move.w	($FFFFF624).w,(VDP_control_port).l
+		move.w	#$8230,(VDP_control_port).l
 		move.l	($FFFFF61E).w,($FFFFEEEC).w
 		stopZ80
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
@@ -524,7 +524,7 @@ Vint_Level:
 		bsr.w	ReadJoypads
 		tst.b	(Water_fullscreen_flag).w
 		bne.s	loc_D92
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
@@ -535,7 +535,7 @@ Vint_Level:
 ; ---------------------------------------------------------------------------
 
 loc_D92:
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9540,(a5)
 		move.w	#$977F,(a5)
@@ -545,15 +545,15 @@ loc_D92:
 
 loc_DB6:
 		move.w	($FFFFF624).w,(a5)
-		move.w	#$8230,($C00004).l
-		lea	($C00004).l,a5
+		move.w	#$8230,(VDP_control_port).l
+		lea	(VDP_control_port).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96F09500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7C00,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
@@ -599,21 +599,21 @@ return_E70:
 Vint_S1SS:
 		stopZ80
 		bsr.w	ReadJoypads
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$C000,(a5)
 		move.w	#$80,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7800,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($00C00004),a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96F09500,(a5)
 		move.w	#$977F,(a5)
@@ -637,7 +637,7 @@ Vint_TitleCard:
 		bsr.w	ReadJoypads
 		tst.b	(Water_fullscreen_flag).w
 		bne.s	loc_F5A
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
@@ -648,7 +648,7 @@ Vint_TitleCard:
 ; ---------------------------------------------------------------------------
 
 loc_F5A:
-		lea     ($C00004).l,a5
+		lea     (VDP_control_port).l,a5
 		move.l  #$94009340,(a5)
 		move.l  #$96FD9540,(a5)
 		move.w  #$977F,(a5)
@@ -658,14 +658,14 @@ loc_F5A:
 
 loc_F7E:
 		move.w	($FFFFF624).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96F09500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7C00,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
@@ -701,21 +701,21 @@ Vint_Fade:
 Vint_SSResults:
 		stopZ80
 		bsr.w	ReadJoypads
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$C000,(a5)
 		move.w	#$80,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7800,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96F09500,(a5)
 		move.w	#$977F,(a5)
@@ -739,7 +739,7 @@ Do_ControllerPal:
 		bsr.w	ReadJoypads
 		tst.b	(Water_fullscreen_flag).w
 		bne.s	loc_1100
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9580,(a5)
 		move.w	#$977F,(a5)
@@ -750,7 +750,7 @@ Do_ControllerPal:
 ; ---------------------------------------------------------------------------
 
 loc_1100:
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
 		move.l	#$96FD9540,(a5)
 		move.w	#$977F,(a5)
@@ -759,14 +759,14 @@ loc_1100:
 		move.w	($FFFFF640).w,(a5)
 
 loc_1124:
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96FC9500,(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7800,(a5)
 		move.w	#$83,($FFFFF640).w
 		move.w	($FFFFF640).w,(a5)
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$940193C0,(a5)
 		move.l	#$96F09500,(a5)
 		move.w	#$977F,(a5)
@@ -789,17 +789,17 @@ H_int:
 		move.l	d0,-(sp)
 
 loc_1196:
-		move.w	($C00004).l,d0
+		move.w	(VDP_control_port).l,d0
 		andi.w	#4,d0
 		beq.s	loc_1196
 		move.w	($FFFFF60C).w,d0
 		andi.b	#$BF,d0
-		move.w	d0,($C00004).l
-		move.w	#$8228,($C00004).l
-		move.l	#$40000010,($C00004).l
-		move.l	($FFFFEEEC).w,($C00000).l
+		move.w	d0,(VDP_control_port).l
+		move.w	#$8228,(VDP_control_port).l
+		move.l	#$40000010,(VDP_control_port).l
+		move.l	($FFFFEEEC).w,(VDP_data_port).l
 		stopZ80
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		move.l	#$94019340,(a5)
 		move.l	#$96EE9580,(a5)
 		move.w	#$977F,(a5)
@@ -809,12 +809,12 @@ loc_1196:
 		startZ80
 
 loc_1208:
-		move.w	($C00004).l,d0
+		move.w	(VDP_control_port).l,d0
 		andi.w	#4,d0
 		beq.s	loc_1208
 		move.w	($FFFFF60C).w,d0
 		ori.b	#$40,d0
-		move.w	d0,($C00004).l
+		move.w	d0,(VDP_control_port).l
 		move.l	(sp)+,d0
 		move.l	(sp)+,a5
 
@@ -826,7 +826,7 @@ PalToCRAM:
 		move	#$2700,sr
 		move.w	#0,($FFFFF644).w
 		movem.l	a0-a1,-(sp)
-		lea	($C00000).l,a1
+		lea	(VDP_data_port).l,a1
 		lea	($FFFFFA80).w,a0	; load palette from RAM
 		move.l	#$C0000000,4(a1)	; set VDP to write to CRAM address $00
 	rept 32
@@ -923,8 +923,8 @@ Joypad_Read: ; loc_133A:
                 move.b  D1, (A0)+ 
                 rts                  
 VDPRegSetup: ; loc_1368:                
-                lea     ($00C00004), A0
-                lea     ($00C00000), A1
+                lea     (VDP_control_port), A0
+                lea     (VDP_data_port), A1
                 lea     (VDPRegSetup_Array), A2 ; loc_13F2
                 moveq   #$12, D7 
 VDPRegSetup_Loop: ; loc_137C:                 
@@ -934,10 +934,10 @@ VDPRegSetup_Loop: ; loc_137C:
                 move.w  D0, ($FFFFF60C).w 
                 move.w  #$8ADF, ($FFFFF624).w
                 moveq   #$00, D0
-                move.l  #$40000010, ($00C00004)
+                move.l  #$40000010, (VDP_control_port)
                 move.w  D0, (A1)
                 move.w  D0, (A1)
-                move.l  #$C0000000, ($00C00004)
+                move.l  #$C0000000, (VDP_control_port)
                 move.w  #$003F, D7
 VDPRegSetup_ClearCRAM: ; loc_13B0:                 
                 move.w  D0, (A1)
@@ -945,12 +945,12 @@ VDPRegSetup_ClearCRAM: ; loc_13B0:
                 clr.l   ($FFFFF616).w
                 clr.l   ($FFFFF61A).w
                 move.l  D1, -(A7)
-                lea     ($00C00004), A5
+                lea     (VDP_control_port), A5
                 move.w  #$8F01, (A5)
                 move.l  #$94FF93FF, (A5)
                 move.w  #$9780, (A5)
                 move.l  #$40000080, (A5)
-                move.w  #$0000, ($00C00000)
+                move.w  #$0000, (VDP_data_port)
 VDPRegSetup_DMAWait: ; loc_13E2:                
                 move.w  (A5), D1
                 btst    #$01, D1
@@ -966,23 +966,23 @@ VDPReg_01: ; loc_13F4:
                 dc.w    $9100, $9200
 ClearScreen: ; loc_1418:
 		stopZ80
-                lea     ($00C00004), A5  
+                lea     (VDP_control_port), A5  
                 move.w  #$8F01, (A5)  
                 move.l  #$940F93FF, (A5)
                 move.w  #$9780, (A5)
                 move.l  #$40000083, (A5)
-                move.w  #$0000, ($00C00000) 
+                move.w  #$0000, (VDP_data_port) 
 ClearScreen_DMAWait: ; loc_144C:                   
                 move.w  (A5), D1  
                 btst    #$01, D1 
                 bne.s   ClearScreen_DMAWait     ; loc_144C 
                 move.w  #$8F02, (A5)  
-                lea     ($00C00004), A5    
+                lea     (VDP_control_port), A5    
                 move.w  #$8F01, (A5)  
                 move.l  #$940F93FF, (A5)
                 move.w  #$9780, (A5) 
                 move.l  #$60000083, (A5) 
-                move.w  #$0000, ($00C00000)
+                move.w  #$0000, (VDP_data_port)
 ClearScreen_DMA2Wait: ; loc_147A:                  
                 move.w  (A5), D1   
                 btst    #$01, D1 
@@ -1089,7 +1089,7 @@ loc_153E:
                 move.b  #$FF, ($FFFFFFE0).w 
                 rts 
 ShowVDPGraphics: ; loc_154C: 
-                lea     ($00C00000), A6 
+                lea     (VDP_data_port), A6 
                 move.l  #$00800000, D4
 ShowVDPGraphics_LineLoop: ; loc_1558:                  
                 move.l  D0, $0004(A6) 
@@ -1167,7 +1167,7 @@ QueueDMATransfer_Done:
 
 ; loc_15CA: CopyToVRAM: IssueVDPCommands: Process_DMA: Process_DMA_Queue:
 ProcessDMAQueue:
-		lea	($C00004).l,a5
+		lea	(VDP_control_port).l,a5
 		lea	($FFFFDC00).w,a1
 ; loc_15D4:	
 ProcessDMAQueue_Loop:
@@ -1193,7 +1193,7 @@ ProcessDMAQueue_Done:
 NemDec: ; loc_15FC: ; Decompress Sprites to VRam                 
                 movem.l D0-D7/A0/A1/A3-A5, -(A7) 
                 lea     (NemDec_Output), A3 ; loc_16BE
-                lea     ($00C00000), A4
+                lea     (VDP_data_port), A4
                 bra.s   loc_1618
 NemDec_ToRAM: ;loc_160E: ; Decompress Sprites to Ram
                 movem.l D0-D7/A0/A1/A3-A5, -(A7)
@@ -1494,7 +1494,7 @@ ProcessDPLC2:
 		addi.w	#$60,($FFFFF684).w
 ; loc_1832:
 ProcessDPLC_Main:
-		lea	($C00004).l,a4
+		lea	(VDP_control_port).l,a4
 		lsl.l	#2,d0
 		lsr.w	#2,d0
 		ori.w	#$4000,d0
@@ -1565,7 +1565,7 @@ loc_18BA:
 		lsr.w	#2,d0
 		ori.w	#$4000,d0
 		swap.w	d0
-		move.l	d0,($C00004).l
+		move.l	d0,(VDP_control_port).l
 		bsr.w	NemDec
 		dbf	d1,loc_18BA
 		rts
@@ -3457,7 +3457,7 @@ SegaScreen: ; loc_360C: ; SEGA Logo
                 bsr     PlayMusic              ; loc_14C0
                 bsr     ClearPLC                ; loc_179A
                 bsr     Pal_FadeFrom            ; loc_263A 
-                lea     ($00C00004), A6
+                lea     (VDP_control_port), A6
                 move.w  #$8004, (A6)
                 move.w  #$8230, (A6)
                 move.w  #$8407, (A6)
@@ -3468,9 +3468,9 @@ SegaScreen: ; loc_360C: ; SEGA Logo
                 move    #$2700, SR
                 move.w  ($FFFFF60C).w, D0
                 andi.b  #$BF, D0
-                move.w  D0, ($00C00004)
+                move.w  D0, (VDP_control_port)
                 bsr     ClearScreen             ; loc_1418
-                move.l  #$40000000, ($00C00004)
+                move.l  #$40000000, (VDP_control_port)
                 lea     (SegaLogo), A0          ; Load Sega Sprites ; loc_70960  
                 bsr     NemDec              ; loc_15FC
                 lea     ($FFFF0000), A1
@@ -3504,7 +3504,7 @@ loc_36BE:
                 move.w  #$00B4, ($FFFFF614).w
                 move.w  ($FFFFF60C).w, D0
                 ori.b   #$40, D0
-                move.w  D0, ($00C00004)
+                move.w  D0, (VDP_control_port)
 Sega_WaitPalette: ; loc_36F0:                   
                 move.b  #$02, ($FFFFF62A).w               
                 bsr     DelayProgram            ; loc_31D8
@@ -3540,7 +3540,7 @@ TitleScreen:
 		bsr.w	ClearPLC
 		bsr.w	Pal_FadeFrom
 		move	#$2700,sr
-		lea	($C00004),a6
+		lea	(VDP_control_port),a6
 		move.w	#$8004,(a6)
 		move.w	#$8230,(a6)
 		move.w	#$8407,(a6)
@@ -3594,13 +3594,13 @@ loc_37C4:
 		bsr.w	Pal_FadeTo
 
 		move	#$2700,sr
-		move.l	#$40000000,($C00004).l
+		move.l	#$40000000,(VDP_control_port).l
 		lea	(Title_Screen_Bg_Wings).l,a0
 		bsr.w	NemDec
-		move.l	#$40000001,($C00004).l
+		move.l	#$40000001,(VDP_control_port).l
 		lea	(Title_Screen_Sonic_Tails).l,a0
 		bsr.w	NemDec
-		lea	($C00000).l,a6
+		lea	(VDP_data_port).l,a6
 		move.l	#$50000003,4(a6)
 		lea	(Art_Text).l,a5
 		move.w	#$28F,d1
@@ -3674,7 +3674,7 @@ loc_38EE:
 		move.w	#0,($FFFFE500).w
 		move.w	($FFFFF60C).w,d0
 		ori.b	#$40,d0
-		move.w	d0,($C00004).l
+		move.w	d0,(VDP_control_port).l
 		bsr.w	Pal_FadeTo
 ; loc_3948:
 TitleScreen_Loop:
@@ -3759,8 +3759,8 @@ Title_ClrScroll:
 		dbf	d1,Title_ClrScroll
 		move.l	d0,($FFFFF616).w
 		move	#$2700,sr
-		lea	($C00000).l,a6
-		move.l	#$60000003,($C00004).l
+		lea	(VDP_data_port).l,a6
+		move.l	#$60000003,(VDP_control_port).l
 		move.w	#$3FF,d1
 ; loc_3A3E: LevelSelect_ClearVRAM:
 Title_ClrVram:
@@ -4002,7 +4002,7 @@ return_3CC2:
 ; loc_3CC4:
 LevelSelect_TextLoad:
 		lea	(Level_Select_Text).l,a1
-		lea	($C00000).l,a6
+		lea	(VDP_data_port).l,a6
 		move.l	#$608C0003,d4
 		move.w	#$8680,d3
 		moveq	#$1A,d1
@@ -4031,7 +4031,7 @@ loc_3CDC:
 		move.w	#$C680,d3
 
 loc_3D2A:
-                move.l  #$6DB00003, ($00C00004)
+                move.l  #$6DB00003, (VDP_control_port)
                 move.w  ($FFFFFF84).w, D0
                 addi.w  #$0080, D0
                 move.b  D0, D2
@@ -4224,7 +4224,7 @@ Level_Init: ; loc_4164:
                 tst.w   ($FFFFFFF0).w
                 bmi.s   loc_41C0
                 move    #$2700, SR
-                move.l  #$70000002, ($00C00004)
+                move.l  #$70000002, (VDP_control_port)
                 lea     (Title_Cards), A0 ; loc_7EA04  / Load Title Cards sprites
                 bsr     NemDec              ; loc_15FC
                 bsr     ClearScreen             ; loc_1418
@@ -4287,7 +4287,7 @@ Init_Water: ; loc_4228:
                 move.b  #$01, (Water_flag).w
                 move.w  #$0000, ($FFFFFFD8).w  ; If Water Level Clear Two Player Flag
 Init_No_Water: ; loc_4234:
-                lea     ($00C00004), A6
+                lea     (VDP_control_port), A6
                 move.w  #$8B03, (A6)
                 move.w  #$8230, (A6)
                 move.w  #$8407, (A6)
@@ -5215,22 +5215,22 @@ SpecialStage: ; loc_5200:
                 bsr     PlaySound                ; loc_14C6
                 bsr     Pal_MakeFlash           ; loc_2762
                 move    #$2700, SR
-                lea     ($00C00004), A6
+                lea     (VDP_control_port), A6
                 move.w  #$8B03, (A6)
                 move.w  #$8004, (A6)
                 move.w  #$8AAF, ($FFFFF624).w
                 move.w  #$9011, (A6)
                 move.w  ($FFFFF60C).w, D0
                 andi.b  #$BF, D0
-                move.w  D0, ($00C00004)
+                move.w  D0, (VDP_control_port)
                 bsr     ClearScreen             ; loc_1418
                 move    #$2300, SR
-                lea     ($00C00004), A5
+                lea     (VDP_control_port), A5
                 move.w  #$8F01, (A5)
                 move.l  #$946F93FF, (A5)
                 move.w  #$9780, (A5)
                 move.l  #$50000081, (A5)
-                move.w  #$0000, ($00C00000)
+                move.w  #$0000, (VDP_data_port)
 loc_5260:                
                 move.w  (A5), D1
                 btst    #$01, D1
@@ -5295,7 +5295,7 @@ loc_52B0:
 loc_533C:
                 move.w  ($FFFFF60C).w, D0
                 ori.b   #$40, D0
-                move.w  D0, ($00C00004)
+                move.w  D0, (VDP_control_port)
                 bsr     Pal_MakeWhite           ; loc_26B8
 loc_534E:                
                 bsr     Pause                   ; loc_14D2
@@ -5341,12 +5341,12 @@ loc_53F8:
                 tst.w   ($FFFFF614).w
                 bne.s   loc_53BE
                 move    #$2700, SR
-                lea     ($00C00004), A6
+                lea     (VDP_control_port), A6
                 move.w  #$8230, (A6)
                 move.w  #$8407, (A6)
                 move.w  #$9001, (A6)
                 bsr     ClearScreen             ; loc_1418
-                move.l  #$70000002, ($00C00004)
+                move.l  #$70000002, (VDP_control_port)
                 lea     (Title_Cards), A0 ; loc_7EA04
                 bsr     NemDec              ; loc_15FC
                 jsr     (Head_Up_Display_Base)  ; loc_23184
@@ -5455,7 +5455,7 @@ S1_Pal_Cycle_Special_Stage: ; loc_5584:
                 bne.s   loc_5608
                 subq.w  #$01, ($FFFFF79C).w
                 bpl.s   loc_5608
-                lea     ($00C00004), A6
+                lea     (VDP_control_port), A6
                 move.w  ($FFFFF79A).w, D0
                 addq.w  #$01, ($FFFFF79A).w
                 andi.w  #$001F, D0
@@ -5479,8 +5479,8 @@ loc_55B4:
                 move.w  #$8400, D0
                 move.b  (A0)+, D0
                 move.w  D0, (A6) 
-                move.l  #$40000010, ($00C00004) 
-                move.l  ($FFFFF616).w, ($00C00000)
+                move.l  #$40000010, (VDP_control_port) 
+                move.l  ($FFFFF616).w, (VDP_data_port)
                 moveq   #$00, D0
                 move.b  (A0)+, D0
                 bmi.s   loc_560A
@@ -7524,61 +7524,92 @@ loc_6DE6:
                 bset    D6, ($FFFFEE56).w
 loc_6DEC:
                 rts
-                lea     ($00C00004), A5
-                lea     ($00C00000), A6
-                lea     ($FFFFEE52).w, A2
-                lea     ($FFFFEE08).w, A3
-                lea     ($FFFF8080).w, A4
-                move.w  #$6000, D2
-                bsr     loc_6F80
-                lea     ($FFFFEE54).w, A2
-                lea     ($FFFFEE10).w, A3
-                bra     loc_7050                                                                     
-LoadTilesAsYouMove: ; loc_6E1A:
-                lea     ($00C00004), A5
-                lea     ($00C00000), A6
-                lea     ($FFFFEEA2).w, A2
-                lea     ($FFFFEE68).w, A3   
-                lea     ($FFFF8080).w, A4
-                move.w  #$6000, D2 
-                bsr     loc_6F80
-                lea     ($FFFFEEA4).w, A2
-                lea     ($FFFFEE70).w, A3 
-                bsr     loc_7050
-                lea     ($FFFFEEA6).w, A2
-                lea     ($FFFFEE78).w, A3 
-                bsr     loc_7140
-                tst.w   ($FFFFFFD8).w
-                beq.s   loc_6E6C
-                lea     ($FFFFEEA8).w, A2
-                lea     ($FFFFEE80).w, A3 
-                lea     ($FFFF8000).w, A4
-                move.w  #$6000, D2 
-                bsr     loc_6F1A
-loc_6E6C:                
-                lea     ($FFFFEEA0).w, A2
-                lea     ($FFFFEE60).w, A3 
-                lea     ($FFFF8000).w, A4
-                move.w  #$4000, D2 
-                tst.b   ($FFFFF720).w
-                beq.s   loc_6EB4
-                move.b  #$00, ($FFFFF720).w
-                moveq   #-$10, D4
-                moveq   #$0F, D6
-loc_6E8C                
-                movem.l D4-D6, -(A7)
-                moveq   #-$10, D5
-                move.w  D4, D1
-                bsr     loc_7644
-                move.w  D1, D4 
-                moveq   #-$10, D5
-                bsr     loc_7350
-                movem.l (A7)+, D4-D6 
-                addi.w  #$0010, D4
-                dbra    D6, loc_6E8C
-                move.b  #$00, ($FFFFEEA0).w
-                rts
-loc_6EB4:
+; ============================================================================
+; ----------------------------------------------------------------------------
+; Unused subroutine to display the correct BACKGROUND tiles as you move
+; Used in Sonic 1 on its title screen
+; ----------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_6DEE: LoadTilesAsYouMove_BGOnly:
+		lea	(VDP_control_port).l,a5
+		lea	(VDP_data_port).l,a6
+		lea	($FFFFEE52).w,a2
+		lea	($FFFFEE08).w,a3
+		lea	($FFFF8080).w,a4
+		move.w	#$6000,d2
+		bsr.w	Draw_BG1
+		lea	($FFFFEE54).w,a2
+		lea	($FFFFEE10).w,a3
+		bra.w	Draw_BG2
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Subroutine to display correct tiles as you move
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_6E1A:
+LoadTilesAsYouMove:
+		lea	(VDP_control_port).l,a5
+		lea	(VDP_data_port).l,a6
+		lea	($FFFFEEA2).w,a2
+		lea	($FFFFEE68).w,a3
+		lea	($FFFF8080).w,a4	; first background line
+		move.w	#$6000,d2
+		bsr.w	Draw_BG1
+
+		lea	($FFFFEEA4).w,a2
+		lea	($FFFFEE70).w,a3
+		bsr.w	Draw_BG2
+
+		lea	($FFFFEEA6).w,a2
+		lea	($FFFFEE78).w,a3 
+		bsr.w	Draw_BG3
+
+		tst.w	($FFFFFFD8).w
+		beq.s	loc_6E6C
+		lea	($FFFFEEA8).w,a2
+		lea	($FFFFEE80).w,a3
+		lea	($FFFF8000).w,a4
+		move.w	#$6000,d2
+		bsr.w	Draw_FG_P2
+
+loc_6E6C:
+		lea	($FFFFEEA0).w,a2
+		lea	($FFFFEE60).w,a3
+		lea	($FFFF8000).w,a4
+		move.w	#$4000,d2
+
+		tst.b	($FFFFF720).w		; is the screen redraw flag set?
+		beq.s	Draw_FG			; is not, branch
+
+		move.b	#0,($FFFFF720).w	; clear the flag immediately
+
+		moveq	#-16,d4			; X (relative to camera)
+		moveq	#(1+224/16+1)-1,d6	; cover the screen, plus an extra row at the top and bottom
+; loc_6E8C:
+Draw_All:
+		; This redraws the WHOLE foreground, although it is only used
+		; by the unused CPZ background routine at this point.
+		movem.l	d4-d6,-(sp)
+		moveq	#-16,d5		; X (relative)
+		move.w	d4,d1
+		bsr.w	loc_7644
+		move.w	d1,d4
+		moveq	#-16,d5		; X (relative)
+		bsr.w	loc_7350	; draw the current row
+		movem.l	(sp)+,d4-d6
+		addi.w	#16,d4		; move onto the next row
+		dbf	d6,Draw_All	; repeat for all rows
+
+		move.b	#0,($FFFFEEA0).w
+		rts
+; ===========================================================================
+; loc_6EB4:
+Draw_FG:
                 tst.b   (A2)
                 beq.s   loc_6F18
                 bclr    #$00, (A2)
@@ -7617,8 +7648,9 @@ loc_6EFE:
                 move.w  #$0140, D5
                 bsr     loc_72C2
 loc_6F18: 
-                rts                
-loc_6F1A: 
+                rts
+; loc_6F1A:
+Draw_FG_P2: 
                 tst.b   (A2)
                 beq.s   loc_6F7E
                 bclr    #$00, (A2)
@@ -7658,7 +7690,8 @@ loc_6F64:
                 bsr     loc_72C2
 loc_6F7E:   
                 rts                            
-loc_6F80: 
+; loc_6F80:
+Draw_BG1: 
                 tst.b   (A2)
                 beq     loc_704E
                 bclr    #$00, (A2)
@@ -7738,7 +7771,8 @@ loc_7032:
                 bsr     loc_7348
 loc_704E:
                 rts                 
-loc_7050:  
+; loc_7050:
+Draw_BG2:  
                 tst.b   (A2)
                 beq     loc_7092
                 bclr    #$00, (A2)
@@ -7819,7 +7853,8 @@ loc_712A:
                 lsr.w   #$04, D0
                 lea     $00(A0, D0), A0
                 bra     loc_7244                
-loc_7140:
+; loc_7140:
+Draw_BG3:
                 tst.b   (A2)
                 beq     loc_718C
                 cmpi.b  #$0D, ($FFFFFE10).w
@@ -8360,8 +8395,8 @@ loc_76A2:
                 move.w  D4, D0
                 rts  
 Load_Tiles_From_Start: ; loc_76BE:
-                lea     ($00C00004), A5
-                lea     ($00C00000), A6
+                lea     (VDP_control_port), A5
+                lea     (VDP_data_port), A6
                 tst.w   ($FFFFFFD8).w
                 beq.s   loc_76DE
                 lea     ($FFFFEE20).w, A3
@@ -41041,7 +41076,7 @@ loc_23010:
                 rts
 HudUpdate: ; loc_23012:
                 nop
-                lea     ($00C00000), A6
+                lea     (VDP_data_port), A6
                 tst.w   (Debug_mode_flag).w
                 bne     loc_23104
                 tst.b   ($FFFFFE1F).w
@@ -41100,7 +41135,7 @@ loc_230C4:
                 tst.b   ($FFFFF7D6).w
                 beq.s   loc_230EC
                 clr.b   ($FFFFF7D6).w
-                move.l  #$6E000002, ($00C00004)
+                move.l  #$6E000002, (VDP_control_port)
                 moveq   #$00, D1
                 move.w  ($FFFFF7D2).w, D1
                 bsr     loc_2337E
@@ -41141,7 +41176,7 @@ loc_23146:
                 tst.b   ($FFFFF7D6).w
                 beq.s   loc_2316E
                 clr.b   ($FFFFF7D6).w   
-                move.l  #$6E000002, ($00C00004)
+                move.l  #$6E000002, (VDP_control_port)
                 moveq   #$00, D1
                 move.w  ($FFFFF7D2).w, D1
                 bsr     loc_2337E
@@ -41151,14 +41186,14 @@ loc_23146:
 loc_2316E:                
                 rts
 loc_23170:
-                move.l  #$5F400003, ($00C00004)
+                move.l  #$5F400003, (VDP_control_port)
                 lea     loc_231D8(PC), A2
                 move.w  #$0002, D2
                 bra.s   loc_231A0
 Head_Up_Display_Base: ; loc_23184: ; HUD routine               
-                lea     ($00C00000), A6
+                lea     (VDP_data_port), A6
                 bsr     loc_233DE
-                move.l  #$5C400003, ($00C00004)
+                move.l  #$5C400003, (VDP_control_port)
                 lea     loc_231CC(PC), A2
                 move.w  #$000E, D2
 loc_231A0:
@@ -41185,7 +41220,7 @@ loc_231CC:
 loc_231D8:
                 dc.l    $FFFF0000
 loc_231DC:
-                move.l  #$5C400003, ($00C00004)
+                move.l  #$5C400003, (VDP_control_port)
                 move.w  ($FFFFEE00).w, D1
                 lsr.w   #7, D1
                 move.w  ($FFFFFE04).w, D1
@@ -41273,8 +41308,8 @@ loc_232A2:
                 dbra    D6, loc_2325E
                 rts 
 ; loc_232AE:
-                move.l  #$5F800003, ($00C00004)
-                lea     ($00C00000), A6
+                move.l  #$5F800003, (VDP_control_port)
+                lea     (VDP_data_port), A6
                 lea     (loc_23316), A2
                 moveq   #$01, D6
                 moveq   #$00, D4
@@ -47918,6 +47953,9 @@ Snd_Driver:	incbin	"sound/Z80.bin",$00,$631
 		incbin	"sound/Z80.bin",$CE5,$10D
 
 		cnop 0,$1000
+; ---------------------------------------------------------------------------
+; DAC samples
+; ---------------------------------------------------------------------------
 ; loc_ED000:
 DAC_Sample01:	incbin	"sound/DAC/Sample 1.bin"
 DAC_Sample01_End:
@@ -47960,11 +47998,18 @@ Mus_GameOver:	incbin	"data\sounds\tgovr_9B.snd"
 Mus_Continue:	incbin	"data\sounds\cont_9C.snd"
 Mus_Emerald:	incbin	"data\sounds\emrld_9D.snd"
 
-                cnop    $000000, $0F1E8C
-Sega_Snd: ; loc_F1E8C:                
-                incbin  'data\sounds\sega.snd'                 
-                
-                cnop    $000000, $0F8000
+		cnop 0, $F1E8C
+; -------------------------------------------------------------------------------
+; Sega Intro Sound
+; 8-bit unsigned raw audio at 16Khz
+; -------------------------------------------------------------------------------
+; loc_F1E8C:
+Sega_Snd:	incbin	"data\sounds\sega.snd"
+
+		cnop 0, $F8000
+; ------------------------------------------------------------------------------
+; Music pointers
+; ------------------------------------------------------------------------------
 ; loc_F8000: Music_81_To_97:
 MusicPoint2:	rom_ptr_z80	Mus_OOZ		; $81
 		rom_ptr_z80	Mus_GHZ		; $82

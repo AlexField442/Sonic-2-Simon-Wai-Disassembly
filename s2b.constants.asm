@@ -1,3 +1,5 @@
+; ---------------------------------------------------------------------------
+; RAM variables - General
 Water_Level_1:			equ $FFFFF646
 Water_Level_2:			equ $FFFFF648
 Water_Level_3:			equ $FFFFF64A
@@ -21,3 +23,8 @@ WindTunnel_flag:		equ $FFFFF7C7
 Debug_placement_mode:		equ $FFFFFE08
 
 Debug_mode_flag:		equ $FFFFFFFA
+
+; ---------------------------------------------------------------------------
+; VDP addressses
+VDP_data_port:			equ $C00000 ; (8=r/w, 16=r/w)
+VDP_control_port:		equ $C00004 ; (8=r/w, 16=r/w)
