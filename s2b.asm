@@ -16,7 +16,7 @@ Vectors:	dc.l    $FFFFFE00, EntryPoint, BusError, AddressError
 		dc.l    ErrorExcept, ErrorExcept, ErrorExcept, ErrorExcept
 		dc.l    ErrorExcept, ErrorExcept, ErrorExcept, ErrorExcept
 		dc.l    ErrorExcept, ErrorTrap, ErrorTrap, ErrorTrap
-		dc.l    H_int, ErrorTrap, V_Int, ErrorTrap
+		dc.l    H_int, ErrorTrap, V_int, ErrorTrap
 		dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
 		dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
 		dc.l    ErrorTrap, ErrorTrap, ErrorTrap, ErrorTrap
@@ -38,7 +38,7 @@ Checksum:
 	dc.l StartOfRom		; Start address of ROM
 RomEndLoc:
 	dc.l $7FFFF		; End address of ROM (leftover from Sonic 1)
-	dc.l $FF0000		; Start address of RAM
+	dc.l RAM_Start&$FFFFFF	; Start address of RAM
 	dc.l $FFFFFF		; End address of RAM
 	dc.b "                " ; Backup RAM
 	dc.b "                                                " ; notes (can be anything, but must be 52 bytes)
@@ -165,7 +165,7 @@ GameClrStack:
 		move.l	#'init',($FFFFFFFC).w
 ; loc_36A:
 GameInit:              
-		lea	($FF0000).l,a6 
+		lea	(RAM_Start&$FFFFFF).l,a6 
 		moveq	#0,d7 
 		move.w	#$3F7F,d6
 ; loc_376: 
@@ -347,7 +347,7 @@ Art_Text:	BINCLUDE	"data\sprites\art_menu.dat"
 ; vertical and horizontal interrupt handlers
 ; VERTICAL INTERRUPT HANDLER:
 ; loc_B08: VBlank:
-V_Int:
+V_int:
 		movem.l	d0-a6,-(sp)
 		tst.b	($FFFFF62A).w
 		beq.w	Vint_Lag
@@ -1113,8 +1113,8 @@ ShowVDPGraphics_TileLoop: ; loc_155E:
 
 ; loc_154C: DMA_68KtoVRAM: QueueCopyToVRAM: QueueVDPCommand: Add_To_DMA_Queue:
 QueueDMATransfer:
-		movea.l	($FFFFDCFC).w,a1
-		cmpa.w	#$DCFC,a1
+		movea.l	(VDP_Command_Buffer_Slot).w,a1
+		cmpa.w	#VDP_Command_Buffer_Slot,a1
 		beq.s	QueueDMATransfer_Done	; return if there's no more room in the buffer
 
 		; piece together some VDP commands and store them for later...
@@ -1149,8 +1149,8 @@ QueueDMATransfer:
 		ori.l	#$40000080,d2	; set bits to specify VRAM transfer
 		move.l	d2,(a1)+	; store command
 
-		move.l	a1,($FFFFDCFC).w	; set the next free slot address
-		cmpa.w	#$DCFC,a1
+		move.l	a1,(VDP_Command_Buffer_Slot).w	; set the next free slot address
+		cmpa.w	#VDP_Command_Buffer_Slot,a1
 		beq.s	QueueDMATransfer_Done	; return if there's no more room in the buffer
 		move.w	#0,(a1)			; put a stop token at the end of the used part of the buffer
 ; loc_15C8:
@@ -1169,7 +1169,7 @@ QueueDMATransfer_Done:
 ; loc_15CA: CopyToVRAM: IssueVDPCommands: Process_DMA: Process_DMA_Queue:
 ProcessDMAQueue:
 		lea	(VDP_control_port).l,a5
-		lea	($FFFFDC00).w,a1
+		lea	(VDP_Command_Buffer).w,a1
 ; loc_15D4:	
 ProcessDMAQueue_Loop:
 		move.w	(a1)+,d0
@@ -1182,12 +1182,12 @@ ProcessDMAQueue_Loop:
 		move.w	(a1)+,(a5)		; source address
 		move.w	(a1)+,(a5)		; destination
 		move.w	(a1)+,(a5)		; destination
-		cmpa.w	#$DCFC,a1
+		cmpa.w	#VDP_Command_Buffer_Slot,a1
 		bne.s	ProcessDMAQueue_Loop	; loop if we haven't reached end of buffer
 ; loc_15EC:
 ProcessDMAQueue_Done:
-		move.w	#0,($FFFFDC00).w
-		move.l	#$FFFFDC00,($FFFFDCFC).w
+		move.w	#0,(VDP_Command_Buffer).w
+		move.l	#VDP_Command_Buffer,(VDP_Command_Buffer_Slot).w
 		rts
 ; End of function ProcessDMAQueue
 
@@ -1200,7 +1200,7 @@ NemDec_ToRAM: ;loc_160E: ; Decompress Sprites to Ram
                 movem.l D0-D7/A0/A1/A3-A5, -(A7)
                 lea     (NemDec_OutputRAM), A3 ; loc_16D4
 loc_1618:                
-                lea     ($FFFFAA00).w, A1
+                lea     (Decomp_Buffer).w, A1
                 move.w  (A0)+, D2
                 lsl.w   #$01, D2
                 bcc.s   loc_1626
@@ -1444,7 +1444,7 @@ RunPLC_RAM:
 		move.l	($FFFFF680).w,a0
 		lea	NemDec_Output(pc),a3
 		nop
-		lea	($FFFFAA00).w,a1
+		lea	(Decomp_Buffer).w,a1
 		move.w	(a0)+,d2
 		bpl.s	loc_17CA
 		adda.w	#$A,a3
@@ -1509,7 +1509,7 @@ ProcessDPLC_Main:
 		move.l	($FFFFF6EC).w,d2
 		move.l	($FFFFF6F0).w,d5
 		move.l	($FFFFF6F4).w,d6
-		lea	($FFFFAA00).w,a1
+		lea	(Decomp_Buffer).w,a1
 
 loc_1866:
 		move.w	#8,a5
@@ -3474,23 +3474,23 @@ SegaScreen: ; loc_360C: ; SEGA Logo
                 move.l  #$40000000, (VDP_control_port)
                 lea     (SegaLogo), A0          ; Load Sega Sprites ; loc_70960  
                 bsr     NemDec              ; loc_15FC
-                lea     ($FFFF0000), A1
+                lea     (Chunk_Table), A1
                 lea     (SegaLogo_Mappings), A0 ; Load Sega Mappings ; loc_70DD0
                 move.w  #$0000, D0
                 bsr     EniDec               ; loc_18DA
-                lea     ($FFFF0000), A1
+                lea     (Chunk_Table), A1
                 move.l  #$65100003, D0
                 moveq   #$17, D1
                 moveq   #$07, D2
                 bsr     ShowVDPGraphics         ; loc_154C
-                lea     ($FFFF0180), A1
+                lea     (Chunk_Table+$180), A1
                 move.l  #$40000003, D0
                 moveq   #$27, D1
                 moveq   #$1B, D2
                 bsr     ShowVDPGraphics         ; loc_154C
                 tst.b   ($FFFFFFF8).w
                 bmi.s   loc_36BE
-                lea     ($FFFF0A40), A1
+                lea     (Chunk_Table+$A40), A1
                 move.l  #$453A0003, D0
                 moveq   #$02, D1
                 moveq   #$01, D2
@@ -3552,9 +3552,9 @@ TitleScreen:
 		clr.b	(Water_fullscreen_flag).w
 		move.w	#$8C81,(a6)
 		bsr.w	ClearScreen
-		lea	($FFFFAC00).w,a1
+		lea	(Sprite_Table_Input).w,a1
 		moveq	#0,d0
-		move.w	#$FF,d1
+		move.w	#bytesToLcnt(Sprite_Table_Input_End-Sprite_Table_Input),d1
 
 loc_3784:
 		move.l	d0,(a1)+
@@ -3619,29 +3619,29 @@ loc_3818:
 		bsr.w	Pal_FadeFrom
 
 		move	#$2700,sr
-		lea	($FF0000).l,a1
+		lea	(Chunk_Table).l,a1
 		lea	(TS_Wings_MapUnc_Sonic).l,a0
 		move.w	#0,d0
 		bsr.w	EniDec
-		lea	($FF0000).l,a1
+		lea	(Chunk_Table).l,a1
 		move.l	#$40000003,d0
 		moveq	#$27,d1
 		moveq	#$1B,d2
 		bsr.w	ShowVDPGraphics
-		lea	($FF0000).l,a1
+		lea	(Chunk_Table).l,a1
 		lea	(Title_Screen_Bg_Mappings).l,a0
 		move.w	#0,d0
 		bsr.w	EniDec
-		lea	($FF0000).l,a1
+		lea	(Chunk_Table).l,a1
 		move.l	#$60000003,d0
 		moveq	#$1F,d1
 		moveq	#$1B,d2
 		bsr.w	ShowVDPGraphics
-		lea	($FF0000).l,a1
+		lea	(Chunk_Table).l,a1
 		lea	(Title_Screen_R_Bg_Mappings).l,a0
 		move.w	#0,d0
 		bsr.w	EniDec
-		lea	($FF0000).l,a1
+		lea	(Chunk_Table).l,a1
 		move.l	#$60400003,d0
 		moveq	#$1F,d1
 		moveq	#$1B,d2
@@ -4128,7 +4128,7 @@ Level_Select_Text: ; loc_3D7C: ; Level Select Menu Text
 
                 dc.b    $00 ; Filler
 Unused_Code1: ; loc_4056:                 
-                lea     ($FFFF0000), A1
+                lea     (Chunk_Table), A1
                 move.w  #$02EB, D2
 Unused_Code1_Loop: ; loc_4060:                
                 move.w  (A1), D0
@@ -4143,7 +4143,7 @@ Unused_Code1_Loop: ; loc_4060:
 Unused_Code2: ; loc_4078:                
                 lea     ($00FE0000), A1
                 lea     ($00FE0080), A2
-                lea     ($FFFF0000), A3
+                lea     (Chunk_Table), A3
                 move.w  #$003F, D1
 Unused_Code2_Loop: ; loc_408E:                
                 bsr     Unused_Code4            ; loc_4120
@@ -4162,7 +4162,7 @@ Unused_Code2_Loop3: ; loc_40B6:
                 rts
 Unused_Code3: ; loc_40BE:              
                 lea     ($00FE0000), A1
-                lea     ($FFFF0000), A3
+                lea     (Chunk_Table), A3
                 moveq   #$1F, D0
 Unused_Code3_Loop: ; loc_40CC:                
                 move.l  (A1)+, (A3)+
@@ -4171,7 +4171,7 @@ Unused_Code3_Loop: ; loc_40CC:
                 lea     ($00FE0000), A1
                 move.w  #$00FF, D5
 Unused_Code3_Loop2: ; loc_40DE:                
-                lea     ($FFFF0000), A3
+                lea     (Chunk_Table), A3
                 move.w  D7, D6
 Unused_Code3_Loop3: ; loc_40E6:                
                 movem.l A1-A3, -(A7)
@@ -4248,9 +4248,9 @@ loc_41BA:
                 moveq   #$01, D0
                 bsr     LoadPLC                 ; loc_173C
 loc_41C0:
-                lea     ($FFFFAC00).w, A1
+                lea     (Sprite_Table_Input).w, A1
                 moveq   #$00, D0
-                move.w  #$00FF, D1
+                move.w  #bytesToLcnt(Sprite_Table_Input_End-Sprite_Table_Input), D1
 loc_41CA:
                 move.l  D0, (A1)+
                 dbra    D1, loc_41CA
@@ -4309,7 +4309,7 @@ loc_4262:
 
 loc_427C:
 		move.w	($FFFFF624).w,(a6)
-		move.l	#$FFFFDC00,($FFFFDCFC).w
+		move.l	#VDP_Command_Buffer,(VDP_Command_Buffer_Slot).w
 		tst.b	(Water_flag).w
 		beq.s	Level_LoadPal
 		move.w	#$8014,(a6)
@@ -4799,7 +4799,7 @@ S1_LZ_Water_Slides: ; loc_4844:
                 move.b  $0008(A1), D1
                 andi.w  #$007F, D1
                 add.w   D1, D0
-                lea     ($FFFF8000).w, A2
+                lea     (Level_Layout).w, A2
                 move.b  $00(A2, D0), D0
                 lea     loc_48DD(PC), A2
                 moveq   #$06, D1
@@ -4964,12 +4964,12 @@ Load_Colision_Index: ; loc_4AAA:
                 moveq   #$00, D0
                 move.b  ($FFFFFE10).w, D0
                 lsl.w   #$02, D0
-                move.l  #$FFFFD000, (Collision_addr).w
+                move.l  #Primary_Collision, (Collision_addr).w
                 move.l  Primary_Colision_Index(PC, D0), A1 ; loc_4ADC
-                lea     ($FFFFD000).w, A2
+                lea     (Primary_Collision).w, A2
                 bsr.s   Load_Colision           ; loc_4ACC
                 move.l  Secundary_Colision_Index(PC, D0), A1 ; loc_4B20
-                lea     ($FFFFD600).w, A2
+                lea     (Secondary_Collision).w, A2
 Load_Colision: ; loc_4ACC:
                 move.w  #$02FF, D1
                 moveq   #$00, D2
@@ -5240,7 +5240,7 @@ loc_5260:
                 bsr     SS_Background_Load      ; loc_54CA
                 moveq   #$14, D0
                 bsr     RunPLC_ROM              ; loc_18A8
-                lea     ($FFFFD000).w, A1
+                lea     (Primary_Collision).w, A1	; this should be Object_RAM
                 moveq   #$00, D0
                 move.w  #$07FF, D1
 loc_5280:                
@@ -5258,7 +5258,7 @@ loc_5290:
 loc_52A0:                
                 move.l  D0, (A1)+
                 dbra    D1, loc_52A0
-                lea     ($FFFFAA00).w, A1
+                lea     (Decomp_Buffer).w, A1
                 moveq   #$00, D0
                 move.w  #$007F, D1
 loc_52B0:                
@@ -5395,11 +5395,11 @@ loc_54C0:
                 beq.s   loc_54B8
                 rts
 SS_Background_Load: ; loc_54CA:
-                lea     ($FFFF0000), A1
+                lea     (Chunk_Table), A1
                 move.w  #$4051, D0
                 bsr     EniDec               ; loc_18DA
                 move.l  #$50000001, D3
-                lea     ($FFFF0080), A2
+                lea     (Chunk_Table+$80), A2
                 moveq   #$06, D7
 loc_54E6:                
                 move.l  D3, D0
@@ -5416,7 +5416,7 @@ loc_54F6:
                 bne.s   loc_550A
                 cmpi.w  #$0006, D7
                 bne.s   loc_551A
-                lea     ($FFFF0000), A1
+                lea     (Chunk_Table), A1
 loc_550A:
                 movem.l D0-D4, -(A7)
                 moveq   #$07, D1
@@ -5437,15 +5437,15 @@ loc_551A:
 loc_5544:
                 adda.w  #$0080, A2
                 dbra    D7, loc_54E6
-                lea     ($FFFF0000), A1
+                lea     (Chunk_Table), A1
                 move.w  #$4000, D0
                 bsr     EniDec               ; loc_18DA
-                lea     ($FFFF0000), A1
+                lea     (Chunk_Table), A1
                 move.l  #$40000003, D0
                 moveq   #$3F, D1
                 moveq   #$1F, D2
                 bsr     ShowVDPGraphics         ; loc_154C
-                lea     ($FFFF0000), A1
+                lea     (Chunk_Table), A1
                 move.l  #$50000003, D0
                 moveq   #$3F, D1
                 moveq   #$3F, D2
@@ -5575,7 +5575,7 @@ loc_5832:
                 neg.w   D0
                 swap  D0
                 lea     (loc_58ED), A1
-                lea     ($FFFFAA00).w, A3
+                lea     (Decomp_Buffer).w, A3
                 moveq   #$09, D3
 loc_5848:                
                 move.w  $0002(A3), D0
@@ -5589,14 +5589,14 @@ loc_5848:
                 ext.w   D2
                 add.w   D2, (A3)+
                 dbra    D3, loc_5848
-                lea     ($FFFFAA00).w, A3
+                lea     (Decomp_Buffer).w, A3
                 lea     (loc_58DA), A2
                 bra.s   loc_58A0
 loc_5870:
                 cmpi.w  #$000C, D0
                 bne.s   loc_5896
                 subq.w  #$01, ($FFFFEE18).w
-                lea     ($FFFFAB00).w, A3
+                lea     (Decomp_Buffer+$100).w, A3
                 move.l  #$00018000, D2
                 moveq   #$06, D1
 loc_5886:                
@@ -5606,7 +5606,7 @@ loc_5886:
                 subi.l  #$00002000, D2
                 dbra    D1, loc_5886
 loc_5896:
-                lea     ($FFFFAB00).w, A3
+                lea     (Decomp_Buffer+$100).w, A3
                 lea     (loc_58E5), A2
 loc_58A0:
                 lea     ($FFFFE000).w, A1
@@ -5800,7 +5800,7 @@ Bg_Scroll_Speed_GHz: ; loc_5BEA: ; Green Hill Background Position
                 clr.l   ($FFFFEE0C).w
                 clr.l   ($FFFFEE14).w
                 clr.l   ($FFFFEE1C).w
-                lea     ($FFFFA800).w, A2
+                lea     (TempArray_LayerDef).w, A2
                 clr.l   (A2)+
                 clr.l   (A2)+
                 clr.l   (A2)+
@@ -5829,7 +5829,7 @@ Bg_Scroll_Speed_HTz: ; loc_5C38: ; Hill Top Background Position
                 clr.l   ($FFFFEE0C).w
                 clr.l   ($FFFFEE14).w
                 clr.l   ($FFFFEE1C).w
-                lea     ($FFFFA800).w, A2
+                lea     (TempArray_LayerDef).w, A2
                 clr.l   (A2)+
                 clr.l   (A2)+
                 clr.l   (A2)+
@@ -5896,7 +5896,7 @@ Bg_Scroll_Speed_CNz: ; loc_5CE8: ; Casino Night Background Position
                 move.w  D0, ($FFFFEE0C).w
                 move.w  D0, ($FFFFEE2C).w
                 clr.l   ($FFFFEE08).w
-                lea     ($FFFFA800).w, A2
+                lea     (TempArray_LayerDef).w, A2
                 clr.l   (A2)+
                 clr.l   (A2)+
                 clr.l   (A2)+
@@ -5928,7 +5928,7 @@ loc_5D42:
                 clr.l   ($FFFFEE08).w
                 clr.l   ($FFFFEE14).w
                 clr.l   ($FFFFEE1C).w
-                lea     ($FFFFA800).w, A2
+                lea     (TempArray_LayerDef).w, A2
                 clr.l   (A2)+
                 clr.l   (A2)+
                 clr.l   (A2)+
@@ -6041,9 +6041,9 @@ loc_5E8E:
                 move.b  ($FFFFFE0F).w, D1
                 andi.w  #$0007, D1
                 bne.s   loc_5EA4
-                subq.w  #$01, ($FFFFA800).w
+                subq.w  #$01, (TempArray_LayerDef).w
 loc_5EA4:
-                move.w  ($FFFFA800).w, D1
+                move.w  (TempArray_LayerDef).w, D1
                 andi.w  #$001F, D1
                 lea     (loc_5F60), A2
                 lea     $00(A2, D1), A2
@@ -6134,7 +6134,7 @@ loc_5FA2:
                 move.b  ($FFFFFE0F).w, D1
                 andi.w  #$0007, D1
                 bne.s   loc_5FB0
-                subq.w  #$01, ($FFFFA800).w
+                subq.w  #$01, (TempArray_LayerDef).w
 loc_5FB0:                
                 move.w  ($FFFFEE0C).w, ($FFFFF618).w
                 andi.l  #$FFFEFFFE, ($FFFFF616).w
@@ -6166,7 +6166,7 @@ loc_6010:
                 move.l  D0, (A1)+
                 dbra    D1, loc_6010
                 move.w  D0, D3
-                move.w  ($FFFFA800).w, D1
+                move.w  (TempArray_LayerDef).w, D1
                 andi.w  #$001F, D1
                 lea     loc_5F60(PC), A2
                 lea     $00(A2, D1), A2
@@ -6277,8 +6277,8 @@ loc_6134:
                 move.l  D0, (A1)+
                 dbra    D1, loc_6134
                 move.l  D0, D4
-                move.w  ($FFFFA822).w, D0
-                addq.w  #$04, ($FFFFA822).w
+                move.w  (TempArray_LayerDef+$22).w, D0
+                addq.w  #$04, (TempArray_LayerDef+$22).w
                 sub.w   D0, D2
                 move.w  D2, D0
                 move.w  D0, D1
@@ -6290,7 +6290,7 @@ loc_6134:
                 divs.w  #$0070, D0
                 ext.l   D0
                 asl.l   #$08, D0
-                lea     ($FFFFA800).w, A2
+                lea     (TempArray_LayerDef).w, A2
                 moveq   #$00, D3
                 move.w  D1, D3
                 swap  D3
@@ -6489,7 +6489,7 @@ Bg_Scroll_HPz: ; loc_6344: ; Hidden Palace Background Scroll
                 moveq   #$06, D6
                 bsr     Scroll_Block3           ; loc_6D52
                 move.w  ($FFFFEE0C).w, ($FFFFF618).w
-                lea     ($FFFFA800).w, A1
+                lea     (TempArray_LayerDef).w, A1
                 move.w  ($FFFFEE00).w, D2
                 neg.w   D2
                 move.w  D2, D0
@@ -6510,7 +6510,7 @@ loc_6378:
                 moveq   #$00, D3
                 move.w  D2, D3
                 asr.w   #$01, D3
-                lea     ($FFFFA860).w, A2
+                lea     (TempArray_LayerDef+$60).w, A2
                 swap  D3
                 add.l   D0, D3
                 swap  D3
@@ -6550,7 +6550,7 @@ loc_63DA:
 loc_63EC:
                 move.w  D0, (A1)+
                 dbra    D1, loc_63EC
-                lea     ($FFFFA800).w, A2
+                lea     (TempArray_LayerDef).w, A2
                 move.w  ($FFFFEE0C).w, D0
                 move.w  D0, D2
                 andi.w  #$03F0, D0
@@ -6595,7 +6595,7 @@ loc_646A:
                 moveq   #$06, D6
                 bsr     loc_6D5A
                 move.w  ($FFFFEE0C).w, ($FFFFF618).w
-                lea     ($FFFFA800).w, A2
+                lea     (TempArray_LayerDef).w, A2
                 lea     $001E(A2), A3
                 move.w  ($FFFFEE00).w, D0
                 ext.l   D0
@@ -6655,7 +6655,7 @@ loc_646A:
                 move.w  D1, (A2)
                 move.w  D1, $0016(A2)
                 lea     (loc_6554), A3
-                lea     ($FFFFA800).w, A2
+                lea     (TempArray_LayerDef).w, A2
                 lea     ($FFFFE000).w, A1
                 move.w  ($FFFFEE0C).w, D1
                 moveq   #$00, D0
@@ -6700,7 +6700,7 @@ loc_658A:
                 move.w  D0, ($FFFFEE0C).w
                 move.w  D0, ($FFFFF618).w
                 andi.l  #$FFFEFFFE, ($FFFFF616).w
-                lea     ($FFFFA800).w, A2
+                lea     (TempArray_LayerDef).w, A2
                 lea     $001E(A2), A3
                 move.w  ($FFFFEE00).w, D0
                 ext.l   D0
@@ -6760,7 +6760,7 @@ loc_658A:
                 move.w  D1, (A2)
                 move.w  D1, $0016(A2)
                 lea     (loc_6678), A3
-                lea     ($FFFFA800).w, A2
+                lea     (TempArray_LayerDef).w, A2
                 lea     ($FFFFE000).w, A1
                 move.w  ($FFFFEE0C).w, D1
                 lsr.w   #$01, D1
@@ -6811,7 +6811,7 @@ loc_66AE:
                 move.w  ($FFFFEE24).w, ($FFFFF61E).w
                 subi.w  #$00E0, ($FFFFF61E).w
                 andi.l  #$FFFEFFFE, ($FFFFF61E).w
-                lea     ($FFFFA800).w, A2
+                lea     (TempArray_LayerDef).w, A2
                 lea     $001E(A2), A3
                 move.w  ($FFFFEE20).w, D0
                 ext.l   D0
@@ -6871,7 +6871,7 @@ loc_66AE:
                 move.w  D1, (A2)
                 move.w  D1, $0016(A2)
                 lea     loc_6679(PC), A3
-                lea     ($FFFFA800).w, A2
+                lea     (TempArray_LayerDef).w, A2
                 lea     ($FFFFE1B0).w, A1
                 move.w  ($FFFFEE2C).w, D1
                 lsr.w   #$01, D1
@@ -6990,7 +6990,7 @@ Bg_Scroll_CPz: ; loc_687C: ; Chemical Plant Background Scroll
                 move.b  ($FFFFFE0F).w, D1
                 andi.w  #$0007, D1
                 bne.s   loc_68CC
-                subq.w  #$01, ($FFFFA800).w
+                subq.w  #$01, (TempArray_LayerDef).w
 loc_68CC:
                 lea     (loc_718F), A0
                 move.w  ($FFFFEE0C).w, D0
@@ -7052,7 +7052,7 @@ loc_6954:
 loc_6958:
                 move.w  ($FFFFEE08).w, D3
                 neg.w   D3
-                move.w  ($FFFFA800).w, D0
+                move.w  (TempArray_LayerDef).w, D0
                 andi.w  #$001F, D0
                 lea     loc_5F60(PC), A2
                 lea     $00(A2, D0), A2
@@ -7081,7 +7081,7 @@ loc_69A2:
                 moveq   #$06, D6
                 bsr     Scroll_Block3           ; loc_6D52
                 move.w  ($FFFFEE0C).w, ($FFFFF618).w
-                lea     ($FFFFA800).w, A2
+                lea     (TempArray_LayerDef).w, A2
                 lea     $0006(A2), A3
                 move.w  ($FFFFEE00).w, D0
                 ext.l   D0
@@ -7130,7 +7130,7 @@ loc_69A2:
                 move.w  D0, $0000(A2)
                 move.w  D0, $0004(A2)
                 lea     (loc_6A64), A3
-                lea     ($FFFFA800).w, A2
+                lea     (TempArray_LayerDef).w, A2
                 lea     ($FFFFE000).w, A1
                 move.w  ($FFFFEE0C).w, D1
                 moveq   #$00, D0
@@ -7538,7 +7538,7 @@ loc_6DEC:
 		lea	(VDP_data_port).l,a6
 		lea	($FFFFEE52).w,a2
 		lea	($FFFFEE08).w,a3
-		lea	($FFFF8080).w,a4
+		lea	(Level_Layout+$80).w,a4
 		move.w	#$6000,d2
 		bsr.w	Draw_BG1
 		lea	($FFFFEE54).w,a2
@@ -7558,7 +7558,7 @@ LoadTilesAsYouMove:
 		lea	(VDP_data_port).l,a6
 		lea	($FFFFEEA2).w,a2
 		lea	($FFFFEE68).w,a3
-		lea	($FFFF8080).w,a4	; first background line
+		lea	(Level_Layout+$80).w,a4	; first background line
 		move.w	#$6000,d2
 		bsr.w	Draw_BG1
 
@@ -7574,14 +7574,14 @@ LoadTilesAsYouMove:
 		beq.s	loc_6E6C
 		lea	($FFFFEEA8).w,a2
 		lea	($FFFFEE80).w,a3
-		lea	($FFFF8000).w,a4
+		lea	(Level_Layout).w,a4
 		move.w	#$6000,d2
 		bsr.w	Draw_FG_P2
 
 loc_6E6C:
 		lea	($FFFFEEA0).w,a2
 		lea	($FFFFEE60).w,a3
-		lea	($FFFF8000).w,a4
+		lea	(Level_Layout).w,a4
 		move.w	#$4000,d2
 
 		tst.b	($FFFFF720).w		; is the screen redraw flag set?
@@ -7593,7 +7593,7 @@ loc_6E6C:
 		moveq	#(1+224/16+1)-1,d6	; cover the screen, plus an extra row at the top and bottom
 ; loc_6E8C:
 Draw_All:
-		; This redraws the WHOLE foreground, although it is only used
+		; This redraws the WHOLE screen, although it is only used
 		; by the unused CPZ background routine at this point.
 		movem.l	d4-d6,-(sp)
 		moveq	#-16,d5		; X (relative)
@@ -7989,7 +7989,7 @@ loc_72DC:
                 move.w  (A0), D3
                 andi.w  #$03FF, D3
                 lsl.w   #$03, D3
-                lea     ($FFFF9000).w, A1
+                lea     (Block_Table).w, A1
                 adda.w  D3, A1
                 move.l  D1, D0
                 bsr     loc_7532
@@ -8008,7 +8008,7 @@ loc_7312:
                 move.w  (A0), D3
                 andi.w  #$03FF, D3
                 lsl.w   #$03, D3
-                lea     ($FFFF9000).w, A1
+                lea     (Block_Table).w, A1
                 adda.w  D3, A1
                 move.l  D1, D0
                 bsr     loc_75B8
@@ -8050,7 +8050,7 @@ loc_7376:
                 move.w  (A0), D3              
                 andi.w  #$03FF, D3
                 lsl.w   #$03, D3
-                lea     ($FFFF9000).w, A1
+                lea     (Block_Table).w, A1
                 adda.w  D3, A1
                 bsr     loc_7492
                 addq.w  #$02, A0
@@ -8099,7 +8099,7 @@ loc_73E8:
                 move.w  (A0), D3
                 andi.w  #$03FF, D3
                 lsl.w   #$03, D3
-                lea     ($FFFF9000).w, A1
+                lea     (Block_Table).w, A1
                 adda.w  D3, A1
                 bsr     loc_74F4
                 addq.w  #$02, A0
@@ -8124,7 +8124,7 @@ loc_7424:
                 move.w  (A0), D3
                 andi.w  #$03FF, D3
                 lsl.w   #$03, D3
-                lea     ($FFFF9000).w, A1
+                lea     (Block_Table).w, A1
                 adda.w  D3, A1
                 bsr     loc_74F4
                 addq.w  #$02, A0
@@ -8319,7 +8319,7 @@ loc_75F2:
 loc_7602:
                 add.w   (A3), D5
                 add.w   $0004(A3), D4
-                lea     ($FFFF9000).w, A1
+                lea     (Block_Table).w, A1
                 move.w  D4, D3
                 add.w   D3, D3
                 andi.w  #$0F00, D3
@@ -8401,16 +8401,16 @@ Load_Tiles_From_Start: ; loc_76BE:
                 tst.w   ($FFFFFFD8).w
                 beq.s   loc_76DE
                 lea     ($FFFFEE20).w, A3
-                lea     ($FFFF8000).w, A4
+                lea     (Level_Layout).w, A4
                 move.w  #$6000, D2
                 bsr.s   loc_773A
 loc_76DE:
                 lea     ($FFFFEE00).w, A3
-                lea     ($FFFF8000).w, A4
+                lea     (Level_Layout).w, A4
                 move.w  #$4000, D2
                 bsr.s   loc_770A
                 lea     ($FFFFEE08).w, A3
-                lea     ($FFFF8080).w, A4
+                lea     (Level_Layout+$80).w, A4
                 move.w  #$6000, D2
                 tst.w   ($FFFFFFD8).w
                 beq     loc_770A
@@ -8491,14 +8491,14 @@ Main_Level_Load_16_128_Blocks: ; loc_779A: Load 16x16/128x128 Tiles
                 bra.s   Main_Level_Load_Blocks_Convert16 ; loc_77CA
 ;===============================================================================
 ; loc_77BC:                
-                lea     ($FFFF9000).w, A1       ; 16x16 Tiles
+                lea     (Block_Table).w, A1       ; 16x16 Tiles
                 move.w  #$0000, D0
                 bsr     EniDec               ; loc_18DA
                 bra.s   loc_77EE
 ;===============================================================================                
 Main_Level_Load_Blocks_Convert16: ; loc_77CA:
-                lea     ($FFFF9000).w, A1
-                move.w  #$0BFF, D2
+                lea     (Block_Table).w, A1
+                move.w  #bytesToWcnt(Block_Table_End-Block_Table), D2
 Main_Level_Load_16_Blocks_Loop: ; loc_77D2:
                 move.w  (A0)+, D0
                 tst.w   ($FFFFFFD8).w
@@ -8514,7 +8514,7 @@ Main_Level_Load_16_Blocks_Not2p: ; loc_77E8:
 loc_77EE:    
                 cmpi.b  #$07, ($FFFFFE10).w
                 bne.s   loc_7820
-                lea     ($FFFF9980).w, A1
+                lea     (Block_Table+$980).w, A1
                 lea     (Hill_Top_16x16_Map), A0 ; loc_84A50
                 move.w  #$03FF, D2
 loc_7804:           
@@ -8531,7 +8531,7 @@ loc_781A:
                 dbra    D2, loc_7804 
 loc_7820:                
                 move.l  (A2)+, A0
-                lea     ($FFFF0000), A1         ; 128x128 Tiles
+                lea     (Chunk_Table), A1         ; 128x128 Tiles
                 bsr     KosDec             ; loc_1A58
                 bra.s   Load_Level_Sprites      ; loc_785E 
 ;=============================================================================== 
@@ -8550,15 +8550,15 @@ loc_7820:
                 moveq   #$00, D2
                 move.w  (A0)+, D0
                 lea     $00(A0, D0), A1
-                lea     ($FFFF0000), A2
-                lea     ($FFFF8000).w, A3
+                lea     (Chunk_Table), A2
+                lea     (Level_Layout).w, A3
 loc_7844:
                 bsr     ChaDec              ; loc_1AF8
                 tst.w   D0
                 bmi.s   loc_7844
                 bra.s   Load_Level_Sprites      ; loc_785E
 loc_784E:
-                lea     ($FFFF0000), A1
+                lea     (Chunk_Table), A1
                 move.w  #$3FFF, D0
 loc_7858:                
                 move.w  (A0)+, (A1)+
@@ -8609,16 +8609,16 @@ loc_7880:
 ; [ Begin ]                         
 ;===============================================================================
 Load_Level_Layout: ; loc_7886: ; Load Level Layout
-                lea     ($FFFF8000).w, A3 ; Level Layout
-                move.w  #$03FF, D1
+                lea     (Level_Layout).w, A3 ; Level Layout
+                move.w  #bytesToLcnt(Level_Layout_End-Level_Layout), D1
                 moveq   #$00, D0 
 loc_7890:
                 move.l  D0, (A3)+
                 dbra    D1, loc_7890
-                lea     ($FFFF8000).w, A3 ; Foreground
+                lea     (Level_Layout).w, A3 ; Foreground
                 moveq   #$00, D1
                 bsr     Interleave_Level_Layout ; loc_78A6
-                lea     ($FFFF8080).w, A3 ; Background
+                lea     (Level_Layout+$80).w, A3 ; Background
                 moveq   #$02, D1
 Interleave_Level_Layout: ; loc_78A6:                
                 moveq   #$00, D0
@@ -8626,7 +8626,7 @@ Interleave_Level_Layout: ; loc_78A6:
                 ror.b   #$01, D0
                 lsr.w   #$05, D0
                 add.w   D1, D0
-                lea     (Level_Layout), A1   ; loc_3334E
+                lea     (Off_Level), A1   ; loc_3334E
                 move.w  $00(A1, D0), D0
                 lea     $00(A1, D0.l), A1
                 moveq   #$00, D1
@@ -8666,7 +8666,7 @@ loc_78DE:
 ;loc_78F8:
                 lea     ($00FE0000), A1
                 lea     ($00FE0080), A2
-                lea     ($FFFF0000), A3
+                lea     (Chunk_Table), A3
                 move.w  #$003F, D1
 loc_790E:                
                 bsr     loc_79A0
@@ -8684,7 +8684,7 @@ loc_7936:
                 dbra    D1, loc_7936
                 rts
                 lea     ($00FE0000), A1
-                lea     ($FFFF0000), A3
+                lea     (Chunk_Table), A3
                 moveq   #$1F, D0
 loc_794C:              
                 move.l  (A1)+, (A3)+
@@ -8693,7 +8693,7 @@ loc_794C:
                 lea     ($00FE0000), A1
                 move.w  #$00FF, D5
 loc_795E:                
-                lea     ($FFFF0000), A3
+                lea     (Chunk_Table), A3
                 move.w  D7, D6
 loc_7966:                
                 movem.l A1-A3, -(A7)
@@ -15057,7 +15057,7 @@ loc_D3BA:
 ; [ Begin ]                         
 ;===============================================================================                                   
 DisplaySprite: ; loc_D3C2: ; Display Object
-                lea     ($FFFFAC00).w, A1
+                lea     (Sprite_Table_Input).w, A1
                 move.w  $0018(A0), D0
                 lsr.w   #$01, D0
                 andi.w  #$0380, D0
@@ -15079,7 +15079,7 @@ loc_D3DE:
 ; [ Begin ]                         
 ;===============================================================================                   
 DisplayA1Sprite: ; loc_D3E0:
-                lea     ($FFFFAC00).w, A2
+                lea     (Sprite_Table_Input).w, A2
                 move.w  $0018(A1), D0
                 lsr.w   #$01, D0
                 andi.w  #$0380, D0
@@ -15101,7 +15101,7 @@ loc_D3FC:
 ; [ Begin ]                         
 ;===============================================================================   
 DisplaySprite_Param: ;  loc_D3FE:
-                lea     ($FFFFAC00).w, A1
+                lea     (Sprite_Table_Input).w, A1
                 adda.w  D0, A1
                 cmpi.w  #$007E, (A1)
                 bcc.s   loc_D410
@@ -15219,7 +15219,7 @@ BuildSprites:
 		bsr.w	loc_E01C
 
 loc_D4F4:
-		lea	($FFFFAC00).w,a4
+		lea	(Sprite_Table_Input).w,a4
 		moveq	#7,d7	; 8 priority levels
 ; loc_D4FA:
 BuildSprites_LevelLoop:
@@ -15602,7 +15602,7 @@ Build_Sprites_2p: ; loc_D824:
                 beq.s   loc_D854
                 bsr     loc_E098
 loc_D854:
-                lea     ($FFFFAC00).w, A4
+                lea     (Sprite_Table_Input).w, A4
                 moveq   #$07, D7
 loc_D85A:                
                 move.w  (A4), D0
@@ -15703,7 +15703,7 @@ loc_D964:
                 beq.s   loc_D976
                 bsr     loc_E0AE
 loc_D976:
-                lea     ($FFFFAC00).w, A4
+                lea     (Sprite_Table_Input).w, A4
                 moveq   #$07, D7
 loc_D97C:                
                 tst.w   (A4)
@@ -19989,10 +19989,10 @@ loc_106FE:
 ; [ Begin ]                         
 ;=============================================================================== 
 Sonic_Floor: ; loc_10700:
-                move.l  #$FFFFD000, (Collision_addr).w
+                move.l  #Primary_Collision, (Collision_addr).w
                 cmpi.b  #$0C, $003E(A0)
                 beq.s   loc_10718
-                move.l  #$FFFFD600, (Collision_addr).w
+                move.l  #Secondary_Collision, (Collision_addr).w
 loc_10718:
                 move.b  $003F(A0), D5
                 move.w  $0010(A0), D1
@@ -23126,10 +23126,10 @@ loc_12D1E:
 ;===============================================================================        
 ; loc_12D28: Sonic_AnglePos:
 AnglePos:
-                move.l  #$FFFFD000, (Collision_addr).w
+                move.l  #Primary_Collision, (Collision_addr).w
                 cmpi.b  #$0C, $003E(A0)
                 beq.s   loc_12D40
-                move.l  #$FFFFD600, (Collision_addr).w
+                move.l  #Secondary_Collision, (Collision_addr).w
 loc_12D40:
                 move.b  $003E(A0), D5
                 btst    #$03, $0022(A0)
@@ -23460,7 +23460,7 @@ Floor_ChkTile: ; loc_1308A:
                 add.w   D1, D0
                 moveq   #-1, D1
                 clr.w   D1
-                lea     ($FFFF8000).w, A1
+                lea     (Level_Layout).w, A1
                 move.b  $00(A1, D0), D1
                 add.w   D1, D1
                 move.w  loc_130C4(PC, D1), D1
@@ -23923,10 +23923,10 @@ loc_13664:
 ; [ Begin ]                         
 ;===============================================================================                                  
 Sonic_WalkSpeed: ; loc_1366C:
-                move.l  #$FFFFD000, (Collision_addr).w
+                move.l  #Primary_Collision, (Collision_addr).w
                 cmpi.b  #$0C, $003E(A0)
                 beq.s   loc_13684
-                move.l  #$FFFFD600, (Collision_addr).w
+                move.l  #Secondary_Collision, (Collision_addr).w
 loc_13684:
                 move.b  $003F(A0), D5
                 move.l  $0008(A0), D3
@@ -23971,10 +23971,10 @@ loc_136E6:
                 beq     loc_13B04
                 bra     loc_13982                    
 loc_136F2:
-                move.l  #$FFFFD000, (Collision_addr).w
+                move.l  #Primary_Collision, (Collision_addr).w
                 cmpi.b  #$0C, $003E(A0)
                 beq.s   loc_1370A
-                move.l  #$FFFFD600, (Collision_addr).w
+                move.l  #Secondary_Collision, (Collision_addr).w
 loc_1370A:
                 move.b  $003F(A0), D5
                 move.b  D0, (Primary_Angle).w
@@ -23988,10 +23988,10 @@ loc_1370A:
                 cmpi.b  #$C0, D0
                 beq     loc_1391A
 loc_13736:                
-                move.l  #$FFFFD000, (Collision_addr).w
+                move.l  #Primary_Collision, (Collision_addr).w
                 cmpi.b  #$0C, $003E(A0)
                 beq.s   loc_1374E
-                move.l  #$FFFFD600, (Collision_addr).w
+                move.l  #Secondary_Collision, (Collision_addr).w
 loc_1374E:
                 move.b  $003E(A0), D5
                 move.w  $000C(A0), D2
@@ -24064,10 +24064,10 @@ Sonic_HitFloor: ; loc_137F4:
                 move.b  $0016(A0), D0
                 ext.w   D0
                 add.w   D0, D2
-                move.l  #$FFFFD000, (Collision_addr).w
+                move.l  #Primary_Collision, (Collision_addr).w
                 cmpi.b  #$0C, $003E(A0)
                 beq.s   loc_1381E
-                move.l  #$FFFFD600, (Collision_addr).w
+                move.l  #Secondary_Collision, (Collision_addr).w
 loc_1381E:
                 lea     (Primary_Angle).w, A4
                 move.b  #$00, (A4)
@@ -24097,10 +24097,10 @@ Sonic_HitFloor2: ; loc_13846:
                 move.b  $0016(A1), D0
                 ext.w   D0
                 add.w   D0, D2
-                move.l  #$FFFFD000, (Collision_addr).w
+                move.l  #Primary_Collision, (Collision_addr).w
                 cmpi.b  #$0C, $003E(A1)
                 beq.s   loc_13870
-                move.l  #$FFFFD600, (Collision_addr).w
+                move.l  #Secondary_Collision, (Collision_addr).w
 loc_13870:
                 lea     (Primary_Angle).w, A4
                 move.b  #$00, (A4)
@@ -39031,7 +39031,7 @@ S1_SS_Show_Layout: ; loc_21508:
                 bsr     loc_2164A
                 bsr     loc_2188A
                 move.w  D5, -(A7)
-                lea     ($FFFF8000).w, A1
+                lea     (Level_Layout).w, A1
                 move.b  ($FFFFF750).w, D0
                 andi.b  #$FC, D0
                 jsr     CalcSine                ; loc_320A
@@ -39080,7 +39080,7 @@ loc_2157A:
                 addi.w  #$0018, D3
                 dbra    D7, loc_21558
                 move.w  (A7)+, D5
-                lea     ($FFFF0000), A0
+                lea     (Chunk_Table), A0
                 moveq   #$00, D0
                 move.w  ($FFFFEE04).w, D0
                 divu.w  #$0018, D0
@@ -39090,7 +39090,7 @@ loc_2157A:
                 move.w  ($FFFFEE00).w, D0
                 divu.w  #$0018, D0
                 adda.w  D0, A0
-                lea     ($FFFF8000).w, A4
+                lea     (Level_Layout).w, A4
                 move.w  #$000F, D7
 loc_215C6:                
                 move.w  #$000F, D6
@@ -39112,7 +39112,7 @@ loc_215CA:
                 bcs.s   loc_21622
                 cmpi.w  #$0170, D2
                 bcc.s   loc_21622
-                lea     ($FFFF4000), A5
+                lea     (Chunk_Table+$4000), A5
                 lsl.w   #$03, D0
                 lea     $00(A5, D0), A5
                 move.l  (A5)+, A1
@@ -39139,7 +39139,7 @@ loc_21642:
                 move.b  #$00, -5(A2)
                 rts  
 loc_2164A:
-                lea     ($FFFF400C), A1
+                lea     (Chunk_Table+$400C), A1
                 moveq   #$00, D0
                 move.b  ($FFFFF750).w, D0
                 lsr.b   #$02, D0
@@ -39149,7 +39149,7 @@ loc_2165E:
                 move.w  D0, (A1)
                 addq.w  #$08, A1
                 dbra    D1, loc_2165E
-                lea     ($FFFF4005), A1
+                lea     (Chunk_Table+$4005), A1
                 subq.b  #$01, ($FFFFFEC2).w
                 bpl.s   loc_21682
                 move.b  #$07, ($FFFFFEC2).w
@@ -39191,7 +39191,7 @@ loc_216E0:
                 subq.b  #$01, ($FFFFFEC1).w
                 andi.b  #$07, ($FFFFFEC1).w
 loc_2170A:
-                lea     ($FFFF4016), A1
+                lea     (Chunk_Table+$4016), A1
                 lea     (S1SS_WaRiVramSet), A0  ; loc_217F4
                 moveq   #$00, D0
                 move.b  ($FFFFFEC1).w, D0
@@ -39248,7 +39248,7 @@ S1SS_WaRiVramSet: ; loc_217F4:
                 dc.w    $6142, $4142, $6142, $6142, $6142, $6142, $6142, $4142
                 dc.w    $6142, $4142, $6142, $6142, $6142, $6142, $6142, $4142                
 loc_21874:
-                lea     ($FFFF4400), A2
+                lea     (Chunk_Table+$4400), A2
                 move.w  #$001F, D0
 loc_2187E:                
                 tst.b   (A2)
@@ -39258,7 +39258,7 @@ loc_2187E:
 loc_21888:
                 rts
 loc_2188A:               
-                lea     ($FFFF4400), A0
+                lea     (Chunk_Table+$4400), A0
                 move.w  #$001F, D7
 loc_21894:                
                 moveq   #$00, D0
@@ -39432,16 +39432,16 @@ loc_21A70:
                 move.w  (A1)+, ($FFFFB008).w
                 move.w  (A1)+, ($FFFFB00C).w
                 move.l  S1SS_LayoutIndex(PC, D0), A0 ; loc_21A06
-                lea     ($FFFF4000), A1
+                lea     (Chunk_Table+$4000), A1
                 move.w  #$0000, D0
                 jsr     EniDec               ; loc_18DA
-                lea     ($FFFF0000), A1
+                lea     (Chunk_Table), A1
                 move.w  #$0FFF, D0
 loc_21A9C:                
                 clr.l   (A1)+
                 dbra    D0, loc_21A9C
-                lea     ($FFFF1020), A1
-                lea     ($FFFF4000), A0
+                lea     (Chunk_Table+$1020), A1
+                lea     (Chunk_Table+$4000), A0
                 moveq   #$3F, D1
 loc_21AB0:                
                 moveq   #$3F, D2
@@ -39450,7 +39450,7 @@ loc_21AB2:
                 dbra    D2, loc_21AB2
                 lea     $0040(A1), A1
                 dbra    D1, loc_21AB0
-                lea     ($FFFF4008), A1
+                lea     (Chunk_Table+$4008), A1
                 lea     (loc_21AF2), A0
                 moveq   #$4D, D1
 loc_21ACE:                
@@ -39459,7 +39459,7 @@ loc_21ACE:
                 move.b  -4(A0), -1(A1)
                 move.w  (A0)+, (A1)+
                 dbra    D1, loc_21ACE
-                lea     ($FFFF4400), A1
+                lea     (Chunk_Table+$4400), A1
                 move.w  #$003F, D1
 loc_21AEA:                
                 clr.l   (A1)+
@@ -40037,7 +40037,7 @@ loc_22094:
 ;===============================================================================  
                 
 loc_220A8:
-                lea     ($FFFF0000), A1
+                lea     (Chunk_Table), A1
                 moveq   #$00, D4
                 swap  D2
                 move.w  D2, D4
@@ -40086,7 +40086,7 @@ loc_22106:
 ; [ Begin ]                         
 ;===============================================================================                  
 SonicInSS_ChkItems: ; loc_22112:
-                lea     ($FFFF0000), A1
+                lea     (Chunk_Table), A1
                 moveq   #$00, D4
                 move.w  $000C(A0), D4
                 addi.w  #$0050, D4
@@ -40176,7 +40176,7 @@ loc_22218:
 loc_2221C:
                 cmpi.b  #$02, $003A(A0)
                 bne.s   loc_22246
-                lea     ($FFFF1020), A1
+                lea     (Chunk_Table+$1020), A1
                 moveq   #$3F, D1
 loc_2222C:                
                 moveq   #$3F, D2
@@ -40458,13 +40458,13 @@ loc_224C4:
                 dc.w    $3F00, $3F80, $4080, $4480, $4580, $4880, $4900, $4B80
                 dc.w    $4C80, $4D80, $4580, $4880, $4900, $4B80, $4C80, $4D80                 
 loc_22584:
-                lea     ($FFFFA800).w, A1
+                lea     (TempArray_LayerDef).w, A1
                 move.w  ($FFFFEE00).w, D2
                 neg.w   D2
                 asr.w   #$03, D2
                 move.l  A2, -(A7)
                 lea     (Hill_Top_Background_Unc), A0 ; loc_28C2A
-                lea     ($FFFF7C00), A2
+                lea     (Chunk_Table+$7C00), A2
                 moveq   #$0F, D1
 loc_225A0:
                 move.w  (A1)+, D0
@@ -40707,9 +40707,9 @@ loc_22870:
                 bpl.s   loc_2286E
                 move.b  #$07, ($FFFFF721).w
                 move.b  #$01, ($FFFFF720).w
-                lea     ($FFFF7500), A1
+                lea     (Chunk_Table+$7500), A1
                 bsr.s   loc_228A0
-                lea     ($FFFF7D00), A1
+                lea     (Chunk_Table+$7D00), A1
 loc_228A0:
                 move.w  #$0007, D1
 loc_228A4:
@@ -40757,7 +40757,7 @@ Load_16x16_Mappings_For_Dyn_Sprites: ; loc_2293A: ; Load 16x16 mappings used by 
                 bne.s   loc_22952
                 bsr     loc_22D62
                 move.b  #$FF, ($FFFFF7F1).w
-                move.w  #$FFFF, ($FFFFA820).w
+                move.w  #$FFFF, (TempArray_LayerDef+$20).w
 loc_22952:
                 cmpi.b  #$0D, ($FFFFFE10).w
                 bne.s   loc_22960
@@ -43749,41 +43749,41 @@ Special_Stage_6: ; loc_3305C:
 ; Level Layout
 ; [ Begin ]
 ;===============================================================================                  
-Level_Layout: ; loc_3334E:                       
-                dc.w    Ghz_1_Foreground-Level_Layout,Ghz_Background-Level_Layout ; $0000
-                dc.w    Ghz_2_Foreground-Level_Layout,Ghz_Background-Level_Layout ; $0001                
-                dc.w    Null_Layout_1-Level_Layout,Null_Layout_1-Level_Layout ; $0100
-                dc.w    Null_Layout_1-Level_Layout,Null_Layout_1-Level_Layout ; $0101                
-                dc.w    Wz_1_Foreground-Level_Layout,Wz_1_Background-Level_Layout ; $0200
-                dc.w    Wz_2_Foreground-Level_Layout,Wz_2_Background-Level_Layout ; $0201
-                dc.w    Null_Layout_2-Level_Layout,Null_Layout_2-Level_Layout ; $0300
-                dc.w    Null_Layout_2-Level_Layout,Null_Layout_2-Level_Layout ; $0301
-                dc.w    Mz_1_Foreground-Level_Layout,Mz_Background-Level_Layout ; $0400
-                dc.w    Mz_2_Foreground-Level_Layout,Mz_Background-Level_Layout ; $0401
-                dc.w    Mz_3_Foreground-Level_Layout,Mz_Background-Level_Layout ; $0500
-                dc.w    Mz_3_Foreground-Level_Layout,Mz_Background-Level_Layout ; $0501                  
-                dc.w    Null_Layout_3-Level_Layout,Null_Layout_3-Level_Layout ; $0600
-                dc.w    Null_Layout_3-Level_Layout,Null_Layout_3-Level_Layout ; $0601
-                dc.w    Htz_1_Foreground-Level_Layout,Htz_1_Background-Level_Layout ; $0700
-                dc.w    Htz_2_Foreground-Level_Layout,Htz_2_Background-Level_Layout ; $0701
-                dc.w    Hpz_Foreground-Level_Layout,Hpz_Background-Level_Layout ; $0800
-                dc.w    Hpz_Foreground-Level_Layout,Hpz_Background-Level_Layout ; $0801
-                dc.w    Null_Layout_4-Level_Layout,Null_Layout_4-Level_Layout ; $0900
-                dc.w    Null_Layout_4-Level_Layout,Null_Layout_4-Level_Layout ; $0901
-                dc.w    OOz_1_Foreground-Level_Layout,OOz_Background-Level_Layout ; $0A00
-                dc.w    OOz_2_Foreground-Level_Layout,OOz_Background-Level_Layout ; $0A01
-                dc.w    Dhz_1_Foreground-Level_Layout,Dhz_Background-Level_Layout ; $0B00
-                dc.w    Dhz_2_Foreground-Level_Layout,Dhz_Background-Level_Layout ; $0B01
-                dc.w    Cnz_1_Foreground-Level_Layout,Cnz_1_Background-Level_Layout ; $0C00
-                dc.w    Cnz_2_Foreground-Level_Layout,Cnz_2_Background-Level_Layout ; $0C01
-                dc.w    Cpz_1_Foreground-Level_Layout,Cpz_Background-Level_Layout ; $0D00
-                dc.w    Cpz_2_Foreground-Level_Layout,Cpz_Background-Level_Layout ; $0D01
-                dc.w    Null_Layout_5-Level_Layout,Null_Layout_5-Level_Layout ; $0E00
-                dc.w    Null_Layout_5-Level_Layout,Null_Layout_5-Level_Layout ; $0E01
-                dc.w    Nghz_1_Foreground-Level_Layout,Nghz_1_Background-Level_Layout ; $0F00
-                dc.w    Nghz_2_Foreground-Level_Layout,Nghz_2_Background-Level_Layout ; $0F01
-                dc.w    Null_Layout_6-Level_Layout,Null_Layout_6-Level_Layout ; $1000
-                dc.w    Null_Layout_6-Level_Layout,Null_Layout_6-Level_Layout ; $1001                     
+Off_Level: ; loc_3334E:                       
+                dc.w    Ghz_1_Foreground-Off_Level,Ghz_Background-Off_Level ; $0000
+                dc.w    Ghz_2_Foreground-Off_Level,Ghz_Background-Off_Level ; $0001                
+                dc.w    Null_Layout_1-Off_Level,Null_Layout_1-Off_Level ; $0100
+                dc.w    Null_Layout_1-Off_Level,Null_Layout_1-Off_Level ; $0101                
+                dc.w    Wz_1_Foreground-Off_Level,Wz_1_Background-Off_Level ; $0200
+                dc.w    Wz_2_Foreground-Off_Level,Wz_2_Background-Off_Level ; $0201
+                dc.w    Null_Layout_2-Off_Level,Null_Layout_2-Off_Level ; $0300
+                dc.w    Null_Layout_2-Off_Level,Null_Layout_2-Off_Level ; $0301
+                dc.w    Mz_1_Foreground-Off_Level,Mz_Background-Off_Level ; $0400
+                dc.w    Mz_2_Foreground-Off_Level,Mz_Background-Off_Level ; $0401
+                dc.w    Mz_3_Foreground-Off_Level,Mz_Background-Off_Level ; $0500
+                dc.w    Mz_3_Foreground-Off_Level,Mz_Background-Off_Level ; $0501                  
+                dc.w    Null_Layout_3-Off_Level,Null_Layout_3-Off_Level ; $0600
+                dc.w    Null_Layout_3-Off_Level,Null_Layout_3-Off_Level ; $0601
+                dc.w    Htz_1_Foreground-Off_Level,Htz_1_Background-Off_Level ; $0700
+                dc.w    Htz_2_Foreground-Off_Level,Htz_2_Background-Off_Level ; $0701
+                dc.w    Hpz_Foreground-Off_Level,Hpz_Background-Off_Level ; $0800
+                dc.w    Hpz_Foreground-Off_Level,Hpz_Background-Off_Level ; $0801
+                dc.w    Null_Layout_4-Off_Level,Null_Layout_4-Off_Level ; $0900
+                dc.w    Null_Layout_4-Off_Level,Null_Layout_4-Off_Level ; $0901
+                dc.w    OOz_1_Foreground-Off_Level,OOz_Background-Off_Level ; $0A00
+                dc.w    OOz_2_Foreground-Off_Level,OOz_Background-Off_Level ; $0A01
+                dc.w    Dhz_1_Foreground-Off_Level,Dhz_Background-Off_Level ; $0B00
+                dc.w    Dhz_2_Foreground-Off_Level,Dhz_Background-Off_Level ; $0B01
+                dc.w    Cnz_1_Foreground-Off_Level,Cnz_1_Background-Off_Level ; $0C00
+                dc.w    Cnz_2_Foreground-Off_Level,Cnz_2_Background-Off_Level ; $0C01
+                dc.w    Cpz_1_Foreground-Off_Level,Cpz_Background-Off_Level ; $0D00
+                dc.w    Cpz_2_Foreground-Off_Level,Cpz_Background-Off_Level ; $0D01
+                dc.w    Null_Layout_5-Off_Level,Null_Layout_5-Off_Level ; $0E00
+                dc.w    Null_Layout_5-Off_Level,Null_Layout_5-Off_Level ; $0E01
+                dc.w    Nghz_1_Foreground-Off_Level,Nghz_1_Background-Off_Level ; $0F00
+                dc.w    Nghz_2_Foreground-Off_Level,Nghz_2_Background-Off_Level ; $0F01
+                dc.w    Null_Layout_6-Off_Level,Null_Layout_6-Off_Level ; $1000
+                dc.w    Null_Layout_6-Off_Level,Null_Layout_6-Off_Level ; $1001                     
 Ghz_1_Foreground:  ; loc_333D6:               
 		BINCLUDE	"level/layout/GHZ_1.bin"
 Ghz_2_Foreground:  ; loc_33BD8:                
