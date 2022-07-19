@@ -4376,7 +4376,7 @@ LevelInit_TitleCard: ; loc_431E:
 loc_434E:
                 moveq   #$03, D0
                 bsr     PalLoad1                ; loc_28E2
-                bsr     Level_Size_Load         ; loc_5904
+                bsr     LevelSizeLoad         ; loc_5904
                 bsr     Background_Scroll_Layer ; loc_5D5C
                 bset    #$02, ($FFFFEE50).w
                 bsr     Main_Level_Load_16_128_Blocks ; loc_779A
@@ -5644,42 +5644,56 @@ loc_58ED:
 ; [ End ]              
 ;===============================================================================                  
                 nop                             ; Filler   
-Level_Size_Load: ; loc_5904: ; Level Size routine
-                clr.w   ($FFFFEE50).w
-                clr.w   ($FFFFEE52).w
-                clr.w   ($FFFFEE54).w
-                clr.w   ($FFFFEE56).w
-                clr.w   ($FFFFEE58).w
-                clr.w   ($FFFFEE5A).w
-                clr.w   ($FFFFEE5C).w
-                clr.w   ($FFFFEE5E).w
-                clr.w   ($FFFFEEA0).w
-                clr.w   ($FFFFEEA2).w
-                clr.w   ($FFFFEEA4).w
-                clr.w   ($FFFFEEA6).w
-                clr.w   ($FFFFEEA8).w
-                clr.w   ($FFFFEEAA).w
-                clr.w   ($FFFFEEAC).w
-                clr.w   ($FFFFEEAE).w
-                clr.b   ($FFFFEEDC).w
-                clr.b   ($FFFFEEBC).w
-                clr.b   ($FFFFEEBD).w
-                moveq   #$00, D0
-                move.b  D0, ($FFFFEEDF).w
-                move.w  ($FFFFFE10).w, D0
-                ror.b   #$01, D0
-                lsr.w   #$04, D0
-                lea     Level_Size_Array(PC, D0), A0 ; loc_5986
-                move.l  (A0)+, D0
-                move.l  D0, ($FFFFEEC8).w
-                move.l  D0, ($FFFFEEC0).w
-                move.l  (A0)+, D0
-                move.l  D0, ($FFFFEECC).w
-                move.l  D0, ($FFFFEEC4).w
-                move.w  #$1010, ($FFFFEE40).w
-                move.w  #$0060, ($FFFFEED8).w
-                bra     Level_Size_Check_Lamp_Post ; loc_5A96
-Level_Size_Array: ; loc_5986: ; Level Size Array               
+; ---------------------------------------------------------------------------
+; Subroutine to load level boundaries and start locations
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_5904:
+LevelSizeLoad:
+		clr.w	($FFFFEE50).w
+		clr.w	($FFFFEE52).w
+		clr.w	($FFFFEE54).w
+		clr.w	($FFFFEE56).w
+		clr.w	($FFFFEE58).w
+		clr.w	($FFFFEE5A).w
+		clr.w	($FFFFEE5C).w
+		clr.w	($FFFFEE5E).w
+		clr.w	($FFFFEEA0).w
+		clr.w	($FFFFEEA2).w
+		clr.w	($FFFFEEA4).w
+		clr.w	($FFFFEEA6).w
+		clr.w	($FFFFEEA8).w
+		clr.w	($FFFFEEAA).w
+		clr.w	($FFFFEEAC).w
+		clr.w	($FFFFEEAE).w
+		clr.b	($FFFFEEDC).w
+		clr.b	($FFFFEEBC).w
+		clr.b	($FFFFEEBD).w
+		moveq	#0,d0
+		move.b	d0,($FFFFEEDF).w
+		move.w	($FFFFFE10).w,d0
+		ror.b	#1,d0
+		lsr.w	#4,d0
+		lea	LevelSize(pc,d0.w),a0
+		move.l	(a0)+,d0
+		move.l	d0,($FFFFEEC8).w
+		move.l	d0,($FFFFEEC0).w
+		move.l	(a0)+,d0
+		move.l	d0,($FFFFEECC).w
+		move.l	d0,($FFFFEEC4).w
+		move.w	#$1010,($FFFFEE40).w
+		move.w	#$60,($FFFFEED8).w
+		bra.w	LevelSize_CheckLamp
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; LEVEL SIZE ARRAY
+
+; This array defines the screen boundaries for each act in the game.
+; ---------------------------------------------------------------------------
+; loc_5986: Level_Size_Array:
+LevelSize:
                 dc.l    $000029A0, $00000320, $00002940, $00000420 ; $00 - Green Hill
                 dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $01
                 dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $02 - Wood
@@ -5697,28 +5711,34 @@ Level_Size_Array: ; loc_5986: ; Level Size Array
                 dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $0E - Genocide City
                 dc.l    $000028C0, $020003A0, $000026C0, $018005A0 ; $0F - Neo Green Hill
                 dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $10 - Death Egg
-Level_Size_Check_Lamp_Post: ; loc_5A96: ; Player Start Position routine
-                tst.b   ($FFFFFE30).w 
-                beq.s   Level_Size_Start_Loc    ; loc_5AAC
-                jsr     Lamp_Post_Load_Info ; loc_13CE4
-                move.w  ($FFFFB008).w, D1
-                move.w  ($FFFFB00C).w, D0                 
-                bra.s   Level_Size_Start_Loc_Loaded ; loc_5AC8
-Level_Size_Start_Loc: ; loc_5AAC:                
-                move.w  ($FFFFFE10).w, D0
-                ror.b   #$01, D0
-                lsr.w   #$05, D0
-                lea     Player_Start_Position_Array(PC, D0), A1 ; loc_5B02
-                moveq   #$00, D1
-                move.w  (A1)+, D1
-                move.w  D1, ($FFFFB008).w
-                moveq   #$00, D0
-                move.w  (A1), D0
-                move.w  D0, ($FFFFB00C).w
-Level_Size_Start_Loc_Loaded: ; loc_5AC8:                
-                subi.w  #$00A0, D1
-                bcc.s   loc_5AD0    
-                moveq   #$00, D1
+; ===========================================================================
+; loc_5A96: Level_Size_Check_Lamp_Post:
+LevelSize_CheckLamp:
+		tst.b	($FFFFFE30).w
+		beq.s	LevelSize_StartLoc
+		jsr	(Lamp_Post_Load_Info).l
+		move.w	($FFFFB008).w,d1
+		move.w	($FFFFB00C).w,d0
+		bra.s	LevelSize_PreventUnderflow
+; ===========================================================================
+; loc_5AAC: Level_Size_Start_Loc:
+LevelSize_StartLoc:
+		move.w	($FFFFFE10).w,d0
+		ror.b	#1,d0
+		lsr.w	#5,d0
+		lea	StartLocations(pc,d0.w),a1
+		moveq	#0,d1
+		move.w	(a1)+,d1
+		move.w	d1,($FFFFB008).w
+		moveq	#0,d0
+		move.w	(a1),d0
+		move.w	d0,($FFFFB00C).w
+; loc_5AC8: Level_Size_Start_Loc_Loaded:
+LevelSize_PreventUnderflow:
+		subi.w	#$A0,d1
+		bcc.s	loc_5AD0
+		moveq	#0,d1
+
 loc_5AD0:
                 move.w  ($FFFFEECA).w, D2
                 cmp.w   D2, D1
@@ -5739,7 +5759,8 @@ loc_5AF4:
                 move.w  D0, ($FFFFEE24).w
                 bsr     Background_Scroll_Speed ; loc_5B8A
                 rts
-Player_Start_Position_Array: ; loc_5B02: ; Player Start Position Array              
+; loc_5B02: Player_Start_Position_Array:
+StartLocations:
 		BINCLUDE	"startpos/GHZ_1.bin"	; $00 - GHZ
 		BINCLUDE	"startpos/GHZ_2.bin"
                 dc.l    $0060028F, $004002AF ; $01
@@ -7611,45 +7632,52 @@ Draw_All:
 ; ===========================================================================
 ; loc_6EB4:
 Draw_FG:
-                tst.b   (A2)
-                beq.s   loc_6F18
-                bclr    #$00, (A2)
-                beq.s   loc_6ECE
-                moveq   #-$10, D4
-                moveq   #-$10, D5  
-                bsr     loc_7644
-                moveq   #-$10, D4
-                moveq   #-$10, D5 
-                bsr     loc_7350
-loc_6ECE:                 
-                bclr    #$01, (A2)
-                beq.s   loc_6EE8
-                move.w  #$00E0, D4
-                moveq   #-$10, D5 
-                bsr     loc_7644
-                move.w  #$00E0, D4
-                moveq   #-$10, D5 
-                bsr     loc_7350
-loc_6EE8:    
-                bclr    #$02, (A2)
-                beq.s   loc_6EFE
-                moveq   #-$10, D4
-                moveq   #-$10, D5
-                bsr     loc_7644
-                moveq   #-$10, D4
-                moveq   #-$10, D5
-                bsr     loc_72C2
-loc_6EFE: 
-                bclr    #$03, (A2)
-                beq.s   loc_6F18
-                moveq   #-$10, D4
-                move.w  #$0140, D5
-                bsr     loc_7644
-                moveq   #-$10, D4
-                move.w  #$0140, D5
-                bsr     loc_72C2
-loc_6F18: 
+		tst.b	(a2)
+		beq.s	loc_6F18
+		bclr	#0,(a2)
+		beq.s	loc_6ECE
+		moveq	#-16,d4
+		moveq	#-16,d5
+		bsr.w	loc_7644
+		moveq	#-16,d4
+		moveq	#-16,d5
+		bsr.w	loc_7350
+
+loc_6ECE:
+		bclr	#1,(a2)
+		beq.s	loc_6EE8
+		move.w	#224,d4
+		moveq	#-16,d5
+		bsr.w	loc_7644
+		move.w	#224,d4
+		moveq	#-16,d5
+		bsr.w	loc_7350
+
+loc_6EE8:
+		bclr	#2,(a2)
+		beq.s	loc_6EFE
+		moveq	#-16,d4
+		moveq	#-16,d5
+		bsr.w	loc_7644
+		moveq	#-16,d4
+		moveq	#-16,d5
+		bsr.w	loc_72C2
+
+loc_6EFE:
+		bclr	#3,(a2)
+		beq.s	loc_6F18
+		moveq	#-16,d4
+		move.w	#320,d5
+		bsr.w	loc_7644
+		moveq	#-16,d4
+		move.w	#320,d5
+		bsr.w	loc_72C2
+
+loc_6F18:
                 rts
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
 ; loc_6F1A:
 Draw_FG_P2: 
                 tst.b   (A2)
