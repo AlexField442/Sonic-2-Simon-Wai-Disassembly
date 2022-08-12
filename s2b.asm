@@ -8,6 +8,9 @@
 	include	"s2b.constants.asm"
 	include	"s2b.macros.asm"
 
+SonicDriverVer = 2
+	include	"sound/_smps2asm_inc.asm"
+
 StartOfRom:
 Vectors:	dc.l    $FFFFFE00, EntryPoint, BusError, AddressError                  
 		dc.l    IllegalInstr, ZeroDivide, ChkInstr, TrapvInstr
@@ -48028,12 +48031,12 @@ MusicPoint1:	rom_ptr_z80	Mus_ExtraLife	; $98
 		rom_ptr_z80	Mus_Continue	; $9C
 		rom_ptr_z80	Mus_Emerald	; $9D-$9F
 ; loc_F000C:
-Mus_ExtraLife:	BINCLUDE	"data\sounds\1up_98.snd"
-Mus_Title:	BINCLUDE	"data\sounds\tscrn_99.snd"
-Mus_ActClear:	BINCLUDE	"data\sounds\rscrn_9A.snd"
-Mus_GameOver:	BINCLUDE	"data\sounds\tgovr_9B.snd"
-Mus_Continue:	BINCLUDE	"data\sounds\cont_9C.snd"
-Mus_Emerald:	BINCLUDE	"data\sounds\emrld_9D.snd"
+Mus_ExtraLife:	include		"sound/music/Extra life.asm"
+Mus_Title:	include		"sound/music/Title screen.asm"
+Mus_ActClear:	include		"sound/music/End of level.asm"
+Mus_GameOver:	include		"sound/music/Game over.asm"
+Mus_Continue:	include		"sound/music/Continue.asm"
+Mus_Emerald:	include		"sound/music/Got an emerald.asm"
 
 ; ----------------------------------------------------------------------------------
 ; Filler (free space)
@@ -48045,7 +48048,7 @@ Mus_Emerald:	BINCLUDE	"data\sounds\emrld_9D.snd"
 ; 8-bit unsigned raw audio at 16Khz
 ; -------------------------------------------------------------------------------
 ; loc_F1E8C:
-Sega_Snd:	BINCLUDE	"data\sounds\sega.snd"
+Sega_Snd:	BINCLUDE	"sound/Sega PCM.bin"
 Sega_Snd_End:
 
 	if Sega_Snd_End - Sega_Snd > $8000
@@ -48082,26 +48085,27 @@ MusicPoint2:	rom_ptr_z80	Mus_OOZ		; $81
 		rom_ptr_z80	Mus_Invinc	; $95
 		rom_ptr_z80	Mus_HTZ		; $96 and $97
 ; loc_F802A:
-Mus_OOZ:	BINCLUDE	"data\sounds\ooz_81.snd"	; CNZ 2-player theme in final
-Mus_GHZ:	BINCLUDE	"data\sounds\ghz_82.snd"
-Mus_MTZ:	BINCLUDE	"data\sounds\mz_wz_83.snd"
-Mus_CNZ:	BINCLUDE	"data\sounds\cnz_84.snd"
-Mus_DHZ:	BINCLUDE	"data\sounds\dhz_85.snd"
-Mus_HPZ:	BINCLUDE	"data\sounds\hpz_86.snd"	; DHZ/MCZ 2-player theme in final
-Mus_NGHZ:	BINCLUDE	"data\sounds\nghz_87.snd"
-Mus_DEZ:	BINCLUDE	"data\sounds\music_88.snd"
-Mus_SpecStg:	BINCLUDE	"data\sounds\ss_89.snd"
-Mus_LevelSel:	BINCLUDE	"data\sounds\menu_8A.snd"
-Mus_FinalBoss:	BINCLUDE	"data\sounds\music_8C.snd"
-Mus_CPZ:	BINCLUDE	"data\sounds\cpz_8D.snd"
-Mus_Boss	BINCLUDE	"data\sounds\boss_8E.snd"
-Mus_RWZ:	BINCLUDE	"data\sounds\music_8F.snd"	; SCZ theme in final
-Mus_SSZ:	BINCLUDE	"data\sounds\music_90.snd"	; OOZ theme in final
-Mus_Unused1:	BINCLUDE	"data\sounds\music_92.snd"	; WFZ theme in final
-Mus_Unused2:	BINCLUDE	"data\sounds\music_93.snd"	; GHZ/EHZ 2-player theme in final
-Mus_Unused3:	BINCLUDE	"data\sounds\music_94.snd"	; 2-player results theme in final
-Mus_Invinc:	BINCLUDE	"data\sounds\invcb_95.snd"	; invincibility theme in final
-Mus_HTZ:	BINCLUDE	"data\sounds\htz_96.snd"
+Mus_OOZ:	include		"sound/music/OOZ.asm"		; CNZ 2-player theme in final
+Mus_GHZ:	include		"sound/music/GHZ.asm"
+Mus_MTZ:	include		"sound/music/MTZ.asm"
+Mus_CNZ:	include		"sound/music/CNZ.asm"
+Mus_DHZ:	include		"sound/music/DHZ.asm"
+Mus_HPZ:	include		"sound/music/HPZ.asm"		; DHZ/MCZ 2-player theme in final
+Mus_NGHZ:	include		"sound/music/NGHZ.asm"
+Mus_DEZ:	include		"sound/music/DEZ.asm"		; Technically used in this build for the extra life jingle when collecting 100
+								; or 200 rings, but labeled as DEZ regardless to prevent confusion
+Mus_SpecStg:	include		"sound/music/Special Stage.asm"
+Mus_LevelSel:	include		"sound/music/Level select.asm"
+Mus_FinalBoss:	include		"sound/music/Final boss.asm"
+Mus_CPZ:	include		"sound/music/CPZ.asm"
+Mus_Boss	include		"sound/music/Boss.asm"
+Mus_RWZ:	include		"sound/music/RWZ.asm"		; SCZ theme in final
+Mus_SSZ:	include		"sound/music/SSZ.asm"		; OOZ theme in final
+Mus_Unused1:	include		"sound/music/Unused 1.asm"	; WFZ theme in final
+Mus_Unused2:	include		"sound/music/Unused 2.asm"	; GHZ/EHZ 2-player theme in final
+Mus_Unused3:	include		"sound/music/Unused 3.asm"	; 2-player results theme in final
+Mus_Invinc:	include		"sound/music/Invincible.asm"	; Super Sonic theme in final
+Mus_HTZ:	include		"sound/music/HTZ.asm"
 
 	org $FF000
 Sfx_A0_To_F9: ; loc_FF000:      
