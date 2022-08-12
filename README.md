@@ -4,4 +4,5 @@ WE DO NOT CLAIM OWNERSHIP OF THE CODE IN THIS RESPORATORY, OR ANY OF ITS FORKS. 
 
 Credits:
 * Esrael L.G. Neto - original disassembly
-* Clownacy - Z80 disassembly, taken from SMPS Research Pack v5.
+* Clownacy - Z80 disassembly, taken from SMPS Research Pack v5
+* SuperEgg - ASM files for music
