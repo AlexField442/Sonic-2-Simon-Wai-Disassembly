@@ -12,7 +12,7 @@ SonicDriverVer = 2
 	include	"sound/_smps2asm_inc.asm"
 
 StartOfRom:
-Vectors:	dc.l    $FFFFFE00, EntryPoint, BusError, AddressError                  
+Vectors:	dc.l    $FFFFFE00, EntryPoint, BusError, AddressError
 		dc.l    IllegalInstr, ZeroDivide, ChkInstr, TrapvInstr
 		dc.l    PrivilegeViol, Trace, Line1010Emu, Line1111Emu
 		dc.l    ErrorExcept, ErrorExcept, ErrorExcept, ErrorExcept
@@ -45,14 +45,14 @@ RomEndLoc:
 	dc.l $FFFFFF		; End address of RAM
 	dc.b "                " ; Backup RAM
 	dc.b "                                                " ; notes (can be anything, but must be 52 bytes)
-	dc.b "JUE             " ; Country code 
+	dc.b "JUE             " ; Country code
 ; ===========================================================================
 ; Freeze execution and loop here; since Sonic 2 uses a Z80 driver, the sound
 ; does NOT stop playing unlike Sonic 1
 ; loc_200:
 ErrorTrap:
-		nop 
-		nop  
+		nop
+		nop
 		bra.s	ErrorTrap
 ; ===========================================================================
 ; loc_206:
@@ -115,9 +115,10 @@ PSGInitLoop: ; loc_280:
                 dbra    D5, PSGInitLoop         ; loc_280   
                 move.w  D0, (A2)   
                 movem.l (A6), D0-A6
-                move    #$2700, SR 
-PortC_OK: ; loc_292:                
-                bra.s   GameProgram             ; loc_300 
+                move    #$2700, SR
+PortC_OK: ; loc_292:
+                bra.s   GameProgram             ; loc_300
+; ===========================================================================
 InitValues: ; loc_294:                 
                 dc.w    $8000, $3FFF, $0100     ; Z80 RAM start	location
                 dc.l    $00A00000               ; Z80 bus request
@@ -40987,11 +40988,11 @@ Map16Delta_NGHz: ; loc_22D1C: ; Neo Green Hill 16x16 mappings used by dynamic re
 Map16Delta_Null: ; loc_22D60:
                 dc.w    $0000 ; Null
 ;===============================================================================
-; Null Mappings 16x16 Delta  
+; Null Mappings 16x16 Delta
 ; [ End ]
-;===============================================================================                 
-                
-loc_22D62: ; Load Hill Top 8x8 Extra Background Tiles In To Ram               
+;===============================================================================
+
+loc_22D62: ; Load Hill Top 8x8 Extra Background Tiles In To Ram
                 lea     (Hill_Top_Background), A0 ; loc_28300
                 lea     ($FFFFB800).w, A4
                 bsr     loc_22DF4
@@ -41009,7 +41010,7 @@ loc_22D86:
                 move.l  D2, (A1)+
                 dbra    D1, loc_22D86
                 dbra    D3, loc_22D7E
-                rts  
+                rts
 loc_22D94:
                 dc.w    $0080, $0280, $0380, $0580, $0600, $0880, $0980, $0A80
                 dc.w    $0B80, $0C80, $0E80, $0F00, $1080, $1180, $1200, $1280
@@ -41018,8 +41019,8 @@ loc_22D94:
                 dc.w    $2B00, $3280, $3600, $3680, $3C80, $3D00, $3F00, $3F80
                 dc.w    $4080, $4480, $4580, $4880, $4900, $4B80, $4C80, $4D80
 loc_22DF4:
-                jmp     NemDec_ToRAM        ; loc_160E 
-                dc.w    $0000 ; Filler    
+                jmp     NemDec_ToRAM        ; loc_160E
+                dc.w    $0000 ; Filler
 Obj_0x21_Head_Up_Display: ; loc_22DFC:
                 moveq   #$00, D0
                 move.b  $0024(A0), D0
@@ -41059,11 +41060,11 @@ loc_22E60:
                 addq.w  #$02, D0
 loc_22E76:
                 move.b  D0, $001A(A0)
-                jmp     DisplaySprite           ; loc_D3C2  
+                jmp     DisplaySprite           ; loc_D3C2
 Head_Up_Display_Mappings: ; loc_22E80:
                 dc.w    HUD_Map_01-Head_Up_Display_Mappings
                 dc.w    HUD_Map_02-Head_Up_Display_Mappings
-                dc.w    HUD_Map_03-Head_Up_Display_Mappings 
+                dc.w    HUD_Map_03-Head_Up_Display_Mappings
                 dc.w    HUD_Map_04-Head_Up_Display_Mappings
 HUD_Map_01: ; loc_22E88:
                 dc.w    $000A
@@ -41072,7 +41073,7 @@ HUD_Map_01: ; loc_22E88:
                 dc.l    $900DA028, $A0140028, $A00DA008, $A0040000
                 dc.l    $A001A000, $A0000020, $A009A030, $A0180030
                 dc.l    $4005810A, $80850000, $400DA10E, $A0870010
-HUD_Map_02: ; loc_22EDA:                
+HUD_Map_02: ; loc_22EDA:
                 dc.w    $000A
                 dc.l    $800DA000, $A0000000, $800DA018, $A00C0020
                 dc.l    $800DA020, $A0100040, $900DA010, $A0080000
@@ -41080,14 +41081,14 @@ HUD_Map_02: ; loc_22EDA:
                 dc.l    $A0018000, $80000020, $A009A030, $A0180030
                 dc.l    $4005810A, $80850000, $400DA10E, $A0870010
 HUD_Map_03: ; loc_22F2C:
-                dc.w    $000A   
+                dc.w    $000A
                 dc.l    $800DA000, $A0000000, $800DA018, $A00C0020
                 dc.l    $800DA020, $A0100040, $900D8010, $80080000
                 dc.l    $900DA028, $A0140028, $A00DA008, $A0040000
                 dc.l    $A001A000, $A0000020, $A009A030, $A0180030
-                dc.l    $4005810A, $80850000, $400DA10E, $A0870010  
-HUD_Map_04: ; loc_22F7E:                       
-                dc.w    $000A             
+                dc.l    $4005810A, $80850000, $400DA10E, $A0870010
+HUD_Map_04: ; loc_22F7E:
+                dc.w    $000A
                 dc.l    $800DA000, $A0000000, $800DA018, $A00C0020
                 dc.l    $800DA020, $A0100040, $900D8010, $80080000
                 dc.l    $900DA028, $A0140028, $A00D8008, $80040000
@@ -41095,14 +41096,14 @@ HUD_Map_04: ; loc_22F7E:
                 dc.l    $4005810A, $80850000, $400DA10E, $A0870010
 ;===============================================================================
 ; AddPoints - Sub-routine
-; [ Begin ]              
-;===============================================================================                
+; [ Begin ]
+;===============================================================================
 AddPoints: ; loc_22FD0:
                 move.b  #$01, ($FFFFFE1F).w
                 lea     ($FFFFFE26).w, A3
                 add.l   D0, (A3)
                 move.l  #$000F423F, D1
-                cmp.l   (A3), D1  
+                cmp.l   (A3), D1
                 bhi.s   loc_22FE8
                 move.l  D1, (A3)
 loc_22FE8:
@@ -41137,13 +41138,13 @@ loc_2303A:
 loc_23046:
                 clr.b   ($FFFFFE1D).w
                 move.l  #$5F400003, D0
-loc_23050:                
+loc_23050:
                 moveq   #$00, D1
                 move.w  ($FFFFFE20).w, D1
                 bsr     loc_23246
 loc_2305A:
                 tst.b   ($FFFFFE1E).w
-                beq.s   loc_230B6 
+                beq.s   loc_230B6
                 tst.w   ($FFFFF63A).w
                 bne.s   loc_230B6
                 lea     ($FFFFFE22).w, A1
@@ -41170,7 +41171,7 @@ loc_23096:
                 moveq   #$00, D1
                 move.b  ($FFFFFE24).w, D1
                 bsr     loc_23326
-loc_230B6:                
+loc_230B6:
                 tst.b   ($FFFFFE1C).w
                 beq.s   loc_230C4
                 clr.b   ($FFFFFE1C).w
@@ -41186,15 +41187,15 @@ loc_230C4:
                 moveq   #$00, D1
                 move.w  ($FFFFF7D4).w, D1
                 bsr     loc_2337E
-loc_230EC:              
-                rts  
+loc_230EC:
+                rts
 Sub_Time_Over: ; loc_230EE:
                 clr.b   ($FFFFFE1E).w
                 lea     ($FFFFB000).w, A0
                 move.l  A0, A2
                 bsr     KillSonic               ; loc_21422
                 move.b  #$01, ($FFFFFE1A).w
-                rts                
+                rts
 loc_23104:
                 bsr     loc_231DC
                 tst.b   ($FFFFFE1D).w
@@ -41219,7 +41220,7 @@ loc_23128:
 loc_23146:
                 tst.b   ($FFFFF7D6).w
                 beq.s   loc_2316E
-                clr.b   ($FFFFF7D6).w   
+                clr.b   ($FFFFF7D6).w
                 move.l  #$6E000002, (VDP_control_port)
                 moveq   #$00, D1
                 move.w  ($FFFFF7D2).w, D1
@@ -41227,14 +41228,14 @@ loc_23146:
                 moveq   #$00, D1
                 move.w  ($FFFFF7D4).w, D1
                 bsr     loc_2337E
-loc_2316E:                
+loc_2316E:
                 rts
 loc_23170:
                 move.l  #$5F400003, (VDP_control_port)
                 lea     loc_231D8(PC), A2
                 move.w  #$0002, D2
                 bra.s   loc_231A0
-Head_Up_Display_Base: ; loc_23184: ; HUD routine               
+Head_Up_Display_Base: ; loc_23184: ; HUD routine
                 lea     (VDP_data_port), A6
                 bsr     loc_233DE
                 move.l  #$5C400003, (VDP_control_port)
@@ -41242,23 +41243,23 @@ Head_Up_Display_Base: ; loc_23184: ; HUD routine
                 move.w  #$000E, D2
 loc_231A0:
                 lea     loc_23448(PC), A1
-loc_231A4:                
+loc_231A4:
                 move.w  #$000F, D1
                 move.b  (A2)+, D0
-                bmi.s   loc_231C0  
+                bmi.s   loc_231C0
                 ext.w   D0
                 lsl.w   #5, D0
-                lea     $00(A1, D0), A3                   
+                lea     $00(A1, D0), A3
 loc_231B4:
                 move.l  (A3)+, (A6)
                 dbra    D1, loc_231B4
-loc_231BA:                
+loc_231BA:
                 dbra    D2, loc_231A4
-                rts 
+                rts
 loc_231C0:
                 move.l  #$00000000, (A6)
                 dbra    D1, loc_231C0
-                bra.s   loc_231BA            
+                bra.s   loc_231BA
 loc_231CC:
                 dc.l    $16FFFFFF, $FFFFFF00, $00140000
 loc_231D8:
@@ -41270,7 +41271,7 @@ loc_231DC:
                 move.w  ($FFFFFE04).w, D1
                 lsr.w   #6, D1
                 swap  D1
-                move.w  ($FFFFB008).w, D1 
+                move.w  ($FFFFB008).w, D1
                 bsr.s   loc_2320E
                 move.w  ($FFFFEE04).w, D1
                 move.w  ($FFFFEE08).w, D1
@@ -41281,7 +41282,7 @@ loc_231DC:
 loc_2320E:
                 moveq   #$07, D6
                 lea     (loc_23888), A1
-loc_23216:                
+loc_23216:
                 rol.w   #4, D1
                 move.w  D1, D2
                 andi.w  #$000F, D2
@@ -41312,10 +41313,10 @@ loc_23250:
 loc_23258:
                 moveq   #$00, D4
                 lea     loc_23448(PC), A1
-loc_2325E:                
+loc_2325E:
                 moveq   #$00, D2
                 move.l  (A2)+, D3
-loc_23262:                
+loc_23262:
                 sub.l   D3, D1
                 bcs.s   loc_2326A
                 addq.w  #1, D2
@@ -41347,10 +41348,10 @@ loc_23274:
                 move.l  (A3)+, (A6)
                 move.l  (A3)+, (A6)
                 move.l  (A3)+, (A6)
-loc_232A2:                
+loc_232A2:
                 addi.l  #$00400000, D0
                 dbra    D6, loc_2325E
-                rts 
+                rts
 ; loc_232AE:
                 move.l  #$5F800003, (VDP_control_port)
                 lea     (VDP_data_port), A6
@@ -41358,10 +41359,10 @@ loc_232A2:
                 moveq   #$01, D6
                 moveq   #$00, D4
                 lea     loc_23448(PC), A1
-loc_232CC:                
+loc_232CC:
                 moveq   #$00, D2
                 move.l  (A2)+, D3
-loc_232D0:                
+loc_232D0:
                 sub.l   D3, D1
                 bcs.s   loc_232D8
                 addq.w  #$01, D2
@@ -41387,38 +41388,38 @@ loc_232D8:
                 move.l  (A3)+, (A6)
                 move.l  (A3)+, (A6)
                 dbra    D6, loc_232CC
-                rts                   
+                rts
 loc_23306:
                 dc.l    $000186A0
-;loc_2330A:                
+;loc_2330A:
                 dc.l    $00002710
-loc_2330E:                
+loc_2330E:
                 dc.l    $000003E8
-loc_23312:                 
+loc_23312:
                 dc.l    $00000064
 loc_23316:
-                dc.l    $0000000A 
+                dc.l    $0000000A
 loc_2331A:
-                dc.l    $00000001                                  
-loc_2331E: 
-                lea     loc_2331A(PC), A2 
+                dc.l    $00000001
+loc_2331E:
+                lea     loc_2331A(PC), A2
                 moveq   #$00, D6
                 bra.s   loc_2332C
-loc_23326:                
-                lea     loc_23316(PC), A2  
+loc_23326:
+                lea     loc_23316(PC), A2
                 moveq   #$01, D6
-loc_2332C:                
-                moveq   #$00, D4 
+loc_2332C:
+                moveq   #$00, D4
                 lea     loc_23448(PC), A1
-loc_23332:                
+loc_23332:
                 moveq   #$00, D2
                 move.l  (A2)+, D3
-loc_23336:                
+loc_23336:
                 sub.l   D3, D1
                 bcs.s   loc_2333E
                 addq.w  #1, D2
                 bra.s   loc_23336
-loc_2333E:                      
+loc_2333E:
                 add.l   D3, D1
                 tst.w   D2
                 beq.s   loc_23348
@@ -41445,30 +41446,30 @@ loc_23348:
                 move.l  (A3)+, (A6)
                 addi.l  #$00400000, D0
                 dbra    D6, loc_23332
-                rts   
-loc_2337E:                   
-                lea     loc_2330E(PC), A2 
+                rts
+loc_2337E:
+                lea     loc_2330E(PC), A2
                 moveq   #$03, D6
                 moveq   #$00, D4
                 lea     loc_23448(PC), A1
-loc_2338A:                
+loc_2338A:
                 moveq   #$00, D2
                 move.l  (A2)+, D3
-loc_2338E:                
+loc_2338E:
                 sub.l   D3, D1
                 bcs.s   loc_23396
                 addq.w  #1, D2
-                bra.s   loc_2338E 
+                bra.s   loc_2338E
 loc_23396:
                 add.l   D3, D1
                 tst.w   D2
                 beq.s   loc_233A0
-                move.w  #$0001, D4                  
+                move.w  #$0001, D4
 loc_233A0:
                 tst.w   D4
                 beq.s   loc_233D0
                 lsl.w   #6, D2
-                lea     $00(A1, D2), A3                
+                lea     $00(A1, D2), A3
                 move.l  (A3)+, (A6)
                 move.l  (A3)+, (A6)
                 move.l  (A3)+, (A6)
@@ -41485,28 +41486,28 @@ loc_233A0:
                 move.l  (A3)+, (A6)
                 move.l  (A3)+, (A6)
                 move.l  (A3)+, (A6)
-loc_233CA:                
+loc_233CA:
                 dbra    D6, loc_2338A
-                rts   
+                rts
 loc_233D0:
                 moveq   #$0F, D5
-loc_233D2:                
+loc_233D2:
                 move.l  #$00000000, (A6)
                 dbra    D5, loc_233D2
-                bra.s   loc_233CA              
+                bra.s   loc_233CA
 loc_233DE:
                 move.l  #$7BA00003, D0
                 moveq   #$00, D1
                 move.b  ($FFFFFE12).w, D1
-                lea     loc_23316(PC), A2               
+                lea     loc_23316(PC), A2
                 moveq   #$01, D6
                 moveq   #$00, D4
                 lea     loc_23748(PC), A1
-loc_233F6:                
+loc_233F6:
                 move.l  D0, $0004(A6)
                 moveq   #$00, D2
                 move.l  (A2)+, D3
-loc_233FE:                
+loc_233FE:
                 sub.l   D3, D1
                 bcs.s   loc_23406
                 addq.w  #$01, D2
@@ -41519,7 +41520,7 @@ loc_23406:
 loc_23410:
                 tst.w   D4
                 beq.s   loc_23436
-loc_23414:                
+loc_23414:
                 lsl.w   #$05, D2
                 lea     $00(A1, D2), A3
                 move.l  (A3)+, (A6)
@@ -41538,20 +41539,20 @@ loc_23436:
                 tst.w   D6
                 beq.s   loc_23414
                 moveq   #$07, D5
-loc_2343C:                
+loc_2343C:
                 move.l  #$00000000, (A6)
                 dbra    D5, loc_2343C
-                bra.s   loc_2342A                                     
-loc_23448:  
-                BINCLUDE  "data\sprites\bignumbr.dat" 
-loc_23748:                
-                BINCLUDE  "data\sprites\smallnum.dat"             
+                bra.s   loc_2342A
+loc_23448:
+                BINCLUDE  "data\sprites\bignumbr.dat"
+loc_23748:
+                BINCLUDE  "data\sprites\smallnum.dat"
 loc_23888:
                 BINCLUDE  "data\sprites\debugnum.dat"
 J_Adjust2PArtPointer_27: ; loc_23B68:
                 jmp     Adjust2PArtPointer     ; loc_DC30
                 dc.w    $0000                   ; Filler
-DebugMode: ; loc_23B70: ; Debug Mode Routine                 
+DebugMode: ; loc_23B70: ; Debug Mode Routine
                 moveq   #$00, D0
                 move.b  (Debug_placement_mode).w, D0
                 move.w  loc_23B7E(PC, D0), D1
@@ -41576,7 +41577,7 @@ loc_23BBC:
                 moveq   #$00, D0
                 move.b  ($FFFFFE10).w, D0
 loc_23BC2:
-                lea     (Debug_Index), A2   ;loc_23DBE 
+                lea     (Debug_Index), A2   ;loc_23DBE
                 add.w   D0, D0
                 adda.w  $00(A2, D0), A2
                 move.w  (A2)+, D6
@@ -41730,7 +41731,7 @@ loc_23D9E:
                 move.b  $05(A2, D0), $001A(A0)
                 bsr     J_Adjust2PArtPointer_28 ; loc_2434C
                 rts
-Debug_Index: ; loc_23DBE:                  
+Debug_Index: ; loc_23DBE:
                 dc.w    Debug_GHz-Debug_Index   ; Green Hill
                 dc.w    Debug_Null-Debug_Index  ; Null
                 dc.w    Debug_Null-Debug_Index  ; Wood
@@ -41755,7 +41756,7 @@ Debug_Null: ; loc_23DE0:  ; Null
                 dc.l    ($26<<$18)|Obj26_MapUnc_B6D2           ; loc_B6D2
                 dc.b    $00, $00, $06, $80
 Debug_GHz: ; loc_23DF2:  ; Green Hill
-                dc.w    $0012                          
+                dc.w    $0012
                 dc.l    ($25<<$18)|Obj25_MapUnc_B036              ; loc_B036
                 dc.b    $00, $00, $26, $BC
                 dc.l    ($26<<$18)|Obj26_MapUnc_B6D2           ; loc_B6D2
@@ -41766,9 +41767,9 @@ Debug_GHz: ; loc_23DF2:  ; Green Hill
                 dc.b    $09, $01, $26, $BC
                 dc.l    ($49<<$18)|Waterfall_Mappings          ; loc_15404
                 dc.b    $00, $00, $23, $AE
-                dc.l    ($49<<$18)|Waterfall_Mappings          ; loc_15404                
+                dc.l    ($49<<$18)|Waterfall_Mappings          ; loc_15404
                 dc.b    $02, $03, $23, $AE
-                dc.l    ($49<<$18)|Waterfall_Mappings          ; loc_15404 
+                dc.l    ($49<<$18)|Waterfall_Mappings          ; loc_15404
                 dc.b    $04, $05, $23, $AE
                 dc.l    ($18<<$18)|Ghz_Platform_Mappings       ; loc_9078
                 dc.b    $01, $00, $40, $00
@@ -41790,7 +41791,7 @@ Debug_GHz: ; loc_23DF2:  ; Green Hill
                 dc.b    $00, $00, $03, $E6
                 dc.l    ($54<<$18)|Motobug_Mappings            ; loc_1F938
                 dc.b    $00, $00, $04, $02
-                dc.l    ($53<<$18)|Chopper_Mappings            ; loc_1F696                
+                dc.l    ($53<<$18)|Chopper_Mappings            ; loc_1F696
                 dc.b    $00, $00, $04, $1C
                 dc.l    ($4F<<$18)|Dinobot_Mappings            ; loc_1DFCA  ; Out of Pointers
                 dc.b    $00, $00, $05, $00
@@ -41820,7 +41821,7 @@ Debug_Mz: ; loc_23ECC:  ; Metropolis
                 dc.b    $01, $00, $04, $7C
                 dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
-                dc.l    ($42<<$18)|Steam_Vent_Mappings         ; loc_1A7FE                 
+                dc.l    ($42<<$18)|Steam_Vent_Mappings         ; loc_1A7FE
                 dc.b    $01, $07, $60, $00
                 dc.l    ($64<<$18)|Piston_Mappings             ; loc_1A9F0
                 dc.b    $01, $00, $20, $00
@@ -41878,9 +41879,9 @@ Debug_HTz: ; loc_23FAE:  ; Hill Top
                 dc.b    $01, $00, $04, $7C
                 dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
-                dc.l    ($18<<$18)|Ghz_Platform_Mappings       ; loc_9078                    
+                dc.l    ($18<<$18)|Ghz_Platform_Mappings       ; loc_9078
                 dc.b    $01, $00, $40, $00
-                dc.l    ($18<<$18)|Ghz_Platform_Mappings       ; loc_9078  
+                dc.l    ($18<<$18)|Ghz_Platform_Mappings       ; loc_9078
                 dc.b    $9A, $01, $40, $00
                 dc.l    ($36<<$18)|Spike_Mappings              ; loc_CBA0
                 dc.b    $00, $00, $24, $34
@@ -41891,15 +41892,15 @@ Debug_HTz: ; loc_23FAE:  ; Hill Top
                 dc.l    ($2F<<$18)|Breakable_Floor_Mappings    ; loc_1786A
                 dc.b    $00, $00, $C0, $00
                 dc.l    ($20<<$18)|Fireball_Mappings           ; loc_173D0
-                dc.b    $44, $02, $84, $16                   
+                dc.b    $44, $02, $84, $16
                 dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
-                dc.b    $81, $00, $04, $5C                  
+                dc.b    $81, $00, $04, $5C
                 dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
-                dc.b    $90, $03, $04, $70                  
+                dc.b    $90, $03, $04, $70
                 dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
-                dc.b    $A0, $06, $04, $5C                     
+                dc.b    $A0, $06, $04, $5C
                 dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
-                dc.b    $30, $07, $04, $3C                    
+                dc.b    $30, $07, $04, $3C
                 dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
                 dc.b    $40, $0A, $04, $3C
                 dc.l    ($16<<$18)|Teleferics_Mappings         ; loc_1611E
@@ -41934,22 +41935,22 @@ Debug_HPz: ; loc_24078:  ; Hidden Palace
                 dc.b    $00, $00, $43, $4A
                 dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
-                dc.l    ($4F<<$18)|Dinobot_Mappings            ; loc_1DFCA  
+                dc.l    ($4F<<$18)|Dinobot_Mappings            ; loc_1DFCA
                 dc.b    $00, $00, $05, $00
-                dc.l    ($4C<<$18)|Batbot_Mappings             ; loc_1F106  
+                dc.l    ($4C<<$18)|Batbot_Mappings             ; loc_1F106
                 dc.b    $00, $00, $25, $30
                 dc.l    ($52<<$18)|Piranha_Mappings            ; loc_1DE66  ; Out of Pointers
                 dc.b    $00, $00, $25, $30
                 dc.l    ($50<<$18)|Aquis_Mappings              ; loc_1E4E0  ; Out of Pointers
                 dc.b    $00, $00, $25, $70
                 dc.l    ($51<<$18)|Aquis_Mappings              ; loc_1E4E0  ; Out of Pointers
-                dc.b    $00, $00, $25, $70                 
+                dc.b    $00, $00, $25, $70
                 dc.l    ($4D<<$18)|Rhinobot_Mappings           ; loc_1DAEE  ; Out of Pointers
-                dc.b    $00, $00, $23, $C4                   
+                dc.b    $00, $00, $23, $C4
                 dc.l    ($4B<<$18)|Buzz_Bomber_Mappings        ; loc_1EB0E  ; Out of Pointers
-                dc.b    $00, $00, $03, $2C                  
+                dc.b    $00, $00, $03, $2C
                 dc.l    ($4E<<$18)|Crocobot_Mappings           ; loc_1F420  ; Out of Pointers
-                dc.b    $00, $00, $23, $00                  
+                dc.b    $00, $00, $23, $00
                 dc.l    ($4A<<$18)|Octus_Mappings              ; loc_1EDBC  ; Out of Pointers
                 dc.b    $00, $00, $23, $8A
 Debug_OOz: ; loc_240F2:  ; Oil Ocean
@@ -41969,7 +41970,7 @@ Debug_OOz: ; loc_240F2:  ; Oil Ocean
                 dc.l    ($45<<$18)|Spring_Push_Boost_Mappings  ; loc_185C2
                 dc.b    $12, $0A, $43, $C5
                 dc.l    ($46<<$18)|Spring_Ball_Mappings        ; loc_18CFA
-                dc.b    $00, $01, $63, $54 
+                dc.b    $00, $01, $63, $54
                 dc.l    ($47<<$18)|Switch_Mappings             ; loc_18E3E
                 dc.b    $00, $02, $04, $24
                 dc.l    ($15<<$18)|Swing_Platforms_Mappings    ; loc_8AD8
@@ -42055,7 +42056,7 @@ Debug_CPz: ; loc_24228:  ; Chemical Plant
                 dc.l    ($6B<<$18)|Block_Mappings              ; loc_1BF4A
                 dc.b    $10, $00, $64, $18
                 dc.l    ($78<<$18)|Block_Mappings              ; loc_1BF4A
-                dc.b    $00, $00, $64, $18        
+                dc.b    $00, $00, $64, $18
                 dc.l    ($7A<<$18)|Platform_Horizontal_Mappings ; loc_1D72C
                 dc.b    $00, $00, $E4, $18
                 dc.l    ($7B<<$18)|Spring_Tubes_Mappings       ; loc_1D920
@@ -42067,11 +42068,11 @@ Debug_CPz: ; loc_24228:  ; Chemical Plant
                 dc.l    ($36<<$18)|Spike_Mappings              ; loc_CBA0
                 dc.b    $00, $00, $24, $34
                 dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
-                dc.b    $81, $00, $04, $5C  
+                dc.b    $81, $00, $04, $5C
                 dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
-                dc.b    $90, $03, $04, $70                                  
+                dc.b    $90, $03, $04, $70
                 dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
-                dc.b    $A0, $06, $04, $5C       
+                dc.b    $A0, $06, $04, $5C
                 dc.l    ($40<<$18)|Diagonal_Spring_Mappings    ; loc_1A58A
                 dc.b    $01, $00, $04, $40
 Debug_NGHz: ; loc_242C2:  ; Neo Green Hill
@@ -42099,13 +42100,13 @@ Debug_NGHz: ; loc_242C2:  ; Neo Green Hill
                 dc.l    ($2C<<$18)|Lava_Attributes_Mappings    ; loc_15612
                 dc.b    $02, $02, $86, $80
                 dc.l    ($40<<$18)|Diagonal_Spring_Mappings    ; loc_1A58A
-                dc.b    $01, $00, $04, $40                  
-                dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70                  
-                dc.b    $81, $00, $04, $5C                  
-                dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70                  
-                dc.b    $90, $03, $04, $70    
+                dc.b    $01, $00, $04, $40
+                dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
+                dc.b    $81, $00, $04, $5C
+                dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
+                dc.b    $90, $03, $04, $70
                 dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70BM16_GHZ
-                dc.b    $A0, $06, $04, $5C    
+                dc.b    $A0, $06, $04, $5C
                 dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
                 dc.l    ($36<<$18)|Spike_Mappings              ; loc_CBA0
@@ -42113,526 +42114,526 @@ Debug_NGHz: ; loc_242C2:  ; Neo Green Hill
 J_Adjust2PArtPointer_28: ; loc_2434C:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
                 dc.w    $0000                   ; Filler
-TilesMainTable: ; loc_24354:  
-                dc.l    ($04<<$18)|ArtNem_GHZ   ; loc_81C00 $04 = Sprite Pointer in 0x024420 
+TilesMainTable: ; loc_24354:
+                dc.l    ($04<<$18)|ArtNem_GHZ   ; loc_81C00 $04 = Sprite Pointer in 0x024420
                 dc.l    ($05<<$18)|BM16_GHZ   ; loc_80C60 $05 = Sprite Pointer in 0x024420
                 dc.l    ($04<<$18)|BM128_GHZ ; loc_8692E $04 = Palette Pointer in 0x00294E
-                dc.l    ($06<<$18)|ArtNem_GHZ   ; loc_81C00 $06 = Sprite Pointer in 0x024420 
+                dc.l    ($06<<$18)|ArtNem_GHZ   ; loc_81C00 $06 = Sprite Pointer in 0x024420
                 dc.l    ($07<<$18)|BM16_GHZ   ; loc_80C60 $07 = Sprite Pointer in 0x024420
                 dc.l    ($05<<$18)|BM128_GHZ ; loc_8692E $05 = Palette Pointer in 0x00294E
-                dc.l    ($08<<$18)|Wood_8x8_Tiles         ; loc_8AB2E $08 = Sprite Pointer in 0x024420 
+                dc.l    ($08<<$18)|Wood_8x8_Tiles         ; loc_8AB2E $08 = Sprite Pointer in 0x024420
                 dc.l    ($09<<$18)|Wood_16x16_Map         ; loc_89B8E $09 = Sprite Pointer in 0x024420
                 dc.l    ($06<<$18)|Wood_128x128_Map       ; loc_8E826 $06 = Palette Pointer in 0x00294E
-                dc.l    ($0A<<$18)|ArtNem_GHZ   ; loc_81C00 $0A = Sprite Pointer in 0x024420 
+                dc.l    ($0A<<$18)|ArtNem_GHZ   ; loc_81C00 $0A = Sprite Pointer in 0x024420
                 dc.l    ($0B<<$18)|BM16_GHZ   ; loc_80C60 $0B = Sprite Pointer in 0x024420
                 dc.l    ($07<<$18)|BM128_GHZ ; loc_8692E $07 = Palette Pointer in 0x00294E
-                dc.l    ($0C<<$18)|Metropolis_8x8_Tiles   ; loc_91716 $0C = Sprite Pointer in 0x024420 
+                dc.l    ($0C<<$18)|Metropolis_8x8_Tiles   ; loc_91716 $0C = Sprite Pointer in 0x024420
                 dc.l    ($0D<<$18)|Metropolis_16x16_Map   ; loc_90456 $0D = Sprite Pointer in 0x024420
                 dc.l    ($08<<$18)|Metropolis_128x128_Map ; loc_94C56 $08 = Palette Pointer in 0x00294E
-                dc.l    ($0C<<$18)|Metropolis_8x8_Tiles   ; loc_91716 $0C = Sprite Pointer in 0x024420 
+                dc.l    ($0C<<$18)|Metropolis_8x8_Tiles   ; loc_91716 $0C = Sprite Pointer in 0x024420
                 dc.l    ($0D<<$18)|Metropolis_16x16_Map   ; loc_90456 $0D = Sprite Pointer in 0x024420
                 dc.l    ($08<<$18)|Metropolis_128x128_Map ; loc_94C56 $08 = Palette Pointer in 0x00294E
-                dc.l    ($10<<$18)|ArtNem_GHZ   ; loc_81C00 $10 = Sprite Pointer in 0x024420 
+                dc.l    ($10<<$18)|ArtNem_GHZ   ; loc_81C00 $10 = Sprite Pointer in 0x024420
                 dc.l    ($11<<$18)|BM16_GHZ   ; loc_80C60 $11 = Sprite Pointer in 0x024420
                 dc.l    ($0A<<$18)|BM128_GHZ ; loc_8692E $0A = Palette Pointer in 0x00294E
-                dc.l    ($12<<$18)|ArtNem_GHZ   ; loc_81C00 $12 = Sprite Pointer in 0x024420 
+                dc.l    ($12<<$18)|ArtNem_GHZ   ; loc_81C00 $12 = Sprite Pointer in 0x024420
                 dc.l    ($13<<$18)|BM16_GHZ   ; loc_80C60 $13 = Sprite Pointer in 0x024420
                 dc.l    ($0B<<$18)|BM128_GHZ ; loc_8692E $0B = Palette Pointer in 0x00294E
-                dc.l    ($14<<$18)|Hidden_Palace_8x8_Tiles   ; loc_98B76 $14 = Sprite Pointer in 0x024420 
+                dc.l    ($14<<$18)|Hidden_Palace_8x8_Tiles   ; loc_98B76 $14 = Sprite Pointer in 0x024420
                 dc.l    ($15<<$18)|Hidden_Palace_16x16_Map   ; loc_97596 $15 = Sprite Pointer in 0x024420
                 dc.l    ($0C<<$18)|Hidden_Palace_128x128_Map ; loc_9B9F8 $0C = Palette Pointer in 0x00294E
-                dc.l    ($16<<$18)|ArtNem_GHZ   ; loc_81C00 $16 = Sprite Pointer in 0x024420 
+                dc.l    ($16<<$18)|ArtNem_GHZ   ; loc_81C00 $16 = Sprite Pointer in 0x024420
                 dc.l    ($17<<$18)|BM16_GHZ   ; loc_80C60 $17 = Sprite Pointer in 0x024420
                 dc.l    ($0D<<$18)|BM128_GHZ ; loc_8692E $0D = Palette Pointer in 0x00294E
-                dc.l    ($18<<$18)|Oil_Ocean_8x8_Tiles    ; loc_9ED58 $18 = Sprite Pointer in 0x024420 
+                dc.l    ($18<<$18)|Oil_Ocean_8x8_Tiles    ; loc_9ED58 $18 = Sprite Pointer in 0x024420
                 dc.l    ($19<<$18)|Oil_Ocean_16x16_Map    ; loc_9D778 $19 = Sprite Pointer in 0x024420
                 dc.l    ($0E<<$18)|Oil_Ocean_128x128_Map  ; loc_A1A58 $0E = Palette Pointer in 0x00294E
-                dc.l    ($1A<<$18)|Dust_Hill_8x8_Tiles    ; loc_A5248 $1A = Sprite Pointer in 0x024420 
+                dc.l    ($1A<<$18)|Dust_Hill_8x8_Tiles    ; loc_A5248 $1A = Sprite Pointer in 0x024420
                 dc.l    ($1B<<$18)|Dust_Hill_16x16_Map    ; loc_A3F88 $1B = Sprite Pointer in 0x024420
                 dc.l    ($0F<<$18)|Dust_Hill_128x128_Map  ; loc_A8B6A $0F = Palette Pointer in 0x00294E
-                dc.l    ($1C<<$18)|Casino_Night_8x8_Tiles   ; loc_ABF2A $1C = Sprite Pointer in 0x024420 
+                dc.l    ($1C<<$18)|Casino_Night_8x8_Tiles   ; loc_ABF2A $1C = Sprite Pointer in 0x024420
                 dc.l    ($1D<<$18)|Casino_Night_16x16_Map   ; loc_AB5CA $1D = Sprite Pointer in 0x024420
                 dc.l    ($10<<$18)|Casino_Night_128x128_Map ; loc_AF026 $10 = Palette Pointer in 0x00294E
-                dc.l    ($1E<<$18)|Chemical_Plant_8x8_Tiles   ; loc_B2506 $1E = Sprite Pointer in 0x024420 
+                dc.l    ($1E<<$18)|Chemical_Plant_8x8_Tiles   ; loc_B2506 $1E = Sprite Pointer in 0x024420
                 dc.l    ($1F<<$18)|Chemical_Plant_16x16_Map   ; loc_B0F26 $1F = Sprite Pointer in 0x024420
                 dc.l    ($11<<$18)|Chemical_Plant_128x128_Map ; loc_B6058 $11 = Palette Pointer in 0x00294E
-                dc.l    ($20<<$18)|ArtNem_GHZ   ; loc_81C00 $20 = Sprite Pointer in 0x024420 
+                dc.l    ($20<<$18)|ArtNem_GHZ   ; loc_81C00 $20 = Sprite Pointer in 0x024420
                 dc.l    ($21<<$18)|BM16_GHZ   ; loc_80C60 $21 = Sprite Pointer in 0x024420
                 dc.l    ($12<<$18)|BM128_GHZ ; loc_8692E $12 = Palette Pointer in 0x00294E
-                dc.l    ($22<<$18)|Neo_Green_Hill_8x8_Tiles   ; loc_B9E58 $22 = Sprite Pointer in 0x024420 
+                dc.l    ($22<<$18)|Neo_Green_Hill_8x8_Tiles   ; loc_B9E58 $22 = Sprite Pointer in 0x024420
                 dc.l    ($23<<$18)|Neo_Green_Hill_16x16_Map   ; loc_B8558 $23 = Sprite Pointer in 0x024420
                 dc.l    ($13<<$18)|Neo_Green_Hill_128x128_Map ; loc_BF568 $13 = Palette Pointer in 0x00294E
-                dc.l    ($24<<$18)|ArtNem_GHZ   ; loc_81C00 $24 = Sprite Pointer in 0x024420 
+                dc.l    ($24<<$18)|ArtNem_GHZ   ; loc_81C00 $24 = Sprite Pointer in 0x024420
                 dc.l    ($25<<$18)|BM16_GHZ   ; loc_80C60 $25 = Sprite Pointer in 0x024420
                 dc.l    ($14<<$18)|BM128_GHZ ; loc_8692E $14 = Palette Pointer in 0x00294E
 ArtLoadCues: ; loc_24420:
                 dc.w    Standard_Sprites_1-ArtLoadCues ; $00
                 dc.w    Standard_Sprites_2-ArtLoadCues ; $01
-                dc.w    Standard_Sprites_3-ArtLoadCues ; $02                
+                dc.w    Standard_Sprites_3-ArtLoadCues ; $02
                 dc.w    Standard_Sprites_4-ArtLoadCues ; $03
                 dc.w    Green_Hill_Sprites_1-ArtLoadCues ; $04 - Green Hill
-                dc.w    Green_Hill_Sprites_2-ArtLoadCues ; $05 - Green Hill                
-                dc.w    Wood_Sprites_1-ArtLoadCues ; $06 
-                dc.w    Wood_Sprites_1-ArtLoadCues ; $07 
-                dc.w    Wood_Sprites_1-ArtLoadCues ; $08 
-                dc.w    Wood_Sprites_2-ArtLoadCues ; $09  
-                dc.w    Metropolis_Sprites_1-ArtLoadCues ; $0A  
+                dc.w    Green_Hill_Sprites_2-ArtLoadCues ; $05 - Green Hill
+                dc.w    Wood_Sprites_1-ArtLoadCues ; $06
+                dc.w    Wood_Sprites_1-ArtLoadCues ; $07
+                dc.w    Wood_Sprites_1-ArtLoadCues ; $08
+                dc.w    Wood_Sprites_2-ArtLoadCues ; $09
+                dc.w    Metropolis_Sprites_1-ArtLoadCues ; $0A
                 dc.w    Metropolis_Sprites_1-ArtLoadCues ; $0B
                 dc.w    Metropolis_Sprites_1-ArtLoadCues ; $0C
-                dc.w    Metropolis_Sprites_2-ArtLoadCues ; $0D                
+                dc.w    Metropolis_Sprites_2-ArtLoadCues ; $0D
                 dc.w    Hill_Top_Sprites_1-ArtLoadCues ; $0E
-                dc.w    Hill_Top_Sprites_1-ArtLoadCues ; $0F 
+                dc.w    Hill_Top_Sprites_1-ArtLoadCues ; $0F
                 dc.w    Hill_Top_Sprites_1-ArtLoadCues ; $10
                 dc.w    Hill_Top_Sprites_1-ArtLoadCues ; $11
-                dc.w    Hill_Top_Sprites_1-ArtLoadCues ; $12                
+                dc.w    Hill_Top_Sprites_1-ArtLoadCues ; $12
                 dc.w    Hill_Top_Sprites_2-ArtLoadCues ; $13
-                dc.w    Hidden_Palace_Sprites_1-ArtLoadCues ; $14 
-                dc.w    Hidden_Palace_Sprites_2-ArtLoadCues ; $15                
-                dc.w    Oil_Ocean_Sprites_1-ArtLoadCues ; $16 
-                dc.w    Oil_Ocean_Sprites_1-ArtLoadCues ; $17 
-                dc.w    Oil_Ocean_Sprites_1-ArtLoadCues ; $18 
-                dc.w    Oil_Ocean_Sprites_2-ArtLoadCues ; $19  
-                dc.w    Dust_Hill_Sprites_1-ArtLoadCues ; $1A  
+                dc.w    Hidden_Palace_Sprites_1-ArtLoadCues ; $14
+                dc.w    Hidden_Palace_Sprites_2-ArtLoadCues ; $15
+                dc.w    Oil_Ocean_Sprites_1-ArtLoadCues ; $16
+                dc.w    Oil_Ocean_Sprites_1-ArtLoadCues ; $17
+                dc.w    Oil_Ocean_Sprites_1-ArtLoadCues ; $18
+                dc.w    Oil_Ocean_Sprites_2-ArtLoadCues ; $19
+                dc.w    Dust_Hill_Sprites_1-ArtLoadCues ; $1A
                 dc.w    Dust_Hill_Sprites_2-ArtLoadCues ; $1B
                 dc.w    Casino_Night_Sprites_1-ArtLoadCues ; $1C
-                dc.w    Casino_Night_Sprites_2-ArtLoadCues ; $1D                
+                dc.w    Casino_Night_Sprites_2-ArtLoadCues ; $1D
                 dc.w    Chemical_Plant_Sprites_1-ArtLoadCues ; $1E
-                dc.w    Chemical_Plant_Sprites_2-ArtLoadCues ; $1F 
+                dc.w    Chemical_Plant_Sprites_2-ArtLoadCues ; $1F
                 dc.w    Neo_Green_Hill_Sprites_1-ArtLoadCues ; $20
                 dc.w    Neo_Green_Hill_Sprites_1-ArtLoadCues ; $21
-                dc.w    Neo_Green_Hill_Sprites_1-ArtLoadCues ; $22                
+                dc.w    Neo_Green_Hill_Sprites_1-ArtLoadCues ; $22
                 dc.w    Neo_Green_Hill_Sprites_2-ArtLoadCues ; $23
-                dc.w    End_Level_Results_Sprites-ArtLoadCues ; $24 
-                dc.w    End_Level_Results_Sprites-ArtLoadCues ; $25                
-                dc.w    End_Level_Results_Sprites-ArtLoadCues ; $26 
-                dc.w    End_Level_Sprites-ArtLoadCues ; $27 
-                dc.w    Green_Hill_Boss-ArtLoadCues ; $28 
-                dc.w    Green_Hill_Boss-ArtLoadCues ; $29  
-                dc.w    Green_Hill_Boss-ArtLoadCues ; $2A  
+                dc.w    End_Level_Results_Sprites-ArtLoadCues ; $24
+                dc.w    End_Level_Results_Sprites-ArtLoadCues ; $25
+                dc.w    End_Level_Results_Sprites-ArtLoadCues ; $26
+                dc.w    End_Level_Sprites-ArtLoadCues ; $27
+                dc.w    Green_Hill_Boss-ArtLoadCues ; $28
+                dc.w    Green_Hill_Boss-ArtLoadCues ; $29
+                dc.w    Green_Hill_Boss-ArtLoadCues ; $2A
                 dc.w    Green_Hill_Boss-ArtLoadCues ; $2B
-                dc.w    Green_Hill_Boss-ArtLoadCues ; $2C          
-Standard_Sprites_1:  
-loc_2447A: 
+                dc.w    Green_Hill_Boss-ArtLoadCues ; $2C
+Standard_Sprites_1:
+loc_2447A:
                 dc.w    (((loc_2449A-loc_2447A-$02)/$06)-$01)
-                dc.l    Lamp_Post               ; loc_79278: 
-                dc.w    $8F80 
+                dc.l    Lamp_Post               ; loc_79278:
+                dc.w    $8F80
                 dc.l    Head_up_display_Sprites ; loc_78A12
-                dc.w    $D940   
-                dc.l    Head_up_display_Sonic   ; loc_78B1A 
-                dc.w    $FA80  
+                dc.w    $D940
+                dc.l    Head_up_display_Sonic   ; loc_78B1A
+                dc.w    $FA80
                 dc.l    ArtNem_Ring
-                dc.w    $D780  
-                dc.l    Enemy_Points_Spr        ; loc_7919E:  
-                dc.w    $9580                
-loc_2449A:  
-Standard_Sprites_2:           
+                dc.w    $D780
+                dc.l    Enemy_Points_Spr        ; loc_7919E:
+                dc.w    $9580
+loc_2449A:
+Standard_Sprites_2:
                 dc.w    (((loc_244AE-loc_2449A-$02)/$06)-$01)
                 dc.l    ArtNem_Powerups
                 dc.w    $D000
-                dc.l    Shield                  ; loc_6DF8E 
+                dc.l    Shield                  ; loc_6DF8E
                 dc.w    $97C0
                 dc.l    Invencibility_Stars     ; loc_6E114
                 dc.w    $9BC0
-loc_244AE:   
-Standard_Sprites_3:           
+loc_244AE:
+Standard_Sprites_3:
                 dc.w    (((loc_244C2-loc_244AE-$02)/$06)-$01)
                 dc.l    Explosion               ; loc_7F012
-                dc.w    $B400  
+                dc.w    $B400
                 dc.l    Rabbit                  ; loc_80348
-                dc.w    $B000 
-                dc.l    White_Bird              ; loc_804A0 
+                dc.w    $B000
+                dc.l    White_Bird              ; loc_804A0
                 dc.w    $B240
-Standard_Sprites_4:  
+Standard_Sprites_4:
 loc_244C2:
                 dc.w    (((loc_244CA-loc_244C2-$02)/$06)-$01)
                 dc.l    Game_Time_Over          ; loc_7F678
                 dc.w    $ABC0
-Green_Hill_Sprites_1:   
+Green_Hill_Sprites_1:
 loc_244CA:
                 dc.w    (((loc_244FC-loc_244CA-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    ArtNem_GHZ    ; loc_81C00
-                dc.w    $0000                    
+                dc.w    $0000
                 dc.l    Ghz_Waterfall           ; loc_73B3C
-                dc.w    $75C0 
-                dc.l    Ghz_Bridge              ; loc_73D90  
-                dc.w    $78C0    
-                dc.l    FireBall                ; loc_739C6  
-                dc.w    $79C0 
+                dc.w    $75C0
+                dc.l    Ghz_Bridge              ; loc_73D90
+                dc.w    $78C0
+                dc.l    FireBall                ; loc_739C6
+                dc.w    $79C0
                 dc.l    Spikes                  ; loc_7914E
-                dc.w    $8680   
+                dc.w    $8680
                 dc.l    Diagonal_Spring         ; loc_7883E
-                dc.w    $8780                
+                dc.w    $8780
                 dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80   
+                dc.w    $8B80
                 dc.l    Horizontal_Spring       ; loc_78774
                 dc.w    $8E00
-Green_Hill_Sprites_2:                  
-loc_244FC: 
+Green_Hill_Sprites_2:
+loc_244FC:
                 dc.w    (((loc_24510-loc_244FC-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Ghz_Buzzer_Bomber       ; loc_7A4BC
-                dc.w    $7CC0 
+                dc.w    $7CC0
                 dc.l    Ghz_Motobug             ; loc_7C514
-                dc.w    $8040   
+                dc.w    $8040
                 dc.l    Ghz_Chopper             ; loc_7CA92
-                dc.w    $8380    
-Wood_Sprites_1:   
+                dc.w    $8380
+Wood_Sprites_1:
 loc_24510:
                 dc.w    (((loc_24518-loc_24510-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Wood_8x8_Tiles          ; loc_8AB2E
-                dc.w    $0000     
-Wood_Sprites_2: 
-loc_24518: 
+                dc.w    $0000
+Wood_Sprites_2:
+loc_24518:
                 dc.w    (((loc_24532-loc_24518-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Spikes                  ; loc_7914E
-                dc.w    $8680 
+                dc.w    $8680
                 dc.l    Diagonal_Spring         ; loc_7883E
-                dc.w    $8780                
+                dc.w    $8780
                 dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80   
+                dc.w    $8B80
                 dc.l    Horizontal_Spring       ; loc_78774
-                dc.w    $8E00                   
-Metropolis_Sprites_1:   
+                dc.w    $8E00
+Metropolis_Sprites_1:
 loc_24532:
                 dc.w    (((loc_2456A-loc_24532-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Metropolis_8x8_Tiles    ; loc_91716
-                dc.w    $0000 
+                dc.w    $0000
                 dc.l    Mz_Teleport             ; loc_75382
-                dc.w    $6780   
+                dc.w    $6780
                 dc.l    Mz_Rotating_Gear        ; loc_7461C
-                dc.w    $6F00 
+                dc.w    $6F00
                 dc.l    Mz_Machine_Ball         ; loc_74A74
-                dc.w    $7E00   
+                dc.w    $7E00
                 dc.l    loc_74EE2
-                dc.w    $7F20  
+                dc.w    $7F20
                 dc.l    loc_751FE
                 dc.w    $7FA0
-                dc.l    Mz_Steam                ; loc_74BEA  
+                dc.l    Mz_Steam                ; loc_74BEA
                 dc.w    $80A0
-                dc.l    Mz_Block                ; loc_74B1C  
+                dc.l    Mz_Block                ; loc_74B1C
                 dc.w    $8280
                 dc.l    Mz_Harpoon              ; loc_74CF4
                 dc.w    $8380
-loc_2456A: 
-Metropolis_Sprites_2: 
+loc_2456A:
+Metropolis_Sprites_2:
                 dc.w    (((loc_245A2-loc_2456A-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Switch                  ; loc_78580
-                dc.w    $8480     
+                dc.w    $8480
                 dc.l    Spikes                  ; loc_7914E
-                dc.w    $8680 
+                dc.w    $8680
                 dc.l    Diagonal_Spring         ; loc_7883E
-                dc.w    $8780                
+                dc.w    $8780
                 dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80   
+                dc.w    $8B80
                 dc.l    Horizontal_Spring       ; loc_78774
-                dc.w    $8E00   
+                dc.w    $8E00
                 dc.l    Mz_Screw_Nut            ; loc_74DB6
                 dc.w    $A000
                 dc.l    Mz_Lava_Bubble          ; loc_74E2C
-                dc.w    $A6C0 
-                dc.l    Mz_Parallelogram_Elevator  ; loc_74F52    
-                dc.w    $A7E0  
+                dc.w    $A6C0
+                dc.l    Mz_Parallelogram_Elevator  ; loc_74F52
+                dc.w    $A7E0
                 dc.l    Mz_Mini_Gear            ; loc_752A0
-                dc.w    $ABE0       
-Hill_Top_Sprites_1:   
+                dc.w    $ABE0
+Hill_Top_Sprites_1:
 loc_245A2:
                 dc.w    (((loc_245E0-loc_245A2-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    ArtNem_GHZ    ; loc_81C00
-                dc.w    $0000 
+                dc.w    $0000
                 dc.l    Hill_Top_8x8_Tiles      ; loc_85200
                 dc.w    $3F80
-                dc.l    FireBall                ; loc_739C6  
-                dc.w    $73C0   
+                dc.l    FireBall                ; loc_739C6
+                dc.w    $73C0
                 dc.l    Htz_Rock                ; loc_7447A
-                dc.w    $7640   
+                dc.w    $7640
                 dc.l    Htz_See_saw             ; loc_741D4
-                dc.w    $78C0 
-                dc.l    Htz_See_saw_badnick     ; loc_745B0 
-                dc.w    $7BC0 
+                dc.w    $78C0
+                dc.l    Htz_See_saw_badnick     ; loc_745B0
+                dc.w    $7BC0
                 dc.l    Spikes                  ; loc_7914E
-                dc.w    $8680                
+                dc.w    $8680
                 dc.l    Diagonal_Spring         ; loc_7883E
-                dc.w    $8780                
+                dc.w    $8780
                 dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80   
+                dc.w    $8B80
                 dc.l    Horizontal_Spring       ; loc_78774
-                dc.w    $8E00 
-Hill_Top_Sprites_2:                   
-loc_245E0: 
+                dc.w    $8E00
+Hill_Top_Sprites_2:
+loc_245E0:
                 dc.w    (((loc_245F4-loc_245E0-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Htz_Teleferic           ; loc_73E68 
-                dc.w    $7CC0 
+                dc.l    Htz_Teleferic           ; loc_73E68
+                dc.w    $7CC0
                 dc.l    Htz_Lava_Bubble         ; loc_73C42
-                dc.w    $82C0 
-                dc.l    Htz_Automatic_Door      ; loc_7415C 
-                dc.w    $84C0 
-Hidden_Palace_Sprites_1:   
+                dc.w    $82C0
+                dc.l    Htz_Automatic_Door      ; loc_7415C
+                dc.w    $84C0
+Hidden_Palace_Sprites_1:
 loc_245F4:
                 dc.w    (((loc_24626-loc_245F4-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Hidden_Palace_8x8_Tiles ; loc_98B76
-                dc.w    $0000 
-                dc.l    Hpz_Bridge              ; loc_7538E 
-                dc.w    $6000 
+                dc.w    $0000
+                dc.l    Hpz_Bridge              ; loc_7538E
+                dc.w    $6000
                 dc.l    Hpz_Waterfall           ; loc_75506
-                dc.w    $62A0 
+                dc.w    $62A0
                 dc.l    Hpz_Platform            ; loc_75ADA
-                dc.w    $6940     
-                dc.l    Hpz_Orbs_Comp           ; loc_75B9A   
-                dc.w    $6B40 
-                dc.l    Hpz_Unknow_Platform     ; loc_75DD6   
-                dc.w    $6F80 
+                dc.w    $6940
+                dc.l    Hpz_Orbs_Comp           ; loc_75B9A
+                dc.w    $6B40
+                dc.l    Hpz_Unknow_Platform     ; loc_75DD6
+                dc.w    $6F80
                 dc.l    Hpz_Emerald             ; loc_75868
-                dc.w    $7240  
-                dc.l    Water_Surface           ; loc_777D2  
-                dc.w    $8000  
-Hidden_Palace_Sprites_2:                                        
-loc_24626: 
+                dc.w    $7240
+                dc.l    Water_Surface           ; loc_777D2
+                dc.w    $8000
+Hidden_Palace_Sprites_2:
+loc_24626:
                 dc.w   (((loc_2463A-loc_24626-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Hpz_Dinobot             ; loc_7B114 
-                dc.w    $A000 
+                dc.l    Hpz_Dinobot             ; loc_7B114
+                dc.w    $A000
                 dc.l    Hpz_Batbot              ; loc_7A6A2
-                dc.w    $A600                  
-loc_2463A: ; Not all sprites are loaded in to VRam               
-                dc.l    Hpz_Crocobot            ; loc_7A11A ; Left Over 
-                dc.w    $6000 
+                dc.w    $A600
+loc_2463A: ; Not all sprites are loaded in to VRam
+                dc.l    Hpz_Crocobot            ; loc_7A11A ; Left Over
+                dc.w    $6000
                 dc.l    Ghz_Buzzer_Bomber       ; loc_7A4BC
-                dc.w    $6580  
+                dc.w    $6580
                 dc.l    Hpz_Batbot              ; loc_7A6A2
-                dc.w    $6A00  
+                dc.w    $6A00
                 dc.l    Hpz_Rhinobot            ; loc_7AD18 ; Left Over
-                dc.w    $7880 
-                dc.l    Hpz_Dinobot             ; loc_7B114 
-                dc.w    $A000 
+                dc.w    $7880
+                dc.l    Hpz_Dinobot             ; loc_7B114
+                dc.w    $A000
                 dc.l    Hpz_Piranha             ; loc_7B4EA ; Left Over
-                dc.w    $A600   
-Oil_Ocean_Sprites_1:   
+                dc.w    $A600
+Oil_Ocean_Sprites_1:
 loc_24658:
                 dc.w    (((loc_24684-loc_24658-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Oil_Ocean_8x8_Tiles     ; loc_9ED58
                 dc.w    $0000
                 dc.l    OOz_Elevator            ; loc_75F70
-                dc.w    $6000   
+                dc.w    $6000
                 dc.l    OOz_Giant_Spikeball     ; loc_76060
-                dc.w    $6180 
+                dc.w    $6180
                 dc.l    OOz_Touch_Boost_Up      ; loc_76258
-                dc.w    $6580  
+                dc.w    $6580
                 dc.l    OOz_Break_Boost         ; loc_762EE
-                dc.w    $6640 
+                dc.w    $6640
                 dc.l    OOz_Oil                 ; loc_7635A
-                dc.w    $66C0    
+                dc.w    $66C0
                 dc.l    OOz_Tube_Oil            ; loc_764D6
-                dc.w    $68C0                  
-Oil_Ocean_Sprites_2:    
-loc_24684: 
+                dc.w    $68C0
+Oil_Ocean_Sprites_2:
+loc_24684:
                 dc.w    (((loc_246C2-loc_24684-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    OOz_Ball                ; loc_76602 
-                dc.w    $6A80 
+                dc.l    OOz_Ball                ; loc_76602
+                dc.w    $6A80
                 dc.l    OOz_Cannon              ; loc_76722
-                dc.w    $6D00 
+                dc.w    $6D00
                 dc.l    OOz_Collapsing_Platform ; loc_76A12
-                dc.w    $73A0  
+                dc.w    $73A0
                 dc.l    OOz_Spring_Push_Boost   ; loc_76CA6
-                dc.w    $78A0       
+                dc.w    $78A0
                 dc.l    OOz_Swing_Platform      ; loc_76E68
-                dc.w    $7C60 
+                dc.w    $7C60
                 dc.l    Switch                  ; loc_78580
-                dc.w    $8480   
+                dc.w    $8480
                 dc.l    Spikes                  ; loc_7914E
-                dc.w    $8680   
+                dc.w    $8680
                 dc.l    Diagonal_Spring         ; loc_7883E
-                dc.w    $8780                
+                dc.w    $8780
                 dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80   
+                dc.w    $8B80
                 dc.l    Horizontal_Spring       ; loc_78774
-                dc.w    $8E00 
-Dust_Hill_Sprites_1:   
+                dc.w    $8E00
+Dust_Hill_Sprites_1:
 loc_246C2:
                 dc.w    (((loc_246E2-loc_246C2-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Dust_Hill_8x8_Tiles     ; loc_A5248
-                dc.w    $0000 
+                dc.w    $0000
                 dc.l    Dhz_Box                 ; loc_7708A
-                dc.w    $7A80  
+                dc.w    $7A80
                 dc.l    Dhz_Collapsing_Platform ; loc_772C8
-                dc.w    $7E80     
+                dc.w    $7E80
                 dc.l    Dhz_Vines               ; loc_77472
-                dc.w    $81C0   
+                dc.w    $81C0
                 dc.l    Dhz_Vines_1             ; loc_7756A
-                dc.w    $83C0 
-Dust_Hill_Sprites_2:  
-loc_246E2:      
+                dc.w    $83C0
+Dust_Hill_Sprites_2:
+loc_246E2:
                 dc.w    (((loc_24708-loc_246E2-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Dhz_Horizontal_Spikes   ; loc_79A44        
-                dc.w    $8580 
+                dc.l    Dhz_Horizontal_Spikes   ; loc_79A44
+                dc.w    $8580
                 dc.l    Spikes                  ; loc_7914E
-                dc.w    $8680   
+                dc.w    $8680
                 dc.l    Dhz_Bridge              ; loc_77614
-                dc.w    $8780  
+                dc.w    $8780
                 dc.l    Diagonal_Spring_1       ; loc_798F4
-                dc.w    $8800  
+                dc.w    $8800
                 dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80   
+                dc.w    $8B80
                 dc.l    Horizontal_Spring       ; loc_78774
-                dc.w    $8E00   
-Casino_Night_Sprites_1:   
+                dc.w    $8E00
+Casino_Night_Sprites_1:
 loc_24708:
                 dc.w    (((loc_24716-loc_24708-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Casino_Night_8x8_Tiles  ; loc_ABF2A
-                dc.w    $0000                   
+                dc.w    $0000
                 dc.l    Cnz_Cards               ; loc_AEF3C
-                dc.w    $7A00   
-Casino_Night_Sprites_2:  
-loc_24716: 
+                dc.w    $7A00
+Casino_Night_Sprites_2:
+loc_24716:
                 dc.w    (((loc_24730-loc_24716-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Spikes                  ; loc_7914E
-                dc.w    $8680   
+                dc.w    $8680
                 dc.l    Diagonal_Spring         ; loc_7883E
-                dc.w    $8780                
+                dc.w    $8780
                 dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80   
+                dc.w    $8B80
                 dc.l    Horizontal_Spring       ; loc_78774
-                dc.w    $8E00                 
-Chemical_Plant_Sprites_1:   
+                dc.w    $8E00
+Chemical_Plant_Sprites_1:
 loc_24730:
                 dc.w    (((loc_2476E-loc_24730-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Chemical_Plant_8x8_Tiles ; loc_B2506
-                dc.w    $0000 
-                dc.l    Cpz_Metal_Structure     ; loc_77A1C  
+                dc.w    $0000
+                dc.l    Cpz_Metal_Structure     ; loc_77A1C
                 dc.w    $6E60
                 dc.l    Cpz_Automatic_Door      ; loc_77C66
-                dc.w    $7280 
+                dc.w    $7280
                 dc.l    Cpz_Speed_Booster       ; loc_77942
                 dc.w    $7380
                 dc.l    Cpz_Elevator            ; loc_77684
-                dc.w    $7400  
-                dc.l    Cpz_Open_Close_Platform ; loc_77CD2 
-                dc.w    $7600  
+                dc.w    $7400
+                dc.l    Cpz_Open_Close_Platform ; loc_77CD2
+                dc.w    $7600
                 dc.l    Cpz_Spring_Tubes        ; loc_78074
-                dc.w    $7C00   
-                dc.l    Water_Surface           ; loc_777D2  
+                dc.w    $7C00
+                dc.l    Water_Surface           ; loc_777D2
                 dc.w    $8000
                 dc.l    Cpz_Platforms           ; loc_77EB4
-                dc.w    $8300 
+                dc.w    $8300
                 dc.l    loc_77C26
-                dc.w    $8600 
-Chemical_Plant_Sprites_2:      
+                dc.w    $8600
+Chemical_Plant_Sprites_2:
 loc_2476E:
                 dc.w    (((loc_24794-loc_2476E-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Air_Bubbles_Numbers     ; loc_79AC0
-                dc.w    $A000 
+                dc.w    $A000
                 dc.l    Spikes                  ; loc_7914E
-                dc.w    $8680  
+                dc.w    $8680
                 dc.l    Cpz_Worms               ; loc_779AA
-                dc.w    $8780  
+                dc.w    $8780
                 dc.l    Diagonal_Spring_1       ; loc_798F4
-                dc.w    $8800  
+                dc.w    $8800
                 dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80   
+                dc.w    $8B80
                 dc.l    Horizontal_Spring       ; loc_78774
-                dc.w    $8E00      
-Neo_Green_Hill_Sprites_1:   
+                dc.w    $8E00
+Neo_Green_Hill_Sprites_1:
 loc_24794:
                 dc.w    (((loc_247B4-loc_24794-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Neo_Green_Hill_8x8_Tiles ; loc_B9E58
-                dc.w    $0000 
+                dc.w    $0000
                 dc.l    Nghz_Water_Surface      ; loc_78270
-                dc.w    $8000   
+                dc.w    $8000
                 dc.l    Nghz_Leaves             ; loc_78356
-                dc.w    $8200    
+                dc.w    $8200
                 dc.l    Nghz_Arrow_Shooter      ; loc_783E2
-                dc.w    $82E0  
+                dc.w    $82E0
                 dc.l    Nghz_Water_Splash       ; loc_78540
-                dc.w    $8500  
-Neo_Green_Hill_Sprites_2:                                       
+                dc.w    $8500
+Neo_Green_Hill_Sprites_2:
 loc_247B4:
                 dc.w    (((loc_247D4-loc_247B4-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Air_Bubbles_Numbers     ; loc_79AC0
-                dc.w    $A000 
+                dc.w    $A000
                 dc.l    Spikes                  ; loc_7914E
-                dc.w    $8680   
-                dc.l    Diagonal_Spring_1       ; loc_798F4
-                dc.w    $8800   
-                dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80   
-                dc.l    Horizontal_Spring       ; loc_78774
-                dc.w    $8E00    
-End_Level_Results_Sprites:                 
-loc_247D4:  
-                dc.w    (((loc_247DC-loc_247D4-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Title_Cards             ; loc_7EA04    
-                dc.w    $B000   
-End_Level_Sprites:                                
-loc_247DC:
-                dc.w    (((loc_247E4-loc_247DC-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto                  
-                dc.l    End_Panel               ; loc_7931E 
                 dc.w    $8680
-loc_247E4: ; Not all sprites are loaded in to VRam                   
+                dc.l    Diagonal_Spring_1       ; loc_798F4
+                dc.w    $8800
+                dc.l    Vertical_Spring         ; loc_78658
+                dc.w    $8B80
+                dc.l    Horizontal_Spring       ; loc_78774
+                dc.w    $8E00
+End_Level_Results_Sprites:
+loc_247D4:
+                dc.w    (((loc_247DC-loc_247D4-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
+                dc.l    Title_Cards             ; loc_7EA04
+                dc.w    $B000
+End_Level_Sprites:
+loc_247DC:
+                dc.w    (((loc_247E4-loc_247DC-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
+                dc.l    End_Panel               ; loc_7931E
+                dc.w    $8680
+loc_247E4: ; Not all sprites are loaded in to VRam
                 dc.l    Hidden_Points           ; loc_7FB5C
                 dc.w    $96C0
                 dc.l    Big_Ring_Flash          ; loc_7F9E8
                 dc.w    $8C40
 Green_Hill_Boss:
-loc_247F0:   
+loc_247F0:
                 dc.w    (((loc_24804-loc_247F0-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Robotnik_Ship           ; loc_7CC9E 
+                dc.l    Robotnik_Ship           ; loc_7CC9E
                 dc.w    $8C00
                 dc.l    Ghz_Boss_Car            ; loc_7E124
                 dc.w    $9800
                 dc.l    Ghz_Boss_Blades         ; loc_7E910
-                dc.w    $A800 
-loc_24804: ; Not all sprites are loaded in to VRam  
-                dc.l    Robotnik_Ship           ; loc_7CC9E 
+                dc.w    $A800
+loc_24804: ; Not all sprites are loaded in to VRam
+                dc.l    Robotnik_Ship           ; loc_7CC9E
                 dc.w    $8000
-                dc.l    Cpz_Boss                ; loc_7D3DA   
+                dc.l    Cpz_Boss                ; loc_7D3DA
                 dc.w    $8C00
-                dc.l    Ship_Boost              ; loc_7DFC0 
-                dc.w    $9A00 
-                dc.l    Boss_Smoke              ; loc_7E03E 
-                dc.w    $9B00 
+                dc.l    Ship_Boost              ; loc_7DFC0
+                dc.w    $9A00
+                dc.l    Boss_Smoke              ; loc_7E03E
+                dc.w    $9B00
                 dc.l    Ghz_Boss_Car            ; loc_7E124
                 dc.w    $9D00
                 dc.l    Ghz_Boss_Blades         ; loc_7E910
-                dc.w    $AD00                 
+                dc.w    $AD00
                 dc.w    (Diagonal_Spring_1&$FFFF) ; loc_798F4 ; Left over from previous build
-                dc.w    $8800                   
+                dc.w    $8800
                 dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80   
+                dc.w    $8B80
                 dc.l    Horizontal_Spring       ; loc_78774
-                dc.w    $8E00  
-loc_24838:                
-                dc.w    (((loc_24840-loc_24838-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto 
-                dc.l    Title_Cards             ; loc_7EA04    
-                dc.w    $B000   
-loc_24840:  
+                dc.w    $8E00
+loc_24838:
+                dc.w    (((loc_24840-loc_24838-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
+                dc.l    Title_Cards             ; loc_7EA04
+                dc.w    $B000
+loc_24840:
                 dc.w    (((loc_24848-loc_24840-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    End_Panel               ; loc_7931E 
+                dc.l    End_Panel               ; loc_7931E
                 dc.w    $8680
-loc_24848:     
+loc_24848:
                 dc.l    Hidden_Points           ; loc_7FB5C
                 dc.w    $96C0
                 dc.l    Big_Ring_Flash          ; loc_7F9E8
                 dc.w    $8C40
-loc_24854:                   
+loc_24854:
                 dc.w    (((loc_24868-loc_24854-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Robotnik_Ship           ; loc_7CC9E 
+                dc.l    Robotnik_Ship           ; loc_7CC9E
                 dc.w    $8C00
                 dc.l    Ghz_Boss_Car            ; loc_7E124
                 dc.w    $9800
                 dc.l    Ghz_Boss_Blades         ; loc_7E910
-                dc.w    $A800 
-loc_24868:                  
-                dc.l    Robotnik_Ship           ; loc_7CC9E 
+                dc.w    $A800
+loc_24868:
+                dc.l    Robotnik_Ship           ; loc_7CC9E
                 dc.w    $8000
-                dc.l    Cpz_Boss                ; loc_7D3DA   
+                dc.l    Cpz_Boss                ; loc_7D3DA
                 dc.w    $8C00
-                dc.l    Ship_Boost              ; loc_7DFC0 
-                dc.w    $9A00 
-                dc.l    Boss_Smoke              ; loc_7E03E 
-                dc.w    $9B00 
+                dc.l    Ship_Boost              ; loc_7DFC0
+                dc.w    $9A00
+                dc.l    Boss_Smoke              ; loc_7E03E
+                dc.w    $9B00
                 dc.l    Ghz_Boss_Car            ; loc_7E124
                 dc.w    $9D00
                 dc.l    Ghz_Boss_Blades         ; loc_7E910
                 dc.w    $AD00
                 dc.w    (Boss_Smoke&$FFFF)      ; loc_7E03E ; Left over from previous build
-                dc.w    $9B00 
+                dc.w    $9B00
                 dc.l    Ghz_Boss_Car            ; loc_7E124
                 dc.w    $9D00
                 dc.l    Ghz_Boss_Blades         ; loc_7E910
@@ -42640,165 +42641,165 @@ loc_24868:
                 dc.l    Dhz_Bridge              ; loc_77614
                 dc.w    $8780
                 dc.l    (Diagonal_Spring_1-$0188) ; loc_7976C ; Left over from previous build
-                dc.w    $8800  
+                dc.w    $8800
                 dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80 
+                dc.w    $8B80
                 dc.l    Horizontal_Spring       ; loc_78774
-                dc.w    $8E00 
-Casino_Night_Sprites_Previous_Build_1:                 
+                dc.w    $8E00
+Casino_Night_Sprites_Previous_Build_1:
 loc_248B4:
-                dc.w    (((loc_248C2-loc_248B4-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto 
+                dc.w    (((loc_248C2-loc_248B4-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Casino_Night_8x8_Tiles-$07E2 ; loc_AB748 ; Left over from previous build
                 dc.w    $0000
                 dc.l    Cnz_Cards-$07E2              ; loc_AE75A ; Left over from previous build
-                dc.w    $7A00 
-Casino_Night_Sprites_Previous_Build_2:                   
-loc_248C2:     
+                dc.w    $7A00
+Casino_Night_Sprites_Previous_Build_2:
+loc_248C2:
                 dc.w    (((loc_248DC-loc_248C2-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Spikes                  ; loc_7914E
-                dc.w    $8680   
+                dc.w    $8680
                 dc.l    Diagonal_Spring         ; loc_7883E
-                dc.w    $8780   
+                dc.w    $8780
                 dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80 
+                dc.w    $8B80
                 dc.l    Horizontal_Spring       ; loc_78774
-                dc.w    $8E00 
-Chemical_Plant_Sprites_Previous_Build_1:                  
-loc_248DC:                 
+                dc.w    $8E00
+Chemical_Plant_Sprites_Previous_Build_1:
+loc_248DC:
                 dc.w    (((loc_2491A-loc_248DC-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Chemical_Plant_8x8_Tiles-$07E2 ; loc_B1D24
-                dc.w    $0000 
-                dc.l    Cpz_Metal_Structure     ; loc_77A1C  
+                dc.w    $0000
+                dc.l    Cpz_Metal_Structure     ; loc_77A1C
                 dc.w    $6E60
                 dc.l    Cpz_Automatic_Door      ; loc_77C66
-                dc.w    $7280 
+                dc.w    $7280
                 dc.l    Cpz_Speed_Booster       ; loc_77942
                 dc.w    $7380
                 dc.l    Cpz_Elevator            ; loc_77684
-                dc.w    $7400  
-                dc.l    Cpz_Open_Close_Platform ; loc_77CD2 
-                dc.w    $7600  
+                dc.w    $7400
+                dc.l    Cpz_Open_Close_Platform ; loc_77CD2
+                dc.w    $7600
                 dc.l    Cpz_Spring_Tubes        ; loc_78074
-                dc.w    $7C00   
-                dc.l    Water_Surface           ; loc_777D2  
+                dc.w    $7C00
+                dc.l    Water_Surface           ; loc_777D2
                 dc.w    $8000
                 dc.l    Cpz_Platforms           ; loc_77EB4
-                dc.w    $8300 
+                dc.w    $8300
                 dc.l    loc_77C26
-                dc.w    $8600 
-Chemical_Plant_Sprites_Previous_Build_2:                                   
-loc_2491A: 
+                dc.w    $8600
+Chemical_Plant_Sprites_Previous_Build_2:
+loc_2491A:
                 dc.w    (((loc_2493A-loc_2491A-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Spikes                  ; loc_7914E
-                dc.w    $8680  
+                dc.w    $8680
                 dc.l    Cpz_Worms               ; loc_779AA
-                dc.w    $8780                         
-                dc.l    (Diagonal_Spring_1-$0188) ; loc_7976C 
-                dc.w    $8800  
+                dc.w    $8780
+                dc.l    (Diagonal_Spring_1-$0188) ; loc_7976C
+                dc.w    $8800
                 dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80   
+                dc.w    $8B80
                 dc.l    Horizontal_Spring       ; loc_78774
-                dc.w    $8E00   
-Neo_Green_Hill_Sprites_Previous_Build_1:                    
-loc_2493A:      
+                dc.w    $8E00
+Neo_Green_Hill_Sprites_Previous_Build_1:
+loc_2493A:
                 dc.w    (((loc_2495A-loc_2493A-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Neo_Green_Hill_8x8_Tiles-$07D2 ; loc_B9686
                 dc.w    $0000
                 dc.l    Nghz_Water_Surface      ; loc_78270
-                dc.w    $8000   
+                dc.w    $8000
                 dc.l    Nghz_Leaves             ; loc_78356
-                dc.w    $8200    
+                dc.w    $8200
                 dc.l    Nghz_Arrow_Shooter      ; loc_783E2
-                dc.w    $82E0  
+                dc.w    $82E0
                 dc.l    Nghz_Water_Splash       ; loc_78540
-                dc.w    $8500  
-Neo_Green_Hill_Sprites_Previous_Build_2:                  
-loc_2495A:    
+                dc.w    $8500
+Neo_Green_Hill_Sprites_Previous_Build_2:
+loc_2495A:
                 dc.w    (((loc_24974-loc_2495A-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    Spikes                  ; loc_7914E
-                dc.w    $8680   
-                dc.l    (Diagonal_Spring_1-$0188) ; loc_7976C 
-                dc.w    $8800   
+                dc.w    $8680
+                dc.l    (Diagonal_Spring_1-$0188) ; loc_7976C
+                dc.w    $8800
                 dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80   
+                dc.w    $8B80
                 dc.l    Horizontal_Spring       ; loc_78774
-                dc.w    $8E00   
-End_Level_Results_Sprites_Previous_Build:                    
-loc_24974:  
+                dc.w    $8E00
+End_Level_Results_Sprites_Previous_Build:
+loc_24974:
                 dc.w    (((loc_2497C-loc_24974-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Title_Cards-$07E2       ; loc_7E222    
-                dc.w    $B000  
-End_Level_Sprites_Previous_Build:                                
-loc_2497C: 
-                dc.w    (((loc_24990-loc_2497C-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto                  
-                dc.l    End_Panel               ; loc_7931E 
+                dc.l    Title_Cards-$07E2       ; loc_7E222
+                dc.w    $B000
+End_Level_Sprites_Previous_Build:
+loc_2497C:
+                dc.w    (((loc_24990-loc_2497C-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
+                dc.l    End_Panel               ; loc_7931E
                 dc.w    $D000
                 dc.l    Hidden_Points-$07E2     ; loc_7F37A
                 dc.w    $96C0
                 dc.l    Big_Ring_Flash-$07E2    ; loc_7F206
                 dc.w    $8C40
 Green_Hill_Boss_Previous_Build:
-loc_24990: 
+loc_24990:
                 dc.w    (((loc_249A4-loc_24990-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Robotnik_Ship-$07E2     ; loc_7C4BC 
+                dc.l    Robotnik_Ship-$07E2     ; loc_7C4BC
                 dc.w    $8C00
                 dc.l    Ghz_Boss_Car-$07E2      ; loc_7D942
                 dc.w    $9800
                 dc.l    Ghz_Boss_Blades-$07E2   ; loc_7E12E
-                dc.w    $A800 
-loc_249A4:                
-                dc.l    Robotnik_Ship-$07E2     ; loc_7C4BC 
-                dc.w    $8000                   
-                dc.l    Cpz_Boss-$07E2          ; loc_7CBF8   
-                dc.w    $8C00                 
-                dc.l    Ship_Boost-$07E2        ; loc_7D7DE 
-                dc.w    $9A00                   
-                dc.l    Boss_Smoke-$07E2        ; loc_7D85C 
-                dc.w    $9B00 
+                dc.w    $A800
+loc_249A4:
+                dc.l    Robotnik_Ship-$07E2     ; loc_7C4BC
+                dc.w    $8000
+                dc.l    Cpz_Boss-$07E2          ; loc_7CBF8
+                dc.w    $8C00
+                dc.l    Ship_Boost-$07E2        ; loc_7D7DE
+                dc.w    $9A00
+                dc.l    Boss_Smoke-$07E2        ; loc_7D85C
+                dc.w    $9B00
                 dc.l    Ghz_Boss_Car-$07E2      ; loc_7D942
-                dc.w    $9D00                   
+                dc.w    $9D00
                 dc.l    Ghz_Boss_Blades-$07E2   ; loc_7E12E
-                dc.w    $AD00   
-                dc.w    $8680               
-                dc.l    (Diagonal_Spring_1-$0188) ; loc_7976C 
-                dc.w    $8800  
+                dc.w    $AD00
+                dc.w    $8680
+                dc.l    (Diagonal_Spring_1-$0188) ; loc_7976C
+                dc.w    $8800
                 dc.l    Vertical_Spring         ; loc_78658
-                dc.w    $8B80 
+                dc.w    $8B80
                 dc.l    Horizontal_Spring       ; loc_78774
-                dc.w    $8E00 
-loc_249DC:  
+                dc.w    $8E00
+loc_249DC:
                 dc.w    (((loc_249E4-loc_249DC-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Title_Cards-$07E2       ; loc_7E222    
-                dc.w    $B000  
-loc_249E4: 
-                dc.w    (((loc_249F8-loc_249E4-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto                  
-                dc.l    End_Panel               ; loc_7931E 
+                dc.l    Title_Cards-$07E2       ; loc_7E222
+                dc.w    $B000
+loc_249E4:
+                dc.w    (((loc_249F8-loc_249E4-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
+                dc.l    End_Panel               ; loc_7931E
                 dc.w    $D000
                 dc.l    Hidden_Points-$07E2     ; loc_7F37A
                 dc.w    $96C0
                 dc.l    Big_Ring_Flash-$07E2    ; loc_7F206
-                dc.w    $8C40 
-loc_249F8: 
+                dc.w    $8C40
+loc_249F8:
                 dc.w    (((loc_24A0C-loc_249F8-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Robotnik_Ship-$07E2     ; loc_7C4BC 
+                dc.l    Robotnik_Ship-$07E2     ; loc_7C4BC
                 dc.w    $8C00
                 dc.l    Ghz_Boss_Car-$07E2      ; loc_7D942
                 dc.w    $9800
                 dc.l    Ghz_Boss_Blades-$07E2   ; loc_7E12E
-                dc.w    $A800 
-loc_24A0C: 
-                dc.l    Robotnik_Ship-$07E2     ; loc_7C4BC 
-                dc.w    $8000                   
-                dc.l    Cpz_Boss-$07E2          ; loc_7CBF8   
-                dc.w    $8C00                 
-                dc.l    Ship_Boost-$07E2        ; loc_7D7DE 
-                dc.w    $9A00                   
-                dc.l    Boss_Smoke-$07E2        ; loc_7D85C 
-                dc.w    $9B00 
+                dc.w    $A800
+loc_24A0C:
+                dc.l    Robotnik_Ship-$07E2     ; loc_7C4BC
+                dc.w    $8000
+                dc.l    Cpz_Boss-$07E2          ; loc_7CBF8
+                dc.w    $8C00
+                dc.l    Ship_Boost-$07E2        ; loc_7D7DE
+                dc.w    $9A00
+                dc.l    Boss_Smoke-$07E2        ; loc_7D85C
+                dc.w    $9B00
                 dc.l    Ghz_Boss_Car-$07E2      ; loc_7D942
-                dc.w    $9D00                   
+                dc.w    $9D00
                 dc.l    Ghz_Boss_Blades-$07E2   ; loc_7E12E
-                dc.w    $AD00                  
+                dc.w    $AD00
 Unknow_Data_0x024A30:
 loc_24A30:
                 dc.b    $00, $78, $00, $06, $00, $07, $00, $06, $00, $10, $80, $06, $03, $0A, $06, $00
@@ -44128,16 +44129,16 @@ Htz_2_Objects_Layout:  ; loc_45130:
 Hpz_1_Objects_Layout:  ; loc_4554A:
                 BINCLUDE  "data\hpz\obj_act1.dat"
 Hpz_2_Objects_Layout:  ; loc_45652:
-                dc.w    $FFFF, $0000, $0000 
-                dc.w    $FFFF, $0000, $0000 
-OOz_1_Objects_Layout:  ; loc_4565E: 
+	ObjectLayoutBoundary
+	ObjectLayoutBoundary
+OOz_1_Objects_Layout:  ; loc_4565E:
                 BINCLUDE  "data\ooz\obj_act1.dat"
 OOz_2_Objects_Layout:  ; loc_457C0:
                 BINCLUDE  "data\ooz\obj_act2.dat"
 Dhz_1_Objects_Layout:  ; loc_459AC:
                 BINCLUDE  "data\dhz\obj_act1.dat"
 Dhz_2_Objects_Layout:  ; loc_45A24:
-                dc.w    $FFFF, $0000, $0000 
+	ObjectLayoutBoundary
 Cpz_1_Objects_Layout:  ; loc_45A2A:
                 BINCLUDE  "data\cpz\obj_act1.dat"
 Cpz_2_Objects_Layout:  ; loc_45CC4:
@@ -44147,8 +44148,8 @@ Nghz_1_Objects_Layout: ; loc_4605A:
 Nghz_2_Objects_Layout: ; loc_46216:
                 BINCLUDE  "data\nghz\obj_act2.dat"
 Null_Objects_Layout:   ; loc_46348:
-                dc.w    $FFFF, $0000, $0000 
-;=============================================================================== 
+	ObjectLayoutBoundary
+;===============================================================================
 ; Level Object Layout
 ; [ End ]
 ;===============================================================================                            
@@ -44652,7 +44653,7 @@ Wz_2_Rings_Layout:    ; loc_483E2:
 Id_0300_Rings_Layout: ; loc_483E4:                                   
                 dc.w    $FFFF              
 Id_0301_Rings_Layout: ; loc_483E6:                                 
-                dc.w    $FFFF                               
+                dc.w    $FFFF
 Mz_1_Rings_Layout:    ; loc_483E8:                               
                 dc.w    $FFFF              
 Mz_2_Rings_Layout:    ; loc_483EA:                               
@@ -44677,7 +44678,7 @@ Id_0900_Rings_Layout: ; loc_487C8:
                 dc.w    $FFFF               
 Id_0901_Rings_Layout: ; loc_487CA:                                 
                 dc.w    $FFFF                                            
-OOz_1_Rings_Layout:   ; loc_487CC:               
+OOz_1_Rings_Layout:   ; loc_487CC:
                 BINCLUDE  "data\ooz\rng_act1.dat"      
 OOz_2_Rings_Layout:   ; loc_4889E:             
                 BINCLUDE  "data\ooz\rng_act2.dat"                
@@ -44690,7 +44691,7 @@ CNz_1_Rings_Layout:   ; loc_4896C:
 CNz_2_Rings_Layout:   ; loc_4896E:                
                 dc.w    $FFFF                
 CPz_1_Rings_Layout:   ; loc_48970:               
-                BINCLUDE  "data\cpz\rng_act1.dat"                                               
+                BINCLUDE  "data\cpz\rng_act1.dat"
 CPz_2_Rings_Layout:   ; loc_48A3E:                
                 BINCLUDE  "data\cpz\rng_act2.dat"             
 GCz_1_Rings_Layout:   ; loc_48B94:                
@@ -46336,7 +46337,7 @@ Unknow_Data_0x04EE00: ; loc_4EE00:
                 dc.b    $10, $10, $10, $10, $10, $10, $10, $10, $00, $00, $00, $00, $00, $00, $00, $00
                 dc.b    $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $08, $08, $08, $08, $08
                 dc.b    $08, $08, $08, $08, $08, $08, $08, $08, $08, $00, $00, $00, $00, $00, $00, $00
-                dc.b    $00, $00, $00, $00, $00, $00, $00, $00                
+                dc.b    $00, $00, $00, $00, $00, $00, $00, $00
 
 ; For whatever reason (presumably due to decompiler weirdness), the rest of the data above is missing,
 ; so this has been placed so all other data lines up with the original ROM
@@ -46353,7 +46354,7 @@ ArtUnc_Sonic:	BINCLUDE	"art/uncompressed/Sonic's art.bin"
 ;--------------------------------------------------------------------------------------
 MapUnc_Sonic:	BINCLUDE	"mappings/sprite/Sonic.bin"
 Tails_Sprites: ; loc_6254C:
-                BINCLUDE  "data\sprites\tails.dat"              
+                BINCLUDE  "data\sprites\tails.dat"
 ;--------------------------------------------------------------------------------------
 ; Sprite Dynamic Pattern Reloading
 ; Sonic DPLCs   		; MapRUnc_6DA4C: Sonic_Dyn_Script:
@@ -46361,12 +46362,12 @@ Tails_Sprites: ; loc_6254C:
 MapRUnc_Sonic:	BINCLUDE	"mappings/spriteDPLC/Sonic.bin"
 
 Shield: ; loc_6DF8E:
-                BINCLUDE  "data\sprites\shield.nem"  
-Invencibility_Stars: ; loc_6E114:                              
-                BINCLUDE  "data\sprites\invstars.nem"  
-Unused_Dust: ; loc_6E1FC:   
-                BINCLUDE  "data\sprites\dust.dat"                 
-Tails_Mappings: ; loc_6FB3C: 
+                BINCLUDE  "data\sprites\shield.nem"
+Invencibility_Stars: ; loc_6E114:
+                BINCLUDE  "data\sprites\invstars.nem"
+Unused_Dust: ; loc_6E1FC:
+                BINCLUDE  "data\sprites\dust.dat"
+Tails_Mappings: ; loc_6FB3C:
                 dc.w    loc_6FC46-Tails_Mappings
                 dc.w    loc_6FC48-Tails_Mappings
                 dc.w    loc_6FC5A-Tails_Mappings
@@ -47444,7 +47445,7 @@ loc_70954:
                 dc.w    $5592, $3598
 loc_7095A:
                 dc.w    $0002
-                dc.w    $759C, $35A4                             
+                dc.w    $759C, $35A4
 SegaLogo: ; loc_70960:                
                 BINCLUDE  "data\sprites\sega.nem"
 SegaLogo_Mappings: ; loc_70DD0:
@@ -47482,7 +47483,7 @@ Htz_See_saw_badnick: ; loc_745B0:
 Mz_Rotating_Gear: ; loc_7461C:      
                 BINCLUDE  "data\mz\gear.nem"   
 Mz_Machine_Ball: ; loc_74A74: 
-                BINCLUDE  "data\mz\m_ball.nem"  
+                BINCLUDE  "data\mz\m_ball.nem"
 Mz_Block: ; loc_74B1C:     
                 BINCLUDE  "data\mz\block.nem"  
 Mz_Steam: ; loc_74BEA:  
@@ -47520,7 +47521,7 @@ OOz_Elevator: ; loc_75F70:
 OOz_Giant_Spikeball: ; loc_76060:  
                 BINCLUDE  "data\ooz\gspkball.nem"   
 OOz_Touch_Boost_Up: ; loc_76258:  
-                BINCLUDE  "data\ooz\boost_up.nem"   
+                BINCLUDE  "data\ooz\boost_up.nem"
 OOz_Break_Boost: ; loc_762EE:  
                 BINCLUDE  "data\ooz\brkboost.nem"                    
 OOz_Oil: ; loc_7635A:  
@@ -47558,7 +47559,7 @@ Cpz_Worms: ; loc_779AA:
 Cpz_Metal_Structure: ; loc_77A1C:      
                 BINCLUDE  "data\cpz\metal_st.nem" 
 loc_77C26:      
-                BINCLUDE  "data\cpz\0x077C26.nem"                
+                BINCLUDE  "data\cpz\0x077C26.nem"
 Cpz_Automatic_Door: ; loc_77C66:      
                 BINCLUDE  "data\cpz\autodoor.nem" 
 Cpz_Open_Close_Platform: ; loc_77CD2:      
@@ -47634,7 +47635,7 @@ Blink: ; loc_7C0C6:
                 BINCLUDE  "data\sprites\blink.nem"    
 Bubble_Monster: ; loc_7C2F2: 
                 BINCLUDE  "data\sprites\bmonster.nem"                                                                 
-Ghz_Motobug: ; loc_7C514: 
+Ghz_Motobug: ; loc_7C514:
                 BINCLUDE  "data\ghz\motobug.nem"                   
 Crawl: ; loc_7C710: 
                 BINCLUDE  "data\cnz\crawl.nem"                
@@ -47710,7 +47711,7 @@ BM128_GHZ:	BINCLUDE	"mappings/128x128/GHZ and HTZ.bin"
 Wood_16x16_Map: ; loc_89B8E:  
                 BINCLUDE  "data\wz\wz_16.dat"                 
 Wood_8x8_Tiles: ; loc_8AB2E: 
-                BINCLUDE  "data\wz\wz_8.nem"                
+                BINCLUDE  "data\wz\wz_8.nem"
 Waterfall: ; loc_8E6C6:  
                 BINCLUDE  "data\sprites\watrfall.nem"                
 Wood_128x128_Map: ; loc_8E826:                
@@ -47748,7 +47749,7 @@ Dust_Hill_16x16_Map: ; loc_A3F88:
 Dust_Hill_8x8_Tiles: ; loc_A5248:  
                 BINCLUDE  "data\dhz\dhz_8.nem"
 Dust_Hill_128x128_Map: ; loc_A8B6A:               
-                BINCLUDE  "data\dhz\dhz_128.kos"                
+                BINCLUDE  "data\dhz\dhz_128.kos"
                 dc.w    $0000, $0000, $0000, $0000, $0000 ; Filler    
 Casino_Night_16x16_Map: ; loc_AB5CA:
                 BINCLUDE  "data\cnz\cnz_16.dat"  
@@ -47786,7 +47787,7 @@ Chemical_Plant_8x8_Tiles_Previous_Builder: ; loc_CAA1C:
                 BINCLUDE  "data\sprites\cpz_8.nem"  
 Cpz_Building: ; loc_CDFC6: ;  Left over                                                        
                 BINCLUDE  "data\sprites\building.nem"   
-Chemical_Plant_128x128_Map_Previous_Builder:  ; loc_CE03A:                                              
+Chemical_Plant_128x128_Map_Previous_Builder:  ; loc_CE03A:
                 BINCLUDE  "data\all\cpz_128.dat"                  
 Neo_Green_Hill_16x16_Map_Previous_Builder: ; loc_D603A:                                            
                 BINCLUDE  "data\all\nghz_16.dat"                              
