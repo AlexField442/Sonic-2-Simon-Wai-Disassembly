@@ -153,6 +153,11 @@ WindTunnel_flag:		equ $FFFFF7C7
 
 Debug_placement_mode:		equ $FFFFFE08
 
+Current_ZoneAndAct:		equ $FFFFFE10	; 2 bytes
+Current_Zone:			equ $FFFFFE10	; 1 byte
+Current_Act:			equ $FFFFFE11	; 1 byte
+
+Demo_mode_flag:			equ $FFFFFFF0	; 1 if a demo is playing (2 bytes)
 Debug_mode_flag:		equ $FFFFFFFA
 
 ; ---------------------------------------------------------------------------

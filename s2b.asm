@@ -405,20 +405,20 @@ VintRet:
 		rte
 ; ===========================================================================
 ; off_B68:
-Vint_SwitchTbl:
-Vint_Lag_ptr:		dc.w	Vint_Lag-Vint_SwitchTbl
-Vint_SEGA_ptr:		dc.w	Vint_SEGA-Vint_SwitchTbl
-Vint_Title_ptr:		dc.w	Vint_Title-Vint_SwitchTbl
-Vint_Unused6_ptr:	dc.w	Vint_Unused6-Vint_SwitchTbl
-Vint_Level_ptr:		dc.w	Vint_Level-Vint_SwitchTbl
-Vint_S1SS_ptr:		dc.w	Vint_S1SS-Vint_SwitchTbl
-Vint_TitleCard_ptr:	dc.w	Vint_TitleCard-Vint_SwitchTbl
-Vint_UnusedE_ptr:	dc.w	Vint_UnusedE-Vint_SwitchTbl
-Vint_Pause_ptr:		dc.w	Vint_Pause-Vint_SwitchTbl
-Vint_Fade_ptr:		dc.w	Vint_Fade-Vint_SwitchTbl
-Vint_PCM_ptr:		dc.w	Vint_PCM-Vint_SwitchTbl
-Vint_SSResults_ptr:	dc.w	Vint_SSResults-Vint_SwitchTbl
-Vint_TitleCardDup_ptr:	dc.w	Vint_TitleCard-Vint_SwitchTbl
+Vint_SwitchTbl:	offsetTable
+Vint_Lag_ptr:		offsetTableEntry.w Vint_Lag
+Vint_SEGA_ptr:		offsetTableEntry.w Vint_SEGA
+Vint_Title_ptr:		offsetTableEntry.w Vint_Title
+Vint_Unused6_ptr:	offsetTableEntry.w Vint_Unused6
+Vint_Level_ptr:		offsetTableEntry.w Vint_Level
+Vint_S1SS_ptr:		offsetTableEntry.w Vint_S1SS
+Vint_TitleCard_ptr:	offsetTableEntry.w Vint_TitleCard
+Vint_UnusedE_ptr:	offsetTableEntry.w Vint_UnusedE
+Vint_Pause_ptr:		offsetTableEntry.w Vint_Pause
+Vint_Fade_ptr:		offsetTableEntry.w Vint_Fade
+Vint_PCM_ptr:		offsetTableEntry.w Vint_PCM
+Vint_SSResults_ptr:	offsetTableEntry.w Vint_SSResults
+Vint_TitleCardDup_ptr:	offsetTableEntry.w Vint_TitleCard
 ; ===========================================================================
 ; loc_B82: VintSub00:
 Vint_Lag:
@@ -1069,65 +1069,108 @@ PlaySound2:
 		rts 
 ; End of function PlaySound2
 
-
 ; ---------------------------------------------------------------------------
 ; Subroutine to pause the game
 ; ---------------------------------------------------------------------------
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
-; sub_14D2:
-Pause:
-                nop 
-                tst.b   ($FFFFFE12).w
-                beq     Unpause                 ; loc_1536
-                tst.w   ($FFFFF63A).w
-                bne.s   Pause_AlreadyPaused     ; loc_14EA
-                btst    #$07, ($FFFFF605).w
-                beq.s   Pause_DoNothing         ; loc_153C
-Pause_AlreadyPaused: ; loc_14EA:                 
-                move.w  #$0001, ($FFFFF63A).w 
-                move.b  #$FE, ($FFFFFFE0).w
-Pause_Loop: ; loc_14F6:                
-                move.b  #VintID_Pause, (Vint_routine).w 
-                bsr     DelayProgram            ; loc_31D8
-                tst.b   ($FFFFFFD1).w
-                beq.s   Pause_CheckStart        ; loc_1528
-                btst    #$06, ($FFFFF605).w
-                beq.s   Pause_CheckBC           ; loc_1518
-                move.b  #$04, ($FFFFF600).w
-                nop 
-                bra.s   loc_1530
-Pause_CheckBC: ; loc_1518: 
-                btst    #$04, ($FFFFF604).w 
-                bne.s   loc_153E  
-                btst    #$05, ($FFFFF605).w  
-                bne.s   loc_153E          
-Pause_CheckStart: ; loc_1528:  
-                btst    #$07, ($FFFFF605).w 
-                beq.s   Pause_Loop              ; loc_14F6
-loc_1530: 
-                move.b  #$FF, ($FFFFFFE0).w  
-Unpause: ; loc_1536:                
-                move.w  #$0000, ($FFFFF63A).w 
-Pause_DoNothing: ; loc_153C:                 
-                rts       
-loc_153E:   
-                move.w  #$0001, ($FFFFF63A).w 
-                move.b  #$FF, ($FFFFFFE0).w 
-                rts 
-ShowVDPGraphics: ; loc_154C: 
-                lea     (VDP_data_port), A6 
-                move.l  #$00800000, D4
-ShowVDPGraphics_LineLoop: ; loc_1558:                  
-                move.l  D0, $0004(A6) 
-                move.w  D1, D3   
-ShowVDPGraphics_TileLoop: ; loc_155E:                
-                move.w  (A1)+, (A6)                                                             
-                dbra    D3, ShowVDPGraphics_TileLoop ; loc_155E
-                add.l   D4, D0
-                dbra    D2, ShowVDPGraphics_LineLoop ; loc_1558
+; sub_14D2: Pause:
+PauseGame:
+		nop
+		tst.b	($FFFFFE12).w
+		beq.w	Unpause
+		tst.w	($FFFFF63A).w
+		bne.s	+
+		btst	#7,($FFFFF605).w
+		beq.s	Pause_DoNothing
++
+		move.w	#1,($FFFFF63A).w
+		move.b	#$FE,($FFFFFFE0).w
+; loc_14F6:
+Pause_Loop:
+		move.b	#VintID_Pause,(Vint_routine).w 
+		bsr.w	DelayProgram
+		tst.b	($FFFFFFD1).w
+		beq.s	Pause_ChkStart
+		btst	#6,($FFFFF605).w
+		beq.s	Pause_ChkBC
+		move.b	#4,($FFFFF600).w
+		nop
+		bra.s	Pause_Resume
+; ===========================================================================
+; loc_1518:
+Pause_ChkBC:
+		btst	#4,($FFFFF604).w
+		bne.s	Pause_SlowMo
+		btst	#5,($FFFFF605).w
+		bne.s	Pause_SlowMo
+; loc_1528:
+Pause_ChkStart:
+		btst	#7,($FFFFF605).w
+		beq.s	Pause_Loop
+; loc_1530:
+Pause_Resume:
+		move.b	#$FF,($FFFFFFE0).w
+; loc_1536:
+Unpause:
+		move.w	#0,($FFFFF63A).w
+; return_153C:
+Pause_DoNothing:
                 rts
+; ===========================================================================
+; loc_153E:
+Pause_SlowMo:
+		move.w	#1,($FFFFF63A).w
+		move.b	#$FF,($FFFFFFE0).w
+		rts
+; End of function PauseGame
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Subroutine to transfer a plane map to VRAM
+; ---------------------------------------------------------------------------
+
+; control register:
+;    CD1 CD0 A13 A12 A11 A10 A09 A08     (D31-D24)
+;    A07 A06 A05 A04 A03 A02 A01 A00     (D23-D16)
+;     ?   ?   ?   ?   ?   ?   ?   ?      (D15-D8)
+;    CD5 CD4 CD3 CD2  ?   ?  A15 A14     (D7-D0)
+;
+;	A00-A15 - address
+;	CD0-CD3 - code
+;	CD4 - 1 if VRAM copy DMA mode. 0 otherwise.
+;	CD5 - DMA operation
+;
+;	Bits CD3-CD0:
+;	0000 - VRAM read
+;	0001 - VRAM write
+;	0011 - CRAM write
+;	0100 - VSRAM read
+;	0101 - VSRAM write
+;	1000 - CRAM read
+;
+; d0 = control register
+; d1 = width
+; d2 = heigth
+; a1 = source address
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_154C: ShowVDPGraphics: PlaneMapToVRAM:
+PlaneMapToVRAM_H40:
+		lea	(VDP_data_port).l,a6
+		move.l	#$800000,d4
+
+-		move.l	d0,VDP_control_port-VDP_data_port(a6)
+		move.w	d1,d3
+             
+-		move.w	(a1)+,(a6)	; from source address to destination in VDP
+		dbf	d3,-		; next tile
+		add.l	d4,d0		; increase destination address by $80 (1 line)
+		dbf	d2,--		; next line
+		rts
+; End of function PlaneMapToVRAM_H40
 
 ; ---------------------------------------------------------------------------
 ; Subroutine for queueing VDP commands (seems to only queue transfers to VRAM),
@@ -1218,14 +1261,31 @@ ProcessDMAQueue_Done:
 		rts
 ; End of function ProcessDMAQueue
 
-NemDec: ; loc_15FC: ; Decompress Sprites to VRam                 
-                movem.l D0-D7/A0/A1/A3-A5, -(A7) 
-                lea     (NemDec_Output), A3 ; loc_16BE
-                lea     (VDP_data_port), A4
-                bra.s   loc_1618
-NemDec_ToRAM: ;loc_160E: ; Decompress Sprites to Ram
-                movem.l D0-D7/A0/A1/A3-A5, -(A7)
-                lea     (NemDec_OutputRAM), A3 ; loc_16D4
+; ---------------------------------------------------------------------------
+; START OF NEMESIS DECOMPRESSOR
+
+; For format explanation see http://info.sonicretro.org/Nemesis_compression
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; Nemesis decompression to VRAM
+; loc_15FC:
+NemDec:
+		movem.l	d0-d7/a0/a1/a3-a5,-(sp) 
+		lea	(NemDec_Output).l,a3
+		lea	(VDP_data_port).l,a4
+		bra.s	loc_1618
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; Nemesis decompression to RAM
+; input: a4 = starting address of destination
+; loc_160E:
+NemDecToRAM:
+		movem.l	d0-d7/a0/a1/a3-a5,-(sp)
+		lea	(NemDec_OutputRAM).l,a3
+
 loc_1618:                
                 lea     (Decomp_Buffer).w, A1
                 move.w  (A0)+, D2
@@ -1926,36 +1986,40 @@ ChaDec:
 
 ; loc_1B2E:
 ChaDec_BitPos0:
-                move.b  (A0)+, D1
-                add.b   D1, D1
-                bcs.s   ChaDec_BP0_DrcCpy
-                move.l  A2, A6
-                add.b   D1, D1
-                bcs.s   ChaDec_BP0_LongRef
-                move.b  (A1)+, D5
-                suba.l  D5, A6
-                add.b   D1, D1
-                bcc.s   loc_1B44
-                move.b  (A6)+, (A2)+
-loc_1B44: 
-                move.b  (A6)+, (A2)+ 
-                move.b  (A6)+, (A2)+
-                cmp.w   A2, D7
-                bls.s   loc_1B98
-                bra     loc_1CA2                
+		move.b	(a0)+,d1
+		add.b	d1,d1
+		bcs.s	ChaDec_BP0_DrcCpy
+		move.l	a2,a6
+		add.b	d1,d1
+		bcs.s	ChaDec_BP0_LongRef
+		move.b	(a1)+,d5
+		suba.l	d5,a6
+		add.b	d1,d1
+		bcc.s	loc_1B44
+		move.b	(a6)+,(a2)+
+
+loc_1B44:
+		move.b	(a6)+,(a2)+
+		move.b	(a6)+,(a2)+
+		cmp.w	a2,d7
+		bls.s	loc_1B98
+		bra.w	loc_1CA2
+; ---------------------------------------------------------------------------
 ; loc_1B50:
-ChaDec_BP0_LongRef: 
-                lsl.w   #$03, D1
-                move.w  D1, D6
-                and.w   D4, D6
-                move.b  (A1)+, D6
-                suba.l  D6, A6
-                add.b   D1, D1
-                bcs.s   loc_1B64
-                add.b   D1, D1
-                bcs.s   loc_1B7A
-                bra.s   loc_1B7C
-loc_1B64:
+ChaDec_BP0_LongRef:
+		lsl.w	#3,d1
+		move.w	d1,d6
+		and.w	d4,d6
+		move.b	(a1)+,d6
+		suba.l	d6,a6
+		add.b	d1,d1
+		bcs.s	ChaDec_BP0_LongRef_2or3
+		add.b	d1,d1
+		bcs.s	loc_1B7A
+		bra.s	loc_1B7C
+; ---------------------------------------------------------------------------
+; loc_1B64:
+ChaDec_BP0_LongRef_2or3:
                 add.b   D1, D1
                 bcc.s   loc_1B78
                 moveq   #$00, D0
@@ -1992,6 +2056,7 @@ loc_1BA0:
                 move.w  #$0001, D0
                 moveq   #$01, D2
                 rts
+; ---------------------------------------------------------------------------
 ; loc_1BA8:
 ChaDec_BP0_DrcCpy:     
                 move.b  (A1)+, (A2)+ 
@@ -2479,7 +2544,7 @@ PalCycle_Load: ; loc_1F18: ; Rotating Palette routine
                 bsr     loc_24A2
                 moveq   #$00, D2
                 moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
+                move.b  (Current_Zone).w, D0
                 add.w   D0, D0
                 move.w  PalCycle(PC, D0), D0    ; loc_1F30
                 jmp     PalCycle(PC, D0)        ; loc_1F30
@@ -3503,19 +3568,19 @@ SegaScreen: ; loc_360C: ; SEGA Logo
                 move.l  #$65100003, D0
                 moveq   #$17, D1
                 moveq   #$07, D2
-                bsr     ShowVDPGraphics         ; loc_154C
+                bsr     PlaneMapToVRAM_H40         ; loc_154C
                 lea     (Chunk_Table+$180), A1
                 move.l  #$40000003, D0
                 moveq   #$27, D1
                 moveq   #$1B, D2
-                bsr     ShowVDPGraphics         ; loc_154C
+                bsr     PlaneMapToVRAM_H40         ; loc_154C
                 tst.b   ($FFFFFFF8).w
                 bmi.s   loc_36BE
                 lea     (Chunk_Table+$A40), A1
                 move.l  #$453A0003, D0
                 moveq   #$02, D1
                 moveq   #$01, D2
-                bsr     ShowVDPGraphics         ; loc_154C
+                bsr     PlaneMapToVRAM_H40         ; loc_154C
 loc_36BE:
                 moveq   #$00, D0
                 bsr     PalLoad2                ; loc_28FE
@@ -3633,9 +3698,9 @@ loc_3818:
 		nop
 		move.b	#0,($FFFFFE30).w
 		move.w	#0,(Debug_placement_mode).w
-		move.w	#0,($FFFFFFF0).w
+		move.w	#0,(Demo_mode_flag).w
 		move.w	#0,($FFFFFFDA).w
-		move.w	#$F00,($FFFFFE10).w
+		move.w	#$F00,(Current_ZoneAndAct).w
 		move.w	#0,($FFFFF634).w
 		bsr.w	Pal_FadeFrom
 
@@ -3648,7 +3713,7 @@ loc_3818:
 		move.l	#$40000003,d0
 		moveq	#$27,d1
 		moveq	#$1B,d2
-		bsr.w	ShowVDPGraphics
+		bsr.w	PlaneMapToVRAM_H40
 		lea	(Chunk_Table).l,a1
 		lea	(Title_Screen_Bg_Mappings).l,a0
 		move.w	#0,d0
@@ -3657,7 +3722,7 @@ loc_3818:
 		move.l	#$60000003,d0
 		moveq	#$1F,d1
 		moveq	#$1B,d2
-		bsr.w	ShowVDPGraphics
+		bsr.w	PlaneMapToVRAM_H40
 		lea	(Chunk_Table).l,a1
 		lea	(Title_Screen_R_Bg_Mappings).l,a0
 		move.w	#0,d0
@@ -3666,7 +3731,7 @@ loc_3818:
 		move.l	#$60400003,d0
 		moveq	#$1F,d1
 		moveq	#$1B,d2
-		bsr.w	ShowVDPGraphics
+		bsr.w	PlaneMapToVRAM_H40
 		moveq	#1,d0
 		bsr.w	PalLoad1
 		move.b	#MusID_Title,d0
@@ -3829,7 +3894,7 @@ LevelSelect_PressStart:
 
 ; LevelSelect_SpecialStage:
 		move.b	#$10,($FFFFF600).w
-		clr.w	($FFFFFE10).w
+		clr.w	(Current_ZoneAndAct).w
 		move.b	#3,($FFFFFE12).w
 		moveq	#0,d0
 		move.w	d0,($FFFFFE20).w
@@ -3858,7 +3923,7 @@ LevelSelect_Order:
 ; loc_3B0A: Level_Select_Level:
 LevelSelect_StartZone:
 		andi.w	#$3FFF,d0
-		move.w	d0,($FFFFFE10).w
+		move.w	d0,(Current_ZoneAndAct).w
 ; loc_3B12:
 PlayLevel:
 		move.b	#$C,($FFFFF600).w
@@ -3924,13 +3989,13 @@ Run_Demo_Mode: ; loc_3B8E:
                 andi.w  #$0007, D0
                 add.w   D0, D0
                 move.w  Demo_Mode_Level_Array(PC, D0), D0 ; loc_3C16 Load Demo sequence array
-                move.w  D0, ($FFFFFE10).w
+                move.w  D0, (Current_ZoneAndAct).w
                 addq.w  #1, ($FFFFFFF2).w
                 cmpi.w  #$0004, ($FFFFFFF2).w
                 bcs.s   loc_3BCC
                 move.w  #$0000, ($FFFFFFF2).w
 loc_3BCC:
-                move.w  #$0001, ($FFFFFFF0).w
+                move.w  #$0001, (Demo_mode_flag).w
                 move.b  #$08, ($FFFFF600).w
                 cmpi.w  #$0000, D0
                 bne.s   loc_3BE4
@@ -3939,7 +4004,7 @@ loc_3BE4:
                 cmpi.w  #$0600, D0
                 bne.s   loc_3BF8
                 move.b  #$10, ($FFFFF600).w
-                clr.w   ($FFFFFE10).w
+                clr.w   (Current_ZoneAndAct).w
                 clr.b   ($FFFFFE16).w
 loc_3BF8:
                 move.b  #$03, ($FFFFFE12).w
@@ -4231,9 +4296,13 @@ Unused_Code4_Loop: ; loc_4122:
                 dbra    D0, Unused_Code4_Loop   ; loc_4122
                 adda.w  #$0080, A1
                 adda.w  #$0080, A2
-                rts                                                
+                rts
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Music Playlist
+; ---------------------------------------------------------------------------
 ; byte_4140:
-PlayList:	dc.b	MusID_GHZ
+MusicList:	dc.b	MusID_GHZ
 		dc.b	MusID_GHZ
 		dc.b	MusID_MTZ
 		dc.b	MusID_SSZ
@@ -4250,109 +4319,125 @@ PlayList:	dc.b	MusID_GHZ
 		dc.b	MusID_CPZ
 		dc.b	MusID_NGHZ
 		even
- 
-Level: ; loc_4150: ; Demo Mode / Normal Game Play
-                bset    #$07, ($FFFFF600).w
-                tst.w   ($FFFFFFF0).w
-                bmi.s   Level_Init              ; loc_4164
-                move.b  #$F9, D0
-                bsr     PlaySound                ; loc_14C6
-Level_Init: ; loc_4164:                
-                bsr     ClearPLC                ; loc_179A
-                bsr     Pal_FadeFrom            ; loc_263A 
-                tst.w   ($FFFFFFF0).w
-                bmi.s   loc_41C0
-                move    #$2700, SR
-                move.l  #$70000002, (VDP_control_port)
-                lea     (Title_Cards), A0 ; loc_7EA04  / Load Title Cards sprites
-                bsr     NemDec              ; loc_15FC
-                bsr     ClearScreen             ; loc_1418
-                move    #$2300, SR
-                moveq   #$00, D0
-                move.w  D0, ($FFFFFE04).w
-                move.b  ($FFFFFE10).w, D0
-                add.w   D0, D0
-                add.w   D0, D0
-                move.w  D0, D1
-                add.w   D0, D0
-                add.w   D1, D0
-                lea     (TilesMainTable), A2    ; loc_24354
-                lea     $00(A2, D0), A2
-                moveq   #$00, D0
-                move.b  (A2), D0
-                beq.s   loc_41BA
-                bsr     LoadPLC                 ; loc_173C
-loc_41BA:
-                moveq   #$01, D0
-                bsr     LoadPLC                 ; loc_173C
-loc_41C0:
-                lea     (Sprite_Table_Input).w, A1
-                moveq   #$00, D0
-                move.w  #bytesToLcnt(Sprite_Table_Input_End-Sprite_Table_Input), D1
-loc_41CA:
-                move.l  D0, (A1)+
-                dbra    D1, loc_41CA
-                lea     ($FFFFB000).w, A1
-                moveq   #$00, D0
-                move.w  #$07FF, D1
-loc_41DA:
-                move.l  D0, (A1)+
-                dbra    D1, loc_41DA
-                lea     (MiscLevelVariables).w, A1
-                moveq   #$00, D0
-                move.w  #$0015, D1
-loc_41EA:
-                move.l  D0, (A1)+
-                dbra    D1, loc_41EA
-                lea     ($FFFFF700).w, A1
-                moveq   #$00, D0
-                move.w  #$003F, D1
-loc_41FA:
-                move.l  D0, (A1)+
-                dbra    D1, loc_41FA
-                lea     ($FFFFFE60).w, A1
-                moveq   #$00, D0
-                move.w  #$0047, D1
-loc_420A:
-                move.l  D0, (A1)+
-                dbra    D1, loc_420A
-                cmpi.w  #$0D01, ($FFFFFE10).w  ; If Chemical Plant
-                beq.s   Init_Water             ; loc_4228
-                cmpi.b  #$0F, ($FFFFFE10).w    ; If Neo Green Hill
-                beq.s   Init_Water             ; loc_4228
-                cmpi.b  #$08, ($FFFFFE10).w    ; If Not Hidden Palace
-                bne.s   Init_No_Water          ; loc_4234
-Init_Water: ; loc_4228:
-                move.b  #$01, (Water_flag).w
-                move.w  #$0000, ($FFFFFFD8).w  ; If Water Level Clear Two Player Flag
-Init_No_Water: ; loc_4234:
-                lea     (VDP_control_port), A6
-                move.w  #$8B03, (A6)
-                move.w  #$8230, (A6)
-                move.w  #$8407, (A6)
-                move.w  #$857C, (A6)
-                move.w  #$9001, (A6)
-                move.w  #$8004, (A6)
-                move.w  #$8720, (A6)
-                btst    #$05, ($FFFFF604).w
-                beq.s   loc_4262
-                move.w  #$8C89, (A6)
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Level
+; DEMO AND ZONE LOOP (MLS values $08, $0C; bit 7 set indicates that load routine is running)
+; ---------------------------------------------------------------------------
+; loc_4150:
+Level:
+		bset	#7,($FFFFF600).w	; add $80 to screen mode (for pre level sequence)
+		tst.w	(Demo_mode_flag).w	; test the old flag for the credits demos (now unused)
+		bmi.s	+
+		move.b	#$F9,d0
+		bsr.w	PlaySound
++
+		bsr.w	ClearPLC
+		bsr.w	Pal_FadeFrom
+		tst.w	(Demo_mode_flag).w
+		bmi.s	Level_ClrRAM
+		move	#$2700,sr
+		move.l	#$70000002,(VDP_control_port).l
+		lea	(Title_Cards).l,a0	; load title card patterns
+		bsr.w	NemDec
+		bsr.w	ClearScreen
+		move	#$2300,sr
+		moveq	#0,d0
+		move.w	d0,($FFFFFE04).w
+		move.b	(Current_Zone).w,d0
+
+		; multiply d0 by 12, the size of a level art load block
+		add.w	d0,d0
+		add.w	d0,d0
+		move.w	d0,d1
+		add.w	d0,d0
+		add.w	d1,d0
+
+		lea	(TilesMainTable).l,a2
+		lea	(a2,d0.w),a2
+		moveq	#0,d0
+		move.b	(a2),d0		; PLC1 ID
+		beq.s	+
+		bsr.w	LoadPLC
++
+		moveq	#1,d0
+		bsr.w	LoadPLC
+; loc_41C0:
+Level_ClrRAM:
+		lea     (Sprite_Table_Input).w,a1
+		moveq	#0,d0
+		move.w	#bytesToLcnt(Sprite_Table_Input_End-Sprite_Table_Input),d1
+
+-		move.l	d0,(a1)+
+		dbf	d1,-
+
+		lea	($FFFFB000).w,a1
+		moveq	#0,d0
+		move.w	#$7FF,d1
+
+-		move.l	d0,(a1)+
+		dbf	d1,-
+
+		lea	(MiscLevelVariables).w,a1
+		moveq	#0,d0
+		move.w	#$15,d1
+
+-		move.l	d0,(a1)+
+		dbf	d1,-
+
+		lea	($FFFFF700).w,a1
+		moveq	#0,d0
+		move.w	#$3F,d1
+
+-		move.l	d0,(a1)+
+		dbf	d1,-
+
+		lea	($FFFFFE60).w,a1
+		moveq	#0,d0
+		move.w	#$47,d1
+
+-		move.l	d0,(a1)+
+		dbf	d1,-
+
+		cmpi.w	#$D01,(Current_ZoneAndAct).w	; is it CPZ2?
+		beq.s	Level_InitWater			; if yes, branch
+		cmpi.b	#$F,(Current_ZoneAndAct).w	; is it ARZ?
+		beq.s	Level_InitWater			; if yes, branch
+		cmpi.b	#8,(Current_ZoneAndAct).w	; is it HPZ?
+		bne.s	+				; if not, branch
+; loc_4228: Init_Water:
+Level_InitWater:
+		move.b	#1,(Water_flag).w
+		move.w	#0,($FFFFFFD8).w
++
+		lea	(VDP_control_port).l,a6
+		move.w	#$8B03,(a6)		; EXT-INT disabled, V scroll by screen, H scroll by line
+		move.w	#$8230,(a6)		; PNT A base: $C000
+		move.w	#$8407,(a6)		; PNT B base: $E000
+		move.w	#$857C,(a6)		; Sprite attribute table base: $F800
+		move.w	#$9001,(a6)		; Scroll table size: 64x32
+		move.w	#$8004,(a6)		; H-INT disabled
+		move.w	#$8720,(a6)		; Background palette/color: 2/0
+		btst	#5,($FFFFF604).w
+		beq.s	loc_4262
+		move.w	#$8C89,(a6)		; H res 40 cells, no interlace, S/H enabled
+
 loc_4262:
-                move.w  #$8ADF, (Hint_counter_reserve).w
-                tst.w   ($FFFFFFD8).w
-                beq.s   loc_427C
-                move.w  #$8A6B, (Hint_counter_reserve).w
-                move.w  #$8014, (A6)
-                move.w  #$8C87, (A6)
+		move.w	#$8ADF,(Hint_counter_reserve).w	; H-INT every 223rd scanline
+		tst.w	($FFFFFFD8).w
+		beq.s	loc_427C
+		move.w	#$8A6B,(Hint_counter_reserve).w	; H-INT every 108th scanline
+		move.w	#$8014,(a6)		; H-INT enabled
+		move.w	#$8C87,(a6)		; H res 40 cells, double res interlace
 
 loc_427C:
 		move.w	(Hint_counter_reserve).w,(a6)
 		move.l	#VDP_Command_Buffer,(VDP_Command_Buffer_Slot).w
-		tst.b	(Water_flag).w
-		beq.s	Level_LoadPal
-		move.w	#$8014,(a6)
+		tst.b	(Water_flag).w		; does this level have water?
+		beq.s	Level_LoadPal		; if not, branch
+		move.w	#$8014,(a6)		; H-INT enabled
 		moveq	#0,d0
-		move.w	($FFFFFE10).w,d0
+		move.w	(Current_ZoneAndAct).w,d0
 		; this limits the water table to stages after HPZ
 		subi.w	#$800,d0
 		ror.b	#1,d0
@@ -4377,28 +4462,29 @@ Level_LoadPal:
 		beq.s	Level_GetBgm	; if not, branch
 
 		moveq	#$15,d0			; use HPZ underwater palette
-		cmpi.b	#8,($FFFFFE10).w	; is this Hidden Palace Zone?
+		cmpi.b	#8,(Current_Zone).w	; is this Hidden Palace Zone?
 		beq.s	Level_WaterPal		; if yes, branch
 		moveq	#$16,d0			; use CPZ underwater palette
-		cmpi.b	#$D,($FFFFFE10).w	; if this Chemical Plant Zone?
+		cmpi.b	#$D,(Current_Zone).w	; if this Chemical Plant Zone?
 		beq.s	Level_WaterPal		; if yes, branch
 		moveq	#$17,d0			; use NGHZ underwater palette
 ; loc_42F0: LevelInit_UnderwaterPalette:
 Level_WaterPal:
 		bsr.w	PalLoad3_Water		; ACTUALLY load the underwater palette
 		tst.b	($FFFFFE30).w		; is this the start of a level?
-		beq.s	Level_GetBgm		; if not, branch
+		beq.s	Level_GetBgm		; if yes, branch
 		move.b	($FFFFFE53).w, (Water_fullscreen_flag).w
 ; loc_4300: LevelInit_NoUnderwaterPalette:
 Level_GetBgm:
-                tst.w   ($FFFFFFF0).w
-                bmi.s   loc_434E
-                moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
-                lea     PlayList(PC), A1        ; loc_4140
-                move.b  $00(A1, D0), D0
-                bsr     PlayMusic              ; loc_14C0
-                move.b  #$34, ($FFFFB080).w     ; Load Title Cards Object
+		tst.w	(Demo_mode_flag).w
+		bmi.s	loc_434E
+		moveq	#0,d0
+		move.b	(Current_Zone).w,d0
+		lea	MusicList(pc),a1
+		move.b	(a1,d0.w),d0
+		bsr.w	PlayMusic
+		move.b	#$34,($FFFFB080).w
+
 LevelInit_TitleCard: ; loc_431E:                
                 move.b  #VintID_TitleCard, (Vint_routine).w
                 bsr     DelayProgram            ; loc_31D8
@@ -4424,7 +4510,7 @@ loc_434E:
                 bsr     Load_Colision_Index     ; loc_4AAA
                 bsr     WaterEffects           ; loc_465A
                 move.b  #$01, ($FFFFB000).w  ; Load Sonic Object
-                tst.w   ($FFFFFFF0).w
+                tst.w   (Demo_mode_flag).w
                 bmi.s   Skip_Head_Up_Display ; loc_4390                 
                 move.b  #$21, ($FFFFB380).w  ; Load HUD Object
 Skip_Head_Up_Display: ; loc_4390:                
@@ -4447,7 +4533,7 @@ loc_43BC:
                 move.b  #$04, ($FFFFB7C0).w
                 move.w  #$0120, ($FFFFB7C8).w
 loc_43E6:
-                cmpi.b  #$0A, ($FFFFFE10).w
+                cmpi.b  #$0A, (Current_Zone).w
                 bne.s   loc_43F4
                 move.b  #$07, ($FFFFB780).w
 loc_43F4:
@@ -4480,10 +4566,10 @@ loc_4424:
                 move.w  #$0000, ($FFFFF740).w
                 lea     (Demo_Index), A1        ; loc_49F2
                 moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
+                move.b  (Current_Zone).w, D0
                 lsl.w   #$02, D0
                 move.l  $00(A1, D0), A1
-                tst.w   ($FFFFFFF0).w
+                tst.w   (Demo_mode_flag).w
                 bpl.s   loc_4498
                 lea     (Demo_End_Index), A1    ; loc_4A7A
                 move.w  ($FFFFFFF4).w, D0
@@ -4497,7 +4583,7 @@ loc_4498:
                 move.b  $0001(A1), ($FFFFF742).w
                 subq.b  #$01, ($FFFFF742).w
                 move.w  #$0668, ($FFFFF614).w
-                tst.w   ($FFFFFFF0).w
+                tst.w   (Demo_mode_flag).w
                 bpl.s   loc_44D2
                 move.w  #$021C, ($FFFFF614).w
                 cmpi.w  #$0004, ($FFFFFFF4).w
@@ -4507,10 +4593,10 @@ loc_44D2:
                 tst.b   (Water_flag).w
                 beq.s   loc_44F2
                 moveq   #$15, D0
-                cmpi.b  #$08, ($FFFFFE10).w
+                cmpi.b  #$08, (Current_Zone).w
                 beq.s   loc_44EE
                 moveq   #$16, D0
-                cmpi.b  #$0D, ($FFFFFE10).w
+                cmpi.b  #$0D, (Current_Zone).w
                 beq.s   loc_44EE
                 moveq   #$17, D0
 loc_44EE:
@@ -4523,7 +4609,7 @@ loc_44F6:
                 dbra    D1, loc_44F6 
                 move.w  #$202F, ($FFFFF626).w
                 bsr     Pal_FadeTo2             ; loc_259C
-                tst.w   ($FFFFFFF0).w
+                tst.w   (Demo_mode_flag).w
                 bmi.s   Level_ClrTitleCard      ; loc_4526
                 addq.b  #$02, ($FFFFB0A4).w 
                 addq.b  #$04, ($FFFFB0E4).w
@@ -4535,52 +4621,61 @@ Level_ClrTitleCard: ; loc_4526:
                 jsr     LoadPLC                 ; loc_173C
 loc_452E:                
                 bclr    #$07, ($FFFFF600).w
-Level_Main_Loop: ; loc_4534:                
-                bsr     Pause                   ; loc_14D2
-                move.b  #VintID_Level, (Vint_routine).w   
-                bsr     DelayProgram            ; loc_31D8
-                addq.w  #$01, ($FFFFFE04).w
-                bsr     Move_Sonic_In_Demo      ; loc_48DE
-                bsr     WaterEffects           ; loc_465A
-                jsr     RunObjects            ; loc_CFD0
-                tst.w   ($FFFFFE02).w
-                bne     Level                   ; loc_4150
-                tst.w   (Debug_placement_mode).w
-                bne.s   loc_456A
-                cmpi.b  #$06, ($FFFFB024).w
-                bcc.s   loc_456E
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Main level loop (when all title card and loading sequences are finished)
+; ---------------------------------------------------------------------------
+; loc_4534:
+Level_MainLoop:
+		bsr.w	PauseGame
+		move.b	#VintID_Level,(Vint_routine).w
+		bsr.w	DelayProgram
+		addq.w	#1,($FFFFFE04).w
+		bsr.w	Move_Sonic_In_Demo
+		bsr.w	WaterEffects
+		jsr	(RunObjects).l
+		tst.w	($FFFFFE02).w
+		bne.w	Level
+		tst.w	(Debug_placement_mode).w
+		bne.s	loc_456A
+		cmpi.b	#6,($FFFFB024).w
+		bcc.s	loc_456E
+
 loc_456A:
-                bsr     Background_Scroll_Layer ; loc_5D5C                 
+		bsr.w	Background_Scroll_Layer
+
 loc_456E:
-                bsr     UpdateWaterSurface ; loc_4630
-                jsr     Load_Ring_Pos           ; loc_DE34
-                bsr     JumpToDynamic_Art_Cues  ; loc_51F8
-                bsr     PalCycle_Load           ; loc_1F18
-                bsr     RunPLC_RAM              ; loc_17A8
-                bsr     Oscillate_Num_Do        ; loc_4BBA
-                bsr     Change_Ring_Frame       ; loc_4C52
-                bsr     End_Level_Art_Load      ; loc_4CC0
-                jsr     BuildSprites           ; loc_D4DA
-                jsr     Load_Object_Pos         ; loc_E250
-                cmpi.b  #$08, ($FFFFF600).w
-                beq.s   loc_45B0
-                cmpi.b  #$0C, ($FFFFF600).w
-                beq     Level_Main_Loop         ; loc_4534
-                rts
+		bsr.w	UpdateWaterSurface
+		jsr	(Load_Ring_Pos).l
+		bsr.w	JumpToDynamic_Art_Cues
+		bsr.w	PalCycle_Load
+		bsr.w	RunPLC_RAM
+		bsr.w	Oscillate_Num_Do
+		bsr.w	Change_Ring_Frame
+		bsr.w	End_Level_Art_Load
+		jsr	(BuildSprites).l
+		jsr	(Load_Object_Pos).l
+		cmpi.b	#8,($FFFFF600).w
+		beq.s	loc_45B0
+		cmpi.b	#$C,($FFFFF600).w
+		beq.w	Level_MainLoop
+		rts
+; ---------------------------------------------------------------------------
+
 loc_45B0:
                 tst.w   ($FFFFFE02).w
                 bne.s   loc_45CE
                 tst.w   ($FFFFF614).w
                 beq.s   loc_45CE
                 cmpi.b  #$08, ($FFFFF600).w
-                beq     Level_Main_Loop         ; loc_4534
+                beq     Level_MainLoop         ; loc_4534
                 move.b  #$00, ($FFFFF600).w
                 rts
 loc_45CE:
                 cmpi.b  #$08, ($FFFFF600).w
                 bne.s   loc_45E8
                 move.b  #$00, ($FFFFF600).w
-                tst.w   ($FFFFFFF0).w
+                tst.w   (Demo_mode_flag).w
                 bpl.s   loc_45E8
                 move.b  #$1C, ($FFFFF600).w
 loc_45E8:
@@ -4601,8 +4696,7 @@ loc_45F8:
 loc_4628:
                 tst.w   ($FFFFF614).w
                 bne.s   loc_45F8
-                rts           
-
+                rts
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Subroutine to move the water or oil surface sprites to where the screen is at
@@ -4650,7 +4744,7 @@ WaterEffects:
 MoveWater:
 		clr.b	(Water_fullscreen_flag).w
 		moveq	#0, D0
-		cmpi.b	#$F,($FFFFFE10).w	; is this NGHZ?
+		cmpi.b	#$F,(Current_Zone).w	; is this NGHZ?
 		beq.s	loc_4686		; if yes, branch
 		move.b	($FFFFFE60).w,0
 		lsr.w	#1,d0
@@ -4694,7 +4788,7 @@ WaterHeight:	dc.w	$600, $600	; HPZ
 ; sub_46D8: Dynamic_Water_Height:
 DynamicWater:
 		moveq	#0,d0
-		move.w	($FFFFFE10).w,d0
+		move.w	(Current_ZoneAndAct).w,d0
 		subi.w	#$800,d0
 		ror.b	#1,d0
 		lsr.w	#6,d0
@@ -4757,11 +4851,11 @@ S1_LZ_Wind_Tunnels:; loc_473E: leftover from Sonic 1's LZ
                 bne     loc_481A
                 lea     (S1_LZ_Wind_Data), A2   ; loc_4824
                 moveq   #$00, D0
-                move.b  ($FFFFFE11).w, D0
+                move.b  (Current_Act).w, D0
                 lsl.w   #$03, D0
                 adda.w  D0, A2
                 moveq   #$00, D1
-                tst.b   ($FFFFFE11).w
+                tst.b   (Current_Act).w
                 bne.s   loc_4762
                 moveq   #$01, D1
                 subq.w  #$08, A2
@@ -4793,7 +4887,7 @@ loc_479E:
                 cmp.w   (A2), D0
                 bcc.s   loc_47CC
                 moveq   #$02, D0
-                cmpi.b  #$01, ($FFFFFE11).w
+                cmpi.b  #$01, (Current_Act).w
                 bne.s   loc_47C8
                 neg.w   D0
 loc_47C8:
@@ -4878,7 +4972,7 @@ loc_48CE:
 loc_48DD:
                 dc.b    $00                                                                           
 Move_Sonic_In_Demo: ; loc_48DE:
-                tst.w   ($FFFFFFF0).w
+                tst.w   (Demo_mode_flag).w
                 bne.s   Move_Demo_On            ; loc_495C
                 rts
 Move_Sonic_Demo_Record: ; unused subroutine for	recording demos                
@@ -4898,7 +4992,7 @@ loc_4908:
                 addq.w  #$02, ($FFFFF790).w
                 andi.w  #$03FF, ($FFFFF790).w 
 loc_491C:
-                cmpi.b  #$00, ($FFFFFE10).w
+                cmpi.b  #$00, (Current_Zone).w
                 bne.s   loc_495A
                 lea     ($00FEC000), A1
                 move.w  ($FFFFF740).w, D0
@@ -4920,13 +5014,13 @@ loc_495A:
 Move_Demo_On: ; loc_495C:
                 tst.b   ($FFFFF604).w
                 bpl.s   loc_496E
-                tst.w   ($FFFFFFF0).w
+                tst.w   (Demo_mode_flag).w
                 bmi.s   loc_496E
                 move.b  #$04, ($FFFFF600).w
 loc_496E:
                 lea     (Demo_Index), A1        ; loc_49F2
                 moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
+                move.b  (Current_Zone).w, D0
                 cmpi.b  #$10, ($FFFFF600).w
                 bne.s   loc_4984
                 moveq   #$06, D0
@@ -4948,7 +5042,7 @@ loc_4984:
                 move.b  $0003(A1), ($FFFFF792).w
                 addq.w  #$02, ($FFFFF790).w
 loc_49B2:
-                cmpi.b  #$00, ($FFFFFE10).w
+                cmpi.b  #$00, (Current_Zone).w
                 bne.s   loc_49EA
                 lea     (Demo_Tails_Ghz), A1    ; loc_4DF8
                 move.w  ($FFFFF740).w, D0
@@ -5000,7 +5094,7 @@ Demo_End_Index: ; loc_4A7A:
                 dc.w    $001A, $08FF, $08CA, $0000, $0000, $0000, $0000, $0000
 Load_Colision_Index: ; loc_4AAA:
                 moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
+                move.b  (Current_Zone).w, D0
                 lsl.w   #$02, D0
                 move.l  #Primary_Collision, (Collision_addr).w
                 move.l  Primary_Colision_Index(PC, D0), A1 ; loc_4ADC
@@ -5141,7 +5235,7 @@ loc_4CBE:
 End_Level_Art_Load: ; loc_4CC0: ; Test for load end level sprites...
                 tst.w   (Debug_placement_mode).w
                 bne     Skip_End_Level_Art_Load ; loc_4CF6
-                cmpi.w  #$0001, ($FFFFFE10).w
+                cmpi.w  #$0001, (Current_ZoneAndAct).w
                 beq.s   Skip_End_Level_Art_Load ; loc_4CF6
                 move.w  ($FFFFEE00).w, D0
                 move.w  ($FFFFEECA).w, D1
@@ -5337,7 +5431,7 @@ loc_533C:
                 move.w  D0, (VDP_control_port)
                 bsr     Pal_MakeWhite           ; loc_26B8
 loc_534E:                
-                bsr     Pause                   ; loc_14D2
+                bsr     PauseGame                   ; loc_14D2
                 move.b  #VintID_S1SS, (Vint_routine).w
                 bsr     DelayProgram            ; loc_31D8
                 bsr     Move_Sonic_In_Demo      ; loc_48DE
@@ -5346,19 +5440,19 @@ loc_534E:
                 jsr     (BuildSprites)         ; loc_D4DA
                 jsr     (S1_SS_Show_Layout)     ; loc_21508
                 bsr     S1_SS_Bg_Animate        ; loc_5806
-                tst.w   ($FFFFFFF0).w
+                tst.w   (Demo_mode_flag).w
                 beq.s   loc_538A
                 tst.w   ($FFFFF614).w
                 beq     loc_54B8
 loc_538A:
                 cmpi.b  #$10, ($FFFFF600).w
                 beq     loc_534E
-                tst.w   ($FFFFFFF0).w
+                tst.w   (Demo_mode_flag).w
                 bne     loc_54C0
                 move.b  #$0C, ($FFFFF600).w
-                cmpi.w  #$0503, ($FFFFFE10).w
+                cmpi.w  #$0503, (Current_ZoneAndAct).w
                 bcs.s   loc_53AE
-                clr.w   ($FFFFFE10).w
+                clr.w   (Current_ZoneAndAct).w
 loc_53AE:
                 move.w  #$003C, ($FFFFF614).w
                 move.w  #$003F, ($FFFFF626).w
@@ -5411,7 +5505,7 @@ loc_5474:
                 dbra    D1, loc_5474
                 move.b  #$7E, ($FFFFB5C0).w
 loc_5480:                
-                bsr     Pause                   ; loc_14D2
+                bsr     PauseGame                   ; loc_14D2
                 move.b  #VintID_TitleCard, (Vint_routine).w
                 bsr     DelayProgram            ; loc_31D8
                 jsr     (RunObjects)          ; loc_CFD0
@@ -5459,7 +5553,7 @@ loc_550A:
                 movem.l D0-D4, -(A7)
                 moveq   #$07, D1
                 moveq   #$07, D2
-                bsr     ShowVDPGraphics         ; loc_154C
+                bsr     PlaneMapToVRAM_H40         ; loc_154C
                 movem.l (A7)+, D0-D4
 loc_551A:
                 addi.l  #$00100000, D0
@@ -5482,12 +5576,12 @@ loc_5544:
                 move.l  #$40000003, D0
                 moveq   #$3F, D1
                 moveq   #$1F, D2
-                bsr     ShowVDPGraphics         ; loc_154C
+                bsr     PlaneMapToVRAM_H40         ; loc_154C
                 lea     (Chunk_Table), A1
                 move.l  #$50000003, D0
                 moveq   #$3F, D1
                 moveq   #$3F, D2
-                bsr     ShowVDPGraphics         ; loc_154C
+                bsr     PlaneMapToVRAM_H40         ; loc_154C
                 rts                             
 S1_Pal_Cycle_Special_Stage: ; loc_5584:
                 tst.w   ($FFFFF63A).w
@@ -5711,7 +5805,7 @@ LevelSizeLoad:
 		clr.b	($FFFFEEBD).w
 		moveq	#0,d0
 		move.b	d0,($FFFFEEDF).w
-		move.w	($FFFFFE10).w,d0
+		move.w	(Current_ZoneAndAct).w,d0
 		ror.b	#1,d0
 		lsr.w	#4,d0
 		lea	LevelSize(pc,d0.w),a0
@@ -5761,7 +5855,7 @@ LevelSize_CheckLamp:
 ; ===========================================================================
 ; loc_5AAC: Level_Size_Start_Loc:
 LevelSize_StartLoc:
-		move.w	($FFFFFE10).w,d0
+		move.w	(Current_ZoneAndAct).w,d0
 		ror.b	#1,d0
 		lsr.w	#5,d0
 		lea	StartLocations(pc,d0.w),a1
@@ -5833,7 +5927,7 @@ Background_Scroll_Speed: ; loc_5B8A: ; Background Position
                 move.w  D1, ($FFFFEE38).w   
 loc_5BB8:                
                 moveq   #$00, D2
-                move.b  ($FFFFFE10).w, D2
+                move.b  (Current_Zone).w, D2
                 add.w   D2, D2
                 move.w  Bg_Scroll_Speed_Index(PC, D2), D2 ; loc_5BC8
                 jmp     Bg_Scroll_Speed_Index(PC, D2) ; loc_5BC8
@@ -5938,7 +6032,7 @@ Bg_Scroll_Speed_S1_Spring_Yard2: ; loc_5C98:
 Bg_Scroll_Speed_DHz: ; loc_5CB6: ; Dust Hill Background Position
                 clr.l   ($FFFFEE08).w
                 clr.l   ($FFFFEE28).w
-                tst.b   ($FFFFFE11).w
+                tst.b   (Current_Act).w
                 bne.s   loc_5CD6
                 divu.w  #$0003, D0
                 subi.w  #$0140, D0
@@ -5975,7 +6069,7 @@ Bg_Scroll_Speed_CPz: ; loc_5D12: ; Chemical Plant Background Position
 Bg_Scroll_Speed_Null3: ; loc_5D26: ; Genocide City Background Position (Null)
                 rts    
 Bg_Scroll_Speed_NGHz: ; loc_5D28: ; Neo Green Hill Background Position 
-                tst.b   ($FFFFFE11).w
+                tst.b   (Current_Act).w
                 beq.s   loc_5D3A
                 subi.w  #$00E0, D0
                 lsr.w   #$01, D0
@@ -6041,7 +6135,7 @@ loc_5DEA:
                 move.l  ($FFFFEE00).w, ($FFFFEEF0).w
                 move.l  ($FFFFEE04).w, ($FFFFEEF4).w
                 moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
+                move.b  (Current_Zone).w, D0
                 add.w   D0, D0
                 move.w  Bg_Scroll_Index(PC, D0), D0 ; loc_5E16
                 jmp     Bg_Scroll_Index(PC, D0) ; loc_5E16
@@ -6642,7 +6736,7 @@ Bg_Scroll_DHz: ; loc_6442: ; Dust Hill Background Scroll
                 bne     loc_656C
                 move.w  ($FFFFEE04).w, D0
                 move.l  ($FFFFEE0C).w, D3
-                tst.b   ($FFFFFE11).w
+                tst.b   (Current_Act).w
                 bne.s   loc_6462
                 divu.w  #$0003, D0
                 subi.w  #$0140, D0
@@ -6748,7 +6842,7 @@ loc_6554:
 loc_656C:
                 moveq   #$00, D0
                 move.w  ($FFFFEE04).w, D0
-                tst.b   ($FFFFFE11).w
+                tst.b   (Current_Act).w
                 bne.s   loc_6582
                 divu.w  #$0003, D0
                 subi.w  #$0140, D0
@@ -6856,7 +6950,7 @@ loc_6679:
 loc_6690:
                 moveq   #$00, D0
                 move.w  ($FFFFEE24).w, D0
-                tst.b   ($FFFFFE11).w
+                tst.b   (Current_Act).w
                 bne.s   loc_66A6
                 divu.w  #$0003, D0
                 subi.w  #$0140, D0
@@ -7134,7 +7228,7 @@ Bg_Scroll_NGHz: ; loc_6982: ; Neo Green Hill Background Scroll
                 move.w  ($FFFFEEB2).w, D5
                 ext.l   D5
                 asl.l   #$07, D5
-                tst.b   ($FFFFFE11).w
+                tst.b   (Current_Act).w
                 bne.s   loc_69A2
                 asl.l   #$01, D5
 loc_69A2:
@@ -7925,7 +8019,7 @@ loc_712A:
 Draw_BG3:
                 tst.b   (A2)
                 beq     loc_718C
-                cmpi.b  #$0D, ($FFFFFE10).w
+                cmpi.b  #$0D, (Current_Zone).w
                 beq     loc_71D0
                 bclr    #$00, (A2)
                 beq.s   loc_716C
@@ -8481,7 +8575,7 @@ loc_76DE:
                 move.w  #$6000, D2
                 tst.w   ($FFFFFFD8).w
                 beq     loc_770A
-                cmpi.b  #$0B, ($FFFFFE10).w
+                cmpi.b  #$0B, (Current_Zone).w
                 beq     loc_776A
 loc_770A:
                 moveq   #-$10, D4
@@ -8544,7 +8638,7 @@ loc_776E:
 ;===============================================================================                    
 Main_Level_Load_16_128_Blocks: ; loc_779A: Load 16x16/128x128 Tiles
                 moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
+                move.b  (Current_Zone).w, D0
                 add.w   D0, D0
                 add.w   D0, D0
                 move.w  D0, D1
@@ -8579,7 +8673,7 @@ Main_Level_Load_16_Blocks_Not2p: ; loc_77E8:
                 move.w  D0, (A1)+
                 dbra    D2, Main_Level_Load_16_Blocks_Loop ; loc_77D2    
 loc_77EE:    
-                cmpi.b  #$07, ($FFFFFE10).w
+                cmpi.b  #$07, (Current_Zone).w
                 bne.s   loc_7820
                 lea     (Block_Table+$980).w, A1
                 lea     (Hill_Top_16x16_Map), A0 ; loc_84A50
@@ -8660,7 +8754,7 @@ Load_Level_Palete: ; loc_7870:
                 addq.w  #$04, A2
                 moveq   #$00, D0
                 move.b  (A2), D0
-                cmpi.w  #$0C01, ($FFFFFE10).w
+                cmpi.w  #$0C01, (Current_ZoneAndAct).w
                 bne.s   loc_7880         
                 moveq   #$0A, D0                
 loc_7880:
@@ -8689,7 +8783,7 @@ loc_7890:
                 moveq   #$02, D1
 Interleave_Level_Layout: ; loc_78A6:                
                 moveq   #$00, D0
-                move.w  ($FFFFFE10).w, D0
+                move.w  (Current_ZoneAndAct).w, D0
                 ror.b   #$01, D0
                 lsr.w   #$05, D0
                 add.w   D1, D0
@@ -8811,7 +8905,7 @@ loc_79A2:
 ;===============================================================================                    
 Dyn_Screen_Boss_Loader: ; loc_79C0: ; Boss Loader / Level Dynamic Resize
                 moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
+                move.b  (Current_Zone).w, D0
                 add.w   D0, D0
                 move.w  DynResize_Index(PC, D0), D0 ; loc_7A26
                 jsr     DynResize_Index(PC, D0)     ; loc_7A26
@@ -8863,7 +8957,7 @@ DynResize_Index: ; loc_7A26:
                 dc.w    DynResize_NGHz-DynResize_Index ; loc_7FD6
                 dc.w    DynResize_DEz-DynResize_Index  ; loc_7FD8
 loc_7A48:
-                tst.b   ($FFFFFE11).w
+                tst.b   (Current_Act).w
                 bne.s   loc_7A50
                 rts
 loc_7A50:
@@ -8923,7 +9017,7 @@ loc_7AE0:
 loc_7AE2:
                 rts
 loc_7AE4:
-                tst.b   ($FFFFFE11).w
+                tst.b   (Current_Act).w
                 bne     loc_7CF6
                 moveq   #$00, D0
                 move.b  ($FFFFEEDF).w, D0
@@ -9329,10 +9423,10 @@ loc_7FFC:
                 dc.w    loc_8180-loc_7FFC
 loc_8004:                
                 addq.b  #$02, $0024(A0)
-                move.l  #Bridge_Mappings, $0004(A0) ; loc_85E0
+                move.l  #Obj11_MapUnc_85E0, $0004(A0) ; loc_85E0
                 move.w  #$43C6, $0002(A0)
                 move.b  #$03, $0018(A0)
-                cmpi.b  #$08, ($FFFFFE10).w
+                cmpi.b  #$08, (Current_Zone).w
                 bne.s   loc_8036
                 addq.b  #$04, $0024(A0)
                 move.l  #Hpz_Bridge_Mappings, $0004(A0) ; loc_8598
@@ -9742,6 +9836,9 @@ loc_8498:
                 dc.b    $19, $38, $50, $6D, $83, $9D, $B0, $C5, $D8, $E4, $F1, $F8, $FE, $FF, $00, $00
                 dc.b    $19, $31, $4A, $67, $7E, $93, $A7, $BD, $CD, $DB, $E7, $F3, $F9, $FE, $FF, $00
                 dc.b    $19, $31, $4A, $61, $78, $8E, $A2, $B5, $C5, $D4, $E1, $EC, $F4, $FB, $FE, $FF
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
 Hpz_Bridge_Mappings: ; loc_8598:
                 dc.w    Hpz_Bridge_Map_01-Hpz_Bridge_Mappings
                 dc.w    Hpz_Bridge_Map_02-Hpz_Bridge_Mappings
@@ -9767,15 +9864,7 @@ Hpz_Bridge_Map_05: ; loc_85CC:
 Hpz_Bridge_Map_06: ; loc_85D6:
                 dc.w    $0001
                 dc.l    $F4020012, $0009FFFC             
-Bridge_Mappings: ; loc_85E0:
-                dc.w    Bridge_Map_01-Bridge_Mappings
-                dc.w    Bridge_Map_02-Bridge_Mappings
-Bridge_Map_01: ; loc_85E4:
-                dc.w    $0001
-                dc.l    $F8050004, $0002FFF8
-Bridge_Map_02: ;loc_85EE:
-                dc.w    $0001
-                dc.l    $F8050000, $0000FFF8                
+Obj11_MapUnc_85E0:	BINCLUDE	"mappings/sprite/obj11_GHZ.bin"	; GHZ bridge
 ;===============================================================================           
 ; Object 0x11 - Bridge 
 ; [ End ]
@@ -9813,14 +9902,14 @@ loc_8626:
                 move.b  #$10, $0016(A0)
                 move.w  $000C(A0), $0038(A0)
                 move.w  $0008(A0), $003A(A0)
-                cmpi.b  #$0B, ($FFFFFE10).w
+                cmpi.b  #$0B, (Current_Zone).w
                 bne.s   loc_867E
                 move.l  #Dhz_Swing_Platforms_Mappings, $0004(A0) ; loc_8B46 
                 move.w  #$0000, $0002(A0)                       
                 move.b  #$18, $0019(A0)
                 move.b  #$08, $0016(A0)
 loc_867E:
-                cmpi.b  #$0F, ($FFFFFE10).w
+                cmpi.b  #$0F, (Current_Zone).w
                 bne.s   loc_86A0
                 move.l  #Nghz_Swing_Platforms_Mappings, $0004(A0) ; loc_8B0E
                 move.w  #$0000, $0002(A0)
@@ -10058,7 +10147,7 @@ loc_896A:
                 addq.w  #$04, D0
                 dbra    D1, loc_896A
                 move.b  #$0A, $0024(A1)
-                cmpi.b  #$0F, ($FFFFFE10).w
+                cmpi.b  #$0F, (Current_Zone).w
                 bne.s   loc_8988
                 addq.b  #$02, $0024(A1)
 loc_8988:
@@ -10396,9 +10485,9 @@ loc_8D5A:
                 lea     loc_8D50(PC, D0), A2
                 move.b  (A2)+, $0019(A0)
                 move.b  (A2)+, $001A(A0)
-                move.l  #Ghz_Platform_Mappings, $0004(A0) ; loc_9078
+                move.l  #Obj18_MapUnc_9078, $0004(A0) ; loc_9078
                 move.w  #$4000, $0002(A0)
-                cmpi.b  #$0F, ($FFFFFE10).w
+                cmpi.b  #$0F, (Current_Zone).w
                 bne.s   loc_8D9A
                 move.l  #Nghz_Platform_Mappings, $0004(A0) ; loc_90D0
                 move.w  #$4000, $0002(A0)
@@ -10415,7 +10504,7 @@ loc_8D9A:
                 addq.b  #$06, $0024(A0)
                 andi.b  #$0F, $0028(A0)
                 move.b  #$30, $0016(A0)
-                cmpi.b  #$0F, ($FFFFFE10).w
+                cmpi.b  #$0F, (Current_Zone).w
                 bne.s   loc_8DE6
                 move.b  #$28, $0016(A0)
 loc_8DE6:
@@ -10653,18 +10742,11 @@ loc_9058:
 loc_9070:
                 move.b  ($FFFFFE78).w, $0026(A0)
                 rts
-Ghz_Platform_Mappings: ; loc_9078:
-                dc.w    Ghz_Platform_Map_01-Ghz_Platform_Mappings
-                dc.w    Ghz_Platform_Map_02-Ghz_Platform_Mappings
-Ghz_Platform_Map_01: ; loc_907C:
-                dc.w    $0002
-                dc.l    $F40F0056, $002BFFE0, $F40F0856, $082B0000
-Ghz_Platform_Map_02: ; loc_908E:
-                dc.w    $0008
-                dc.l    $CC07000A, $0005FFE0, $CC0D0012, $0009FFF0
-                dc.l    $DC0D001A, $000DFFF0, $CC070022, $00110010
-                dc.l    $EC0F002A, $0015FFE0, $EC0F082A, $08150000
-                dc.l    $0C0F003A, $001DFFE0, $0C0F083A, $081D0000
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj18_MapUnc_9078:	BINCLUDE	"mappings/sprite/obj18_GHZ.bin"
+
 Nghz_Platform_Mappings: ; loc_90D0:
                 dc.w    Nghz_Platform_Map_01-Nghz_Platform_Mappings
                 dc.w    Nghz_Platform_Map_02-Nghz_Platform_Mappings
@@ -10705,7 +10787,7 @@ loc_913C:
                 move.b  #$07, $0038(A0)
                 move.b  $0028(A0), $001A(A0)
                 move.l  #loc_9436, $0034(A0)
-                cmpi.b  #$08, ($FFFFFE10).w
+                cmpi.b  #$08, (Current_Zone).w
                 bne.s   loc_91A4
                 move.l  #HPz_Collapsing_Platforms_Mappings, $0004(A0) ; loc_9858
                 move.w  #$434A, $0002(A0)
@@ -10715,7 +10797,7 @@ loc_913C:
                 move.l  #loc_944F, $0034(A0)
                 bra.s   loc_91E8
 loc_91A4:
-                cmpi.b  #$0A, ($FFFFFE10).w
+                cmpi.b  #$0A, (Current_Zone).w
                 bne.s   loc_91CE
                 move.l  #OOz_Collapsing_Platforms_Mappings, $0004(A0) ; loc_9902
                 move.w  #$639D, $0002(A0)
@@ -10805,7 +10887,7 @@ loc_9288:
                 lea     (loc_9463), A4
 loc_92C6:
                 move.l  A4, $0034(A0)
-                cmpi.b  #$0A, ($FFFFFE10).w
+                cmpi.b  #$0A, (Current_Zone).w
                 bne.s   loc_92F2
                 move.l  #OOz_Collapsing_Platforms_Mappings, $0004(A0) ; loc_9902
                 move.w  #$639D, $0002(A0)
@@ -10813,7 +10895,7 @@ loc_92C6:
                 move.b  #$40, $0019(A0)
                 move.l  #loc_946B, $0034(A0)
 loc_92F2:
-                cmpi.b  #$0B, ($FFFFFE10).w
+                cmpi.b  #$0B, (Current_Zone).w
                 bne.s   loc_931A
                 move.l  #Dhz_Collapsing_Platforms_Mappings, $0004(A0) ; loc_9942
                 move.w  #$63F4, $0002(A0)
@@ -11078,7 +11160,7 @@ loc_99AE:
                 dc.w    $43FD
                 dc.b    $04, $06
                 
-                dc.l    ($01<<$18)|Bridge_Mappings ; loc_85E0 
+                dc.l    ($01<<$18)|Obj11_MapUnc_85E0 ; loc_85E0 
                 dc.w    $43C6
                 dc.b    $04, $01
                 
@@ -11381,12 +11463,12 @@ loc_9CF4:
                 move.l  #Automatic_Door_Mappings, $0004(A0) ; loc_9E1E
                 move.w  #$2426, $0002(A0)
                 move.b  #$08, $0019(A0)
-                cmpi.b  #$04, ($FFFFFE10).w
+                cmpi.b  #$04, (Current_Zone).w
                 bne.s   loc_9D20
                 move.w  #$6000, $0002(A0)
                 move.b  #$0C, $0019(A0)
 loc_9D20:
-                cmpi.b  #$0D, ($FFFFFE10).w
+                cmpi.b  #$0D, (Current_Zone).w
                 bne.s   loc_9D34
                 move.w  #$2394, $0002(A0)
                 move.b  #$0C, $0019(A0)
@@ -11913,7 +11995,7 @@ loc_A420:
                 bsr     PseudoRandomNumber      ; loc_31E4
                 andi.w  #$0001, D0
                 moveq   #$00, D1
-                move.b  ($FFFFFE10).w, D1
+                move.b  (Current_Zone).w, D1
                 add.w   D1, D1
                 add.w   D0, D1
                 lea     loc_A2E8(PC), A1
@@ -13528,7 +13610,7 @@ Title_Cards_Index: ; loc_BB62:
 loc_BB6A:
                 move.l  A0, A1
                 moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
+                move.b  (Current_Zone).w, D0
                 move.w  D0, D2
                 lea     (Title_Cards_Config), A3 ; loc_BC66
                 lsl.w   #$04, D0
@@ -13735,7 +13817,7 @@ loc_BE60:
                 move.b  (A2)+, D0
                 cmpi.b  #$06, D0
                 bne.s   loc_BE86
-                add.b   ($FFFFFE11).w, D0
+                add.b   (Current_Act).w, D0
 loc_BE86:
                 move.b  D0, $001A(A1)
                 move.l  #Level_Results_Mappings, $0004(A1) ; loc_C5A8
@@ -13809,12 +13891,12 @@ loc_BF4C:
                 jmp     (PlaySound)              ; loc_14C6
 loc_BF66:
                 moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
+                move.b  (Current_Zone).w, D0
                 add.w   D0, D0
-                add.b   ($FFFFFE11).w, D0
+                add.b   (Current_Act).w, D0
                 add.w   D0, D0
                 move.w  loc_BF9A(PC, D0), D0
-                move.w  D0, ($FFFFFE10).w
+                move.w  D0, (Current_ZoneAndAct).w
                 clr.b   ($FFFFFE30).w
                 tst.b   ($FFFFF7CD).w
                 beq.s   loc_BF8E
@@ -14836,7 +14918,7 @@ Obj_Index:
                 dc.l    Obj_0x50_Aquis                    ; loc_1E010
                 dc.l    Obj_0x51_Aquis                    ; loc_1E62C
                 dc.l    Obj_0x52_Piranha                  ; loc_1DC54
-                dc.l    Obj_0x53_Chopper                  ; loc_1F5E8   
+		dc.l	Obj53
                 dc.l    Obj_0x54_Motobug                  ; loc_1F6E8 
                 dc.l    Obj_0x55_Ghz_Boss                 ; loc_2030C
                 dc.l    Obj_0x56                          ; loc_205A6
@@ -16511,7 +16593,7 @@ loc_E158:
                 dbra    D1, loc_E158
                 moveq   #$00, D5
                 moveq   #$00, D0
-                move.w  ($FFFFFE10).w, D0
+                move.w  (Current_ZoneAndAct).w, D0
                 ror.b   #$01, D0
                 lsr.w   #$06, D0
                 lea     (Rings_Layout), A1      ; loc_48000
@@ -16612,7 +16694,7 @@ Load_Object_Pos_Index: ; loc_E25E:
                 dc.w    Load_Object_Pos_Sub_03-Load_Object_Pos_Index ; loc_E458
 Load_Object_Pos_Sub_01: ; loc_E264:   
                 addq.b  #$02, ($FFFFF76C).w
-                move.w  ($FFFFFE10).w, D0
+                move.w  (Current_ZoneAndAct).w, D0
                 ror.b   #$01, D0
                 lsr.w   #$06, D0
                 lea     (Objects_Layout), A0    ; loc_44000
@@ -18890,7 +18972,7 @@ Obj01_ChkInvin:	; Checks if Sonic has run out of invincibility frames
 		cmpi.w	#$C,($FFFFFE14).w
 		bcs.s	Obj01_RmvInvin
 		moveq	#0,d0
-		move.b	($FFFFFE10).w,d0
+		move.b	(Current_Zone).w,d0
 		lea	Sonic_MusicList(pc),a1
 		move.b	(a1,d0.w),d0
 		jsr	(PlayMusic).l
@@ -19631,13 +19713,13 @@ Sonic_Boundary_Bottom:
 ; ---------------------------------------------------------------------------
 ; Leftover from Sonic 1, which would transport the player to SBZ3/LZ4 upon
 ; reaching a certain position; its ID is different, for whatever reason
-		cmpi.w	#$1001,($FFFFFE10).w	; is it DEZ2?
-		bne.w	JmpTo_KillSonic		; if not, branch
-		cmpi.w	#$2000,($FFFFB008).w	; is Sonic beyond x position $2000?
-		bcs.w	JmpTo_KillSonic		; if not, branch
+		cmpi.w	#$1001,(Current_ZoneAndAct).w	; is it DEZ2?
+		bne.w	JmpTo_KillSonic			; if not, branch
+		cmpi.w	#$2000,($FFFFB008).w		; is Sonic beyond x position $2000?
+		bcs.w	JmpTo_KillSonic			; if not, branch
 		clr.b	($FFFFFE30).w
 		move.w	#1,($FFFFFE02).w
-		move.w	#$103,($FFFFFE10).w	; restart in OWZ4
+		move.w	#$103,(Current_ZoneAndAct).w	; restart in OWZ4
 		rts
 ; ===========================================================================
 ; loc_103F8:
@@ -20717,7 +20799,7 @@ Tails_Modes: ; loc_10EFA:
                 dc.w    Tails_MdRoll-Tails_Modes    ; loc_110C2
                 dc.w    Tails_MdJump2-Tails_Modes   ; loc_110E2
 ; byte_10F02:
-Tails_PlayList:	dc.b	MusID_GHZ
+Tails_MusicList:dc.b	MusID_GHZ
 		dc.b	MusID_GHZ
 		dc.b	MusID_MTZ
 		dc.b	MusID_SSZ
@@ -20758,8 +20840,8 @@ loc_10F26:
                 cmpi.w  #$000C, ($FFFFFE14).w
                 bcs.s   loc_10F5A
                 moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
-                lea     Tails_PlayList(PC), A1  ; loc_10F02
+                move.b  (Current_Zone).w, D0
+                lea     Tails_MusicList(PC), A1  ; loc_10F02
                 move.b  $00(A1, D0), D0
                 jsr     (PlayMusic)            ; loc_14C0
 loc_10F5A:
@@ -21367,13 +21449,13 @@ loc_11530:
                 rts
 loc_11540:
                 bra     KillTails               ; loc_12074
-                cmpi.w  #$0501, ($FFFFFE10).w
+                cmpi.w  #$0501, (Current_ZoneAndAct).w
                 bne     KillTails               ; loc_12074
                 cmpi.w  #$2000, $0008(A0)
                 bcs     KillTails               ; loc_12074
                 clr.b   ($FFFFFE30).w
                 move.w  #$0001, ($FFFFFE02).w
-                move.w  #$0103, ($FFFFFE10).w
+                move.w  #$0103, (Current_ZoneAndAct).w
                 rts
 loc_1156A:
                 move.w  D0, $0008(A0)
@@ -25934,7 +26016,7 @@ Obj04_Init:
 		move.b	#4,1(a0)
 		move.b	#$80,$19(a0)
 		move.w	8(a0),$30(a0)
-		cmpi.b	#$F,($FFFFFE10).w
+		cmpi.b	#$F,(Current_Zone).w
 		bne.s	Obj04_Action
 		addq.b	#2,$24(a0)	; => Obj04_Action2
 		move.l	#Obj04_MapUnc_152B2,4(a0)
@@ -26029,7 +26111,7 @@ loc_15360:
                
 loc_15364:
                 addq.b  #$02, $0024(A0)
-                move.l  #Waterfall_Mappings, $0004(A0) ; loc_15404
+                move.l  #Obj49_MapUnc_15404, $0004(A0) ; loc_15404
                 move.w  #$23AE, $0002(A0)
                 bsr     Adjust2PArtPointer     ; loc_DC30
                 move.b  #$04, $0001(A0)
@@ -26071,52 +26153,11 @@ loc_153EA:
 loc_153FC:
                 add.b   D3, $001A(A0)
                 bra     J_DisplaySprite_00      ; loc_15720
-Waterfall_Mappings:                
-loc_15404:
-                dc.w    loc_15414-loc_15404
-                dc.w    loc_15426-loc_15404
-                dc.w    loc_154B8-loc_15404
-                dc.w    loc_154BA-loc_15404
-                dc.w    loc_154B8-loc_15404
-                dc.w    loc_154DC-loc_15404
-                dc.w    loc_15414-loc_15404
-                dc.w    loc_1552E-loc_15404
-loc_15414:
-                dc.w    $0002
-                dc.l    $800D0000, $0000FFE0, $800D0000, $00000000
-loc_15426:
-                dc.w    $0012
-                dc.l    $800D0000, $0000FFE0, $800D0000, $00000000
-                dc.l    $800F0008, $0004FFE0, $800F0008, $00040000
-                dc.l    $A00F0008, $0004FFE0, $A00F0008, $00040000
-                dc.l    $C00F0008, $0004FFE0, $C00F0008, $00040000
-                dc.l    $E00F0008, $0004FFE0, $E00F0008, $00040000
-                dc.l    $000F0008, $0004FFE0, $000F0008, $00040000
-                dc.l    $200F0008, $0004FFE0, $200F0008, $00040000
-                dc.l    $400F0008, $0004FFE0, $400F0008, $00040000
-                dc.l    $600F0008, $0004FFE0, $600F0008, $00040000
-loc_154B8:
-                dc.w    $0000
-loc_154BA:
-                dc.w    $0004
-                dc.l    $E00F0008, $0004FFE0, $E00F0008, $00040000
-                dc.l    $000F0008, $0004FFE0, $000F0008, $00040000
-loc_154DC:
-                dc.w    $000A
-                dc.l    $C00F0008, $0004FFE0, $C00F0008, $00040000
-                dc.l    $E00F0008, $0004FFE0, $E00F0008, $00040000
-                dc.l    $000F0008, $0004FFE0, $000F0008, $00040000
-                dc.l    $200F0008, $0004FFE0, $200F0008, $00040000
-                dc.l    $400F0008, $0004FFE0, $400F0008, $00040000
-loc_1552E:
-                dc.w    $000E
-                dc.l    $800D0000, $0000FFE0, $800D0000, $00000000
-                dc.l    $800F0008, $0004FFE0, $800F0008, $00040000
-                dc.l    $A00F0008, $0004FFE0, $A00F0008, $00040000
-                dc.l    $C00F0008, $0004FFE0, $C00F0008, $00040000
-                dc.l    $E00F0008, $0004FFE0, $E00F0008, $00040000
-                dc.l    $000F0008, $0004FFE0, $000F0008, $00040000
-                dc.l    $200F0008, $0004FFE0, $200F0008, $00040000
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj49_MapUnc_15404:	BINCLUDE	"mappings/sprite/obj49.bin"
 ;=============================================================================== 
 ; Object 0x49 - Green Hill - Waterfalls 
 ; [ End ]                         
@@ -27064,7 +27105,7 @@ loc_16238:
                 addq.b  #$02, $0024(A0)
                 move.l  #Elevator_Mappings, $0004(A0) ; loc_16412
                 move.w  #$63A0, $0002(A0)
-                cmpi.b  #$0A, ($FFFFFE10).w
+                cmpi.b  #$0A, (Current_Zone).w
                 bne.s   loc_16258
                 move.w  #$6300, $0002(A0)
 loc_16258:
@@ -28409,7 +28450,7 @@ loc_1769E:
                 move.w  #$43B2, $0002(A0)
                 move.b  #$18, $0019(A0)
                 move.l  #loc_177F0, $003C(A0)
-                cmpi.b  #$0D, ($FFFFFE10).w
+                cmpi.b  #$0D, (Current_Zone).w
                 bne.s   loc_176E2
                 move.l  #Tunel_Obstacule_Mappings, $0004(A0) ; loc_179F6
                 move.w  #$6430, $0002(A0)
@@ -32997,7 +33038,7 @@ loc_1BA44:
                 move.b  #$0C, $0016(A0)
                 move.l  #loc_1BC5C, $002C(A0)
                 move.b  #$01, $001A(A0)
-                cmpi.b  #$0B, ($FFFFFE10).w
+                cmpi.b  #$0B, (Current_Zone).w
                 bne     loc_1BB44
                 addq.b  #$02, $0024(A0)
                 move.l  #Rotating_Boxes_Mappings, $0004(A0) ; loc_1BCB0
@@ -33177,7 +33218,7 @@ loc_1BD06:
                 addq.b  #$02, $0024(A0)
                 move.l  #Mz_Platform_Mappings, $0004(A0) ; loc_1AE2C
                 move.w  #$6000, $0002(A0)
-                cmpi.b  #$0D, ($FFFFFE10).w
+                cmpi.b  #$0D, (Current_Zone).w
                 bne.s   loc_1BD2E
                 move.l  #Block_Mappings, $0004(A0)       ; loc_1BF4A
                 move.w  #$6418, $0002(A0)
@@ -36491,7 +36532,7 @@ loc_1E8D6:
                 bsr     J_AnimateSprite_09      ; loc_1EB98
                 bra     loc_1EBA4
 loc_1E8FC:
-                move.l  #Buzz_Bomber_Mappings, $0004(A0) ; loc_1EB0E
+                move.l  #Obj4B_MapUnc_1EB0E, $0004(A0) ; Obj4B_MapUnc_1EB0E
                 move.w  #$03E6, $0002(A0)
                 bsr     J_Adjust2PArtPointer_20 ; loc_1EBAA
                 ori.b   #$04, $0001(A0)
@@ -36506,7 +36547,7 @@ loc_1E8FC:
                 bne.s   loc_1E9A6
                 move.b  #$4B, $0000(A1)
                 move.b  #$04, $0024(A1)
-                move.l  #Buzz_Bomber_Mappings, $0004(A1) ; loc_1EB0E
+                move.l  #Obj4B_MapUnc_1EB0E, $0004(A1) ; Obj4B_MapUnc_1EB0E
                 move.w  #$03E6, $0002(A1)
                 bsr     J_Adjust2PArtPointer2_03 ; loc_1EB9E
                 move.b  #$04, $0018(A1)
@@ -36599,7 +36640,7 @@ loc_1EA72:
                 bne.s   loc_1EAEC
                 move.b  #$4B, $0000(A1)
                 move.b  #$06, $0024(A1)
-                move.l  #Buzz_Bomber_Mappings, $0004(A1) ; loc_1EB0E
+                move.l  #Obj4B_MapUnc_1EB0E, $0004(A1) ; Obj4B_MapUnc_1EB0E
                 move.w  #$03E6, $0002(A1)
                 bsr     J_Adjust2PArtPointer2_03 ; loc_1EB9E
                 move.b  #$04, $0018(A1)
@@ -36634,38 +36675,12 @@ loc_1EB01:
                 dc.b    $03, $05, $06, $FF
 loc_1EB05:                
                 dc.b    $09, $01, $01, $01, $01, $01, $FD, $00, $00 
-Buzz_Bomber_Mappings:                    
-loc_1EB0E:
-                dc.w    loc_1EB1C-loc_1EB0E
-                dc.w    loc_1EB2E-loc_1EB0E
-                dc.w    loc_1EB48-loc_1EB0E
-                dc.w    loc_1EB62-loc_1EB0E
-                dc.w    loc_1EB6C-loc_1EB0E
-                dc.w    loc_1EB76-loc_1EB0E
-                dc.w    loc_1EB80-loc_1EB0E
-loc_1EB1C:
-                dc.w    $0002
-                dc.l    $F8090000, $0000FFE8, $F8090006, $00030000
-loc_1EB2E:
-                dc.w    $0003
-                dc.l    $F8090000, $0000FFE8, $F805000C, $00060000
-                dc.l    $08050010, $00080002
-loc_1EB48:
-                dc.w    $0003
-                dc.l    $F8090000, $0000FFE8, $F805000C, $00060000
-                dc.l    $08050014, $000A0002
-loc_1EB62:
-                dc.w    $0001
-                dc.l    $F0010014, $000A0004
-loc_1EB6C:
-                dc.w    $0001
-                dc.l    $F0010016, $000B0004
-loc_1EB76:
-                dc.w    $0001
-                dc.l    $F8010018, $000CFFF4
-loc_1EB80:
-                dc.w    $0001
-                dc.l    $F801001A, $000DFFF4                
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj4B_MapUnc_1EB0E:	BINCLUDE	"mappings/sprite/obj4B.bin"
+
+		align 4
 ;=============================================================================== 
 ; Object 0x4B - Green Hill - Buzz Bomber  
 ; [ End ]                         
@@ -37339,87 +37354,88 @@ J_AnimateSprite_0C: ; loc_1F5D6:
 J_ObjectFall_05: ; loc_1F5DC:
                 jmp     ObjectFall              ; (loc_D24E)
 J_SpeedToPos_10: ; loc_1F5E2:
-                jmp     SpeedToPos              ; (loc_D27A)                 
-;=============================================================================== 
-; Object 0x53 - Green Hill - Chopper
-; [ Begin ]                         
-;===============================================================================                  
-Obj_0x53_Chopper: ; loc_1F5E8: 
-                moveq   #$00, D0
-                move.b  $0024(A0), D0
-                move.w  loc_1F5FA(PC, D0), D1
-                jsr     loc_1F5FA(PC, D1)
-                bra     J_MarkObjGone_19        ; loc_1F6D0
-loc_1F5FA:
-                dc.w    loc_1F5FE-loc_1F5FA
-                dc.w    loc_1F638-loc_1F5FA
-loc_1F5FE:
-                addq.b  #$02, $0024(A0)
-                move.l  #Chopper_Mappings, $0004(A0) ; loc_1F696
-                move.w  #$041C, $0002(A0)
-                bsr     J_Adjust2PArtPointer_21 ; loc_1F6DC
-                move.b  #$04, $0001(A0)
-                move.b  #$04, $0018(A0)
-                move.b  #$09, $0020(A0)
-                move.b  #$10, $0019(A0)
-                move.w  #$FC00, $0012(A0)
-                move.w  $000C(A0), $0030(A0)
-loc_1F638:
-                lea     (loc_1F684), A1
-                bsr     J_AnimateSprite_0D      ; loc_1F6D6
-                bsr     J_SpeedToPos_11         ; loc_1F6E2
-                addi.w  #$0018, $0012(A0)
-                move.w  $0030(A0), D0
-                cmp.w   $000C(A0), D0
-                bcc.s   loc_1F660
-                move.w  D0, $000C(A0)
-                move.w  #$FB00, $0012(A0)
-loc_1F660:
-                move.b  #$01, $001C(A0)
-                subi.w  #$00C0, D0
-                cmp.w   $000C(A0), D0
-                bcc.s   loc_1F682
-                move.b  #$00, $001C(A0)
-                tst.w   $0012(A0)
-                bmi.s   loc_1F682
-                move.b  #$02, $001C(A0)
-loc_1F682:
-                rts
-loc_1F684:
-                dc.w    loc_1F68A-loc_1F684
-                dc.w    loc_1F68E-loc_1F684
-                dc.w    loc_1F692-loc_1F684
-loc_1F68A:
-                dc.b    $07, $00, $01, $FF
-loc_1F68E:
-                dc.b    $03, $00, $01, $FF
-loc_1F692:
-                dc.b    $07, $00, $FF, $00
-Chopper_Mappings:                
-loc_1F696:
-                dc.w    loc_1F69A-loc_1F696
-                dc.w    loc_1F6B4-loc_1F696
-loc_1F69A:
-                dc.w    $0003
-                dc.l    $F0050000, $0000FFF4, $F0010004, $00020004
-                dc.l    $0009000A, $0005FFF4
-loc_1F6B4:
-                dc.w    $0003
-                dc.l    $F0050000, $0000FFF4, $F0050006, $00030002
-                dc.l    $00090010, $0008FFF4                  
-;=============================================================================== 
-; Object 0x53 - Green Hill - Chopper
-; [ End ]                         
-;=============================================================================== 
-                dc.w    $0000                   ; Filler  
-J_MarkObjGone_19: ; loc_1F6D0:
-                jmp     MarkObjGone             ; loc_D2A0
-J_AnimateSprite_0D: ; loc_1F6D6:
-                jmp     AnimateSprite           ; loc_D412
-J_Adjust2PArtPointer_21: ; loc_1F6DC:
-                jmp     Adjust2PArtPointer     ; loc_DC30
-J_SpeedToPos_11: ; loc_1F6E2:
-                jmp     SpeedToPos              ; loc_D27A  
+                jmp     SpeedToPos              ; (loc_D27A)
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Object 53 - Masher (jumping piranha fish badnik) from GHZ
+; ---------------------------------------------------------------------------
+; Sprite_1F5E8: Obj_0x53_Masher:
+Obj53:
+		moveq   #0,d0
+		move.b	$24(a0),d0
+		move.w	Obj53_Index(pc,d0.w),d1
+		jsr	Obj53_Index(pc,d1.w)
+		bra.w	JmpTo19_MarkObjGone
+; ===========================================================================
+; off_1F5FA:
+Obj53_Index:
+                dc.w    Obj53_Init-Obj53_Index
+                dc.w    Obj53_Main-Obj53_Index
+; ===========================================================================
+; loc_1F5FE:
+Obj53_Init:
+		addq.b	#2,$24(a0)
+		move.l	#Obj53_MapUnc_1F696,4(a0)
+		move.w	#$41C,2(a0)
+		bsr.w	JmpTo33_Adjust2PArtPointer
+		move.b	#4,1(a0)
+		move.b	#4,$18(a0)
+		move.b	#9,$20(a0)
+		move.b	#$10,$19(a0)
+		move.w	#-$400,$12(a0)
+		move.w	$C(a0),$30(a0)
+; loc_1F638:
+Obj53_Main:
+		lea	(Ani_obj5C).l,a1
+		bsr.w	JmpTo13_AnimateSprite
+		bsr.w	JmpTo17_SpeedToPos
+		addi.w	#$18,$12(a0)
+		move.w	$30(a0),d0
+		cmp.w	$C(a0),d0
+		bcc.s	+
+		move.w	d0,$C(a0)
+		move.w	#-$500,$12(a0)
++
+		move.b	#1,$1C(a0)
+		subi.w	#$C0,d0
+		cmp.w	$C(a0),d0
+		bcc.s	return_1F682
+		move.b	#0,$1C(a0)
+		tst.w	$12(a0)
+		bmi.s	return_1F682
+		move.b	#2,$1C(a0)
+
+return_1F682:
+		rts
+; ===========================================================================
+; animation script
+; off_1F684:
+Ani_obj5C:	dc.w	byte_1F68A-Ani_obj5C
+		dc.w	byte_1F68E-Ani_obj5C
+		dc.w	byte_1F692-Ani_obj5C
+byte_1F68A:	dc.b	7,  0,  1,$FF
+byte_1F68E:	dc.b	3,  0,  1,$FF
+byte_1F692:	dc.b	7,  0,$FF
+		even
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj53_MapUnc_1F696:	BINCLUDE	"mappings/sprite/obj53.bin"
+
+		align 4
+; ===========================================================================
+; loc_1F6D0:
+JmpTo19_MarkObjGone:
+		jmp	(MarkObjGone).l
+; loc_1F6D6:
+JmpTo13_AnimateSprite:
+		jmp	(AnimateSprite).l
+; loc_1F6DC:
+JmpTo33_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
+; loc_1F6E2:
+JmpTo17_SpeedToPos:
+		jmp	(SpeedToPos).l
 ;=============================================================================== 
 ; Object 0x54 - Green Hill - Motobug
 ; [ Begin ]                         
@@ -37436,7 +37452,7 @@ loc_1F6F6:
                 dc.w    loc_1F904-loc_1F6F6
                 dc.w    loc_1F88A-loc_1F6F6
 loc_1F700:
-                move.l  #Motobug_Mappings, $0004(A0) ; loc_1F938
+                move.l  #Obj54_MapUnc_1F938, $0004(A0) ; loc_1F938
                 move.w  #$0402, $0002(A0)
                 bsr     J_Adjust2PArtPointer_22 ; loc_1F98A
                 ori.b   #$04, $0001(A0)
@@ -37449,7 +37465,7 @@ loc_1F700:
                 bne.s   loc_1F788
                 move.b  #$54, $0000(A1)
                 move.b  #$06, $0024(A1)
-                move.l  #Motobug_Mappings, $0004(A1) ; loc_1F938
+                move.l  #Obj54_MapUnc_1F938, $0004(A1) ; loc_1F938
                 move.w  #$2402, $0002(A1)
                 bsr     J_Adjust2PArtPointer2_04 ; loc_1F97E
                 move.b  #$03, $0018(A1)
@@ -37518,7 +37534,7 @@ loc_1F82C:
                 bne.s   loc_1F888
                 move.b  #$54, $0000(A1)
                 move.b  #$08, $0024(A1)
-                move.l  #Buzz_Bomber_Mappings, $0004(A1) ; loc_1EB0E
+                move.l  #Obj4B_MapUnc_1EB0E, $0004(A1) ; Obj4B_MapUnc_1EB0E
                 move.w  #$03E6, $0002(A1)
                 bsr     J_Adjust2PArtPointer2_04 ; loc_1F97E
                 move.b  #$04, $0018(A1)
@@ -37581,20 +37597,11 @@ loc_1F930:
                 dc.b    $05, $00, $01, $FF
 loc_1F934:
                 dc.b    $01, $00, $01, $FF
-Motobug_Mappings:                
-loc_1F938:
-                dc.w    loc_1F93E-loc_1F938
-                dc.w    loc_1F950-loc_1F938
-                dc.w    loc_1F962-loc_1F938
-loc_1F93E:
-                dc.w    $0002
-                dc.l    $F00F0000, $0000FFF0, $01090014, $000AFFF4
-loc_1F950:
-                dc.w    $0002
-                dc.l    $F00F0000, $0000FFF0, $01091014, $100AFFF4
-loc_1F962:
-                dc.w    $0001
-                dc.l    $FA050010, $0008FFE9                     
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj54_MapUnc_1F938:	BINCLUDE	"mappings/sprite/obj54.bin"
+
 ;=============================================================================== 
 ; Object 0x54 - Green Hill - Motobug
 ; [ End ]                         
@@ -40463,7 +40470,7 @@ J_Adjust2PArtPointer_26: ; loc_223E4:
                 
 Dynamic_Art_Cues: ; loc_223EC: ; Dynamic reload sprites routine
                 moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
+                move.b  (Current_Zone).w, D0
                 add.w   D0, D0
                 add.w   D0, D0
                 move.w  loc_2240A(PC, D0), D1
@@ -40800,7 +40807,7 @@ loc_2283C: ; Neo Green Hill Dynamic Reload Sprites
                 dc.w    $0204                   ; Frames/Tiles 
                 dc.w    $0004                   ; Frame Load/Frame Time               
 loc_22866:
-                cmpi.b  #$0D, ($FFFFFE10).w
+                cmpi.b  #$0D, (Current_Zone).w
                 beq.s   loc_22870
 loc_2286E:
                 rts
@@ -40860,18 +40867,18 @@ loc_228A4:
                 dbra    D1, loc_228A4
                 rts    
 Load_16x16_Mappings_For_Dyn_Sprites: ; loc_2293A: ; Load 16x16 mappings used by dynamic reload sprites...
-                cmpi.b  #$07, ($FFFFFE10).w
+                cmpi.b  #$07, (Current_Zone).w
                 bne.s   loc_22952
                 bsr     loc_22D62
                 move.b  #$FF, ($FFFFF7F1).w
                 move.w  #$FFFF, (TempArray_LayerDef+$20).w
 loc_22952:
-                cmpi.b  #$0D, ($FFFFFE10).w
+                cmpi.b  #$0D, (Current_Zone).w
                 bne.s   loc_22960
                 move.b  #$FF, ($FFFFF7F1).w
 loc_22960:
                 moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
+                move.b  (Current_Zone).w, D0
                 add.w   D0, D0
                 move.w  Map16Delta_Index(PC, D0), D0 ; loc_229A2
                 lea     Map16Delta_Index(PC, D0), A0 ; loc_229A2
@@ -41094,7 +41101,7 @@ loc_22D94:
                 dc.w    $2B00, $3280, $3600, $3680, $3C80, $3D00, $3F00, $3F80
                 dc.w    $4080, $4480, $4580, $4880, $4900, $4B80, $4C80, $4D80
 loc_22DF4:
-                jmp     NemDec_ToRAM        ; loc_160E 
+                jmp     NemDecToRAM        ; loc_160E 
                 dc.w    $0000 ; Filler    
 Obj_0x21_Head_Up_Display: ; loc_22DFC:
                 moveq   #$00, D0
@@ -41650,7 +41657,7 @@ loc_23B82:
                 bra.s   loc_23BC2
 loc_23BBC:
                 moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
+                move.b  (Current_Zone).w, D0
 loc_23BC2:
                 lea     (Debug_Index), A2   ;loc_23DBE 
                 add.w   D0, D0
@@ -41668,7 +41675,7 @@ loc_23BEC:
                 cmpi.b  #$10, ($FFFFF600).w
                 beq.s   loc_23BFC
                 moveq   #$00, D0
-                move.b  ($FFFFFE10).w, D0
+                move.b  (Current_Zone).w, D0
 loc_23BFC:
                 lea     (Debug_Index), A2 ; loc_23DBE
                 add.w   D0, D0
@@ -41840,15 +41847,15 @@ Debug_GHz: ; loc_23DF2:  ; Green Hill
                 dc.b    $01, $00, $04, $7C
                 dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
-                dc.l    ($49<<$18)|Waterfall_Mappings          ; loc_15404
+                dc.l    ($49<<$18)|Obj49_MapUnc_15404          ; loc_15404
                 dc.b    $00, $00, $23, $AE
-                dc.l    ($49<<$18)|Waterfall_Mappings          ; loc_15404                
+                dc.l    ($49<<$18)|Obj49_MapUnc_15404          ; loc_15404                
                 dc.b    $02, $03, $23, $AE
-                dc.l    ($49<<$18)|Waterfall_Mappings          ; loc_15404 
+                dc.l    ($49<<$18)|Obj49_MapUnc_15404          ; loc_15404 
                 dc.b    $04, $05, $23, $AE
-                dc.l    ($18<<$18)|Ghz_Platform_Mappings       ; loc_9078
+                dc.l    ($18<<$18)|Obj18_MapUnc_9078       ; loc_9078
                 dc.b    $01, $00, $40, $00
-                dc.l    ($18<<$18)|Ghz_Platform_Mappings       ; loc_9078
+                dc.l    ($18<<$18)|Obj18_MapUnc_9078       ; loc_9078
                 dc.b    $9A, $01, $40, $00
                 dc.l    ($36<<$18)|Obj36_MapUnc_CAB0              ; loc_CBA0
                 dc.b    $00, $00, $24, $34
@@ -41862,11 +41869,11 @@ Debug_GHz: ; loc_23DF2:  ; Green Hill
                 dc.b    $30, $07, $04, $3C
                 dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
                 dc.b    $40, $0A, $04, $3C
-                dc.l    ($4B<<$18)|Buzz_Bomber_Mappings        ; loc_1EB0E
+                dc.l    ($4B<<$18)|Obj4B_MapUnc_1EB0E        ; Obj4B_MapUnc_1EB0E
                 dc.b    $00, $00, $03, $E6
-                dc.l    ($54<<$18)|Motobug_Mappings            ; loc_1F938
+                dc.l    ($54<<$18)|Obj54_MapUnc_1F938            ; loc_1F938
                 dc.b    $00, $00, $04, $02
-                dc.l    ($53<<$18)|Chopper_Mappings            ; loc_1F696                
+                dc.l    ($53<<$18)|Obj53_MapUnc_1F696            ; loc_1F696                
                 dc.b    $00, $00, $04, $1C
                 dc.l    ($4F<<$18)|Dinobot_Mappings            ; loc_1DFCA  ; Out of Pointers
                 dc.b    $00, $00, $05, $00
@@ -41878,7 +41885,7 @@ Debug_GHz: ; loc_23DF2:  ; Green Hill
                 dc.b    $00, $00, $25, $70
                 dc.l    ($4D<<$18)|Rhinobot_Mappings           ; loc_1DAEE  ; Out of Pointers
                 dc.b    $00, $00, $23, $C4
-                dc.l    ($4B<<$18)|Buzz_Bomber_Mappings        ; loc_1EB0E  ; Out of Pointers
+                dc.l    ($4B<<$18)|Obj4B_MapUnc_1EB0E        ; Obj4B_MapUnc_1EB0E  ; Out of Pointers
                 dc.b    $00, $00, $03, $2C
                 dc.l    ($4E<<$18)|Crocobot_Mappings           ; loc_1F420  ; Out of Pointers
                 dc.b    $00, $00, $23, $00
@@ -41954,9 +41961,9 @@ Debug_HTz: ; loc_23FAE:  ; Hill Top
                 dc.b    $01, $00, $04, $7C
                 dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
-                dc.l    ($18<<$18)|Ghz_Platform_Mappings       ; loc_9078                    
+                dc.l    ($18<<$18)|Obj18_MapUnc_9078       ; loc_9078                    
                 dc.b    $01, $00, $40, $00
-                dc.l    ($18<<$18)|Ghz_Platform_Mappings       ; loc_9078  
+                dc.l    ($18<<$18)|Obj18_MapUnc_9078       ; loc_9078  
                 dc.b    $9A, $01, $40, $00
                 dc.l    ($36<<$18)|Obj36_MapUnc_CAB0              ; loc_CBA0
                 dc.b    $00, $00, $24, $34
@@ -42022,7 +42029,7 @@ Debug_HPz: ; loc_24078:  ; Hidden Palace
                 dc.b    $00, $00, $25, $70                 
                 dc.l    ($4D<<$18)|Rhinobot_Mappings           ; loc_1DAEE  ; Out of Pointers
                 dc.b    $00, $00, $23, $C4                   
-                dc.l    ($4B<<$18)|Buzz_Bomber_Mappings        ; loc_1EB0E  ; Out of Pointers
+                dc.l    ($4B<<$18)|Obj4B_MapUnc_1EB0E        ; Obj4B_MapUnc_1EB0E  ; Out of Pointers
                 dc.b    $00, $00, $03, $2C                  
                 dc.l    ($4E<<$18)|Crocobot_Mappings           ; loc_1F420  ; Out of Pointers
                 dc.b    $00, $00, $23, $00                  
@@ -42328,9 +42335,9 @@ loc_244CA:
                 dc.w    (((loc_244FC-loc_244CA-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    ArtNem_GHZ    ; loc_81C00
                 dc.w    $0000                    
-                dc.l    Ghz_Waterfall           ; loc_73B3C
+                dc.l    ArtNem_GHZ_Waterfall           ; loc_73B3C
                 dc.w    $75C0 
-                dc.l    Ghz_Bridge              ; loc_73D90  
+                dc.l    ArtNem_GHZ_Bridge              ; loc_73D90  
                 dc.w    $78C0    
                 dc.l    FireBall                ; loc_739C6  
                 dc.w    $79C0 
@@ -42345,11 +42352,11 @@ loc_244CA:
 Green_Hill_Sprites_2:                  
 loc_244FC: 
                 dc.w    (((loc_24510-loc_244FC-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Ghz_Buzzer_Bomber       ; loc_7A4BC
+                dc.l    ArtNem_Buzzer       ; loc_7A4BC
                 dc.w    $7CC0 
-                dc.l    Ghz_Motobug             ; loc_7C514
+                dc.l    ArtNem_Snail             ; loc_7C514
                 dc.w    $8040   
-                dc.l    Ghz_Chopper             ; loc_7CA92
+                dc.l    ArtNem_Masher             ; loc_7CA92
                 dc.w    $8380    
 Wood_Sprites_1:   
 loc_24510:
@@ -42470,7 +42477,7 @@ loc_24626:
 loc_2463A: ; Not all sprites are loaded in to VRam               
                 dc.l    Hpz_Crocobot            ; loc_7A11A ; Left Over 
                 dc.w    $6000 
-                dc.l    Ghz_Buzzer_Bomber       ; loc_7A4BC
+                dc.l    ArtNem_Buzzer       ; loc_7A4BC
                 dc.w    $6580  
                 dc.l    Hpz_Batbot              ; loc_7A6A2
                 dc.w    $6A00  
@@ -47537,12 +47544,20 @@ Title_Screen_Sonic_Tails: ; loc_72E82:
                 BINCLUDE  "data\sprites\sontascr.nem" ; Sonic And Tails in Title Screen  
 FireBall: ; loc_739C6:                 
                 BINCLUDE  "data\sprites\fireball.nem"
-Ghz_Waterfall: ; loc_73B3C:  
-                BINCLUDE  "data\ghz\watrfall.nem"  
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Waterfall in GHZ			; ArtNem_73B3C: Ghz_Waterfall:
+		even
+ArtNem_GHZ_Waterfall:	BINCLUDE	"art/nemesis/GHZ waterfall tiles.bin"
+
 Htz_Lava_Bubble: ; loc_73C42:   
                 BINCLUDE  "data\htz\lvbubble.nem"              
-Ghz_Bridge: ; loc_73D90: 
-                BINCLUDE  "data\ghz\bridge.nem"                  
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Bridge in GHZ			; ArtNem_73D90: Ghz_Bridge:
+		even
+ArtNem_GHZ_Bridge:	BINCLUDE	"art/nemesis/GHZ bridge.bin"
+
 Htz_Teleferic:  ; loc_73E68: 
                 BINCLUDE  "data\htz\telefrcs.nem" 
 Htz_Automatic_Door: ; loc_7415C: 
@@ -47655,17 +47670,17 @@ Switch: ; loc_78580:
                 BINCLUDE  "data\sprites\switch.nem"   
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Vertical Spring		ArtNem_78658: Vertical_Spring:
+; Vertical Spring		; ArtNem_78658: Vertical_Spring:
 	even
 ArtNem_VrtclSprng:	BINCLUDE	"art/nemesis/Vertical spring.bin"
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Horizontal Spring		ArtNem_78774: Horizontal_Spring:
+; Horizontal Spring		; ArtNem_78774: Horizontal_Spring:
 	even
 ArtNem_HrzntlSprng:	BINCLUDE	"art/nemesis/Horizontal spring.bin"
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Diagonal Spring		ArtNem_7883E: Diagonal_Spring:
+; Diagonal Spring		; ArtNem_7883E: Diagonal_Spring:
 	even
 ArtNem_DignlSprng:	BINCLUDE	"art/nemesis/Diagonal spring.bin"
 
@@ -47675,17 +47690,17 @@ Head_up_display_Sonic: ; loc_78B1A:
 		BINCLUDE	"art/nemesis/Sonic lives counter.bin"
 ; --------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Ring				ArtNem_78C30: Rings:
+; Ring				; ArtNem_78C30: Rings:
 		even
 ArtNem_Ring:	BINCLUDE	"art/nemesis/Ring.bin"
 ; --------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Monitors and powerups		ArtNem_78D24: Monitors:
+; Monitors and powerups		; ArtNem_78D24: Monitors:
 		even
 ArtNem_Powerups:	BINCLUDE	"art/nemesis/Monitor and contents.bin"
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art (8 blocks)
-; Spikes			ArtNem_7914E: Spikes:
+; Spikes			; ArtNem_7914E: Spikes:
 	even
 ArtNem_Spikes:	BINCLUDE	"art/nemesis/Spikes.bin"
 
@@ -47695,7 +47710,7 @@ Lamp_Post: ; loc_79278:
                 BINCLUDE  "data\sprites\lamppost.nem" 
 ; --------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Singpost			ArtNem_7931E: Signpost
+; Singpost			; ArtNem_7931E: Signpost
 		even
 ArtNem_Signpost:	BINCLUDE	"art/nemesis/Signpost.bin"
 
@@ -47711,8 +47726,12 @@ Air_Bubbles_Numbers: ; loc_79AC0:
                 BINCLUDE  "data\sprites\airbubls.nem"                     
 Hpz_Crocobot: ; loc_7A11A: 
                 BINCLUDE  "data\hpz\Crocobot.nem" 
-Ghz_Buzzer_Bomber: ; loc_7A4BC: 
-                BINCLUDE  "data\ghz\buzzbomb.nem"                  
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Buzzer (not Bomber)		; ArtNem_7A4BC: Ghz_Buzzer_Bomber:
+	even
+ArtNem_Buzzer:	BINCLUDE	"art/nemesis/Buzzer enemy.bin"
+               
 Hpz_Batbot: ; loc_7A6A2: 
                 BINCLUDE  "data\hpz\batbot.nem" 
 OOz_Octus: ; loc_7A9F8: 
@@ -47731,12 +47750,20 @@ Blink: ; loc_7C0C6:
                 BINCLUDE  "data\sprites\blink.nem"    
 Bubble_Monster: ; loc_7C2F2: 
                 BINCLUDE  "data\sprites\bmonster.nem"                                                                 
-Ghz_Motobug: ; loc_7C514: 
-                BINCLUDE  "data\ghz\motobug.nem"                   
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Snail badnik from GHZ		; ArtNem_7C514: Ghz_Motobug:
+	even
+ArtNem_Snail:	BINCLUDE	"art/nemesis/Snail badnik from GHZ.bin"
+
 Crawl: ; loc_7C710: 
                 BINCLUDE  "data\cnz\crawl.nem"                
-Ghz_Chopper: ; loc_7CA92: 
-                BINCLUDE  "data\ghz\chopper.nem"
+; --------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Fish badnik from GHZ		; ArtNem_7CA92: Ghz_Chopper
+		even
+ArtNem_Masher:	BINCLUDE	"art/nemesis/GHZ Pirahna badnik.bin"
+
 Robotnik_Ship: ; loc_7CC9E: 
                 BINCLUDE  "data\sprites\robotnik.nem"  
 Cpz_Boss: ; loc_7D3DA: 
