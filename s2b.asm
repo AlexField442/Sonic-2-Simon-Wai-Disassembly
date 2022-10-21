@@ -2879,27 +2879,47 @@ loc_2516:
                 dc.w    $04EE, $0AEE, $0EEE, $0EEE, $02EE, $08EE, $0CEE, $0EEE
                 dc.w    $00EE, $06EE, $0AEE, $0EEE, $00EE, $04EE, $08EE, $0CEE
                 dc.w    $00EE, $06EE, $0AEE, $0EEE, $00EE, $08EE, $0CEE, $0EEE
-Pal_FadeTo: ; loc_2596:
-                move.w  #$003F, ($FFFFF626).w
-Pal_FadeTo2: ; loc_259C:                
-                moveq   #$00, D0
-                lea     ($FFFFFB00).w, A0
-                move.b  ($FFFFF626).w, D0
-                adda.w  D0, A0
-                moveq   #$00, D1
-                move.b  ($FFFFF627).w, D0
-loc_25AE:                
-                move.w  D1, (A0)+
-                dbra    D0, loc_25AE
-                move.w  #$0015, D4
-loc_25B8:                
-                move.b  #VintID_Fade, (Vint_routine).w
-                bsr     DelayProgram            ; loc_31D8
-                bsr.s   Pal_FadeIn              ; loc_25CE
-                bsr     RunPLC_RAM              ; loc_17A8
-                dbra    D4, loc_25B8
-                rts
-Pal_FadeIn: ; loc_25CE:                
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Subroutine to fade in from black
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_2596: Pal_FadeTo:
+Pal_FadeFromBlack:
+		move.w	#$3F,($FFFFF626).w
+; loc_259C: Pal_FadeTo2:
+Pal_FadeFromBlack2:
+		moveq	#0,d0
+		lea	($FFFFFB00).w,a0
+		move.b	($FFFFF626).w,d0
+		adda.w	d0,a0
+		moveq	#0,d1
+		move.b	($FFFFF627).w,d0
+; loc_25AE:
+.palettewrite:
+		move.w	d1,(a0)+
+		dbf	d0,.palettewrite	; fill palette with $000 (black)
+
+		move.w	#$15,d4
+; loc_25B8:
+.nextframe:
+		move.b	#VintID_Fade,(Vint_routine).w
+		bsr.w	DelayProgram
+		bsr.s	.UpdateAllColours
+		bsr.w	RunPLC_RAM
+		dbf	d4,.nextframe
+
+		rts
+; End of function Pal_FadeFromBlack
+
+; ---------------------------------------------------------------------------
+; Subroutine to update all colours once
+; ---------------------------------------------------------------------------
+; sub_25CE: Pal_FadeIn:
+.UpdateAllColours:
                 moveq   #$00, D0
                 lea     ($FFFFFB00).w, A0
                 lea     ($FFFFFB80).w, A1
@@ -3259,10 +3279,10 @@ PalPointers: ; loc_294E: ; Palette List
                 dc.l    Pal_GHZ, $FB200017 ; Level $01 
                 dc.l    Pal_WZ, $FB200017 ; Wood
                 dc.l    Pal_GHZ, $FB200017 ; Level $03
-                dc.l    Pal_Mz, $FB200017 ; Metropolis
-                dc.l    Pal_Mz, $FB200017 ; Metropolis
+                dc.l    Pal_MTZ, $FB200017 ; Metropolis
+                dc.l    Pal_MTZ, $FB200017 ; Metropolis
                 dc.l    Pal_CNz2, $FB200017 ; Level $06 / Casino Night Act 2
-                dc.l    Pal_HTz, $FB200017 ; Hill Top
+                dc.l    Pal_HTZ, $FB200017 ; Hill Top
                 dc.l    Pal_HPz, $FB200017 ; Hidden Palace
                 dc.l    Pal_GHZ, $FB200017 ; Level $09
                 dc.l    Pal_OOz, $FB200017 ; Oil Ocean
@@ -3298,20 +3318,8 @@ Pal_LevelSelect: ; loc_2B16: ; Level Select Menu
 Pal_SonicTails:		BINCLUDE	"art/palettes/Sonic and Tails.bin"
 Pal_GHZ:		BINCLUDE	"art/palettes/GHZ.bin"       
 Pal_WZ:			BINCLUDE	"art/palettes/WZ.bin"
-Pal_Mz: ; loc_2C76: ; Metropolis
-                dc.w    $0A00, $0000, $0E64, $0A68, $0E86, $0044, $0EEE, $0AAA
-                dc.w    $0888, $0444, $0666, $0222, $00EE, $0088, $0EA8, $0ECA
-                dc.w    $0000, $0422, $0866, $0ECC, $0048, $0008, $0ACE, $0004
-                dc.w    $0008, $0862, $0642, $0420, $0006, $006E, $000E, $00A0
-                dc.w    $0000, $0000, $0CE2, $08C0, $0480, $0260, $0EEE, $04AC
-                dc.w    $006A, $0026, $0048, $0004, $0040, $0020, $0008, $000E
-Pal_HTz: ; loc_2CD6: ; Hill Top
-                dc.w    $0C20, $0000, $0200, $000E, $006E, $0044, $0EEE, $0AAA
-                dc.w    $0888, $0444, $0666, $0E86, $00EE, $0088, $00AE, $00EE
-                dc.w    $0E42, $0200, $0E86, $0640, $0860, $0A82, $0CA4, $0EC6
-                dc.w    $0024, $0040, $0062, $0082, $00A4, $006C, $00C4, $00E8
-                dc.w    $0E42, $0004, $0E64, $0E86, $0EA8, $0028, $0EEC, $0E6E
-                dc.w    $0C4C, $0A2A, $0ECA, $0080, $026E, $004C, $00A4, $00E8   
+Pal_MTZ:		BINCLUDE	"art/palettes/MTZ.bin"
+Pal_HTZ:		BINCLUDE	"art/palettes/HTZ.bin"
 Pal_HPz: ; loc_2D36: ; Hidden Palace
                 dc.w    $0800, $0000, $0242, $0464, $0686, $0044, $0EEE, $0AAA
                 dc.w    $0888, $0444, $08EA, $046A, $00EE, $0088, $0044, $000E
@@ -3678,7 +3686,7 @@ loc_37C4:
 		; screen load Sonic's palette for the font
 		moveq	#3,d0
 		bsr.w	PalLoad1
-		bsr.w	Pal_FadeTo
+		bsr.w	Pal_FadeFromBlack
 
 		move	#$2700,sr
 		move.l	#$40000000,(VDP_control_port).l
@@ -3762,7 +3770,7 @@ loc_38EE:
 		move.w	($FFFFF60C).w,d0
 		ori.b	#$40,d0
 		move.w	d0,(VDP_control_port).l
-		bsr.w	Pal_FadeTo
+		bsr.w	Pal_FadeFromBlack
 ; loc_3948:
 TitleScreen_Loop:
 		move.b	#VintID_Title,(Vint_routine).w
@@ -4484,19 +4492,20 @@ Level_GetBgm:
 		move.b	(a1,d0.w),d0
 		bsr.w	PlayMusic
 		move.b	#$34,($FFFFB080).w
+; loc_431E: LevelInit_TitleCard:
+Level_TtlCard:
+		move.b	#VintID_TitleCard, (Vint_routine).w
+		bsr.w	DelayProgram
+		jsr	(RunObjects).l
+		jsr	(BuildSprites).l
+		bsr.w	RunPLC_RAM
+		move.w	($FFFFB108).w,d0
+		cmp.w	($FFFFB130).w,d0	; has the title card sequence finished?
+		bne.s	Level_TtlCard		; if not, branch
+		tst.l	($FFFFF680).w		; are there any items in the pattern load cue?
+		bne.s	Level_TtlCard		; if yes, branch
+		jsr	(Head_Up_Display_Base).l
 
-LevelInit_TitleCard: ; loc_431E:                
-                move.b  #VintID_TitleCard, (Vint_routine).w
-                bsr     DelayProgram            ; loc_31D8
-                jsr     RunObjects            ; loc_CFD0
-                jsr     BuildSprites           ; loc_D4DA
-                bsr     RunPLC_RAM              ; loc_17A8
-                move.w  ($FFFFB108).w, D0
-                cmp.w   ($FFFFB130).w, D0
-                bne.s   LevelInit_TitleCard     ; loc_431E 
-                tst.l   ($FFFFF680).w
-                bne.s   LevelInit_TitleCard     ; loc_431E
-                jsr     Head_Up_Display_Base    ; loc_23184 Call HUD routine
 loc_434E:
                 moveq   #$03, D0
                 bsr     PalLoad1                ; loc_28E2
@@ -4507,7 +4516,7 @@ loc_434E:
                 jsr     Load_16x16_Mappings_For_Dyn_Sprites ; loc_2293A
                 bsr     Load_Tiles_From_Start   ; loc_76BE
                 jsr     loc_135DA
-                bsr     Load_Colision_Index     ; loc_4AAA
+                bsr     LoadCollisionIndexes     ; loc_4AAA
                 bsr     WaterEffects           ; loc_465A
                 move.b  #$01, ($FFFFB000).w  ; Load Sonic Object
                 tst.w   (Demo_mode_flag).w
@@ -4556,7 +4565,7 @@ loc_4424:
                 move.b  D0, ($FFFFFE2F).w
                 move.w  D0, (Debug_placement_mode).w
                 move.w  D0, ($FFFFFE02).w
-                bsr     Oscillate_Num_Init      ; loc_4B64
+                bsr     OscillateNumInit      ; loc_4B64
                 move.b  #$01, ($FFFFFE1F).w
                 move.b  #$01, ($FFFFFE1D).w
                 move.b  #$01, ($FFFFFE1E).w
@@ -4608,7 +4617,7 @@ loc_44F6:
                 bsr     DelayProgram            ; loc_31D8
                 dbra    D1, loc_44F6 
                 move.w  #$202F, ($FFFFF626).w
-                bsr     Pal_FadeTo2             ; loc_259C
+                bsr     Pal_FadeFromBlack2             ; loc_259C
                 tst.w   (Demo_mode_flag).w
                 bmi.s   Level_ClrTitleCard      ; loc_4526
                 addq.b  #$02, ($FFFFB0A4).w 
@@ -4743,10 +4752,10 @@ WaterEffects:
 ; loc_4672:
 MoveWater:
 		clr.b	(Water_fullscreen_flag).w
-		moveq	#0, D0
+		moveq	#0,d0
 		cmpi.b	#$F,(Current_Zone).w	; is this NGHZ?
 		beq.s	loc_4686		; if yes, branch
-		move.b	($FFFFFE60).w,0
+		move.b	($FFFFFE60).w,d0
 		lsr.w	#1,d0
 
 loc_4686:
@@ -5092,74 +5101,107 @@ Demo_End_Index: ; loc_4A7A:
                 dc.w    $008B, $0837, $0042, $085C, $006A, $085F, $002F, $082C
                 dc.w    $0021, $0803, $2830, $0808, $002E, $0815, $000F, $0846
                 dc.w    $001A, $08FF, $08CA, $0000, $0000, $0000, $0000, $0000
-Load_Colision_Index: ; loc_4AAA:
-                moveq   #$00, D0
-                move.b  (Current_Zone).w, D0
-                lsl.w   #$02, D0
-                move.l  #Primary_Collision, (Collision_addr).w
-                move.l  Primary_Colision_Index(PC, D0), A1 ; loc_4ADC
-                lea     (Primary_Collision).w, A2
-                bsr.s   Load_Colision           ; loc_4ACC
-                move.l  Secundary_Colision_Index(PC, D0), A1 ; loc_4B20
-                lea     (Secondary_Collision).w, A2
-Load_Colision: ; loc_4ACC:
-                move.w  #$02FF, D1
-                moveq   #$00, D2
-Load_Colision_Loop: ; loc_4AD2:
-                move.b  (A1)+, D2
-                move.w  D2, (A2)+
-                dbra    D1, Load_Colision_Loop    ; loc_4AD2
-                rts  
-Primary_Colision_Index: ; loc_4ADC: 
-                dc.l    Green_Hill_Colision_1     ; loc_2F2EA
-                dc.l    Special_Stage_1           ; loc_31CEA
-                dc.l    Wood_Colision             ; loc_2F8EA
-                dc.l    Special_Stage_1           ; loc_31CEA
-                dc.l    Metropolis_Colision       ; loc_2FBEA
-                dc.l    Metropolis_Colision       ; loc_2FBEA
-                dc.l    Special_Stage_1           ; loc_31CEA
-                dc.l    Green_Hill_Colision_1     ; loc_2F2EA
-                dc.l    Hidden_Palace_Colision_1  ; loc_2FEEA
-                dc.l    Special_Stage_1           ; loc_31CEA
-                dc.l    Oil_Ocean_Colision        ; loc_304EA
-                dc.l    Dust_Hill_Colision        ; loc_307EA
-                dc.l    Casino_Night_Colision_1   ; loc_30AEA
-                dc.l    Chemical_Plant_Colision_1 ; loc_310EA
-                dc.l    Special_Stage_1           ; loc_31CEA
-                dc.l    Neo_Green_Hill_Colision_1 ; loc_316EA
-                dc.l    Special_Stage_1           ; loc_31CEA 
-Secundary_Colision_Index: ; loc_4B20:                
-                dc.l    Green_Hill_Colision_2     ; loc_2F5EA
-                dc.l    Special_Stage_1           ; loc_31CEA
-                dc.l    Wood_Colision             ; loc_2F8EA
-                dc.l    Special_Stage_1           ; loc_31CEA
-                dc.l    Metropolis_Colision       ; loc_2FBEA
-                dc.l    Metropolis_Colision       ; loc_2FBEA
-                dc.l    Special_Stage_1           ; loc_31CEA
-                dc.l    Green_Hill_Colision_2     ; loc_2F5EA
-                dc.l    Hidden_Palace_Colision_2  ; loc_301EA
-                dc.l    Special_Stage_1           ; loc_31CEA
-                dc.l    Oil_Ocean_Colision        ; loc_304EA
-                dc.l    Dust_Hill_Colision        ; loc_307EA
-                dc.l    Casino_Night_Colision_2   ; loc_30DEA
-                dc.l    Chemical_Plant_Colision_2 ; loc_313EA
-                dc.l    Special_Stage_1           ; loc_31CEA
-                dc.l    Neo_Green_Hill_Colision_2 ; loc_319EA
-                dc.l    Special_Stage_1           ; loc_31CEA                  
-Oscillate_Num_Init: ; loc_4B64:
-                lea     ($FFFFFE5E).w, A1
-                lea     (Oscillate_Data), A2    ; loc_4B78
-                moveq   #$20, D1
-loc_4B70:
-                move.w  (A2)+, (A1)+
-                dbra    D1, loc_4B70
-                rts
-Oscillate_Data: ; loc_4B78:
-                dc.w    $007D, $0080, $0000, $0080, $0000, $0080, $0000, $0080
-                dc.w    $0000, $0080, $0000, $0080, $0000, $0080, $0000, $0080
-                dc.w    $0000, $0080, $0000, $3848, $00EE, $2080, $00B4, $3080
-                dc.w    $010E, $5080, $01C2, $7080, $0276, $0080, $0000, $4000
-                dc.w    $00FE                  
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_4AAA: Load_Colision_Index:
+LoadCollisionIndexes:
+		moveq	#0,d0
+		move.b	(Current_Zone).w,d0
+		lsl.w	#2,d0
+		move.l	#Primary_Collision,(Collision_addr).w
+		move.l	Off_ColP(pc,d0.w),a1
+		lea	(Primary_Collision).w,a2
+		bsr.s	levelCollisionLoad
+		move.l	Off_ColS(pc,d0.w),a1
+		lea	(Secondary_Collision).w,a2
+; loc_4ACC: Load_Colision
+levelCollisionLoad:
+		move.w	#$2FF,d1
+		moveq	#0,d2
+
+-		move.b	(a1)+,d2
+		move.w	d2,(a2)+
+		dbf	d1,-
+		rts
+; End of function LoadCollisionIndexes
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Pointers to primary collision indexes
+
+; Contains an array of pointers to the primary collision index data for each
+; level. 1 pointer for each level, pointing the primary collision index.
+; ---------------------------------------------------------------------------
+; off_4ADC: Primary_Colision_Index:
+Off_ColP:	dc.l	Green_Hill_Colision_1
+		dc.l	Special_Stage_1
+		dc.l	Wood_Colision
+		dc.l	Special_Stage_1
+		dc.l	Metropolis_Colision
+		dc.l	Metropolis_Colision
+		dc.l	Special_Stage_1
+		dc.l	Green_Hill_Colision_1
+		dc.l	Hidden_Palace_Colision_1
+		dc.l	Special_Stage_1
+		dc.l	Oil_Ocean_Colision
+		dc.l	Dust_Hill_Colision
+		dc.l	Casino_Night_Colision_1
+		dc.l	Chemical_Plant_Colision_1
+		dc.l	Special_Stage_1
+		dc.l	Neo_Green_Hill_Colision_1
+		dc.l	Special_Stage_1
+; ---------------------------------------------------------------------------
+; Pointers to secondary collision indexes
+
+; Contains an array of pointers to the secondary collision index data for
+; each level. 1 pointer for each level, pointing the secondary collision
+; index.
+; ---------------------------------------------------------------------------
+; off_4B20: Secundary_Colision_Index:
+Off_ColS:	dc.l	Green_Hill_Colision_2
+		dc.l	Special_Stage_1
+		dc.l	Wood_Colision
+		dc.l	Special_Stage_1
+		dc.l	Metropolis_Colision
+		dc.l	Metropolis_Colision
+		dc.l	Special_Stage_1
+		dc.l	Green_Hill_Colision_2
+		dc.l	Hidden_Palace_Colision_2
+		dc.l	Special_Stage_1
+		dc.l	Oil_Ocean_Colision
+		dc.l	Dust_Hill_Colision
+		dc.l	Casino_Night_Colision_2
+		dc.l	Chemical_Plant_Colision_2
+		dc.l	Special_Stage_1
+		dc.l	Neo_Green_Hill_Colision_2
+		dc.l	Special_Stage_1
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Oscillating number subroutine
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_4B64:
+OscillateNumInit:
+		lea	($FFFFFE5E).w,a1
+		lea	(Osc_Data).l,a2
+		moveq	#bytesToWcnt(Osc_Data_End-Osc_Data),d1
+; loc_4B70:
+Osc_Loop:
+		move.w	(a2)+,(a1)+
+		dbf	d1,Osc_Loop
+		rts
+; ===========================================================================
+; word_4B78: Oscillate_Data:
+Osc_Data:	dc.w	$7D,$80,0,$80,0,$80,0,$80
+		dc.w	0,$80,0,$80,0,$80,0,$80
+		dc.w	0,$80,0,$3848,$EE,$2080,$B4,$3080
+		dc.w	$10E,$5080,$1C2,$7080,$276,$80,0,$4000
+		dc.w	$FE
+Osc_Data_End:
+
 Oscillate_Num_Do: ; loc_4BBA:
                 cmpi.b  #$06, ($FFFFB024).w
                 bcc.s   loc_4C10
@@ -5899,10 +5941,13 @@ StartLocations:
 		BINCLUDE	"level/startpos/WZ_1.bin"	; $02 - WZ
 		BINCLUDE	"level/startpos/WZ_2.bin"
                 dc.l    $0060028F, $004002AF ; $03
-                dc.l    $0060028C, $004005EC ; $04 - Metropolis
-                dc.l    $006001EC, $004002AF ; $05 - Metropolis
+		BINCLUDE	"level/startpos/MTZ_1.bin"	; $04 - MTZ
+		BINCLUDE	"level/startpos/MTZ_2.bin"
+		BINCLUDE	"level/startpos/MTZ_3.bin"	; $05 - MTZ2
+		BINCLUDE	"level/startpos/MTZ_4.bin"
                 dc.l    $0060028F, $004002AF ; $06
-                dc.l    $004003AF, $0060068F ; $07 - Hill Top
+		BINCLUDE	"level/startpos/HTZ_1.bin"	; $07 - HTZ
+		BINCLUDE	"level/startpos/HTZ_2.bin"
                 dc.l    $023001AC, $003001BD ; $08 - Hidden Palace
                 dc.l    $0060028F, $004002AF ; $09
                 dc.l    $006006AC, $0050056C ; $0A - Oil Ocean
@@ -8676,7 +8721,7 @@ loc_77EE:
                 cmpi.b  #$07, (Current_Zone).w
                 bne.s   loc_7820
                 lea     (Block_Table+$980).w, A1
-                lea     (Hill_Top_16x16_Map), A0 ; loc_84A50
+                lea     (BM16_HTZ), A0 ; loc_84A50
                 move.w  #$03FF, D2
 loc_7804:           
                 move.w  (A0)+, D0
@@ -11168,27 +11213,27 @@ loc_99AE:
                 dc.w    $23FD
                 dc.b    $10, $06
                 
-                dc.l    ($03<<$18)|Teleferics_Mappings ; loc_1611E 
+                dc.l    ($03<<$18)|Obj16_MapUnc_1611E ; loc_1611E 
                 dc.w    $43E6
                 dc.b    $08, $04
                 
-                dc.l    ($04<<$18)|Teleferics_Mappings ; loc_1611E 
+                dc.l    ($04<<$18)|Obj16_MapUnc_1611E ; loc_1611E 
                 dc.w    $43E6
                 dc.b    $08, $04
                 
-                dc.l    ($01<<$18)|Teleferics_Mappings ; loc_1611E 
+                dc.l    ($01<<$18)|Obj16_MapUnc_1611E ; loc_1611E 
                 dc.w    $43E6
                 dc.b    $20, $01
                 
-                dc.l    loc_9B3A 
+                dc.l    Obj1C_MapUnc_9B3A 
                 dc.w    $4000
                 dc.b    $08, $01
                 
-                dc.l    ($01<<$18)|loc_9B3A 
+                dc.l    ($01<<$18)|Obj1C_MapUnc_9B3A 
                 dc.w    $4000
                 dc.b    $08, $01
                 
-                dc.l    loc_9B52 
+                dc.l    Obj1C_MapUnc_9B52 
                 dc.w    $4428
                 dc.b    $04, $04
                 
@@ -11302,28 +11347,12 @@ loc_9B16:
 loc_9B28:
                 dc.w    $0002
                 dc.l    $F00D001A, $000DFFF0, $000D181A, $180DFFF0                
-;=============================================================================== 
-; Object 0x71 - Bridge, Support, Hidden Palace Orbs, Metropolis Lava Bubbles... 
-; [ End ]
-;===============================================================================               
-loc_9B3A:
-                dc.w    loc_9B3E-loc_9B3A
-                dc.w    loc_9B48-loc_9B3A
-loc_9B3E:
-                dc.w    $0001
-                dc.l    $F8050002, $0001FFF8
-loc_9B48:
-                dc.w    $0001
-                dc.l    $F8050006, $0003FFF8
-loc_9B52:
-                dc.w    loc_9B56-loc_9B52
-                dc.w    loc_9B60-loc_9B52
-loc_9B56:
-                dc.w    $0001
-                dc.l    $F8010000, $0000FFFC
-loc_9B60:
-                dc.w    $0001
-                dc.l    $F8010002, $0001FFFC
+; ---------------------------------------------------------------------------
+; Sprite mappings - Obj1C
+; ---------------------------------------------------------------------------
+Obj1C_MapUnc_9B3A:	BINCLUDE	"mappings/sprite/obj1C_a.bin"	; level art
+Obj1C_MapUnc_9B52:	BINCLUDE	"mappings/sprite/obj1C_b.bin"	; ARZ waterfall
+
 loc_9B6A:
                 dc.w    loc_9B72-loc_9B6A
                 dc.w    loc_9B7C-loc_9B6A
@@ -11460,7 +11489,7 @@ loc_9CF0:
                 dc.w    loc_9D76-loc_9CF0
 loc_9CF4:
                 addq.b  #$02, $0024(A0)
-                move.l  #Automatic_Door_Mappings, $0004(A0) ; loc_9E1E
+                move.l  #Obj2D_MapUnc_9E1E, $0004(A0) ; loc_9E1E
                 move.w  #$2426, $0002(A0)
                 move.b  #$08, $0019(A0)
                 cmpi.b  #$04, (Current_Zone).w
@@ -11544,26 +11573,12 @@ loc_9E00:
                 move.w  $0008(A0), D4
                 bsr     SolidObject             ; loc_F4A0
                 bra     MarkObjGone             ; loc_D2A0
-Automatic_Door_Mappings:                
-loc_9E1E:
-                dc.w    loc_9E24-loc_9E1E
-                dc.w    loc_9E46-loc_9E1E
-                dc.w    loc_9E58-loc_9E1E
-loc_9E24:
-                dc.w    $0004
-                dc.l    $E0050000, $0000FFF8, $F0050000, $0000FFF8
-                dc.l    $00050000, $0000FFF8, $10050000, $0000FFF8
-loc_9E46:
-                dc.w    $0002
-                dc.l    $E00B005F, $002FFFF4, $000B005F, $002FFFF4
-loc_9E58:
-                dc.w    $0002
-                dc.l    $E0070000, $0000FFF8, $00070000, $0000FFF8
-;=============================================================================== 
-; Object 0x2D - Hill Top / Chemical Plant - Automatic Door. 
-; [ End ]
-;===============================================================================
-                nop                             ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj2D_MapUnc_9E1E:	BINCLUDE	"mappings/sprite/obj2D.bin"
+; ===========================================================================
+		nop
 ;=============================================================================== 
 ; Object ??? - Unknow Object 0x009E6C
 ; [ Begin ]    Sonic 1 Object 1E - leftover Ballhog object
@@ -24525,7 +24540,7 @@ loc_13B68:
                 dc.w    loc_13C58-loc_13B68
 loc_13B6E:
                 addq.b  #$02, $0024(A0)
-                move.l  #Lamp_Post_Mappings, $0004(A0) ; loc_13D8E
+                move.l  #Obj79_MapUnc_13D8E, $0004(A0) ; loc_13D8E
                 move.w  #$047C, $0002(A0)
                 bsr     Adjust2PArtPointer     ; loc_DC30
                 move.b  #$04, $0001(A0)
@@ -24650,28 +24665,14 @@ loc_13D7A:
                 move.w  D0, ($FFFFEEC8).w
 loc_13D8C:
                 rts
-Lamp_Post_Mappings:
-loc_13D8E:
-                dc.w    loc_13D94-loc_13D8E
-                dc.w    loc_13DB6-loc_13D8E
-                dc.w    loc_13DD8-loc_13D8E
-loc_13D94:
-                dc.w    $0004
-                dc.l    $E8012000, $2000FFF8, $E8012800, $28000000
-                dc.l    $F8030006, $0003FFF8, $F8030806, $08030000
-loc_13DB6:
-                dc.w    $0004
-                dc.l    $E8010002, $0001FFF8, $E8010802, $08010000
-                dc.l    $F8030006, $0003FFF8, $F8030806, $08030000
-loc_13DD8:
-                dc.w    $0004
-                dc.l    $E8012004, $2002FFF8, $E8012804, $28020000
-                dc.l    $F8030006, $0003FFF8, $F8030806, $08030000   
-;=============================================================================== 
-; Object 0x79 - Lamp Post
-; [ End ]
-;===============================================================================                    
-                nop                             ; Filler             
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj79_MapUnc_13D8E:	BINCLUDE	"mappings/sprite/obj79.bin"
+; ===========================================================================
+		nop
+
 ;=============================================================================== 
 ; Object 0x7D - Hidden Bonus at end of levels - Sonic 1 Leftover
 ; [ Begin ]
@@ -26651,7 +26652,7 @@ loc_15BA2:
                 dc.w    loc_15DF8-loc_15BA2
 loc_15BAE:
                 addq.b  #$02, $0024(A0)
-                move.l  #See_Saw_Mappings, $0004(A0)  ; loc_15F54
+                move.l  #Obj14_MapUnc_15F54, $0004(A0)  ; loc_15F54
                 move.w  #$03C6, $0002(A0)
                 bsr     J_Adjust2PArtPointer_00 ; loc_15FF8
                 ori.b   #$04, $0001(A0)
@@ -26920,24 +26921,11 @@ loc_15F23:
                 dc.b    $05, $05, $05, $05, $05, $05, $05, $05, $05, $05, $05, $05, $05, $05, $05, $05
                 dc.b    $05, $05, $05, $05, $05, $05, $05, $05, $05, $05, $05, $05, $05, $05, $05, $05
                 dc.b    $00
-See_Saw_Mappings:                
-loc_15F54:
-                dc.w    loc_15F5C-loc_15F54
-                dc.w    loc_15F9E-loc_15F54
-                dc.w    loc_15F5C-loc_15F54
-                dc.w    loc_15F9E-loc_15F54
-loc_15F5C:
-                dc.w    $0008
-                dc.l    $FC054014, $400AFFF8, $0C012012, $2009FFFC
-                dc.l    $E4054006, $4003FFD0, $EC05400A, $4005FFE0
-                dc.l    $F405400A, $4005FFF0, $FC05400A, $40050000
-                dc.l    $0405400A, $40050010, $0C05400E, $40070020
-loc_15F9E:
-                dc.w    $0008
-                dc.l    $FC054014, $400AFFF8, $0C012012, $2009FFFC
-                dc.l    $F4054000, $4000FFD0, $F4054002, $4001FFE0
-                dc.l    $F4054002, $4001FFF0, $F4054002, $40010000
-                dc.l    $F4054002, $40010010, $F4054800, $48000020 
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj14_MapUnc_15F54:	BINCLUDE	"mappings/sprite/obj14_a.bin"
+
 See_Saw_Badnick_Mappings:                               
 loc_15FE0:
                 dc.w    loc_15FE4-loc_15FE0
@@ -26974,7 +26962,7 @@ loc_1601A:
                 dc.w    loc_16064-loc_1601A
 loc_1601E:
                 addq.b  #$02, $0024(A0)
-                move.l  #Teleferics_Mappings, $0004(A0)  ; loc_1611E
+                move.l  #Obj16_MapUnc_1611E, $0004(A0)  ; loc_1611E
                 move.w  #$43E6, $0002(A0)
                 bsr     J_Adjust2PArtPointer_01 ; loc_16210
                 ori.b   #$04, $0001(A0)
@@ -27043,37 +27031,11 @@ loc_16102:
                 cmp.w   $000C(A0), D0
                 bcs     J_DeleteObject_0B       ; loc_16204
                 rts   
-Teleferics_Mappings:
-loc_1611E:
-                dc.w    loc_16128-loc_1611E
-                dc.w    loc_1617A-loc_1611E
-                dc.w    loc_161BC-loc_1611E
-                dc.w    loc_161CE-loc_1611E
-                dc.w    loc_161E8-loc_1611E
-loc_16128:
-                dc.w    $000A
-                dc.l    $C1050000, $0000FFE4, $D0030004, $0002FFE6
-                dc.l    $F0030004, $0002FFE6, $10010008, $0004FFE7
-                dc.l    $D505000A, $0005000C, $E003000E, $00070011
-                dc.l    $10010012, $00090011, $0003000E, $00070011
-                dc.l    $200D0014, $000AFFE0, $200D0814, $080A0000
-loc_1617A:
-                dc.w    $0008
-                dc.l    $C1050000, $0000FFE4, $D0030004, $0002FFE6
-                dc.l    $F0030004, $0002FFE6, $1001002C, $0016FFE6
-                dc.l    $D505000A, $0005000C, $E003000E, $00070011
-                dc.l    $1801002E, $00170011, $0003000E, $00070011
-loc_161BC:
-                dc.w    $0002
-                dc.l    $200D0014, $000AFFE0, $200D0814, $080A0000
-loc_161CE:
-                dc.w    $0003
-                dc.l    $D805001C, $000EFFF8, $E8070020, $0010FFF8
-                dc.l    $08070020, $0010FFF8
-loc_161E8:
-                dc.w    $0003
-                dc.l    $D8050028, $0014FFF8, $E8070820, $0810FFF8
-                dc.l    $08070820, $0810FFF8   
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj16_MapUnc_1611E:	BINCLUDE	"mappings/sprite/obj16.bin"
+; ===========================================================================
                 nop                             ;  Filler
 J_DeleteObject_0B: ; loc_16204:
                 jmp     DeleteObject            ; loc_D3B4
@@ -28294,7 +28256,7 @@ loc_17490:
                 dc.b    $24, $00, $20, $02, $18, $04, $10, $06, $08, $08
 loc_1749A:
                 addq.b  #$02, $0024(A0)
-                move.l  #Breakable_Floor_Mappings, $0004(A0) ; loc_1786A
+                move.l  #Obj2F_MapUnc_1786A, $0004(A0) ; loc_1786A
                 move.w  #$C000, $0002(A0)
                 bsr     J_Adjust2PArtPointer_05 ; loc_17A34
                 move.b  #$04, $0001(A0)
@@ -28446,7 +28408,7 @@ loc_17698:
                 dc.w    loc_177DA-loc_17698
 loc_1769E:
                 addq.b  #$02, $0024(A0)
-                move.l  #Rock_Mappings, $0004(A0) ; loc_179C2
+                move.l  #Obj32_MapUnc_179C2, $0004(A0) ; loc_179C2
                 move.w  #$43B2, $0002(A0)
                 move.b  #$18, $0019(A0)
                 move.l  #loc_177F0, $003C(A0)
@@ -28568,58 +28530,14 @@ loc_17860:
                 rts
 loc_17862:
                 dc.w    $000A, $0014, $0032, $0064
-Breakable_Floor_Mappings:                
-loc_1786A:
-                dc.w    loc_1787E-loc_1786A
-                dc.w    loc_178C8-loc_1786A
-                dc.w    loc_1791A-loc_1786A
-                dc.w    loc_1791A-loc_1786A
-                dc.w    loc_1795C-loc_1786A
-                dc.w    loc_1795C-loc_1786A
-                dc.w    loc_1798E-loc_1786A
-                dc.w    loc_1798E-loc_1786A
-                dc.w    loc_179B0-loc_1786A
-                dc.w    loc_179B0-loc_1786A
-loc_1787E:
-                dc.w    $0009
-                dc.l    $D80D0012, $0009FFF0, $E805004A, $0025FFF0
-                dc.l    $E805004A, $00250000, $F805004E, $0027FFF0
-                dc.l    $F805004E, $00270000, $08050052, $0029FFF0
-                dc.l    $08050052, $00290000, $18050052, $0029FFF0
-                dc.l    $18050052, $00290000
-loc_178C8:
-                dc.w    $000A
-                dc.l    $D8050012, $0009FFF0, $D8050016, $000B0000
-                dc.l    $E805004A, $0025FFF0, $E805004A, $00250000
-                dc.l    $F805004E, $0027FFF0, $F805004E, $00270000
-                dc.l    $08050052, $0029FFF0, $08050052, $00290000
-                dc.l    $18050052, $0029FFF0, $18050052, $00290000
-loc_1791A:
-                dc.w    $0008
-                dc.l    $E005004A, $0025FFF0, $E005004A, $00250000
-                dc.l    $F005004E, $0027FFF0, $F005004E, $00270000
-                dc.l    $00050052, $0029FFF0, $00050052, $00290000
-                dc.l    $10050052, $0029FFF0, $10050052, $00290000
-loc_1795C:
-                dc.w    $0006
-                dc.l    $E805004E, $0027FFF0, $E805004E, $00270000
-                dc.l    $F8050052, $0029FFF0, $F8050052, $00290000
-                dc.l    $08050052, $0029FFF0, $08050052, $00290000
-loc_1798E:
-                dc.w    $0004
-                dc.l    $F0050052, $0029FFF0, $F0050052, $00290000
-                dc.l    $00050052, $0029FFF0, $00050052, $00290000
-loc_179B0:
-                dc.w    $0002
-                dc.l    $F8050052, $0029FFF0, $F8050052, $00290000 
-Rock_Mappings:                              
-loc_179C2:
-                dc.w    loc_179C4-loc_179C2
-loc_179C4:
-                dc.w    $0006
-                dc.l    $F0050000, $0000FFE8, $F0050004, $0002FFF8
-                dc.l    $F0050008, $00040008, $0005000C, $0006FFE8
-                dc.l    $00050010, $0008FFF8, $00050010, $00080008
+; ---------------------------------------------------------------------------
+; Sprite mappings - Obj2F
+; ---------------------------------------------------------------------------
+Obj2F_MapUnc_1786A:	BINCLUDE	"mappings/sprite/obj2F.bin"
+; ---------------------------------------------------------------------------
+; Sprite mappings - Obj32
+; ---------------------------------------------------------------------------
+Obj32_MapUnc_179C2:	BINCLUDE	"mappings/sprite/obj32_HTZ.bin"	; HTZ rock
 Tunel_Obstacule_Mappings:                  
 loc_179F6:
                 dc.w    loc_179F8-loc_179F6
@@ -41843,7 +41761,7 @@ Debug_GHz: ; loc_23DF2:  ; Green Hill
                 dc.b    $00, $00, $26, $BC
                 dc.l    ($26<<$18)|Obj26_MapUnc_B6D2           ; loc_B6D2
                 dc.b    $07, $00, $06, $80
-                dc.l    ($79<<$18)|Lamp_Post_Mappings          ; loc_13D8E
+                dc.l    ($79<<$18)|Obj79_MapUnc_13D8E          ; loc_13D8E
                 dc.b    $01, $00, $04, $7C
                 dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
@@ -41899,7 +41817,7 @@ Debug_Mz: ; loc_23ECC:  ; Metropolis
                 dc.b    $00, $00, $26, $BC
                 dc.l    ($26<<$18)|Obj26_MapUnc_B6D2           ; loc_B6D2
                 dc.b    $07, $00, $06, $80
-                dc.l    ($79<<$18)|Lamp_Post_Mappings          ; loc_13D8E
+                dc.l    ($79<<$18)|Obj79_MapUnc_13D8E          ; loc_13D8E
                 dc.b    $01, $00, $04, $7C
                 dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
@@ -41915,7 +41833,7 @@ Debug_Mz: ; loc_23ECC:  ; Metropolis
                 dc.b    $13, $01, $60, $00
                 dc.l    ($47<<$18)|Switch_Mappings             ; loc_18E3E
                 dc.b    $00, $02, $04, $24
-                dc.l    ($2D<<$18)|Automatic_Door_Mappings     ; loc_9E1E
+                dc.l    ($2D<<$18)|Obj2D_MapUnc_9E1E     ; loc_9E1E
                 dc.b    $01, $01, $60, $00
                 dc.l    ($66<<$18)|Spring_Wall_Mappings        ; loc_1B084
                 dc.b    $01, $00, $86, $80
@@ -41957,7 +41875,7 @@ Debug_HTz: ; loc_23FAE:  ; Hill Top
                 dc.b    $00, $00, $26, $BC
                 dc.l    ($26<<$18)|Obj26_MapUnc_B6D2           ; loc_B6D2
                 dc.b    $07, $00, $06, $80
-                dc.l    ($79<<$18)|Lamp_Post_Mappings          ; loc_13D8E
+                dc.l    ($79<<$18)|Obj79_MapUnc_13D8E          ; loc_13D8E
                 dc.b    $01, $00, $04, $7C
                 dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
@@ -41967,11 +41885,11 @@ Debug_HTz: ; loc_23FAE:  ; Hill Top
                 dc.b    $9A, $01, $40, $00
                 dc.l    ($36<<$18)|Obj36_MapUnc_CAB0              ; loc_CBA0
                 dc.b    $00, $00, $24, $34
-                dc.l    ($14<<$18)|See_Saw_Mappings            ; loc_15F54
+                dc.l    ($14<<$18)|Obj14_MapUnc_15F54            ; loc_15F54
                 dc.b    $00, $00, $03, $C6
-                dc.l    ($2D<<$18)|Automatic_Door_Mappings     ; loc_9E1E
+                dc.l    ($2D<<$18)|Obj2D_MapUnc_9E1E     ; loc_9E1E
                 dc.b    $00, $00, $24, $26
-                dc.l    ($2F<<$18)|Breakable_Floor_Mappings    ; loc_1786A
+                dc.l    ($2F<<$18)|Obj2F_MapUnc_1786A    ; loc_1786A
                 dc.b    $00, $00, $C0, $00
                 dc.l    ($20<<$18)|Fireball_Mappings           ; loc_173D0
                 dc.b    $44, $02, $84, $16                   
@@ -41985,17 +41903,17 @@ Debug_HTz: ; loc_23FAE:  ; Hill Top
                 dc.b    $30, $07, $04, $3C                    
                 dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
                 dc.b    $40, $0A, $04, $3C
-                dc.l    ($16<<$18)|Teleferics_Mappings         ; loc_1611E
+                dc.l    ($16<<$18)|Obj16_MapUnc_1611E         ; loc_1611E
                 dc.b    $00, $00, $43, $E6
-                dc.l    ($1C<<$18)|Teleferics_Mappings         ; loc_1611E
+                dc.l    ($1C<<$18)|Obj16_MapUnc_1611E         ; loc_1611E
                 dc.b    $04, $03, $43, $E6
-                dc.l    ($1C<<$18)|Teleferics_Mappings         ; loc_1611E
+                dc.l    ($1C<<$18)|Obj16_MapUnc_1611E         ; loc_1611E
                 dc.b    $05, $04, $43, $E6
-                dc.l    ($1C<<$18)|loc_9B3A
+                dc.l    ($1C<<$18)|Obj1C_MapUnc_9B3A
                 dc.b    $07, $00, $40, $00
-                dc.l    ($1C<<$18)|loc_9B3A
+                dc.l    ($1C<<$18)|Obj1C_MapUnc_9B3A
                 dc.b    $08, $01, $40, $00
-                dc.l    ($32<<$18)|Rock_Mappings               ; loc_179C2
+                dc.l    ($32<<$18)|Obj32_MapUnc_179C2               ; loc_179C2
                 dc.b    $00, $00, $43, $B2
                 dc.l    ($31<<$18)|Lava_Attributes_Mappings    ; loc_15612
                 dc.b    $00, $00, $86, $80
@@ -42131,7 +42049,7 @@ Debug_CPz: ; loc_24228:  ; Chemical Plant
                 dc.b    $15, $00, $E4, $3C
                 dc.l    ($19<<$18)|Elevator_Mappings           ; loc_16412
                 dc.b    $06, $00, $63, $A0
-                dc.l    ($2D<<$18)|Automatic_Door_Mappings     ; loc_9E1E
+                dc.l    ($2D<<$18)|Obj2D_MapUnc_9E1E     ; loc_9E1E
                 dc.b    $02, $02, $23, $94
                 dc.l    ($32<<$18)|Tunel_Obstacule_Mappings    ; loc_179F6
                 dc.b    $00, $00, $64, $30
@@ -42209,12 +42127,12 @@ TilesMainTable: ; loc_24354:
                 dc.l    ($0A<<$18)|ArtNem_GHZ   ; loc_81C00 $0A = Sprite Pointer in 0x024420 
                 dc.l    ($0B<<$18)|BM16_GHZ   ; loc_80C60 $0B = Sprite Pointer in 0x024420
                 dc.l    ($07<<$18)|BM128_GHZ ; loc_8692E $07 = Palette Pointer in 0x00294E
-                dc.l    ($0C<<$18)|Metropolis_8x8_Tiles   ; loc_91716 $0C = Sprite Pointer in 0x024420 
-                dc.l    ($0D<<$18)|Metropolis_16x16_Map   ; loc_90456 $0D = Sprite Pointer in 0x024420
-                dc.l    ($08<<$18)|Metropolis_128x128_Map ; loc_94C56 $08 = Palette Pointer in 0x00294E
-                dc.l    ($0C<<$18)|Metropolis_8x8_Tiles   ; loc_91716 $0C = Sprite Pointer in 0x024420 
-                dc.l    ($0D<<$18)|Metropolis_16x16_Map   ; loc_90456 $0D = Sprite Pointer in 0x024420
-                dc.l    ($08<<$18)|Metropolis_128x128_Map ; loc_94C56 $08 = Palette Pointer in 0x00294E
+                dc.l    ($0C<<$18)|ArtNem_MTZ   ; loc_91716 $0C = Sprite Pointer in 0x024420 
+                dc.l    ($0D<<$18)|BM16_MTZ   ; loc_90456 $0D = Sprite Pointer in 0x024420
+                dc.l    ($08<<$18)|BM128_MTZ ; loc_94C56 $08 = Palette Pointer in 0x00294E
+                dc.l    ($0C<<$18)|ArtNem_MTZ   ; loc_91716 $0C = Sprite Pointer in 0x024420 
+                dc.l    ($0D<<$18)|BM16_MTZ   ; loc_90456 $0D = Sprite Pointer in 0x024420
+                dc.l    ($08<<$18)|BM128_MTZ ; loc_94C56 $08 = Palette Pointer in 0x00294E
                 dc.l    ($10<<$18)|ArtNem_GHZ   ; loc_81C00 $10 = Sprite Pointer in 0x024420 
                 dc.l    ($11<<$18)|BM16_GHZ   ; loc_80C60 $11 = Sprite Pointer in 0x024420
                 dc.l    ($0A<<$18)|BM128_GHZ ; loc_8692E $0A = Palette Pointer in 0x00294E
@@ -42297,7 +42215,7 @@ ArtLoadCues: ; loc_24420:
 Standard_Sprites_1:  
 loc_2447A: 
                 dc.w    (((loc_2449A-loc_2447A-$02)/$06)-$01)
-                dc.l    Lamp_Post               ; loc_79278: 
+                dc.l    ArtNem_Checkpoint               ; loc_79278: 
                 dc.w    $8F80 
                 dc.l    Head_up_display_Sprites ; loc_78A12
                 dc.w    $D940   
@@ -42377,7 +42295,7 @@ loc_24518:
 Metropolis_Sprites_1:   
 loc_24532:
                 dc.w    (((loc_2456A-loc_24532-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Metropolis_8x8_Tiles    ; loc_91716
+                dc.l    ArtNem_MTZ    ; loc_91716
                 dc.w    $0000 
                 dc.l    Mz_Teleport             ; loc_75382
                 dc.w    $6780   
@@ -42421,13 +42339,13 @@ loc_245A2:
                 dc.w    (((loc_245E0-loc_245A2-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    ArtNem_GHZ    ; loc_81C00
                 dc.w    $0000 
-                dc.l    Hill_Top_8x8_Tiles      ; loc_85200
+                dc.l    ArtNem_HTZ      ; loc_85200
                 dc.w    $3F80
                 dc.l    FireBall                ; loc_739C6  
                 dc.w    $73C0   
-                dc.l    Htz_Rock                ; loc_7447A
+                dc.l    ArtNem_HtzRock                ; loc_7447A
                 dc.w    $7640   
-                dc.l    Htz_See_saw             ; loc_741D4
+                dc.l    ArtNem_HtzSeeSaw             ; loc_741D4
                 dc.w    $78C0 
                 dc.l    Htz_See_saw_badnick     ; loc_745B0 
                 dc.w    $7BC0 
@@ -42442,11 +42360,11 @@ loc_245A2:
 Hill_Top_Sprites_2:                   
 loc_245E0: 
                 dc.w    (((loc_245F4-loc_245E0-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Htz_Teleferic           ; loc_73E68 
+                dc.l    ArtNem_HtzZipline           ; loc_73E68 
                 dc.w    $7CC0 
                 dc.l    Htz_Lava_Bubble         ; loc_73C42
                 dc.w    $82C0 
-                dc.l    Htz_Automatic_Door      ; loc_7415C 
+                dc.l    ArtNem_HtzValveBarrier      ; loc_7415C 
                 dc.w    $84C0 
 Hidden_Palace_Sprites_1:   
 loc_245F4:
@@ -43812,9 +43730,9 @@ Green_Hill_Colision_1:     ; loc_2F2EA:
 Green_Hill_Colision_2:     ; loc_2F5EA:                
 		BINCLUDE	"level/collision/GHZ secondary 16x16 collision index.bin"
 Wood_Colision:             ; loc_2F8EA:
-                BINCLUDE	"level/collision/WZ 16x16 collision index.bin"
+		BINCLUDE	"level/collision/WZ 16x16 collision index.bin"
 Metropolis_Colision:       ; loc_2FBEA:
-                BINCLUDE  "data\mz\mz_col.dat" 
+		BINCLUDE	"level/collision/MTZ 16x16 collision index.bin"
 Hidden_Palace_Colision_1:  ; loc_2FEEA:                
                 BINCLUDE  "data\hpz\hpz_col1.dat"
 Hidden_Palace_Colision_2:  ; loc_301EA:                
@@ -43918,26 +43836,23 @@ Wz_2_Background:   ; loc_35BEE:
 Null_Layout_2:     ; loc_363F0:             
                 dc.b    $00, $00, $00, $00                  
 Mz_1_Foreground:   ; loc_363F4: 
-                BINCLUDE  "data\mz\foreact1.dat"                                    
+		BINCLUDE	"level/layout/MTZ_1.bin"
 Mz_2_Foreground:   ; loc_36BF6: 
-                BINCLUDE  "data\mz\foreact2.dat"   
+		BINCLUDE	"level/layout/MTZ_2.bin"
 Mz_Background:     ; loc_373F8:            
-                dc.b    $05, $05 ; x / y
-                dc.b    $60, $61, $62, $63, $64, $F2, $70, $71, $72, $73, $74, $60, $E0, $E1, $E2, $E3
-                dc.b    $E4, $70, $F0, $F1, $F2, $F3, $F4, $E2, $62, $61, $60, $63, $64, $62, $72, $71
-                dc.b    $70, $73, $74, $72                
+		BINCLUDE	"level/layout/MTZ_BG.bin"          
 Mz_3_Foreground:   ; loc_3741E:  
-                BINCLUDE  "data\mz\foreact3.dat"               
+		BINCLUDE	"level/layout/MTZ_3.bin"
 Null_Layout_3:     ; loc_37C20:            
                 dc.b    $00, $00, $00, $00                                                
 Htz_1_Foreground:  ; loc_37C24: 
-                BINCLUDE  "data\htz\foreact1.dat"
+		BINCLUDE	"level/layout/HTZ_1.bin"
 Htz_2_Foreground:  ; loc_38426:  
-                BINCLUDE  "data\htz\foreact2.dat"              
+		BINCLUDE	"level/layout/HTZ_2.bin"
 Htz_1_Background:  ; loc_38C28:              
-                BINCLUDE  "data\htz\backact1.dat"                                 
+		BINCLUDE	"level/layout/HTZ_1_BG.bin"
 Htz_2_Background:  ; loc_3942A:               
-                BINCLUDE  "data\htz\backact2.dat"                              
+		BINCLUDE	"level/layout/HTZ_2_BG.bin"
 Hpz_Foreground:    ; loc_39C2C:  
                 BINCLUDE  "data\hpz\foreact1.dat"                   
 Hpz_Background:    ; loc_3942E:                             
@@ -44198,16 +44113,16 @@ Ghz_1_Objects_Layout:	BINCLUDE	"level/objects/GHZ_1.bin"
 	ObjectLayoutBoundary
 Ghz_2_Objects_Layout:	BINCLUDE	"level/objects/GHZ_2.bin"
 	ObjectLayoutBoundary
-Mz_1_Objects_Layout:   ; loc_445C0:
-                BINCLUDE  "data\mz\obj_act1.dat"
-Mz_2_Objects_Layout:   ; loc_4488A:
-                BINCLUDE  "data\mz\obj_act2.dat"
-Mz_3_Objects_Layout:   ; loc_44B30:
-                BINCLUDE  "data\mz\obj_act3.dat"
-Htz_1_Objects_Layout:  ; loc_44EFC:
-                BINCLUDE  "data\htz\obj_act1.dat"
-Htz_2_Objects_Layout:  ; loc_45130:
-                BINCLUDE  "data\htz\obj_act2.dat"
+Mz_1_Objects_Layout:	BINCLUDE	"level/objects/MTZ_1.bin"
+	ObjectLayoutBoundary
+Mz_2_Objects_Layout:	BINCLUDE	"level/objects/MTZ_2.bin"
+	ObjectLayoutBoundary
+Mz_3_Objects_Layout:	BINCLUDE	"level/objects/MTZ_3.bin"
+	ObjectLayoutBoundary
+Htz_1_Objects_Layout:	BINCLUDE	"level/objects/HTZ_1.bin"
+	ObjectLayoutBoundary
+Htz_2_Objects_Layout:	BINCLUDE	"level/objects/HTZ_2.bin"
+	ObjectLayoutBoundary
 Hpz_1_Objects_Layout:  ; loc_4554A:
                 BINCLUDE  "data\hpz\obj_act1.dat"
 Hpz_2_Objects_Layout:  ; loc_45652:
@@ -44728,30 +44643,23 @@ Id_0100_Rings_Layout: ; loc_483DC:
                 dc.w    $FFFF            
 Id_0101_Rings_Layout: ; loc_483DE:                                   
                 dc.w    $FFFF                                 
-Wz_1_Rings_Layout:    ; loc_483E0:                              
-                dc.w    $FFFF              
-Wz_2_Rings_Layout:    ; loc_483E2:                               
-                dc.w    $FFFF               
+Wz_1_Rings_Layout:	BINCLUDE	"level/rings/WZ_1.bin"
+Wz_2_Rings_Layout:	BINCLUDE	"level/rings/WZ_2.bin"
 Id_0300_Rings_Layout: ; loc_483E4:                                   
                 dc.w    $FFFF              
 Id_0301_Rings_Layout: ; loc_483E6:                                 
                 dc.w    $FFFF                               
-Mz_1_Rings_Layout:    ; loc_483E8:                               
-                dc.w    $FFFF              
-Mz_2_Rings_Layout:    ; loc_483EA:                               
-                dc.w    $FFFF                                               
-Mz_3_Rings_Layout:    ; loc_483EC:                                
-                dc.w    $FFFF              
+Mz_1_Rings_Layout:	BINCLUDE	"level/rings/MTZ_1.bin"
+Mz_2_Rings_Layout:	BINCLUDE	"level/rings/MTZ_2.bin"
+Mz_3_Rings_Layout:	BINCLUDE	"level/rings/MTZ_3.bin"
 Mz_4_Rings_Layout:    ; loc_483EE:                               
                 dc.w    $FFFF              
 Id_0600_Rings_Layout: ; loc_483F0:                                   
                 dc.w    $FFFF               
 Id_0601_Rings_Layout: ; loc_483F2:                                 
                 dc.w    $FFFF                
-Htz_1_Rings_Layout:   ; loc_483F4:             
-                BINCLUDE  "data\htz\rng_act1.dat"             
-Htz_2_Rings_Layout:   ; loc_484EA:                
-                BINCLUDE  "data\htz\rng_act2.dat" 
+Htz_1_Rings_Layout:	BINCLUDE	"level/rings/HTZ_1.bin"
+Htz_2_Rings_Layout:	BINCLUDE	"level/rings/HTZ_2.bin"
 Hpz_1_Rings_Layout:   ; loc_48654:             
                 BINCLUDE  "data\hpz\rng_act1.dat"            
 Hpz_2_Rings_Layout:   ; loc_487C6:                 
@@ -47554,20 +47462,33 @@ Htz_Lava_Bubble: ; loc_73C42:
                 BINCLUDE  "data\htz\lvbubble.nem"              
 ; --------------------------------------------------------------------
 ; Nemesis compressed art
-; Bridge in GHZ			; ArtNem_73D90: Ghz_Bridge:
+; Bridge in GHZ				; ArtNem_73D90: Ghz_Bridge:
 		even
 ArtNem_GHZ_Bridge:	BINCLUDE	"art/nemesis/GHZ bridge.bin"
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Diagonally moving lift in HTZ		; ArtNem_73E68: Htz_Teleferic:
+	even
+ArtNem_HtzZipline:	BINCLUDE	"art/nemesis/HTZ zip-line platform.bin"
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; One way barrier from HTZ		; ArtNem_7415C: Htz_Automatic_Door:
+	even
+ArtNem_HtzValveBarrier:	BINCLUDE	"art/nemesis/One way barrier from HTZ.bin"
+; --------------------------------------------------------------------
+; Nemesis compressed art (24 blocks)
+; See-saw in HTZ			; ArtNem_741D4: Htz_See_saw:
+	even
+ArtNem_HtzSeeSaw:	BINCLUDE	"art/nemesis/See-saw in HTZ.bin"
 
-Htz_Teleferic:  ; loc_73E68: 
-                BINCLUDE  "data\htz\telefrcs.nem" 
-Htz_Automatic_Door: ; loc_7415C: 
-                BINCLUDE  "data\htz\autodoor.nem" 
-Htz_See_saw: ; loc_741D4: 
-                BINCLUDE  "data\htz\see-saw.nem"
 Fireball_1: ; loc_7436C: 
                 BINCLUDE  "data\sprites\firebal1.nem"                
-Htz_Rock:; loc_7447A: 
-                BINCLUDE  "data\htz\rock.nem"             
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Rock from HTZ				; ArtNem_7447A: Htz_Rock:
+	even
+ArtNem_HtzRock:	BINCLUDE	"art/nemesis/Rock from HTZ.bin"
+
 Htz_See_saw_badnick: ; loc_745B0: 
                 BINCLUDE  "data\htz\see-sawb.nem" 
 Mz_Rotating_Gear: ; loc_7461C:      
@@ -47670,17 +47591,17 @@ Switch: ; loc_78580:
                 BINCLUDE  "data\sprites\switch.nem"   
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Vertical Spring		; ArtNem_78658: Vertical_Spring:
+; Vertical Spring			; ArtNem_78658: Vertical_Spring:
 	even
 ArtNem_VrtclSprng:	BINCLUDE	"art/nemesis/Vertical spring.bin"
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Horizontal Spring		; ArtNem_78774: Horizontal_Spring:
+; Horizontal Spring			; ArtNem_78774: Horizontal_Spring:
 	even
 ArtNem_HrzntlSprng:	BINCLUDE	"art/nemesis/Horizontal spring.bin"
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Diagonal Spring		; ArtNem_7883E: Diagonal_Spring:
+; Diagonal Spring			; ArtNem_7883E: Diagonal_Spring:
 	even
 ArtNem_DignlSprng:	BINCLUDE	"art/nemesis/Diagonal spring.bin"
 
@@ -47690,35 +47611,38 @@ Head_up_display_Sonic: ; loc_78B1A:
 		BINCLUDE	"art/nemesis/Sonic lives counter.bin"
 ; --------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Ring				; ArtNem_78C30: Rings:
-		even
+; Ring					; ArtNem_78C30: Rings:
+	even
 ArtNem_Ring:	BINCLUDE	"art/nemesis/Ring.bin"
 ; --------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Monitors and powerups		; ArtNem_78D24: Monitors:
-		even
+; Monitors and powerups			; ArtNem_78D24: Monitors:
+	even
 ArtNem_Powerups:	BINCLUDE	"art/nemesis/Monitor and contents.bin"
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art (8 blocks)
-; Spikes			; ArtNem_7914E: Spikes:
+; Spikes				; ArtNem_7914E: Spikes:
 	even
 ArtNem_Spikes:	BINCLUDE	"art/nemesis/Spikes.bin"
 
 Enemy_Points_Spr: ; loc_7919E:
                 BINCLUDE  "data\sprites\points.nem"                                               
-Lamp_Post: ; loc_79278:                
-                BINCLUDE  "data\sprites\lamppost.nem" 
 ; --------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Singpost			; ArtNem_7931E: Signpost
-		even
+; Checkpoint (unused)			; ArtNem_79278: Lamp_Post:
+	even
+ArtNem_Checkpoint:	BINCLUDE	"art/nemesis/Checkpoint.bin"	
+; --------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Singpost				; ArtNem_7931E: Signpost
+	even
 ArtNem_Signpost:	BINCLUDE	"art/nemesis/Signpost.bin"
 
 Diagonal_Spring_1: ; loc_798F4:                
                 BINCLUDE  "data\sprites\dspring1.nem"                 
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Long horizontal spike		; ArtNem_79A44: Dhz_Horizontal_Spikes:
+; Long horizontal spike			; ArtNem_79A44: Dhz_Horizontal_Spikes:
 	even
 ArtNem_HorizSpike:	BINCLUDE	"art/nemesis/Long horizontal spike.bin"
 
@@ -47728,7 +47652,7 @@ Hpz_Crocobot: ; loc_7A11A:
                 BINCLUDE  "data\hpz\Crocobot.nem" 
 ;--------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Buzzer (not Bomber)		; ArtNem_7A4BC: Ghz_Buzzer_Bomber:
+; Buzzer (not Bomber)			; ArtNem_7A4BC: Ghz_Buzzer_Bomber:
 	even
 ArtNem_Buzzer:	BINCLUDE	"art/nemesis/Buzzer enemy.bin"
                
@@ -47752,7 +47676,7 @@ Bubble_Monster: ; loc_7C2F2:
                 BINCLUDE  "data\sprites\bmonster.nem"                                                                 
 ;--------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Snail badnik from GHZ		; ArtNem_7C514: Ghz_Motobug:
+; Snail badnik from GHZ			; ArtNem_7C514: Ghz_Motobug:
 	even
 ArtNem_Snail:	BINCLUDE	"art/nemesis/Snail badnik from GHZ.bin"
 
@@ -47760,7 +47684,7 @@ Crawl: ; loc_7C710:
                 BINCLUDE  "data\cnz\crawl.nem"                
 ; --------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Fish badnik from GHZ		; ArtNem_7CA92: Ghz_Chopper
+; Fish badnik from GHZ			; ArtNem_7CA92: Ghz_Chopper
 		even
 ArtNem_Masher:	BINCLUDE	"art/nemesis/GHZ Pirahna badnik.bin"
 
@@ -47810,51 +47734,66 @@ Blue_Bird: ; loc_809CA:
                 BINCLUDE  "data\sprites\bluebird.nem"                                                     
 Bear: ; loc_80B04:  
                 BINCLUDE  "data\sprites\bear.nem"                                                            
-;----------------------------------------------------------------------------------
+; ---------------------------------------------------------------------------------
 ; GHZ 16x16 block mappings (uncompressed)
 ; LevBlock_80C60: Green_Hill_16x16_Map:
 BM16_GHZ:	BINCLUDE	"mappings/16x16/GHZ.bin"
-;-----------------------------------------------------------------------------------
+; ----------------------------------------------------------------------------------
 ; GHZ/HTZ main level patterns (Nemesis compression)
 ; ArtNem_81C00: Green_Hill_8x8_Tiles:
 ArtNem_GHZ:	BINCLUDE	"art/nemesis/GHZ and HTZ primary.bin"
-;-----------------------------------------------------------------------------------
-Hill_Top_16x16_Map: ; loc_84A50:    
-                BINCLUDE  "data\htz\htz_16.dat"                                  
-Hill_Top_8x8_Tiles: ; loc_85200:  
-                BINCLUDE  "data\htz\htz_8.nem"                                
+; ---------------------------------------------------------------------------------
+; HTZ 16x16 block mappings (uncompressed)
+; LevBlock_8A450: Hill_Top_16x16_Map:
+BM16_HTZ:	BINCLUDE	"mappings/16x16/HTZ.bin"
+; ----------------------------------------------------------------------------------
+; HTZ secondary level patterns (Nemesis compression)
+; ArtNem_85200: Hill_Top_8x8_Tiles:
+ArtNem_HTZ:	BINCLUDE	"art/nemesis/HTZ secondary.bin"
+
+
 Htz_Init_Sprites_Dyn_Reload: ; loc_86626:    
                 BINCLUDE  "data\htz\init_spr.nem"                             
-;-----------------------------------------------------------------------------------
+; ----------------------------------------------------------------------------------
 ; EHZ/HTZ 128x128 block mappings (Kosinski compression)
 ; LevChunk_8692E: Green_Hill_128x128_Map:
 BM128_GHZ:	BINCLUDE	"mappings/128x128/GHZ and HTZ.bin"
 		dc.w	0
-;----------------------------------------------------------------------------------
+; ----------------------------------------------------------------------------------
 ; WZ 16x16 block mappings (uncompressed)
 ; LevBlock_89B8E: Wood_16x16_Map:
 BM16_WZ:	BINCLUDE	"mappings/16x16/WZ.bin"
-;-----------------------------------------------------------------------------------
+; ----------------------------------------------------------------------------------
 ; WZ main level patterns (Nemesis compression)
 ; ArtNem_8AB2E: Wood_8x8_Tiles:
 ArtNem_WZ:	BINCLUDE	"art/nemesis/WZ primary.bin"
 
 Waterfall: ; loc_8E6C6:  
                 BINCLUDE  "data\sprites\watrfall.nem"                
-;-----------------------------------------------------------------------------------
+; ----------------------------------------------------------------------------------
 ; WZ 128x128 block mappings (Kosinski compression)
 ; LevChunk_8E826: Wood_128x128_Map:
 BM128_WZ:	BINCLUDE	"mappings/128x128/WZ.bin"
 		dc.w	0, 0, 0, 0, 0, 0
-Metropolis_16x16_Map: ; loc_90456:
-                BINCLUDE  "data\mz\mz_16.dat"
-Metropolis_8x8_Tiles: ; loc_91716:
-                BINCLUDE  "data\mz\mz_8.nem"                                 
+;-----------------------------------------------------------------------------------
+; MTZ 16x16 block mappings (uncompressed)
+; LevBlock_90456: Metropolis_16x16_Map:
+BM16_MTZ:	BINCLUDE	"mappings/16x16/MTZ.bin"
+; ----------------------------------------------------------------------------------
+; MTZ main level patterns (Nemesis compression)
+; ArtNem_9116: Metropolis_8x8_Tiles:
+ArtNem_MTZ:	BINCLUDE	"art/nemesis/MTZ primary.bin"
+
+
+
 Mz_Init_Sprites_Dyn_Reload: ; loc_94994:  
                 BINCLUDE  "data\mz\init_spr.nem"                  
-Metropolis_128x128_Map: ; loc_94C56:                 
-                BINCLUDE  "data\mz\mz_128.kos"    
-                dc.w    $0000, $0000, $0000, $0000, $0000, $0000 ; Filler           
+; ----------------------------------------------------------------------------------
+; MTZ 128x128 block mappings (Kosinski compression)
+; LevChunk_94C56: Metropolis_128x128_Map:
+BM128_MTZ:	BINCLUDE	"mappings/128x128/MTZ.bin"
+		dc.w	0, 0, 0, 0, 0, 0
+
 Hidden_Palace_16x16_Map: ; loc_97596:
                 BINCLUDE  "data\hpz\hpz_16.dat"
 Hidden_Palace_8x8_Tiles: ; loc_98B76:
