@@ -14819,7 +14819,7 @@ Obj_Index:
 		dc.l	Obj03			; Collision plane/layer switcher
 		dc.l	Obj04			; Surface of the water
 		dc.l	Obj05			; Tails' tails
-		dc.l	Obj06			; Twisting spiral pathway in EHZ
+		dc.l	Obj06			; Twisting spiral pathway in GHZ
                 dc.l    Obj_0x07                          ; loc_180D0 
                 dc.l    Obj_0x08_Water_Splash             ; loc_12B42 
                 dc.l    Obj_0x09_Sonic_In_Special_Stage   ; loc_21D40
@@ -40281,41 +40281,41 @@ loc_22686:
                 rts   
 loc_22698: ; Green Hill Dynamic Reload Sprites                  
                 dc.w    $0004                   ; Total of Animations
-                dc.l    ($FF<<$18)|Ghz_Flower_1 ; loc_28000
+                dc.l    ($FF<<$18)|ArtUnc_Flowers1 ; loc_28000
                 dc.w    $7280                   ; VRam 
                 dc.w    $0602                   ; Frames/Tiles
                 dc.w    $007F, $0213, $0007, $0207, $0007, $0207 ; Frame Load/Frame Time
-                dc.l    ($FF<<$18)|Ghz_Flower_2 ; loc_28080                  
+                dc.l    ($FF<<$18)|ArtUnc_Flowers2 ; loc_28080                  
                 dc.w    $72C0                   ; VRam
                 dc.w    $0802                   ; Frames/Tiles
                 dc.w    $027F, $000B, $020B, $000B, $0205, $0005, $0205, $0005 ; Frame Load/Frame Time
-                dc.l    ($07<<$18)|Ghz_Flower_3 ; loc_28100  
+                dc.l    ($07<<$18)|ArtUnc_Flowers3 ; loc_28100  
                 dc.w    $7300                   ; VRam
                 dc.w    $0202                   ; Frames/Tiles
                 dc.w    $0002                   ; Frame Load/Frame Time
-                dc.l    ($FF<<$18)|Ghz_Flower_4 ; loc_28180    
+                dc.l    ($FF<<$18)|ArtUnc_Flowers4 ; loc_28180    
                 dc.w    $7340                   ; VRam
                 dc.w    $0802                   ; Frames/Tiles
                 dc.w    $007F, $0207, $0007, $0207, $0007, $020B, $000B, $020B ; Frame Load/Frame Time
-                dc.l    ($FF<<$18)|Ghz_Dyn_Wall ; loc_28200  
+                dc.l    ($FF<<$18)|ArtUnc_GHZPulseBall ; loc_28200  
                 dc.w    $7380                   ; VRam
                 dc.w    $0602                   ; Frames/Tiles
                 dc.w    $0017, $0209, $040B, $0617, $040B, $0209 ; Frame Load/Frame Time
 loc_226FC: ; Metropolis Dynamic Reload Sprites   
                 dc.w    $0005                   ; Total of Animations
-                dc.l    Mz_Spinnig_Cylinder     ; loc_2902A  
+                dc.l    ArtUnc_MTZCylinder     ; loc_2902A  
                 dc.w    $6980                   ; VRam
                 dc.w    $0810                   ; Frames/Tiles
                 dc.w    $0010, $2030, $4050, $6070 ; Frame Load/Frame Time
-                dc.l    ($0D<<$18)|Mz_Lava      ; loc_2A02A:
+                dc.l    ($0D<<$18)|ArtUnc_Lava      ; loc_2A02A:
                 dc.w    $6800                   ; VRam
                 dc.w    $060C                   ; Frames/Tiles
                 dc.w    $000C, $1824, $180C     ; Frame Load/Frame Time
-                dc.l    ($FF<<$18)|Mz_Pistons   ; loc_2A06A:
+                dc.l    ($FF<<$18)|ArtUnc_MTZAnimBack   ; loc_2A06A:
                 dc.w    $6B80                   ; VRam
                 dc.w    $0406                   ; Frames/Tiles
                 dc.w    $0013, $0607, $0C13, $0607 ; Frame Load/Frame Time
-                dc.l    ($FF<<$18)|Mz_Pistons   ; loc_2A06A:
+                dc.l    ($FF<<$18)|ArtUnc_MTZAnimBack   ; loc_2A06A:
                 dc.w    $6C40                   ; VRam
                 dc.w    $0406                   ; Frames/Tiles
                 dc.w    $0C13, $0607, $0013, $0607 ; Frame Load/Frame Time
@@ -40329,23 +40329,23 @@ loc_226FC: ; Metropolis Dynamic Reload Sprites
                 dc.w    $0008, $1018            ; Frame Load/Frame Time
 loc_22754: ; Hill Top Dynamic Reload Sprites  
                 dc.w    $0004                   ; Total of Animations
-                dc.l    ($FF<<$18)|Ghz_Flower_1 ; loc_28000
+                dc.l    ($FF<<$18)|ArtUnc_Flowers1 ; loc_28000
                 dc.w    $7280                   ; VRam 
                 dc.w    $0602                   ; Frames/Tiles
                 dc.w    $007F, $0213, $0007, $0207, $0007, $0207 ; Frame Load/Frame Time
-                dc.l    ($FF<<$18)|Ghz_Flower_2 ; loc_28080                  
+                dc.l    ($FF<<$18)|ArtUnc_Flowers2 ; loc_28080                  
                 dc.w    $72C0                   ; VRam
                 dc.w    $0802                   ; Frames/Tiles
                 dc.w    $027F, $000B, $020B, $000B, $0205, $0005, $0205, $0005 ; Frame Load/Frame Time
-                dc.l    ($07<<$18)|Ghz_Flower_3 ; loc_28100  
+                dc.l    ($07<<$18)|ArtUnc_Flowers3 ; loc_28100  
                 dc.w    $7300                   ; VRam
                 dc.w    $0202                   ; Frames/Tiles
                 dc.w    $0002                   ; Frame Load/Frame Time
-                dc.l    ($FF<<$18)|Ghz_Flower_4 ; loc_28180    
+                dc.l    ($FF<<$18)|ArtUnc_Flowers4 ; loc_28180    
                 dc.w    $7340                   ; VRam
                 dc.w    $0802                   ; Frames/Tiles
                 dc.w    $007F, $0207, $0007, $0207, $0007, $020B, $000B, $020B ; Frame Load/Frame Time
-                dc.l    ($FF<<$18)|Ghz_Dyn_Wall ; loc_28200  
+                dc.l    ($FF<<$18)|ArtUnc_GHZPulseBall ; loc_28200  
                 dc.w    $7380                   ; VRam
                 dc.w    $0602                   ; Frames/Tiles
                 dc.w    $0017, $0209, $040B, $0617, $040B, $0209 ; Frame Load/Frame Time
@@ -43348,26 +43348,38 @@ loc_24A30:
                 dc.b    $1E, $00, $10, $00, $10, $08, $1F, $08, $1F, $08, $11, $00, $10, $00, $2E, $08
                 dc.b    $20, $08, $21, $08, $22, $00, $12, $00, $16, $00, $10, $00, $10, $08, $F7, $08
                 dc.b    $F7, $00, $10, $00, $10, $00, $16, $00, $12, $00, $10, $00, $10, $00, $12, $00
-Ghz_Flower_1:            ; loc_28000:
-                BINCLUDE  "data\ghz\flower_1.dat"
-Ghz_Flower_2:            ; loc_28080: 
-                BINCLUDE  "data\ghz\flower_2.dat"
-Ghz_Flower_3:            ; loc_28100:  
-                BINCLUDE  "data\ghz\flower_3.dat"
-Ghz_Flower_4:            ; loc_28180:         
-                BINCLUDE  "data\ghz\flower_4.dat"                 
-Ghz_Dyn_Wall:            ; loc_28200:
-                BINCLUDE  "data\ghz\dyn_wall.dat"                
+;---------------------------------------------------------------------------------------
+; Uncompressed art
+; Animated flowers in GHZ and HTZ ; ArtUnc_28000: ArtUnc_28080: ArtUnc_21800: ArtUnc_28180:
+;---------------------------------------------------------------------------------------
+ArtUnc_Flowers1:	BINCLUDE	"art/uncompressed/GHZ and HTZ flowers - 1.bin"
+ArtUnc_Flowers2:	BINCLUDE	"art/uncompressed/GHZ and HTZ flowers - 2.bin"
+ArtUnc_Flowers3:	BINCLUDE	"art/uncompressed/GHZ and HTZ flowers - 3.bin"
+ArtUnc_Flowers4:	BINCLUDE	"art/uncompressed/GHZ and HTZ flowers - 4.bin"
+;---------------------------------------------------------------------------------------
+; Uncompressed art
+; Pulsing thing against checkered backing from GHZ ; ArtUnc_28200: Ghz_Dyn_Wall:
+ArtUnc_GHZPulseBall:	BINCLUDE	"art/uncompressed/Pulsing ball against checkered background (GHZ).bin"
+
+
+
 Hill_Top_Background:     ; loc_28300:
                 BINCLUDE  "data\htz\backgnd.nem"
 Hill_Top_Background_Unc: ; loc_28C2A:                
                 BINCLUDE  "data\htz\backgnd.dat"                    
-Mz_Spinnig_Cylinder:     ; loc_2902A:
-                BINCLUDE  "data\mz\spin_cyl.dat"
-Mz_Lava:                 ; loc_2A02A:
-                BINCLUDE  "data\mz\lava.dat"  
-Mz_Pistons:              ; loc_2A06A:
-                BINCLUDE  "data\mz\pistons.dat" 
+;---------------------------------------------------------------------------------------
+; Uncompressed art
+; Spinning metal cylinder patterns in MTZ	; ArtUnc_2902A: Mz_Spinnig_Cylinder:
+ArtUnc_MTZCylinder:	BINCLUDE	"art/uncompressed/Spinning metal cylinder (MTZ).bin"
+;---------------------------------------------------------------------------------------
+; Uncompressed art
+; Lava patterns in MTZ and HTZ			; ArtUnc_2A02A: Mz_Lava:
+ArtUnc_Lava:	BINCLUDE	"art/uncompressed/Lava.bin"
+;---------------------------------------------------------------------------------------
+; Uncompressed art
+; Animated section of MTZ background		; ArtUnc_2A06A: Mz_Pistons:
+ArtUnc_MTZAnimBack:	BINCLUDE	"art/uncompressed/Animated section of MTZ background.bin"
+
 Mz_Drills:               ; loc_2A86A:
                 BINCLUDE  "data\mz\drills.dat"                                               
 HPz_Dyn_Background:      ; loc_2B06A: Unused - Left over from previous build
