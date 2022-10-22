@@ -3283,7 +3283,7 @@ PalPointers: ; loc_294E: ; Palette List
                 dc.l    Pal_MTZ, $FB200017 ; Metropolis
                 dc.l    Pal_CNz2, $FB200017 ; Level $06 / Casino Night Act 2
                 dc.l    Pal_HTZ, $FB200017 ; Hill Top
-                dc.l    Pal_HPz, $FB200017 ; Hidden Palace
+                dc.l    Pal_HPZ, $FB200017 ; Hidden Palace
                 dc.l    Pal_GHZ, $FB200017 ; Level $09
                 dc.l    Pal_OOz, $FB200017 ; Oil Ocean
                 dc.l    Pal_DHz, $FB200017 ; Dust Hill
@@ -3292,7 +3292,7 @@ PalPointers: ; loc_294E: ; Palette List
                 dc.l    Pal_GHZ, $FB200017 ; Genocide City
                 dc.l    Pal_NGHz, $FB200017 ; Neo Green Hill
                 dc.l    Pal_GHZ, $FB200017 ; Death Egg
-                dc.l    Pal_HPzWater, $FB00001F ; Hidden Palace Underwater 
+                dc.l    Pal_HPZ_U, $FB00001F ; Hidden Palace Underwater 
                 dc.l    Pal_CPzWater, $FB00001F ; Chemical Plant Underwater  
                 dc.l    Pal_NGHzWater, $FB00001F ; Neo Green Hill Underwater
                 dc.l    Pal_SpecialStage, $FB00001F
@@ -3320,22 +3320,8 @@ Pal_GHZ:		BINCLUDE	"art/palettes/GHZ.bin"
 Pal_WZ:			BINCLUDE	"art/palettes/WZ.bin"
 Pal_MTZ:		BINCLUDE	"art/palettes/MTZ.bin"
 Pal_HTZ:		BINCLUDE	"art/palettes/HTZ.bin"
-Pal_HPz: ; loc_2D36: ; Hidden Palace
-                dc.w    $0800, $0000, $0242, $0464, $0686, $0044, $0EEE, $0AAA
-                dc.w    $0888, $0444, $08EA, $046A, $00EE, $0088, $0044, $000E
-                dc.w    $0200, $0402, $0604, $0806, $0808, $0602, $0620, $0202
-                dc.w    $0640, $0026, $0068, $028A, $06CE, $0024, $0046, $04AC
-                dc.w    $0200, $0020, $0040, $0060, $0080, $00C0, $04E6, $0EEE
-                dc.w    $0602, $0E44, $0E82, $0EA8, $0EEE, $0024, $0046, $04AC
-Pal_HPzWater: ; loc_2D96: ; Hidden Palace Underwater   
-                dc.w    $0000, $0402, $0A20, $0B40, $0B60, $0B80, $0ECA, $0CA8
-                dc.w    $0A84, $0860, $0AA8, $0884, $0428, $0424, $08AA, $088A
-                dc.w    $0000, $0202, $0242, $0464, $0686, $0442, $0EAA, $0D88
-                dc.w    $0D66, $0A22, $0666, $046A, $06CA, $0484, $0EEE, $000E
-                dc.w    $0400, $0A20, $0C22, $0E26, $0E28, $0A22, $0A40, $0C22
-                dc.w    $0A60, $0E28, $0E4A, $0E6A, $0CAA, $0E24, $0E26, $0E8A
-                dc.w    $0400, $0440, $0660, $0880, $08A0, $08C0, $0AE4, $0EEA
-                dc.w    $0A60, $0E84, $0EA6, $0EC6, $0EE6, $0E6A, $0E8A, $0CAA
+Pal_HPZ:		BINCLUDE	"art/palettes/HPZ.bin"
+Pal_HPZ_U:		BINCLUDE	"art/palettes/HPZ underwater.bin"
 Pal_OOz: ; loc_2E16: ; Oil Ocean
                 dc.w    $006E, $0000, $040A, $082E, $0C8E, $0044, $0EEE, $0AAA
                 dc.w    $0888, $0444, $0666, $048E, $00EE, $0088, $06AE, $08CE
@@ -5948,7 +5934,8 @@ StartLocations:
                 dc.l    $0060028F, $004002AF ; $06
 		BINCLUDE	"level/startpos/HTZ_1.bin"	; $07 - HTZ
 		BINCLUDE	"level/startpos/HTZ_2.bin"
-                dc.l    $023001AC, $003001BD ; $08 - Hidden Palace
+		BINCLUDE	"level/startpos/HPZ_1.bin"	; $08 - HPZ
+		dc.l	$003001BD
                 dc.l    $0060028F, $004002AF ; $09
                 dc.l    $006006AC, $0050056C ; $0A - Oil Ocean
                 dc.l    $006006AC, $006005AC ; $0B - Dust Hill
@@ -40351,15 +40338,15 @@ loc_22754: ; Hill Top Dynamic Reload Sprites
                 dc.w    $0017, $0209, $040B, $0617, $040B, $0209 ; Frame Load/Frame Time
 loc_227B8: ; Hidden Palace Dynamic Reload Sprites  
                 dc.w    $0002                   ; Total of Animations
-                dc.l    ($08<<$18)|HPz_Orbs     ; loc_2B46A
+                dc.l    ($08<<$18)|ArtUnc_HPZPulseOrb     ; loc_2B46A
                 dc.w    $5D00                   ; VRam
                 dc.w    $0608                   ; Frames/Tiles
                 dc.w    $0000, $0810, $1008     ; Frame Load/Frame Time                 
-                dc.l    ($08<<$18)|HPz_Orbs     ; loc_2B46A
+                dc.l    ($08<<$18)|ArtUnc_HPZPulseOrb     ; loc_2B46A
                 dc.w    $5E00                   ; VRam
                 dc.w    $0608                   ; Frames/Tiles
                 dc.w    $0810, $1008, $0000     ; Frame Load/Frame Time
-                dc.l    ($08<<$18)|HPz_Orbs     ; loc_2B46A
+                dc.l    ($08<<$18)|ArtUnc_HPZPulseOrb     ; loc_2B46A
                 dc.w    $5F00                   ; VRam
                 dc.w    $0608                   ; Frames/Tiles
                 dc.w    $1008, $0000, $0810     ; Frame Load/Frame Time    
@@ -41824,9 +41811,9 @@ TilesMainTable: ; loc_24354:
                 dc.l    ($12<<$18)|ArtNem_GHZ   ; loc_81C00 $12 = Sprite Pointer in 0x024420 
                 dc.l    ($13<<$18)|BM16_GHZ   ; loc_80C60 $13 = Sprite Pointer in 0x024420
                 dc.l    ($0B<<$18)|BM128_GHZ ; loc_8692E $0B = Palette Pointer in 0x00294E
-                dc.l    ($14<<$18)|Hidden_Palace_8x8_Tiles   ; loc_98B76 $14 = Sprite Pointer in 0x024420 
-                dc.l    ($15<<$18)|Hidden_Palace_16x16_Map   ; loc_97596 $15 = Sprite Pointer in 0x024420
-                dc.l    ($0C<<$18)|Hidden_Palace_128x128_Map ; loc_9B9F8 $0C = Palette Pointer in 0x00294E
+                dc.l    ($14<<$18)|ArtNem_HPZ   ; loc_98B76 $14 = Sprite Pointer in 0x024420 
+                dc.l    ($15<<$18)|BM16_HPZ   ; loc_97596 $15 = Sprite Pointer in 0x024420
+                dc.l    ($0C<<$18)|BM128_HPZ ; loc_9B9F8 $0C = Palette Pointer in 0x00294E
                 dc.l    ($16<<$18)|ArtNem_GHZ   ; loc_81C00 $16 = Sprite Pointer in 0x024420 
                 dc.l    ($17<<$18)|BM16_GHZ   ; loc_80C60 $17 = Sprite Pointer in 0x024420
                 dc.l    ($0D<<$18)|BM128_GHZ ; loc_8692E $0D = Palette Pointer in 0x00294E
@@ -42054,7 +42041,7 @@ loc_245E0:
 Hidden_Palace_Sprites_1:   
 loc_245F4:
                 dc.w    (((loc_24626-loc_245F4-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Hidden_Palace_8x8_Tiles ; loc_98B76
+                dc.l    ArtNem_HPZ ; loc_98B76
                 dc.w    $0000 
                 dc.l    Hpz_Bridge              ; loc_7538E 
                 dc.w    $6000 
@@ -43384,8 +43371,11 @@ Mz_Drills:               ; loc_2A86A:
                 BINCLUDE  "data\mz\drills.dat"                                               
 HPz_Dyn_Background:      ; loc_2B06A: Unused - Left over from previous build
                 BINCLUDE  "data\hpz\backgnd.dat" 
-HPz_Orbs:                ; loc_2B46A:
-                BINCLUDE  "data\hpz\orbs.dat" 
+;---------------------------------------------------------------------------------------
+; Uncompressed art
+; Pulsing orb in HPZ				; ArtUnc_2B46A: HPz_Orbs:
+ArtUnc_HPZPulseOrb:	BINCLUDE	"art/uncompressed/Pulsing orb (HPZ).bin"
+
 OOz_Red_Balls:           ; loc_2B76A:
                 BINCLUDE  "data\ooz\red_ball.dat"  
 OOz_Rotating_Square_1:   ; loc_2B8EA:
@@ -43431,9 +43421,9 @@ Wood_Colision:             ; loc_2F8EA:
 Metropolis_Colision:       ; loc_2FBEA:
 		BINCLUDE	"level/collision/MTZ 16x16 collision index.bin"
 Hidden_Palace_Colision_1:  ; loc_2FEEA:                
-                BINCLUDE  "data\hpz\hpz_col1.dat"
+		BINCLUDE	"level/collision/HPZ primary 16x16 collision index.bin"
 Hidden_Palace_Colision_2:  ; loc_301EA:                
-                BINCLUDE  "data\hpz\hpz_col2.dat" 
+		BINCLUDE	"level/collision/HPZ secondary 16x16 collision index.bin"
 Oil_Ocean_Colision:        ; loc_304EA:                
                 BINCLUDE  "data\ooz\ooz_col.dat" 
 Dust_Hill_Colision:        ; loc_307EA:                
@@ -43551,14 +43541,9 @@ Htz_1_Background:  ; loc_38C28:
 Htz_2_Background:  ; loc_3942A:               
 		BINCLUDE	"level/layout/HTZ_2_BG.bin"
 Hpz_Foreground:    ; loc_39C2C:  
-                BINCLUDE  "data\hpz\foreact1.dat"                   
+		BINCLUDE	"level/layout/HPZ_1.bin"
 Hpz_Background:    ; loc_3942E:                             
-                dc.b    $07, $08 ; x / y
-                dc.b    $A3, $A3, $A3, $A3, $A3, $A3, $A3, $A3, $A0, $A1, $A0, $A1, $A0, $A1, $A0, $A1
-                dc.b    $C0, $C1, $C2, $C3, $C4, $C5, $C6, $C7, $D0, $D1, $D2, $D3, $D4, $D5, $D6, $D7
-                dc.b    $E0, $E1, $E2, $E3, $E4, $E5, $E6, $E7, $B0, $B1, $B0, $B1, $B0, $B1, $B0, $B1
-                dc.b    $A2, $A2, $A2, $A2, $A2, $A2, $A2, $A2, $B2, $B2, $B2, $B2, $B2, $B2, $B2, $B2
-                dc.b    $B2, $B2, $B2, $B2, $B2, $B2, $B2, $B2                  
+		BINCLUDE	"level/layout/HPZ_BG.bin"
 Null_Layout_4:     ; loc_3A478:            
                 dc.b    $00, $00, $00, $00                                          
 OOz_1_Foreground:  ; loc_3A47C:  
@@ -43820,11 +43805,11 @@ Htz_1_Objects_Layout:	BINCLUDE	"level/objects/HTZ_1.bin"
 	ObjectLayoutBoundary
 Htz_2_Objects_Layout:	BINCLUDE	"level/objects/HTZ_2.bin"
 	ObjectLayoutBoundary
-Hpz_1_Objects_Layout:  ; loc_4554A:
-                BINCLUDE  "data\hpz\obj_act1.dat"
-Hpz_2_Objects_Layout:  ; loc_45652:
-                dc.w    $FFFF, $0000, $0000 
-                dc.w    $FFFF, $0000, $0000 
+Hpz_1_Objects_Layout:	BINCLUDE	"level/objects/HPZ_1.bin"
+	ObjectLayoutBoundary
+Hpz_2_Objects_Layout:
+	ObjectLayoutBoundary
+	ObjectLayoutBoundary		; yes, there are two here for some reason
 OOz_1_Objects_Layout:  ; loc_4565E: 
                 BINCLUDE  "data\ooz\obj_act1.dat"
 OOz_2_Objects_Layout:  ; loc_457C0:
@@ -44349,18 +44334,15 @@ Id_0301_Rings_Layout: ; loc_483E6:
 Mz_1_Rings_Layout:	BINCLUDE	"level/rings/MTZ_1.bin"
 Mz_2_Rings_Layout:	BINCLUDE	"level/rings/MTZ_2.bin"
 Mz_3_Rings_Layout:	BINCLUDE	"level/rings/MTZ_3.bin"
-Mz_4_Rings_Layout:    ; loc_483EE:                               
-                dc.w    $FFFF              
+Mz_4_Rings_Layout:	BINCLUDE	"level/rings/MTZ_4.bin"
 Id_0600_Rings_Layout: ; loc_483F0:                                   
                 dc.w    $FFFF               
 Id_0601_Rings_Layout: ; loc_483F2:                                 
                 dc.w    $FFFF                
 Htz_1_Rings_Layout:	BINCLUDE	"level/rings/HTZ_1.bin"
 Htz_2_Rings_Layout:	BINCLUDE	"level/rings/HTZ_2.bin"
-Hpz_1_Rings_Layout:   ; loc_48654:             
-                BINCLUDE  "data\hpz\rng_act1.dat"            
-Hpz_2_Rings_Layout:   ; loc_487C6:                 
-                dc.w    $FFFF                                              
+Hpz_1_Rings_Layout:	BINCLUDE	"level/rings/HPZ_1.bin"
+Hpz_2_Rings_Layout:	BINCLUDE	"level/rings/HPZ_2.bin"
 Id_0900_Rings_Layout: ; loc_487C8:                                   
                 dc.w    $FFFF               
 Id_0901_Rings_Layout: ; loc_487CA:                                 
@@ -47513,7 +47495,7 @@ BM128_WZ:	BINCLUDE	"mappings/128x128/WZ.bin"
 BM16_MTZ:	BINCLUDE	"mappings/16x16/MTZ.bin"
 ; ----------------------------------------------------------------------------------
 ; MTZ main level patterns (Nemesis compression)
-; ArtNem_9116: Metropolis_8x8_Tiles:
+; ArtNem_91160: Metropolis_8x8_Tiles:
 ArtNem_MTZ:	BINCLUDE	"art/nemesis/MTZ primary.bin"
 
 
@@ -47525,16 +47507,25 @@ Mz_Init_Sprites_Dyn_Reload: ; loc_94994:
 ; LevChunk_94C56: Metropolis_128x128_Map:
 BM128_MTZ:	BINCLUDE	"mappings/128x128/MTZ.bin"
 		dc.w	0, 0, 0, 0, 0, 0
+;-----------------------------------------------------------------------------------
+; HPZ 16x16 block mappings (uncompressed)
+; LevBlock_97596: Hidden_Palace_16x16_Map:
+BM16_HPZ:	BINCLUDE	"mappings/16x16/HPZ.bin"
+; ----------------------------------------------------------------------------------
+; HPZ main level patterns (Nemesis compression)
+; ArtNem_98B76: Hidden_Palace_8x8_Tiles:
+ArtNem_HPZ:	BINCLUDE	"art/nemesis/HPZ primary.bin"
 
-Hidden_Palace_16x16_Map: ; loc_97596:
-                BINCLUDE  "data\hpz\hpz_16.dat"
-Hidden_Palace_8x8_Tiles: ; loc_98B76:
-                BINCLUDE  "data\hpz\hpz_8.nem"                                
 Hpz_Init_Sprites_Dyn_Reload: ; loc_9B884: ;  Orbs
                 BINCLUDE  "data\hpz\init_spr.nem"  
-Hidden_Palace_128x128_Map: ; loc_9B9F8:                 
-                BINCLUDE  "data\hpz\hpz_128.kos"                
-                dc.w    $0000, $0000, $0000 ; Filler                     
+
+; ----------------------------------------------------------------------------------
+; HPZ 128x128 block mappings (Kosinski compression)
+; LevChunk_9B9F8: Hidden_Palace_128x128_Map:
+BM128_HPZ:	BINCLUDE	"mappings/128x128/HPZ.bin"
+		dc.w	0, 0, 0
+
+
 Oil_Ocean_16x16_Map: ; loc_9D778:
                 BINCLUDE  "data\ooz\ooz_16.dat"
 Oil_Ocean_8x8_Tiles: ; loc_9ED58:  
