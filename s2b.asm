@@ -11197,11 +11197,11 @@ loc_99AA:
                 dc.w    loc_9A1E-loc_99AA
                 dc.w    loc_9A50-loc_99AA
 loc_99AE:
-                dc.l    loc_9B9A
+                dc.l    Obj1C_MapUnc_9B9A
                 dc.w    $43FD
                 dc.b    $04, $06
                 
-                dc.l    ($01<<$18)|loc_9B9A
+                dc.l    ($01<<$18)|Obj1C_MapUnc_9B9A
                 dc.w    $43FD
                 dc.b    $04, $06
                 
@@ -11209,7 +11209,7 @@ loc_99AE:
                 dc.w    $43C6
                 dc.b    $04, $01
                 
-                dc.l    ($02<<$18)|loc_9B9A
+                dc.l    ($02<<$18)|Obj1C_MapUnc_9B9A
                 dc.w    $23FD
                 dc.b    $10, $06
                 
@@ -11292,7 +11292,7 @@ loc_9A66:
                 dc.l    Hpz_Orbs_Mappings              ; loc_9AFA
                 dc.w    $E35A
                 dc.b    $10, $01   
-                dc.l    Lava_Bubble_Mappings           ; loc_9BBE 
+                dc.l    Obj71_MapUnc_9BBE           ; loc_9BBE 
                 dc.w    $4536
                 dc.b    $10, $01                
 loc_9A7E:
@@ -11370,49 +11370,12 @@ loc_9B86:
 loc_9B90:
                 dc.w    $0001
                 dc.l    $F801000C, $0006FFFC                  
-loc_9B9A:
-                dc.w    loc_9BA0-loc_9B9A
-                dc.w    loc_9BAA-loc_9B9A
-                dc.w    loc_9BB4-loc_9B9A
-loc_9BA0:
-                dc.w    $0001
-                dc.l    $F8010004, $0002FFFC
-loc_9BAA:
-                dc.w    $0001
-                dc.l    $F8010006, $0003FFFC
-loc_9BB4:
-                dc.w    $0001
-                dc.l    $FC0C0000, $0000FFF0  
-Lava_Bubble_Mappings:                                  
-loc_9BBE:
-                dc.w    loc_9BCC-loc_9BBE
-                dc.w    loc_9BD6-loc_9BBE
-                dc.w    loc_9BE0-loc_9BBE
-                dc.w    loc_9BEA-loc_9BBE
-                dc.w    loc_9BF4-loc_9BBE
-                dc.w    loc_9BFE-loc_9BBE
-                dc.w    loc_9C08-loc_9BBE
-loc_9BCC:
-                dc.w    $0001
-                dc.l    $02040000, $0000FFF8
-loc_9BD6:
-                dc.w    $0001
-                dc.l    $00040000, $0000FFF8
-loc_9BE0:
-                dc.w    $0001
-                dc.l    $FE040000, $0000FFF8
-loc_9BEA:
-                dc.w    $0001
-                dc.l    $FC040000, $0000FFF8
-loc_9BF4:
-                dc.w    $0001
-                dc.l    $FC080002, $0001FFF4
-loc_9BFE:
-                dc.w    $0001
-                dc.l    $FC0C0005, $0002FFF0
-loc_9C08:
-                dc.w    $0000  
-                nop                             ; Filler
+Obj1C_MapUnc_9B9A:	BINCLUDE	"mappings/sprite/obj1C_d.bin"	; MTZ thingy
+
+Obj71_MapUnc_9BBE:	BINCLUDE	"mappings/sprite/obj71_b.bin"
+; ===========================================================================
+		nop
+
 ;=============================================================================== 
 ; Object 0x2A - Dust Hill - Up and Down Pillar
 ; [ Begin ]
@@ -29829,7 +29792,7 @@ loc_18DAA:
                 dc.w    loc_18DDA-loc_18DAA
 loc_18DAE:
                 addq.b  #$02, $0024(A0)
-                move.l  #Switch_Mappings, $0004(A0) ; loc_18E3E
+                move.l  #Obj47_MapUnc_18E3E, $0004(A0) ; loc_18E3E
                 move.w  #$0424, $0002(A0)
                 bsr     J_Adjust2PArtPointer_09 ; loc_18E6A
                 move.b  #$04, $0001(A0)
@@ -29869,24 +29832,13 @@ loc_18E32:
                 move.b  #$01, $001A(A0)
 loc_18E3A:
                 bra     J_MarkObjGone_07        ; loc_18E64 
-Switch_Mappings: ; loc_18E3E:
-                dc.w    loc_18E44-Switch_Mappings
-                dc.w    loc_18E4E-Switch_Mappings
-                dc.w    loc_18E58-Switch_Mappings
-loc_18E44:
-                dc.w    $0001
-                dc.l    $F40D0000, $0000FFF0
-loc_18E4E:
-                dc.w    $0001
-                dc.l    $F40D0008, $0004FFF0
-loc_18E58:
-                dc.w    $0001
-                dc.l    $F80D0000, $0000FFF0
-;=============================================================================== 
-; Object 0x47 - Switch - Oil Ocean / Dust Hill
-; [ End ]                         
-;===============================================================================                  
-                nop                             ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj47_MapUnc_18E3E:	BINCLUDE	"mappings/sprite/obj47.bin"
+; ===========================================================================
+		nop
+
 J_MarkObjGone_07: ; loc_18E64:
                 jmp     MarkObjGone             ; (loc_D2A0)
 J_Adjust2PArtPointer_09 ; loc_18E6A:
@@ -31358,7 +31310,7 @@ loc_1A5DA:
                 dc.w    loc_1A7CC-loc_1A5DA
 loc_1A5E0:
                 addq.b  #$02, $0024(A0)
-                move.l  #Steam_Vent_Mappings, $0004(A0) ; loc_1A7FE
+                move.l  #Obj42_MapUnc_1A7FE, $0004(A0) ; loc_1A7FE
                 move.w  #$6000, $0002(A0)
                 ori.b   #$04, $0001(A0)
                 move.b  #$10, $0019(A0)
@@ -31503,46 +31455,13 @@ loc_1A7F0:
                 beq     J_DeleteObject_16       ; loc_1A896
 loc_1A7FA:
                 bra     J_DisplaySprite_07      ; loc_1A890
-Steam_Vent_Mappings:                
-loc_1A7FE:
-                dc.w    loc_1A80E-loc_1A7FE
-                dc.w    loc_1A818-loc_1A7FE
-                dc.w    loc_1A822-loc_1A7FE
-                dc.w    loc_1A82C-loc_1A7FE
-                dc.w    loc_1A83E-loc_1A7FE
-                dc.w    loc_1A850-loc_1A7FE
-                dc.w    loc_1A86A-loc_1A7FE
-                dc.w    loc_1A87C-loc_1A7FE
-loc_1A80E:
-                dc.w    $0001
-                dc.l    $FF000000, $0000FFE8
-loc_1A818:
-                dc.w    $0001
-                dc.l    $FF040001, $0000FFE8
-loc_1A822:
-                dc.w    $0001
-                dc.l    $FC050003, $0001FFEC
-loc_1A82C:
-                dc.w    $0002
-                dc.l    $FC050007, $0003FFF8, $FC050003, $0001FFF0
-loc_1A83E:
-                dc.w    $0002
-                dc.l    $FC051007, $10030000, $FC01100B, $1005FFF8
-loc_1A850:
-                dc.w    $0003
-                dc.l    $FC01000D, $0006000C, $FC01000B, $00050004
-                dc.l    $FC01180D, $1806FFFC
-loc_1A86A:
-                dc.w    $0002
-                dc.l    $FC01000D, $00060010, $FC01180D, $18060008
-loc_1A87C:
-                dc.w    $0002
-                dc.l    $F0070015, $000AFFF0, $F007001D, $000E0000                    
-;=============================================================================== 
-; Object 0x42 - Metropolis - Steam Vent 
-; [ End ]                         
-;===============================================================================                  
-                nop                             ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj42_MapUnc_1A7FE:	BINCLUDE	"mappings/sprite/obj42.bin"
+; ===========================================================================
+		nop
+
 J_DisplaySprite_07: ; loc_1A890:
                 jmp     DisplaySprite           ; (loc_D3C2)
 J_DeleteObject_16: ; loc_1A896:
@@ -31584,7 +31503,7 @@ loc_1A8CE:
                 move.b  #$6C, $0016(A0)
                 bset    #$04, $0001(A0)
 loc_1A8FE:
-                move.l  #Piston_Mappings, $0004(A0) ; loc_1A9F0
+                move.l  #Obj64_MapUnc_1A9F0, $0004(A0) ; loc_1A9F0
                 move.w  #$2000, $0002(A0)
                 bsr     J_Adjust2PArtPointer_10 ; loc_1AA68
                 ori.b   #$04, $0001(A0)
@@ -31661,21 +31580,11 @@ loc_1A9E4:
                 add.w   D0, D1
                 move.w  D1, $000C(A0)
                 rts                   
-Piston_Mappings:
-loc_1A9F0:
-                dc.w    loc_1A9F4-loc_1A9F0
-                dc.w    loc_1AA46-loc_1A9F0
-loc_1A9F4:
-                dc.w    $000A
-                dc.l    $F40E0001, $0000FFC0, $F40E0801, $0800FFE0
-                dc.l    $F40E0001, $00000000, $F40E0801, $08000020
-                dc.l    $0C07000D, $0006FFD8, $2C07000D, $0006FFD8
-                dc.l    $4C07000D, $0006FFD8, $0C07000D, $00060018
-                dc.l    $2C07000D, $00060018, $4C07000D, $00060018
-loc_1AA46:
-                dc.w    $0004
-                dc.l    $E0070057, $002BFFF0, $E0070857, $082B0000
-                dc.l    $00071057, $102BFFF0, $00071857, $182B0000  
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj64_MapUnc_1A9F0:	BINCLUDE	"mappings/sprite/obj64.bin"
+
 ;=============================================================================== 
 ; Object 0x64 - Metropolis - Pistons 
 ; [ End ]                         
@@ -31702,7 +31611,7 @@ loc_1AA8A:
                 dc.b    $40, $0C, $80, $01, $20, $0C, $40, $03, $10, $10, $20, $00, $40, $0C, $80, $07
 loc_1AA9A:
                 addq.b  #$02, $0024(A0)
-                move.l  #Mz_Platform_Mappings, $0004(A0) ; loc_1AE2C
+                move.l  #Obj65_MapUnc_1AE2C, $0004(A0) ; loc_1AE2C
                 move.w  #$6000, $0002(A0)
                 bsr     J_Adjust2PArtPointer_11 ; loc_1AEB0
                 ori.b   #$04, $0001(A0)
@@ -31723,7 +31632,7 @@ loc_1AAE6:
                 cmpi.b  #$02, D0
                 bne.s   loc_1AB02
                 addq.b  #$04, $0024(A0)
-                move.l  #Obj_0x65_Mappings_1, $0004(A0) ; loc_1AE68
+                move.l  #Obj65_MapUnc_1AE68, $0004(A0) ; loc_1AE68
                 move.w  #$655F, $0002(A0)
                 bra     loc_1AE26
 loc_1AB02:
@@ -31755,7 +31664,7 @@ loc_1AB38:
                 subi.w  #$FFE8, $0008(A1)
                 bset    #$00, $0001(A1)
 loc_1AB74:
-                move.l  #Obj_0x65_Mappings_1, $0004(A1) ; loc_1AE68
+                move.l  #Obj65_MapUnc_1AE68, $0004(A1) ; loc_1AE68
                 move.w  #$655F, $0002(A1)
                 ori.b   #$04, $0001(A1)
                 move.b  #$10, $0019(A1)
@@ -31994,33 +31903,12 @@ loc_1AE1E:
 loc_1AE26:
                 move.w  ($FFFFF7B0).w, D0
                 bra.s   loc_1AE10  
-Mz_Platform_Mappings:                
-loc_1AE2C:
-                dc.w    loc_1AE34-loc_1AE2C
-                dc.w    loc_1AE56-loc_1AE2C
-                dc.w    loc_1AE34-loc_1AE2C
-                dc.w    loc_1AE34-loc_1AE2C
-loc_1AE34:
-                dc.w    $0004
-                dc.l    $F40E004B, $0025FFC0, $F40E004B, $0025FFE0
-                dc.l    $F40E004B, $00250000, $F40E004B, $00250020
-loc_1AE56:
-                dc.w    $0002
-                dc.l    $F40E0039, $001CFFE0, $F40E0839, $081C0000  
-Obj_0x65_Mappings_1:                
-loc_1AE68:
-                dc.w    loc_1AE6E-loc_1AE68
-                dc.w    loc_1AE80-loc_1AE68
-                dc.w    loc_1AE92-loc_1AE68
-loc_1AE6E:
-                dc.w    $0002
-                dc.l    $F4060000, $0000FFF0, $F4060800, $08000000
-loc_1AE80:
-                dc.w    $0002
-                dc.l    $F4060006, $0003FFF0, $F4061806, $18030000
-loc_1AE92:
-                dc.w    $0002
-                dc.l    $F4061006, $1003FFF0, $F4060806, $08030000                                                    
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj65_MapUnc_1AE2C:	BINCLUDE	"mappings/sprite/obj65_a.bin"
+Obj65_MapUnc_1AE68:	BINCLUDE	"mappings/sprite/obj65_b.bin"
+
 ;=============================================================================== 
 ; Object 0x65 - Metropolis - Platform Over Gears
 ; [ End ]                         
@@ -32047,7 +31935,7 @@ loc_1AECA:
                 dc.w    loc_1AF12-loc_1AECA
 loc_1AECE:
                 addq.b  #$02, $0024(A0)
-                move.l  #Spring_Wall_Mappings, $0004(A0) ; loc_1B084
+                move.l  #Obj66_MapUnc_1B084, $0004(A0) ; loc_1B084
                 move.w  #$8680, $0002(A0)
                 bsr     J_Adjust2PArtPointer_12 ; loc_1B0B8
                 ori.b   #$04, $0001(A0)
@@ -32165,16 +32053,11 @@ loc_1B068:
                 bclr    #$05, $0022(A1)
                 move.w  #$00CC, D0
                 jmp     (PlaySound)              ; loc_14C6
-Spring_Wall_Mappings:                   
-loc_1B084:
-                dc.w    loc_1B088-loc_1B084
-                dc.w    loc_1B09A-loc_1B084                
-loc_1B088:
-                dc.w    $0002
-                dc.l    $C0050034, $001AFFF8, $30050034, $001AFFF8
-loc_1B09A:
-                dc.w    $0002
-                dc.l    $80050034, $001AFFF8, $70050034, $001AFFF8   
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj66_MapUnc_1B084:	BINCLUDE	"mappings/sprite/obj66.bin"
+
 ;=============================================================================== 
 ; Object 0x66 - Metropolis - Springs on Walls
 ; [ End ]                         
@@ -32535,7 +32418,7 @@ loc_1B52E:
                 dc.w    loc_1B5EE-loc_1B52E
 loc_1B534:
                 addq.b  #$02, $0024(A0)
-                move.l  #Block_Arrow_Mappings, $0004(A0) ; loc_1B6DC
+                move.l  #Obj68_MapUnc_1B6DC, $0004(A0) ; loc_1B6DC
                 move.w  #$6414, $0002(A0)
                 bsr     J_Adjust2PArtPointer_13 ; loc_1B7FC
                 move.b  #$04, $0001(A0)
@@ -32652,28 +32535,11 @@ loc_1B6D6:
                 rts
 loc_1B6D8:
                 dc.b    $84, $A6, $84, $A6  
-Block_Arrow_Mappings:
-loc_1B6DC:
-                dc.w    loc_1B6E6-loc_1B6DC
-                dc.w    loc_1B6F0-loc_1B6DC
-                dc.w    loc_1B6FA-loc_1B6DC
-                dc.w    loc_1B704-loc_1B6DC
-                dc.w    loc_1B70E-loc_1B6DC
-loc_1B6E6:
-                dc.w    $0001
-                dc.l    $F0031000, $1000FFFC
-loc_1B6F0:
-                dc.w    $0001
-                dc.l    $FC0C0004, $0002FFF0
-loc_1B6FA:
-                dc.w    $0001
-                dc.l    $F0030000, $0000FFFC
-loc_1B704:
-                dc.w    $0001
-                dc.l    $FC0C0804, $0802FFF0
-loc_1B70E:
-                dc.w    $0002
-                dc.l    $F0070000, $0000FFF0, $F0070800, $08000000                              
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj68_MapUnc_1B6DC:	BINCLUDE	"mappings/sprite/obj68.bin"
+
 ;=============================================================================== 
 ; Object 0x68 - Metropolis - Block with Arrow
 ; [ End ]                         
@@ -32692,7 +32558,7 @@ loc_1B72E:
                 dc.w    loc_1B76C-loc_1B72E
 loc_1B732:
                 addq.b  #$02, $0024(A0)
-                move.l  #Block_Arrow_Mappings, $0004(A0) ; loc_1B6DC
+                move.l  #Obj68_MapUnc_1B6DC, $0004(A0) ; loc_1B6DC
                 move.w  #$241C, $0002(A0)
                 bsr     J_Adjust2PArtPointer_13 ; loc_1B7FC
                 ori.b   #$04, $0001(A0)
@@ -32773,7 +32639,7 @@ loc_1B81E:
                 dc.w    loc_1B880-loc_1B81E
 loc_1B826:
                 addq.b  #$02, $0024(A0)
-                move.l  #Screw_Nut_Mappings, $0004(A0) ; loc_1B9A6
+                move.l  #Obj69_MapUnc_1B9A6, $0004(A0) ; loc_1B9A6
                 move.w  #$2500, $0002(A0)
                 bsr     J_Adjust2PArtPointer_14 ; loc_1BA16
                 move.b  #$04, $0001(A0)
@@ -32896,32 +32762,13 @@ loc_1B982:
                 addq.b  #$02, $0024(A0)
 loc_1B9A2:
                 bra     loc_1B880     
-Screw_Nut_Mappings:
-loc_1B9A6:
-                dc.w    loc_1B9AE-loc_1B9A6
-                dc.w    loc_1B9C0-loc_1B9A6
-                dc.w    loc_1B9DA-loc_1B9A6
-                dc.w    loc_1B9F4-loc_1B9A6
-loc_1B9AE:
-                dc.w    $0002
-                dc.l    $F40E0000, $0000FFE0, $F40E000C, $00060000
-loc_1B9C0:
-                dc.w    $0003
-                dc.l    $F40A0003, $0001FFE0, $F40E000C, $0006FFF8
-                dc.l    $F4020809, $08040018
-loc_1B9DA:
-                dc.w    $0003
-                dc.l    $F4060024, $0012FFE0, $F40E002A, $0015FFF0
-                dc.l    $F4060018, $000C0010
-loc_1B9F4:
-                dc.w    $0003
-                dc.l    $F4020027, $0013FFE0, $F40E0018, $000CFFE8
-                dc.l    $F40A082D, $08160008                         
-;=============================================================================== 
-; Object 0x69 - Metropolis - Screew Nut
-; [ End ]                         
-;===============================================================================  
-                nop                             ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj69_MapUnc_1B9A6:	BINCLUDE	"mappings/sprite/obj69.bin"
+; ===========================================================================
+		nop
+
 J_MarkObjGone_10: ; loc_1BA10:
                 jmp     MarkObjGone             ; (loc_D2A0)
 J_Adjust2PArtPointer_14: ; loc_1BA16:
@@ -32948,7 +32795,7 @@ loc_1BA3E:
                 dc.w    loc_1BBE6-loc_1BA3E
 loc_1BA44:
                 addq.b  #$02, $0024(A0)
-                move.l  #Mz_Platform_Mappings, $0004(A0) ; loc_1AE2C
+                move.l  #Obj65_MapUnc_1AE2C, $0004(A0) ; loc_1AE2C
                 move.w  #$6000, $0002(A0)
                 ori.b   #$04, $0001(A0)
                 move.b  #$04, $0018(A0)
@@ -33134,7 +32981,7 @@ loc_1BCFE:
                 dc.b    $20, $0C, $01, $00, $10, $10, $00, $00
 loc_1BD06:
                 addq.b  #$02, $0024(A0)
-                move.l  #Mz_Platform_Mappings, $0004(A0) ; loc_1AE2C
+                move.l  #Obj65_MapUnc_1AE2C, $0004(A0) ; loc_1AE2C
                 move.w  #$6000, $0002(A0)
                 cmpi.b  #$0D, (Current_Zone).w
                 bne.s   loc_1BD2E
@@ -33380,7 +33227,7 @@ loc_1BF98:
                 move.b  $0028(A0), D0
                 bmi     loc_1C04A
                 addq.b  #$02, $0024(A0)
-                move.l  #Obj_0x6C_Mappings, $0004(A0) ; loc_1C2AA
+                move.l  #Obj6C_MapUnc_1C2AA, $0004(A0) ; loc_1C2AA
                 move.w  #$63F9, $0002(A0)
                 ori.b   #$04, $0001(A0)
                 move.b  #$10, $0019(A0)
@@ -33580,18 +33427,13 @@ loc_1C278:
                 dc.b    $00, $00, $00, $00, $00, $21, $FF, $E0, $00, $7A, $00, $23, $FF, $E0, $01, $00
                 dc.b    $00, $23, $FF, $E0, $01, $86, $00, $23, $00, $00, $02, $00, $00, $26, $00, $20
                 dc.b    $01, $86, $00, $28, $00, $20, $01, $00, $00, $28, $00, $20, $00, $7A, $00, $28
-                
-Obj_0x6C_Mappings:                
-loc_1C2AA:
-                dc.w    loc_1C2AC-loc_1C2AA
-loc_1C2AC:
-                dc.w    $0002
-                dc.l    $F8050000, $0000FFF0, $F8050800, $08000000                                                  
-;=============================================================================== 
-; Object 0x6C - Moving platforms - clockwise
-; [ End ]                         
-;===============================================================================                   
-                nop                             ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj6C_MapUnc_1C2AA:	BINCLUDE	"mappings/sprite/obj6C.bin"
+; ===========================================================================
+		nop
+
 J_DisplaySprite_0A: ; loc_1C2C0:
                 jmp     DisplaySprite           ; (loc_D3C2)
 J_DeleteObject_1A: ; loc_1C2C6:
@@ -33621,7 +33463,7 @@ loc_1C2F8:
                 dc.b    $10, $0C, $28, $08, $60, $18, $0C, $0C
 loc_1C300:
                 addq.b  #$02, $0024(A0)
-                move.l  #Machine_Mappings, $0004(A0) ; loc_1C464
+                move.l  #Obj6E_MapUnc_1C464, $0004(A0) ; loc_1C464
                 move.w  #$6000, $0002(A0)
                 bsr     J_Adjust2PArtPointer_18 ; loc_1C4EC
 loc_1C316:
@@ -33727,29 +33569,11 @@ loc_1C44C:
                 bclr    #$07, $02(A2, D0)
 J_DeleteObject_1C: ; loc_1C45E:
                 jmp     DeleteObject            ; (loc_D3B4)   
-Machine_Mappings:
-loc_1C464:
-                dc.w    loc_1C46C-loc_1C464
-                dc.w    loc_1C476-loc_1C464
-                dc.w    loc_1C490-loc_1C464
-                dc.w    loc_1C4E2-loc_1C464
-loc_1C46C:
-                dc.w    $0001
-                dc.l    $F40E0025, $0012FFF0
-loc_1C476:
-                dc.w    $0003
-                dc.l    $F80D0031, $0018FFD8, $F80D0031, $0018FFF8
-                dc.l    $F8050031, $00180018
-loc_1C490:
-                dc.w    $000A
-                dc.l    $E80E0039, $001CFFA0, $E80E0839, $081CFFC0
-                dc.l    $E80E0039, $001CFFE0, $E80E0839, $081C0000
-                dc.l    $E80E0039, $001C0020, $E80E0839, $081C0040
-                dc.l    $00060045, $0022FFA0, $00060845, $0822FFB0
-                dc.l    $00060045, $00220040, $00060845, $08220050
-loc_1C4E2:
-                dc.w    $0001
-                dc.l    $F40A0000, $0000FFF4                             
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj6E_MapUnc_1C464:	BINCLUDE	"mappings/sprite/obj6E.bin"
+
 ;=============================================================================== 
 ; Object 0x6E - Metropolis - Machine
 ; [ End ]                         
@@ -33772,7 +33596,7 @@ loc_1C506:
                 dc.w    loc_1C570-loc_1C506
 loc_1C50A:
                 addq.b  #$02, $0024(A0)
-                move.l  #Parallelogram_Elevator_Mappings, $0004(A0) ; loc_1C7BE
+                move.l  #Obj6F_MapUnc_1C7BE, $0004(A0) ; loc_1C7BE
                 move.w  #$653F, $0002(A0)
                 bsr     J_Adjust2PArtPointer_19 ; loc_1C844
                 ori.b   #$04, $0001(A0)
@@ -33901,24 +33725,13 @@ loc_1C6BE:
                 dc.w    $2018, $2017, $2016, $2015, $2014, $2013, $2012, $2011
                 dc.w    $2010, $200F, $200E, $200D, $200C, $200B, $200A, $2009
                 dc.w    $2008, $2007, $2006, $2005, $2004, $2003, $2002, $2001   
-Parallelogram_Elevator_Mappings:
-loc_1C7BE:
-                dc.w    loc_1C7C0-loc_1C7BE
-loc_1C7C0:
-                dc.w    $0010
-                dc.l    $100D0000, $0000FF80, $000D0000, $0000FFA0
-                dc.l    $100D0008, $0004FFA0, $F00D0000, $0000FFC0
-                dc.l    $000F0010, $0008FFC0, $E00D0000, $0000FFE0
-                dc.l    $F00D0008, $0004FFE0, $000F0010, $0008FFE0
-                dc.l    $E00F0010, $00080000, $000D0008, $00040000
-                dc.l    $100D1800, $18000000, $E00F0010, $00080020
-                dc.l    $000D1800, $18000020, $E00D0008, $00040040
-                dc.l    $F00D1800, $18000040, $E00D1800, $18000060                                                    
-;=============================================================================== 
-; Object 0x6F - Metropolis - Parallelogram Elevators
-; [ End ]                         
-;===============================================================================                
-                nop                             ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj6F_MapUnc_1C7BE:	BINCLUDE	"mappings/sprite/obj6F.bin"
+; ===========================================================================
+		nop
+
 J_Adjust2PArtPointer_19: ; loc_1C844:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
 loc_1C84A:
@@ -33951,7 +33764,7 @@ loc_1C87E:
 loc_1C884:
                 move.b  $0000(A0), $0000(A1)
                 addq.b  #$02, $0024(A1)
-                move.l  #Rotating_Gears_Mappings, $0004(A1) ; loc_1CA16
+                move.l  #Obj70_MapUnc_1CA16, $0004(A1) ; loc_1CA16
                 move.w  #$6378, $0002(A1)
                 bsr     J_Adjust2PArtPointer2_01 ; loc_1CBBE
                 move.b  #$04, $0001(A1)
@@ -34043,141 +33856,13 @@ loc_1C9B6:
                 dc.b    $19, $BC, $02, $46, $E9, $06, $46, $17, $0A, $19, $44, $0E, $E7, $44, $12, $BA
                 dc.b    $17, $16, $BA, $E9, $1A, $E7, $BC, $1E, $27, $C4, $03, $48, $F4, $07, $3F, $26
                 dc.b    $0B, $0D, $48, $0F, $D9, $3C, $13, $B8, $0C, $17, $C1, $DA, $1B, $F3, $B8, $1F
-Rotating_Gears_Mappings:
-loc_1CA16:
-                dc.w    loc_1CA56-loc_1CA16
-                dc.w    loc_1CA68-loc_1CA16
-                dc.w    loc_1CA72-loc_1CA16
-                dc.w    loc_1CA7C-loc_1CA16
-                dc.w    loc_1CA86-loc_1CA16
-                dc.w    loc_1CA90-loc_1CA16
-                dc.w    loc_1CA9A-loc_1CA16
-                dc.w    loc_1CAA4-loc_1CA16
-                dc.w    loc_1CAAE-loc_1CA16
-                dc.w    loc_1CAC0-loc_1CA16
-                dc.w    loc_1CACA-loc_1CA16
-                dc.w    loc_1CAD4-loc_1CA16
-                dc.w    loc_1CADE-loc_1CA16
-                dc.w    loc_1CAE8-loc_1CA16
-                dc.w    loc_1CAF2-loc_1CA16
-                dc.w    loc_1CAFC-loc_1CA16
-                dc.w    loc_1CB06-loc_1CA16
-                dc.w    loc_1CB18-loc_1CA16
-                dc.w    loc_1CB22-loc_1CA16
-                dc.w    loc_1CB2C-loc_1CA16
-                dc.w    loc_1CB36-loc_1CA16
-                dc.w    loc_1CB40-loc_1CA16
-                dc.w    loc_1CB4A-loc_1CA16
-                dc.w    loc_1CB54-loc_1CA16
-                dc.w    loc_1CB5E-loc_1CA16
-                dc.w    loc_1CB70-loc_1CA16
-                dc.w    loc_1CB7A-loc_1CA16
-                dc.w    loc_1CB84-loc_1CA16
-                dc.w    loc_1CB8E-loc_1CA16
-                dc.w    loc_1CB98-loc_1CA16
-                dc.w    loc_1CBA2-loc_1CA16
-                dc.w    loc_1CBAC-loc_1CA16
-loc_1CA56:
-                dc.w    $0002
-                dc.l    $F0070000, $0000FFF0, $F0070800, $08000000
-loc_1CA68:
-                dc.w    $0001
-                dc.l    $F00B0808, $0804FFF4
-loc_1CA72:
-                dc.w    $0001
-                dc.l    $F00F0814, $080AFFF0
-loc_1CA7C:
-                dc.w    $0001
-                dc.l    $F00F0824, $0812FFF0
-loc_1CA86:
-                dc.w    $0001
-                dc.l    $F00F0834, $081AFFF0
-loc_1CA90:
-                dc.w    $0001
-                dc.l    $F00F0844, $0822FFF0
-loc_1CA9A:
-                dc.w    $0001
-                dc.l    $F00F0854, $082AFFF0
-loc_1CAA4:
-                dc.w    $0001
-                dc.l    $F40E0864, $0832FFF0
-loc_1CAAE:
-                dc.w    $0002
-                dc.l    $F00D0870, $0838FFF0, $000D1870, $1838FFF0
-loc_1CAC0:
-                dc.w    $0001
-                dc.l    $F40E1864, $1832FFF0
-loc_1CACA:
-                dc.w    $0001
-                dc.l    $F00F1854, $182AFFF0
-loc_1CAD4:
-                dc.w    $0001
-                dc.l    $F00F1844, $1822FFF0
-loc_1CADE:
-                dc.w    $0001
-                dc.l    $F00F1834, $181AFFF0
-loc_1CAE8:
-                dc.w    $0001
-                dc.l    $F00F1824, $1812FFF0
-loc_1CAF2:
-                dc.w    $0001
-                dc.l    $F00F1814, $180AFFF0
-loc_1CAFC:
-                dc.w    $0001
-                dc.l    $F00B1808, $1804FFF4
-loc_1CB06:
-                dc.w    $0002
-                dc.l    $F0071000, $1000FFF0, $F0071800, $18000000
-loc_1CB18:
-                dc.w    $0001
-                dc.l    $F00B1008, $1004FFF4
-loc_1CB22:
-                dc.w    $0001
-                dc.l    $F00F1014, $100AFFF0
-loc_1CB2C:
-                dc.w    $0001
-                dc.l    $F00F1024, $1012FFF0
-loc_1CB36:
-                dc.w    $0001
-                dc.l    $F00F1034, $101AFFF0
-loc_1CB40:
-                dc.w    $0001
-                dc.l    $F00F1044, $1022FFF0
-loc_1CB4A:
-                dc.w    $0001
-                dc.l    $F00F1054, $102AFFF0
-loc_1CB54:
-                dc.w    $0001
-                dc.l    $F40E1064, $1032FFF0
-loc_1CB5E:
-                dc.w    $0002
-                dc.l    $F00D0070, $0038FFF0, $000D1070, $1038FFF0
-loc_1CB70:
-                dc.w    $0001
-                dc.l    $F40E0064, $0032FFF0
-loc_1CB7A:
-                dc.w    $0001
-                dc.l    $F00F0054, $002AFFF0
-loc_1CB84:
-                dc.w    $0001
-                dc.l    $F00F0044, $0022FFF0
-loc_1CB8E:
-                dc.w    $0001
-                dc.l    $F00F0034, $001AFFF0
-loc_1CB98:
-                dc.w    $0001
-                dc.l    $F00F0024, $0012FFF0
-loc_1CBA2:
-                dc.w    $0001
-                dc.l    $F00F0014, $000AFFF0
-loc_1CBAC:
-                dc.w    $0001
-                dc.l    $F00B0008, $0004FFF4                                                        
-;=============================================================================== 
-; Object 0x70 - Metropolis - Rotating Gears
-; [ End ]                         
-;===============================================================================                  
-                nop                             ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj70_MapUnc_1CA16:	BINCLUDE	"mappings/sprite/obj70.bin"
+; ===========================================================================
+		nop
+
 J_SingleObjLoad2_07: ; loc_1CBB8:
                 jmp     SingleObjLoad2      ; (loc_E788)
 J_Adjust2PArtPointer2_01: ; loc_1CBBE:
@@ -41821,53 +41506,53 @@ Debug_Mz: ; loc_23ECC:  ; Metropolis
                 dc.b    $01, $00, $04, $7C
                 dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
-                dc.l    ($42<<$18)|Steam_Vent_Mappings         ; loc_1A7FE                 
+                dc.l    ($42<<$18)|Obj42_MapUnc_1A7FE         ; loc_1A7FE                 
                 dc.b    $01, $07, $60, $00
-                dc.l    ($64<<$18)|Piston_Mappings             ; loc_1A9F0
+                dc.l    ($64<<$18)|Obj64_MapUnc_1A9F0             ; loc_1A9F0
                 dc.b    $01, $00, $20, $00
-                dc.l    ($64<<$18)|Piston_Mappings             ; loc_1A9F0
+                dc.l    ($64<<$18)|Obj64_MapUnc_1A9F0             ; loc_1A9F0
                 dc.b    $11, $01, $20, $00
-                dc.l    ($65<<$18)|Mz_Platform_Mappings        ; loc_1AE2C
+                dc.l    ($65<<$18)|Obj65_MapUnc_1AE2C        ; loc_1AE2C
                 dc.b    $80, $00, $60, $00
-                dc.l    ($65<<$18)|Mz_Platform_Mappings        ; loc_1AE2C
+                dc.l    ($65<<$18)|Obj65_MapUnc_1AE2C        ; loc_1AE2C
                 dc.b    $13, $01, $60, $00
-                dc.l    ($47<<$18)|Switch_Mappings             ; loc_18E3E
+                dc.l    ($47<<$18)|Obj47_MapUnc_18E3E             ; loc_18E3E
                 dc.b    $00, $02, $04, $24
                 dc.l    ($2D<<$18)|Obj2D_MapUnc_9E1E     ; loc_9E1E
                 dc.b    $01, $01, $60, $00
-                dc.l    ($66<<$18)|Spring_Wall_Mappings        ; loc_1B084
+                dc.l    ($66<<$18)|Obj66_MapUnc_1B084        ; loc_1B084
                 dc.b    $01, $00, $86, $80
-                dc.l    ($66<<$18)|Spring_Wall_Mappings        ; loc_1B084
+                dc.l    ($66<<$18)|Obj66_MapUnc_1B084        ; loc_1B084
                 dc.b    $11, $01, $86, $80
-                dc.l    ($68<<$18)|Block_Arrow_Mappings        ; loc_1B6DC
+                dc.l    ($68<<$18)|Obj68_MapUnc_1B6DC        ; loc_1B6DC
                 dc.b    $00, $04, $64, $14
-                dc.l    ($69<<$18)|Screw_Nut_Mappings          ; loc_1B9A6
+                dc.l    ($69<<$18)|Obj69_MapUnc_1B9A6          ; loc_1B9A6
                 dc.b    $04, $00, $25, $00
-                dc.l    ($6A<<$18)|Mz_Platform_Mappings        ; loc_1AE2C
+                dc.l    ($6A<<$18)|Obj65_MapUnc_1AE2C        ; loc_1AE2C
                 dc.b    $00, $01, $60, $00
-                dc.l    ($6B<<$18)|Mz_Platform_Mappings        ; loc_1AE2C
+                dc.l    ($6B<<$18)|Obj65_MapUnc_1AE2C        ; loc_1AE2C
                 dc.b    $01, $01, $60, $00
-                dc.l    ($6D<<$18)|Block_Arrow_Mappings        ; loc_1B6DC
+                dc.l    ($6D<<$18)|Obj68_MapUnc_1B6DC        ; loc_1B6DC
                 dc.b    $00, $00, $24, $1C
-                dc.l    ($6E<<$18)|Machine_Mappings            ; loc_1C464
+                dc.l    ($6E<<$18)|Obj6E_MapUnc_1C464            ; loc_1C464
                 dc.b    $00, $00, $60, $00
-                dc.l    ($6E<<$18)|Machine_Mappings            ; loc_1C464
+                dc.l    ($6E<<$18)|Obj6E_MapUnc_1C464            ; loc_1C464
                 dc.b    $10, $01, $60, $00
-                dc.l    ($6E<<$18)|Machine_Mappings            ; loc_1C464
+                dc.l    ($6E<<$18)|Obj6E_MapUnc_1C464            ; loc_1C464
                 dc.b    $20, $02, $60, $00
-                dc.l    ($6F<<$18)|Parallelogram_Elevator_Mappings ; loc_1C7BE
+                dc.l    ($6F<<$18)|Obj6F_MapUnc_1C7BE ; loc_1C7BE
                 dc.b    $00, $00, $65, $3F
-                dc.l    ($70<<$18)|Rotating_Gears_Mappings     ; loc_1CA16
+                dc.l    ($70<<$18)|Obj70_MapUnc_1CA16     ; loc_1CA16
                 dc.b    $10, $00, $E3, $78
-                dc.l    ($71<<$18)|Lava_Bubble_Mappings        ; loc_9BBE
+                dc.l    ($71<<$18)|Obj71_MapUnc_9BBE        ; loc_9BBE
                 dc.b    $22, $05, $45, $36
-                dc.l    ($1C<<$18)|loc_9B9A
+                dc.l    ($1C<<$18)|Obj1C_MapUnc_9B9A
                 dc.b    $00, $00, $43, $FD
-                dc.l    ($1C<<$18)|loc_9B9A
+                dc.l    ($1C<<$18)|Obj1C_MapUnc_9B9A
                 dc.b    $01, $01, $43, $FD
-                dc.l    ($1C<<$18)|loc_9B9A
+                dc.l    ($1C<<$18)|Obj1C_MapUnc_9B9A
                 dc.b    $03, $02, $23, $FD
-                dc.l    ($65<<$18)|Mz_Platform_Mappings        ; loc_1AE2C
+                dc.l    ($65<<$18)|Obj65_MapUnc_1AE2C        ; loc_1AE2C
                 dc.b    $B0, $00, $60, $00
 Debug_HTz: ; loc_23FAE:  ; Hill Top
                 dc.w    $0019
@@ -41971,7 +41656,7 @@ Debug_OOz: ; loc_240F2:  ; Oil Ocean
                 dc.b    $12, $0A, $43, $C5
                 dc.l    ($46<<$18)|Spring_Ball_Mappings        ; loc_18CFA
                 dc.b    $00, $01, $63, $54 
-                dc.l    ($47<<$18)|Switch_Mappings             ; loc_18E3E
+                dc.l    ($47<<$18)|Obj47_MapUnc_18E3E             ; loc_18E3E
                 dc.b    $00, $02, $04, $24
                 dc.l    ($15<<$18)|Swing_Platforms_Mappings    ; loc_8AD8
                 dc.b    $88, $01, $43, $E3
@@ -42299,24 +41984,24 @@ loc_24532:
                 dc.w    $0000 
                 dc.l    Mz_Teleport             ; loc_75382
                 dc.w    $6780   
-                dc.l    Mz_Rotating_Gear        ; loc_7461C
+                dc.l    ArtNem_MtzWheel        ; loc_7461C
                 dc.w    $6F00 
-                dc.l    Mz_Machine_Ball         ; loc_74A74
+                dc.l    ArtNem_MtzWheelIndent         ; loc_74A74
                 dc.w    $7E00   
-                dc.l    loc_74EE2
+                dc.l    ArtNem_LavaCup
                 dc.w    $7F20  
-                dc.l    loc_751FE
+                dc.l    ArtNem_BoltEnd_Rope
                 dc.w    $7FA0
                 dc.l    Mz_Steam                ; loc_74BEA  
                 dc.w    $80A0
-                dc.l    Mz_Block                ; loc_74B1C  
+                dc.l    ArtNem_MtzSpikeBlock                ; loc_74B1C  
                 dc.w    $8280
-                dc.l    Mz_Harpoon              ; loc_74CF4
+                dc.l    ArtNem_MtzSpike              ; loc_74CF4
                 dc.w    $8380
 loc_2456A: 
 Metropolis_Sprites_2: 
                 dc.w    (((loc_245A2-loc_2456A-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Switch                  ; loc_78580
+                dc.l    ArtNem_Button                  ; loc_78580
                 dc.w    $8480     
                 dc.l    ArtNem_Spikes                  ; loc_7914E
                 dc.w    $8680 
@@ -42326,13 +42011,13 @@ Metropolis_Sprites_2:
                 dc.w    $8B80   
                 dc.l    ArtNem_HrzntlSprng       ; loc_78774
                 dc.w    $8E00   
-                dc.l    Mz_Screw_Nut            ; loc_74DB6
+                dc.l    ArtNem_MtzAsstBlocks            ; loc_74DB6
                 dc.w    $A000
-                dc.l    Mz_Lava_Bubble          ; loc_74E2C
+                dc.l    ArtNem_MtzLavaBubble          ; loc_74E2C
                 dc.w    $A6C0 
-                dc.l    Mz_Parallelogram_Elevator  ; loc_74F52    
+                dc.l    ArtNem_MTZ_Platform  ; loc_74F52    
                 dc.w    $A7E0  
-                dc.l    Mz_Mini_Gear            ; loc_752A0
+                dc.l    ArtNem_MtzCog            ; loc_752A0
                 dc.w    $ABE0       
 Hill_Top_Sprites_1:   
 loc_245A2:
@@ -42435,7 +42120,7 @@ loc_24684:
                 dc.w    $78A0       
                 dc.l    OOz_Swing_Platform      ; loc_76E68
                 dc.w    $7C60 
-                dc.l    Switch                  ; loc_78580
+                dc.l    ArtNem_Button                  ; loc_78580
                 dc.w    $8480   
                 dc.l    ArtNem_Spikes                  ; loc_7914E
                 dc.w    $8680   
@@ -47491,28 +47176,60 @@ ArtNem_HtzRock:	BINCLUDE	"art/nemesis/Rock from HTZ.bin"
 
 Htz_See_saw_badnick: ; loc_745B0: 
                 BINCLUDE  "data\htz\see-sawb.nem" 
-Mz_Rotating_Gear: ; loc_7461C:      
-                BINCLUDE  "data\mz\gear.nem"   
-Mz_Machine_Ball: ; loc_74A74: 
-                BINCLUDE  "data\mz\m_ball.nem"  
-Mz_Block: ; loc_74B1C:     
-                BINCLUDE  "data\mz\block.nem"  
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Large spinning wheel from MTZ		; ArtNem_7461C: Mz_Rotating_Gear:
+	even
+ArtNem_MtzWheel:	BINCLUDE	"art/nemesis/Large spinning wheel from MTZ.bin"
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Indent in large spinning wheel from MTZ	; ArtNem_74A74: Mz_Machine_Ball:
+	even
+ArtNem_MtzWheelIndent:	BINCLUDE	"art/nemesis/Large spinning wheel from MTZ - indent.bin"
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Spike block from MTZ			; ArtNem_74B1C: Mz_Block:
+	even
+ArtNem_MtzSpikeBlock:	BINCLUDE	"art/nemesis/MTZ spike block.bin"
+
 Mz_Steam: ; loc_74BEA:  
                 BINCLUDE  "data\mz\steam.nem"                 
-Mz_Harpoon: ; loc_74CF4:     
-                BINCLUDE  "data\mz\harpoon.nem"  
-Mz_Screw_Nut: ; loc_74DB6:  
-                BINCLUDE  "data\mz\screwnut.nem"                                                            
-Mz_Lava_Bubble: ; loc_74E2C:   
-                BINCLUDE  "data\mz\lvbubble.nem" 
-loc_74EE2:  
-                BINCLUDE  "data\mz\0x074EE2.nem"                  
-Mz_Parallelogram_Elevator: ; loc_74F52:  
-                BINCLUDE  "data\mz\parallel.nem" 
-loc_751FE:  
-                BINCLUDE  "data\mz\0x0751FE.nem"  
-Mz_Mini_Gear: ; loc_752A0:  
-                BINCLUDE  "data\mz\minigear.nem"                                 
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Spike from MTZ			; ArtNem_74CF4: Mz_Harpoon:
+	even
+ArtNem_MtzSpike:	BINCLUDE	"art/nemesis/Spike from MTZ.bin"
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Similarly shaded blocks from MTZ	; ArtNem_74DB6: Mz_Screw_Nut:
+	even
+ArtNem_MtzAsstBlocks:	BINCLUDE	"art/nemesis/Similarly shaded blocks from MTZ.bin"
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Lava bubble from MTZ			; ArtNem_74E2C: Mz_Lava_Bubble:
+	even
+ArtNem_MtzLavaBubble:	BINCLUDE	"art/nemesis/Lava bubble from MTZ.bin"
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Lava cup				; ArtNem_74EE2:
+	even
+ArtNem_LavaCup:	BINCLUDE	"art/nemesis/Lava cup from MTZ.bin"
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Paralellogram platform from MTZ	; ArtNem_74F52: Mz_Parallelogram_Elevator:
+	even
+ArtNem_MTZ_Platform:	BINCLUDE	"art/nemesis/Paralellogram platform from MTZ.bin"
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; End of a bolt and rope from MTZ	; ArtNem_751FE:
+	even
+ArtNem_BoltEnd_Rope:	BINCLUDE	"art/nemesis/Bolt end and rope from MTZ.bin"
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Small cog from MTZ			; ArtNem_752A0: Mz_Mini_Gear:
+	even
+ArtNem_MtzCog:	BINCLUDE	"art/nemesis/Small cog from MTZ.bin"
+
 Mz_Teleport: ; Mz_Four_Block: ; loc_75382:                 
                 dc.b    $00, $04, $86, $71, $00, $FF, $00, $00, $00, $00, $00, $00                                 
 Hpz_Bridge: ; loc_7538E: 
@@ -47587,8 +47304,11 @@ Nghz_Arrow_Shooter: ; loc_783E2:
                 BINCLUDE  "data\nghz\arrow_s.nem" 
 Nghz_Water_Splash: ; loc_78540:                                  
                 BINCLUDE  "data\nghz\w_splash.nem"                                                             
-Switch: ; loc_78580:      
-                BINCLUDE  "data\sprites\switch.nem"   
+;---------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Button				ArtNem_78580: Switch:
+	even
+ArtNem_Button:	BINCLUDE	"art/nemesis/Button.bin"
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
 ; Vertical Spring			; ArtNem_78658: Vertical_Spring:
