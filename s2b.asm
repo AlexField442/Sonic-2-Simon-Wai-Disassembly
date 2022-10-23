@@ -9461,7 +9461,7 @@ loc_8004:
                 cmpi.b  #$08, (Current_Zone).w
                 bne.s   loc_8036
                 addq.b  #$04, $0024(A0)
-                move.l  #Hpz_Bridge_Mappings, $0004(A0) ; loc_8598
+                move.l  #Obj11_MapUnc_8598, $0004(A0) ; loc_8598
                 move.w  #$6300, $0002(A0)
 loc_8036:
                 bsr     Adjust2PArtPointer     ; loc_DC30
@@ -9871,31 +9871,7 @@ loc_8498:
 ; ---------------------------------------------------------------------------
 ; Sprite mappings
 ; ---------------------------------------------------------------------------
-Hpz_Bridge_Mappings: ; loc_8598:
-                dc.w    Hpz_Bridge_Map_01-Hpz_Bridge_Mappings
-                dc.w    Hpz_Bridge_Map_02-Hpz_Bridge_Mappings
-                dc.w    Hpz_Bridge_Map_03-Hpz_Bridge_Mappings
-                dc.w    Hpz_Bridge_Map_04-Hpz_Bridge_Mappings
-                dc.w    Hpz_Bridge_Map_05-Hpz_Bridge_Mappings
-                dc.w    Hpz_Bridge_Map_06-Hpz_Bridge_Mappings
-Hpz_Bridge_Map_01: ; loc_85A4:
-                dc.w    $0001
-                dc.l    $F8050000, $0000FFF8
-Hpz_Bridge_Map_02: ; loc_85AE:
-                dc.w    $0001
-                dc.l    $F8050004, $0002FFF8
-Hpz_Bridge_Map_03: ; loc_85B8:
-                dc.w    $0001
-                dc.l    $F8050008, $0004FFF8
-Hpz_Bridge_Map_04: ; loc_85C2:
-                dc.w    $0001
-                dc.l    $F402000C, $0006FFFC
-Hpz_Bridge_Map_05: ; loc_85CC:
-                dc.w    $0001
-                dc.l    $F402000F, $0007FFFC
-Hpz_Bridge_Map_06: ; loc_85D6:
-                dc.w    $0001
-                dc.l    $F4020012, $0009FFFC             
+Obj11_MapUnc_8598:	BINCLUDE	"mappings/sprite/obj11_HPZ.bin"	; HPZ bridge
 Obj11_MapUnc_85E0:	BINCLUDE	"mappings/sprite/obj11_GHZ.bin"	; GHZ bridge
 ;===============================================================================           
 ; Object 0x11 - Bridge 
@@ -10821,7 +10797,7 @@ loc_913C:
                 move.l  #loc_9436, $0034(A0)
                 cmpi.b  #$08, (Current_Zone).w
                 bne.s   loc_91A4
-                move.l  #HPz_Collapsing_Platforms_Mappings, $0004(A0) ; loc_9858
+                move.l  #Obj1A_MapUnc_9858, $0004(A0) ; loc_9858
                 move.w  #$434A, $0002(A0)
                 bsr     Adjust2PArtPointer     ; loc_DC30
                 move.b  #$30, $0019(A0)
@@ -11126,24 +11102,7 @@ loc_9828:
                 dc.b    $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10
                 dc.b    $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10
                 dc.b    $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10                   
-HPz_Collapsing_Platforms_Mappings: ; loc_9858:
-                dc.w    HPz_Collapsing_Platforms_Map_01-HPz_Collapsing_Platforms_Mappings
-                dc.w    HPz_Collapsing_Platforms_Map_02-HPz_Collapsing_Platforms_Mappings
-                dc.w    HPz_Collapsing_Platforms_Map_02-HPz_Collapsing_Platforms_Mappings
-HPz_Collapsing_Platforms_Map_01: ; loc_985E:
-                dc.w    $0008
-                dc.l    $F00D0000, $0000FFD0, $000D0008, $0004FFD0
-                dc.l    $F0050004, $0002FFF0, $F0050804, $08020000
-                dc.l    $0005000C, $0006FFF0, $0005080C, $08060000
-                dc.l    $F00D0800, $08000010, $000D0808, $08040010
-HPz_Collapsing_Platforms_Map_02: ; loc_98A0:
-                dc.w    $000C
-                dc.l    $F0050000, $0000FFD0, $F0050004, $0002FFE0
-                dc.l    $F0050004, $0002FFF0, $F0050804, $08020000
-                dc.l    $F0050804, $08020010, $F0050800, $08000020
-                dc.l    $00050008, $0004FFD0, $0005000C, $0006FFE0
-                dc.l    $0005000C, $0006FFF0, $0005080C, $08060000
-                dc.l    $0005080C, $08060010, $00050808, $08040020                                
+Obj1A_MapUnc_9858:	BINCLUDE	"mappings/sprite/obj1A_HPZ.bin"
 OOz_Collapsing_Platforms_Mappings: ; loc_9902:
                 dc.w    OOz_Collapsing_Platforms_Map_01-OOz_Collapsing_Platforms_Mappings
                 dc.w    OOz_Collapsing_Platforms_Map_01-OOz_Collapsing_Platforms_Mappings
@@ -11273,10 +11232,10 @@ loc_9A62:
                 dc.w    loc_9A7E-loc_9A62
                 dc.w    loc_9AC0-loc_9A62
 loc_9A66:
-                dc.l    ($03<<$18)|Hpz_Bridge_Mappings ; loc_8598
+                dc.l    ($03<<$18)|Obj11_MapUnc_8598 ; loc_8598
                 dc.w    $6300
                 dc.b    $04, 01 
-                dc.l    Hpz_Orbs_Mappings              ; loc_9AFA
+                dc.l    Obj71_MapUnc_9AFA              ; loc_9AFA
                 dc.w    $E35A
                 dc.b    $10, $01   
                 dc.l    Obj71_MapUnc_9BBE           ; loc_9BBE 
@@ -11317,26 +11276,10 @@ loc_9AED:
                 dc.b    $0B, $00, $01, $02, $03, $04, $05, $FD, $03
 loc_9AF6:
                 dc.b    $7F, $06, $FD, $02               
-Hpz_Orbs_Mappings: ; loc_9AFA:
-                dc.w    loc_9B02-Hpz_Orbs_Mappings
-                dc.w    loc_9B0C-Hpz_Orbs_Mappings
-                dc.w    loc_9B16-Hpz_Orbs_Mappings
-                dc.w    loc_9B28-Hpz_Orbs_Mappings
-loc_9B02:
-                dc.w    $0001
-                dc.l    $F40A0000, $0000FFF4
-loc_9B0C:
-                dc.w    $0001
-                dc.l    $F40A0009, $0004FFF4
-loc_9B16:
-                dc.w    $0002
-                dc.l    $F00D0012, $0009FFF0, $000D1812, $1809FFF0
-loc_9B28:
-                dc.w    $0002
-                dc.l    $F00D001A, $000DFFF0, $000D181A, $180DFFF0                
 ; ---------------------------------------------------------------------------
-; Sprite mappings - Obj1C
+; Sprite mappings
 ; ---------------------------------------------------------------------------
+Obj71_MapUnc_9AFA:	BINCLUDE	"mappings/sprite/obj71_a.bin"	; glowing orbs
 Obj1C_MapUnc_9B3A:	BINCLUDE	"mappings/sprite/obj1C_a.bin"	; level art
 Obj1C_MapUnc_9B52:	BINCLUDE	"mappings/sprite/obj1C_b.bin"	; ARZ waterfall
 
@@ -11358,7 +11301,6 @@ loc_9B90:
                 dc.w    $0001
                 dc.l    $F801000C, $0006FFFC                  
 Obj1C_MapUnc_9B9A:	BINCLUDE	"mappings/sprite/obj1C_d.bin"	; MTZ thingy
-
 Obj71_MapUnc_9BBE:	BINCLUDE	"mappings/sprite/obj71_b.bin"
 ; ===========================================================================
 		nop
@@ -25699,7 +25641,7 @@ loc_14B86:
                 dc.w    loc_14CDC-loc_14B86
 loc_14B8C:
                 addq.b  #$02, $0024(A0)
-                move.l  #Hpz_Waterfalls_Mappings, $0004(A0) ; loc_14CF4
+                move.l  #Obj13_MapUnc_14CF4, $0004(A0) ; loc_14CF4
                 move.w  #$E315, $0002(A0)
                 bsr     Adjust2PArtPointer     ; loc_DC30
                 move.b  #$04, $0001(A0)
@@ -25726,7 +25668,7 @@ loc_14BF4:
                 addq.b  #$04, $0024(A1)
                 move.w  $0008(A0), $0008(A1)
                 move.w  $000C(A0), $000C(A1)
-                move.l  #Hpz_Waterfalls_Mappings, $0004(A1) ; loc_14CF4
+                move.l  #Obj13_MapUnc_14CF4, $0004(A1) ; loc_14CF4
                 move.w  #$E315, $0002(A1)
                 bsr     Adjust2PArtPointer2   ; loc_DC4C
                 move.b  #$04, $0001(A1)
@@ -25795,151 +25737,12 @@ loc_14CDC:
                 sub.w   ($FFFFF7DA).w, D0
                 cmpi.w  #$0280, D0
                 bhi     DeleteObject            ; loc_D3B4
-                bra     DisplaySprite           ; loc_D3C2 
-Hpz_Waterfalls_Mappings:                  
-loc_14CF4:
-                dc.w    loc_14D2E-loc_14CF4
-                dc.w    loc_14D38-loc_14CF4
-                dc.w    loc_14D4A-loc_14CF4
-                dc.w    loc_14D5C-loc_14CF4
-                dc.w    loc_14D76-loc_14CF4
-                dc.w    loc_14D90-loc_14CF4
-                dc.w    loc_14DB2-loc_14CF4
-                dc.w    loc_14DD4-loc_14CF4
-                dc.w    loc_14DFE-loc_14CF4
-                dc.w    loc_14E28-loc_14CF4
-                dc.w    loc_14E5A-loc_14CF4
-                dc.w    loc_14E8C-loc_14CF4
-                dc.w    loc_14EC6-loc_14CF4
-                dc.w    loc_14F00-loc_14CF4
-                dc.w    loc_14F42-loc_14CF4
-                dc.w    loc_14F84-loc_14CF4
-                dc.w    loc_14FCE-loc_14CF4
-                dc.w    loc_14FCE-loc_14CF4
-                dc.w    loc_14FCE-loc_14CF4
-                dc.w    loc_14D2C-loc_14CF4
-                dc.w    loc_14FE0-loc_14CF4
-                dc.w    loc_14FEA-loc_14CF4
-                dc.w    loc_14FF4-loc_14CF4
-                dc.w    loc_15006-loc_14CF4
-                dc.w    loc_15018-loc_14CF4
-                dc.w    loc_15032-loc_14CF4
-                dc.w    loc_1504C-loc_14CF4
-                dc.w    loc_1506E-loc_14CF4
-loc_14D2C:
-                dc.w    $0000                
-loc_14D2E:
-                dc.w    $0001
-                dc.l    $800C0010, $0008FFF0
-loc_14D38:
-                dc.w    $0002
-                dc.l    $800C0010, $0008FFF0, $880D002D, $0016FFF0
-loc_14D4A:
-                dc.w    $0002
-                dc.l    $800C0010, $0008FFF0, $880F0000, $0000FFF0
-loc_14D5C:
-                dc.w    $0003
-                dc.l    $800C0010, $0008FFF0, $880F0000, $0000FFF0
-                dc.l    $A80D002D, $0016FFF0
-loc_14D76:
-                dc.w    $0003
-                dc.l    $800C0010, $0008FFF0, $880F0000, $0000FFF0
-                dc.l    $A80F0000, $0000FFF0
-loc_14D90:
-                dc.w    $0004
-                dc.l    $800C0010, $0008FFF0, $880F0000, $0000FFF0
-                dc.l    $A80F0000, $0000FFF0, $C80D002D, $0016FFF0
-loc_14DB2:
-                dc.w    $0004
-                dc.l    $800C0010, $0008FFF0, $880F0000, $0000FFF0
-                dc.l    $A80F0000, $0000FFF0, $C80F0000, $0000FFF0
-loc_14DD4:
-                dc.w    $0005
-                dc.l    $800C0010, $0008FFF0, $880F0000, $0000FFF0
-                dc.l    $A80F0000, $0000FFF0, $C80F0000, $0000FFF0
-                dc.l    $E80D002D, $0016FFF0
-loc_14DFE:
-                dc.w    $0005
-                dc.l    $800C0010, $0008FFF0, $880F0000, $0000FFF0
-                dc.l    $A80F0000, $0000FFF0, $C80F0000, $0000FFF0
-                dc.l    $E80F0000, $0000FFF0
-loc_14E28:
-                dc.w    $0006
-                dc.l    $800C0010, $0008FFF0, $880F0000, $0000FFF0
-                dc.l    $A80F0000, $0000FFF0, $C80F0000, $0000FFF0
-                dc.l    $E80F0000, $0000FFF0, $080D002D, $0016FFF0
-loc_14E5A:
-                dc.w    $0006
-                dc.l    $800C0010, $0008FFF0, $880F0000, $0000FFF0
-                dc.l    $A80F0000, $0000FFF0, $C80F0000, $0000FFF0
-                dc.l    $E80F0000, $0000FFF0, $080F0000, $0000FFF0
-loc_14E8C:
-                dc.w    $0007
-                dc.l    $800C0010, $0008FFF0, $880F0000, $0000FFF0
-                dc.l    $A80F0000, $0000FFF0, $C80F0000, $0000FFF0
-                dc.l    $E80F0000, $0000FFF0, $080F0000, $0000FFF0
-                dc.l    $280D002D, $0016FFF0
-loc_14EC6:
-                dc.w    $0007
-                dc.l    $800C0010, $0008FFF0, $880F0000, $0000FFF0
-                dc.l    $A80F0000, $0000FFF0, $C80F0000, $0000FFF0
-                dc.l    $E80F0000, $0000FFF0, $080F0000, $0000FFF0
-                dc.l    $280F0000, $0000FFF0
-loc_14F00:
-                dc.w    $0008
-                dc.l    $800C0010, $0008FFF0, $880F0000, $0000FFF0
-                dc.l    $A80F0000, $0000FFF0, $C80F0000, $0000FFF0
-                dc.l    $E80F0000, $0000FFF0, $080F0000, $0000FFF0
-                dc.l    $280F0000, $0000FFF0, $480D002D, $0016FFF0
-loc_14F42:
-                dc.w    $0008
-                dc.l    $800C0010, $0008FFF0, $880F0000, $0000FFF0
-                dc.l    $A80F0000, $0000FFF0, $C80F0000, $0000FFF0
-                dc.l    $E80F0000, $0000FFF0, $080F0000, $0000FFF0
-                dc.l    $280F0000, $0000FFF0, $480F0000, $0000FFF0
-loc_14F84:
-                dc.w    $0009
-                dc.l    $800C0010, $0008FFF0, $880F0000, $0000FFF0
-                dc.l    $A80F0000, $0000FFF0, $C80F0000, $0000FFF0
-                dc.l    $E80F0000, $0000FFF0, $080F0000, $0000FFF0
-                dc.l    $280F0000, $0000FFF0, $480F0000, $0000FFF0
-                dc.l    $680D002D, $0016FFF0
-loc_14FCE:
-                dc.w    $0002
-                dc.l    $F00A0018, $000CFFE8, $F00A0818, $080C0000
-loc_14FE0:
-                dc.w    $0001
-                dc.l    $E00D002D, $0016FFF0
-loc_14FEA:
-                dc.w    $0001
-                dc.l    $E00F0000, $0000FFF0
-loc_14FF4:
-                dc.w    $0002
-                dc.l    $E00F0000, $0000FFF0, $000D002D, $0016FFF0
-loc_15006:
-                dc.w    $0002
-                dc.l    $E00F0000, $0000FFF0, $000F0000, $0000FFF0
-loc_15018:
-                dc.w    $0003
-                dc.l    $E00F0000, $0000FFF0, $000F0000, $0000FFF0
-                dc.l    $200D002D, $0016FFF0
-loc_15032:
-                dc.w    $0003
-                dc.l    $E00F0000, $0000FFF0, $000F0000, $0000FFF0
-                dc.l    $200F0000, $0000FFF0
-loc_1504C:
-                dc.w    $0004
-                dc.l    $E00F0000, $0000FFF0, $000F0000, $0000FFF0
-                dc.l    $200F0000, $0000FFF0, $400D002D, $0016FFF0
-loc_1506E:
-                dc.w    $0004
-                dc.l    $E00F0000, $0000FFF0, $000F0000, $0000FFF0
-                dc.l    $200F0000, $0000FFF0, $400F0000, $0000FFF0                  
-                        
-;=============================================================================== 
-; Object 0x13 - Hidden Palace - Waterfalls 
-; [ End ]                         
-;===============================================================================  
+                bra     DisplaySprite           ; loc_D3C2
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj13_MapUnc_14CF4:	BINCLUDE	"mappings/sprite/obj13.bin"
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -35356,7 +35159,7 @@ loc_1DEBA:
                 dc.w    loc_1DF16-loc_1DEBA
                 dc.w    loc_1DFB8-loc_1DEBA
 loc_1DEC0:
-                move.l  #Dinobot_Mappings, $0004(A0) ; loc_1DFCA
+                move.l  #Obj4F_MapUnc_1DFCA, $0004(A0) ; loc_1DFCA
                 move.w  #$0500, $0002(A0)
                 move.b  #$04, $0001(A0)
                 move.b  #$04, $0018(A0)
@@ -35430,25 +35233,13 @@ loc_1DFC0:
                 dc.b    $09, $01, $FF 
 loc_1DFC3:
                 dc.b    $09, $00, $01, $02, $01, $FF, $00  
-Dinobot_Mappings:                
-loc_1DFCA:
-                dc.w    loc_1DFD0-loc_1DFCA
-                dc.w    loc_1DFDA-loc_1DFCA
-                dc.w    loc_1DFE4-loc_1DFCA
-loc_1DFD0:
-                dc.w    $0001
-                dc.l    $F00F0000, $0000FFF0
-loc_1DFDA:
-                dc.w    $0001
-                dc.l    $F00F0010, $0008FFF0
-loc_1DFE4:
-                dc.w    $0001
-                dc.l    $F00F0020, $0010FFF0                               
-;=============================================================================== 
-; Object 0x4F - Hidden Palace - Dinobot 
-; [ End ]                         
-;===============================================================================   
-                dc.w    $0000                   ; Filler                
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj4F_MapUnc_1DFCA:	BINCLUDE	"mappings/sprite/obj4F.bin"
+
+; ===========================================================================
+		align 4
 J_DisplaySprite_0E: ; loc_1DFF0:
                 jmp     DisplaySprite           ; loc_D3C2
 J_DeleteObject_22: ; loc_1DFF6:
@@ -36500,7 +36291,7 @@ loc_1EE76:
                 dc.w    loc_1EEBA-loc_1EE76
                 dc.w    loc_1EF28-loc_1EE76
 loc_1EE7C:                
-                move.l  #Batbot_Mappings, $0004(A0)  ; loc_1F106
+                move.l  #Obj4C_MapUnc_1F106, $0004(A0)  ; loc_1F106
                 move.w  #$2530, $0002(A0)
                 ori.b   #$04, $0001(A0)
                 move.b  #$0A, $0020(A0)
@@ -36685,86 +36476,13 @@ loc_1F0ED:
                 dc.b    $0A
 loc_1F0FE:
                 dc.b    $03, $0A, $0B, $0C, $0D, $0E, $FF, $00
-Batbot_Mappings:                
-loc_1F106:
-                dc.w    loc_1F124-loc_1F106
-                dc.w    loc_1F146-loc_1F106
-                dc.w    loc_1F168-loc_1F106
-                dc.w    loc_1F18A-loc_1F106
-                dc.w    loc_1F1AC-loc_1F106
-                dc.w    loc_1F1C6-loc_1F106
-                dc.w    loc_1F1E8-loc_1F106
-                dc.w    loc_1F20A-loc_1F106
-                dc.w    loc_1F22C-loc_1F106
-                dc.w    loc_1F24E-loc_1F106
-                dc.w    loc_1F268-loc_1F106
-                dc.w    loc_1F282-loc_1F106
-                dc.w    loc_1F29C-loc_1F106
-                dc.w    loc_1F2AE-loc_1F106
-                dc.w    loc_1F2C0-loc_1F106
-loc_1F124:
-                dc.w    $0004
-                dc.l    $F0050000, $0000FFF8, $00050004, $0002FFF8
-                dc.l    $F00B0008, $00040005, $F00B0808, $0804FFE3
-loc_1F146:
-                dc.w    $0004
-                dc.l    $F0050000, $0000FFF8, $00050004, $0002FFF8
-                dc.l    $F60D0014, $000A0005, $F60D0814, $080AFFDB
-loc_1F168:
-                dc.w    $0004
-                dc.l    $F0050000, $0000FFF8, $00050004, $0002FFF8
-                dc.l    $F80D001C, $000E0004, $F80D081C, $080EFFDC
-loc_1F18A:
-                dc.w    $0004
-                dc.l    $F0050000, $0000FFF8, $00050004, $0002FFF8
-                dc.l    $F8050024, $0012FFEC, $F8050028, $00140004
-loc_1F1AC:
-                dc.w    $0003
-                dc.l    $F801002C, $00160000, $F0050000, $0000FFF8
-                dc.l    $00050004, $0002FFF8
-loc_1F1C6:
-                dc.w    $0004
-                dc.l    $F0050000, $0000FFF8, $0005002E, $0017FFF8
-                dc.l    $F00B0008, $00040005, $F00B0808, $0804FFE3
-loc_1F1E8:
-                dc.w    $0004
-                dc.l    $F0050000, $0000FFF8, $0005002E, $0017FFF8
-                dc.l    $F60D0014, $000A0005, $F60D0814, $080AFFDB
-loc_1F20A:
-                dc.w    $0004
-                dc.l    $F0050000, $0000FFF8, $0005002E, $0017FFF8
-                dc.l    $F80D001C, $000E0004, $F80D081C, $080EFFDC
-loc_1F22C:
-                dc.w    $0004
-                dc.l    $F0050000, $0000FFF8, $0005002E, $0017FFF8
-                dc.l    $F8050028, $00140004, $F8050024, $0012FFEC
-loc_1F24E:
-                dc.w    $0003
-                dc.l    $F801002C, $00160000, $F0050000, $0000FFF8
-                dc.l    $0005002E, $0017FFF8
-loc_1F268:
-                dc.w    $0003
-                dc.l    $F0070032, $0019FFF8, $F80D001C, $000E0004
-                dc.l    $F80D081C, $080EFFDC
-loc_1F282:
-                dc.w    $0003
-                dc.l    $F0070032, $0019FFF8, $F8050028, $00140004
-                dc.l    $F8050024, $0012FFEC
-loc_1F29C:
-                dc.w    $0002
-                dc.l    $F801002C, $00160000, $F0070032, $0019FFF8
-loc_1F2AE:
-                dc.w    $0002
-                dc.l    $F801082C, $0816FFF8, $F0070032, $0019FFF8
-loc_1F2C0:
-                dc.w    $0003
-                dc.l    $F0070032, $0019FFF8, $F8050828, $0814FFEC
-                dc.l    $F8050824, $08120004   
-;=============================================================================== 
-; Object 0x4C - Hidden Palace - Batbot
-; [ End ]                         
-;===============================================================================                
-                dc.w    $0000                   ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj4C_MapUnc_1F106:	BINCLUDE	"mappings/sprite/obj4C.bin"
+; ===========================================================================
+		align 4
+
 J_MarkObjGone_17: ; loc_1F2DC:
                 jmp     MarkObjGone             ; loc_D2A0
 J_AnimateSprite_0B: ; loc_1F2E2:
@@ -41465,7 +41183,7 @@ Debug_GHz: ; loc_23DF2:  ; Green Hill
                 dc.b    $00, $00, $04, $02
                 dc.l    ($53<<$18)|Obj53_MapUnc_1F696            ; loc_1F696                
                 dc.b    $00, $00, $04, $1C
-                dc.l    ($4F<<$18)|Dinobot_Mappings            ; loc_1DFCA  ; Out of Pointers
+                dc.l    ($4F<<$18)|Obj4F_MapUnc_1DFCA            ; loc_1DFCA  ; Out of Pointers
                 dc.b    $00, $00, $05, $00
                 dc.l    ($52<<$18)|Piranha_Mappings            ; loc_1DE66  ; Out of Pointers
                 dc.b    $00, $00, $25, $30
@@ -41479,7 +41197,7 @@ Debug_GHz: ; loc_23DF2:  ; Green Hill
                 dc.b    $00, $00, $03, $2C
                 dc.l    ($4E<<$18)|Crocobot_Mappings           ; loc_1F420  ; Out of Pointers
                 dc.b    $00, $00, $23, $00
-                dc.l    ($4C<<$18)|Batbot_Mappings             ; loc_1F106  ; Out of Pointers
+                dc.l    ($4C<<$18)|Obj4C_MapUnc_1F106             ; loc_1F106  ; Out of Pointers
                 dc.b    $00, $00, $23, $50
                 dc.l    ($4A<<$18)|Octus_Mappings              ; loc_1EDBC  ; Out of Pointers
                 dc.b    $00, $00, $23, $8A
@@ -41599,17 +41317,17 @@ Debug_HPz: ; loc_24078:  ; Hidden Palace
                 dc.b    $00, $00, $26, $BC
                 dc.l    ($26<<$18)|Obj26_MapUnc_B6D2           ; loc_B6D2
                 dc.b    $07, $00, $06, $80
-                dc.l    ($71<<$18)|Hpz_Orbs_Mappings           ; loc_9AFA
+                dc.l    ($71<<$18)|Obj71_MapUnc_9AFA           ; loc_9AFA
                 dc.b    $11, $03, $E3, $5A
-                dc.l    ($13<<$18)|Hpz_Waterfalls_Mappings     ; loc_14CF4
+                dc.l    ($13<<$18)|Obj13_MapUnc_14CF4     ; loc_14CF4
                 dc.b    $04, $04, $E3, $15
-                dc.l    ($1A<<$18)|HPz_Collapsing_Platforms_Mappings ; loc_9858
+                dc.l    ($1A<<$18)|Obj1A_MapUnc_9858 ; loc_9858
                 dc.b    $00, $00, $43, $4A
                 dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
                 dc.b    $09, $01, $26, $BC
-                dc.l    ($4F<<$18)|Dinobot_Mappings            ; loc_1DFCA  
+                dc.l    ($4F<<$18)|Obj4F_MapUnc_1DFCA            ; loc_1DFCA  
                 dc.b    $00, $00, $05, $00
-                dc.l    ($4C<<$18)|Batbot_Mappings             ; loc_1F106  
+                dc.l    ($4C<<$18)|Obj4C_MapUnc_1F106             ; loc_1F106  
                 dc.b    $00, $00, $25, $30
                 dc.l    ($52<<$18)|Piranha_Mappings            ; loc_1DE66  ; Out of Pointers
                 dc.b    $00, $00, $25, $30
@@ -42043,37 +41761,37 @@ loc_245F4:
                 dc.w    (((loc_24626-loc_245F4-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
                 dc.l    ArtNem_HPZ ; loc_98B76
                 dc.w    $0000 
-                dc.l    Hpz_Bridge              ; loc_7538E 
+                dc.l    ArtNem_HPZ_Bridge              ; loc_7538E 
                 dc.w    $6000 
-                dc.l    Hpz_Waterfall           ; loc_75506
+                dc.l    ArtNem_HPZ_Waterfall           ; loc_75506
                 dc.w    $62A0 
-                dc.l    Hpz_Platform            ; loc_75ADA
+                dc.l    ArtNem_HPZPlatform            ; loc_75ADA
                 dc.w    $6940     
-                dc.l    Hpz_Orbs_Comp           ; loc_75B9A   
+                dc.l    ArtNem_HPZOrb           ; loc_75B9A   
                 dc.w    $6B40 
                 dc.l    Hpz_Unknow_Platform     ; loc_75DD6   
                 dc.w    $6F80 
-                dc.l    Hpz_Emerald             ; loc_75868
+                dc.l    ArtNem_HPZ_Emerald             ; loc_75868
                 dc.w    $7240  
                 dc.l    Water_Surface           ; loc_777D2  
                 dc.w    $8000  
 Hidden_Palace_Sprites_2:                                        
 loc_24626: 
                 dc.w   (((loc_2463A-loc_24626-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Hpz_Dinobot             ; loc_7B114 
+                dc.l    ArtNem_Redz             ; loc_7B114 
                 dc.w    $A000 
-                dc.l    Hpz_Batbot              ; loc_7A6A2
+                dc.l    ArtNem_Batbot              ; loc_7A6A2
                 dc.w    $A600                  
 loc_2463A: ; Not all sprites are loaded in to VRam               
                 dc.l    Hpz_Crocobot            ; loc_7A11A ; Left Over 
                 dc.w    $6000 
                 dc.l    ArtNem_Buzzer       ; loc_7A4BC
                 dc.w    $6580  
-                dc.l    Hpz_Batbot              ; loc_7A6A2
+                dc.l    ArtNem_Batbot              ; loc_7A6A2
                 dc.w    $6A00  
                 dc.l    Hpz_Rhinobot            ; loc_7AD18 ; Left Over
                 dc.w    $7880 
-                dc.l    Hpz_Dinobot             ; loc_7B114 
+                dc.l    ArtNem_Redz             ; loc_7B114 
                 dc.w    $A000 
                 dc.l    Hpz_Piranha             ; loc_7B4EA ; Left Over
                 dc.w    $A600   
@@ -47226,16 +46944,29 @@ ArtNem_MtzCog:	BINCLUDE	"art/nemesis/Small cog from MTZ.bin"
 
 Mz_Teleport: ; Mz_Four_Block: ; loc_75382:                 
                 dc.b    $00, $04, $86, $71, $00, $FF, $00, $00, $00, $00, $00, $00                                 
-Hpz_Bridge: ; loc_7538E: 
-                BINCLUDE  "data\hpz\bridge.nem"
-Hpz_Waterfall: ; loc_75506: 
-                BINCLUDE  "data\hpz\watrfall.nem"               
-Hpz_Emerald: ; loc_75868: 
-                BINCLUDE  "data\hpz\emerald.nem"                                 
-Hpz_Platform: ; loc_75ADA: 
-                BINCLUDE  "data\hpz\platform.nem"               
-Hpz_Orbs_Comp: ; loc_75B9A: ; Compressed 
-                BINCLUDE  "data\hpz\orbs.nem"                
+; ---------------------------------------------------------------------
+; Nemesis compressed art
+; Bridge in HPZ				; ArtNem_7538E: Hpz_Bridge:
+	even
+ArtNem_HPZ_Bridge:	BINCLUDE	"art/nemesis/HPZ bridge.bin"
+; ---------------------------------------------------------------------
+; Waterfall in HPZ			; Artnem_75506: Hpz_Waterfall:
+	even
+ArtNem_HPZ_Waterfall:	BINCLUDE	"art/nemesis/HPZ waterfall tiles.bin"
+; ---------------------------------------------------------------------
+; (meant to be breakable) emerald from HPZ	; Artnem_75868: Hpz_Emerald:
+	even
+ArtNem_HPZ_Emerald:	BINCLUDE	"art/nemesis/Emerald from HPZ.bin"
+; ---------------------------------------------------------------------
+; Collapsing platform from HPZ		; ArtNem_75ADA: Hpz_Platform:
+	even
+ArtNem_HPZPlatform:	BINCLUDE	"art/nemesis/Collapsing platform from HPZ.bin"
+; ---------------------------------------------------------------------
+; Nemesis compressed art
+; Glowing orb from HPZ			; ArtNem_75B8A: Hpz_Orbs_Comp:
+	even
+ArtNem_HPZOrb:	BINCLUDE	"art/nemesis/Pulsing orb from HPZ.bin"
+
 Hpz_Unknow_Platform: ; loc_75DD6: 
                 BINCLUDE  "data\hpz\unkptfm.nem"  
 OOz_Elevator: ; loc_75F70:  
@@ -47369,15 +47100,21 @@ Hpz_Crocobot: ; loc_7A11A:
 ; Buzzer (not Bomber)			; ArtNem_7A4BC: Ghz_Buzzer_Bomber:
 	even
 ArtNem_Buzzer:	BINCLUDE	"art/nemesis/Buzzer enemy.bin"
-               
-Hpz_Batbot: ; loc_7A6A2: 
-                BINCLUDE  "data\hpz\batbot.nem" 
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Batbot (bat badnik from HPZ)		; ArtNem_7A6A2: Hpz_Batbot:
+	even
+ArtNem_Batbot:	BINCLUDE	"art/nemesis/Batbot enemy.bin"
 OOz_Octus: ; loc_7A9F8: 
                 BINCLUDE  "data\ooz\octus.nem"                 
 Hpz_Rhinobot: ; loc_7AD18: 
                 BINCLUDE  "data\hpz\rhinobot.nem"                                 
-Hpz_Dinobot: ; loc_7B114: 
-                BINCLUDE  "data\hpz\dinobot.nem"                  
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Redz (red dinosaur badnik from HPZ)	; ArtNem_7A6A2: Hpz_Dinobot:
+	even
+ArtNem_Redz:	BINCLUDE	"art/nemesis/Redz enemy.bin"
+
 Hpz_Piranha: ; loc_7B4EA: 
                 BINCLUDE  "data\hpz\piranha.nem"  
 OOz_Aquis: ; loc_7B9E2: 
