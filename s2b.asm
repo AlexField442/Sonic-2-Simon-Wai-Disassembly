@@ -47209,7 +47209,6 @@ Htz_Init_Sprites_Dyn_Reload: ; loc_86626:
 ; EHZ/HTZ 128x128 block mappings (Kosinski compression)
 ; LevChunk_8692E: Green_Hill_128x128_Map:
 BM128_GHZ:	BINCLUDE	"mappings/128x128/GHZ and HTZ.bin"
-		dc.w	0
 ; ----------------------------------------------------------------------------------
 ; WZ 16x16 block mappings (uncompressed)
 ; LevBlock_89B8E: Wood_16x16_Map:
@@ -47225,7 +47224,6 @@ Waterfall: ; loc_8E6C6:
 ; WZ 128x128 block mappings (Kosinski compression)
 ; LevChunk_8E826: Wood_128x128_Map:
 BM128_WZ:	BINCLUDE	"mappings/128x128/WZ.bin"
-		dc.w	0, 0, 0, 0, 0, 0
 ;-----------------------------------------------------------------------------------
 ; MTZ 16x16 block mappings (uncompressed)
 ; LevBlock_90456: Metropolis_16x16_Map:
@@ -47243,7 +47241,6 @@ Mz_Init_Sprites_Dyn_Reload: ; loc_94994:
 ; MTZ 128x128 block mappings (Kosinski compression)
 ; LevChunk_94C56: Metropolis_128x128_Map:
 BM128_MTZ:	BINCLUDE	"mappings/128x128/MTZ.bin"
-		dc.w	0, 0, 0, 0, 0, 0
 ;-----------------------------------------------------------------------------------
 ; HPZ 16x16 block mappings (uncompressed)
 ; LevBlock_97596: Hidden_Palace_16x16_Map:
@@ -47260,7 +47257,6 @@ Hpz_Init_Sprites_Dyn_Reload: ; loc_9B884: ;  Orbs
 ; HPZ 128x128 block mappings (Kosinski compression)
 ; LevChunk_9B9F8: Hidden_Palace_128x128_Map:
 BM128_HPZ:	BINCLUDE	"mappings/128x128/HPZ.bin"
-		dc.w	0, 0, 0
 
 
 Oil_Ocean_16x16_Map: ; loc_9D778:
