@@ -3285,7 +3285,7 @@ PalPointers: ; loc_294E: ; Palette List
                 dc.l    Pal_HTZ, $FB200017 ; Hill Top
                 dc.l    Pal_HPZ, $FB200017 ; Hidden Palace
                 dc.l    Pal_GHZ, $FB200017 ; Level $09
-                dc.l    Pal_OOz, $FB200017 ; Oil Ocean
+                dc.l    Pal_OOZ, $FB200017 ; Oil Ocean
                 dc.l    Pal_DHz, $FB200017 ; Dust Hill
                 dc.l    Pal_CNz1, $FB200017 ; Casino Night
                 dc.l    Pal_CPz, $FB200017 ; Chemical Plant
@@ -3322,13 +3322,7 @@ Pal_MTZ:		BINCLUDE	"art/palettes/MTZ.bin"
 Pal_HTZ:		BINCLUDE	"art/palettes/HTZ.bin"
 Pal_HPZ:		BINCLUDE	"art/palettes/HPZ.bin"
 Pal_HPZ_U:		BINCLUDE	"art/palettes/HPZ underwater.bin"
-Pal_OOz: ; loc_2E16: ; Oil Ocean
-                dc.w    $006E, $0000, $040A, $082E, $0C8E, $0044, $0EEE, $0AAA
-                dc.w    $0888, $0444, $0666, $048E, $00EE, $0088, $06AE, $08CE
-                dc.w    $006E, $0200, $0402, $0602, $0804, $0824, $0846, $0A68
-                dc.w    $0C8A, $0EEE, $0400, $0602, $0804, $0806, $0400, $00EE
-                dc.w    $006E, $0202, $0024, $0026, $0046, $0068, $028A, $04AC
-                dc.w    $06CE, $0CEE, $0020, $0040, $0060, $00A0, $06E6, $0E0E
+Pal_OOZ:		BINCLUDE	"art/palettes/OOZ.bin"
 Pal_DHz: ;loc_2E76: ; Dust Hill
                 dc.w    $0002, $0000, $0E64, $0A68, $0E86, $0044, $0EEE, $0AAA
                 dc.w    $0888, $0444, $0666, $000E, $00EE, $0088, $0EA8, $0ECA
@@ -4347,7 +4341,7 @@ Level:
 		add.w	d0,d0
 		add.w	d1,d0
 
-		lea	(TilesMainTable).l,a2
+		lea	(LevelArtPointers).l,a2
 		lea	(a2,d0.w),a2
 		moveq	#0,d0
 		move.b	(a2),d0		; PLC1 ID
@@ -5935,9 +5929,10 @@ StartLocations:
 		BINCLUDE	"level/startpos/HTZ_1.bin"	; $07 - HTZ
 		BINCLUDE	"level/startpos/HTZ_2.bin"
 		BINCLUDE	"level/startpos/HPZ_1.bin"	; $08 - HPZ
-		dc.l	$003001BD
+		BINCLUDE	"level/startpos/HPZ_2.bin"
                 dc.l    $0060028F, $004002AF ; $09
-                dc.l    $006006AC, $0050056C ; $0A - Oil Ocean
+		BINCLUDE	"level/startpos/OOZ_1.bin"	; $0A - OOZ
+		BINCLUDE	"level/startpos/OOZ_2.bin"
                 dc.l    $006006AC, $006005AC ; $0B - Dust Hill
                 dc.l    $0060028F, $004002AF ; $0C - Casino Night
                 dc.l    $003001EC, $0030012C ; $0D - Chemical Plant
@@ -8676,7 +8671,7 @@ Main_Level_Load_16_128_Blocks: ; loc_779A: Load 16x16/128x128 Tiles
                 move.w  D0, D1
                 add.w   D0, D0
                 add.w   D1, D0
-                lea     (TilesMainTable), A2    ; loc_24354
+                lea     (LevelArtPointers), A2    ; loc_24354
                 lea     $00(A2, D0), A2
                 move.l  A2, -(A7)
                 addq.w  #$04, A2
@@ -40070,23 +40065,23 @@ loc_227B8: ; Hidden Palace Dynamic Reload Sprites
                 dc.w    $1008, $0000, $0810     ; Frame Load/Frame Time    
 loc_227E4: ; Oil Ocean Dynamic Reload Sprites              
                 dc.w    $0004                   ; Total of Animations
-                dc.l    ($FF<<$18)|OOz_Red_Balls ; loc_2B76A
+                dc.l    ($FF<<$18)|ArtUnc_OOZPulseBall ; loc_2B76A
                 dc.w    $5A00                   ; VRam
                 dc.w    $0404                   ; Frames/Tiles
                 dc.w    $000B, $0405, $0809, $0403 ; Frame Load/Frame Time 
-                dc.l    ($06<<$18)|OOz_Rotating_Square_1 ; loc_2B8EA
+                dc.l    ($06<<$18)|ArtUnc_OOZSquareBall1 ; loc_2B8EA
                 dc.w    $5A80                   ; VRam
                 dc.w    $0404                   ; Frames/Tiles
                 dc.w    $0004, $080C            ; Frame Load/Frame Time
-                dc.l    ($06<<$18)|OOz_Rotating_Square_2 ; loc_2BAEA
+                dc.l    ($06<<$18)|ArtUnc_OOZSquareBall2 ; loc_2BAEA
                 dc.w    $5B00                   ; VRam
                 dc.w    $0404                   ; Frames/Tiles
                 dc.w    $0004, $080C            ; Frame Load/Frame Time
-                dc.l    ($11<<$18)|OOz_Oil_1    ; loc_2BCEA
+                dc.l    ($11<<$18)|ArtUnc_Oil1    ; loc_2BCEA
                 dc.w    $5B80                   ; VRam
                 dc.w    $0610                   ; Frames/Tiles
                 dc.w    $0010, $2030, $2010     ; Frame Load/Frame Time
-                dc.l    ($11<<$18)|OOz_Oil_2 ; loc_2C4EA
+                dc.l    ($11<<$18)|ArtUnc_Oil2 ; loc_2C4EA
                 dc.w    $5D80                   ; VRam
                 dc.w    $0610                   ; Frames/Tiles
                 dc.w    $0010, $2030, $2010     ; Frame Load/Frame Time
@@ -41504,59 +41499,69 @@ Debug_NGHz: ; loc_242C2:  ; Neo Green Hill
 J_Adjust2PArtPointer_28: ; loc_2434C:
                 jmp     Adjust2PArtPointer     ; (loc_DC30)
                 dc.w    $0000                   ; Filler
-TilesMainTable: ; loc_24354:  
-                dc.l    ($04<<$18)|ArtNem_GHZ   ; loc_81C00 $04 = Sprite Pointer in 0x024420 
-                dc.l    ($05<<$18)|BM16_GHZ   ; loc_80C60 $05 = Sprite Pointer in 0x024420
-                dc.l    ($04<<$18)|BM128_GHZ ; loc_8692E $04 = Palette Pointer in 0x00294E
-                dc.l    ($06<<$18)|ArtNem_GHZ   ; loc_81C00 $06 = Sprite Pointer in 0x024420 
-                dc.l    ($07<<$18)|BM16_GHZ   ; loc_80C60 $07 = Sprite Pointer in 0x024420
-                dc.l    ($05<<$18)|BM128_GHZ ; loc_8692E $05 = Palette Pointer in 0x00294E
-                dc.l    ($08<<$18)|ArtNem_WZ         ; loc_8AB2E $08 = Sprite Pointer in 0x024420 
-                dc.l    ($09<<$18)|BM16_WZ         ; loc_89B8E $09 = Sprite Pointer in 0x024420
-                dc.l    ($06<<$18)|BM128_WZ       ; loc_8E826 $06 = Palette Pointer in 0x00294E
-                dc.l    ($0A<<$18)|ArtNem_GHZ   ; loc_81C00 $0A = Sprite Pointer in 0x024420 
-                dc.l    ($0B<<$18)|BM16_GHZ   ; loc_80C60 $0B = Sprite Pointer in 0x024420
-                dc.l    ($07<<$18)|BM128_GHZ ; loc_8692E $07 = Palette Pointer in 0x00294E
-                dc.l    ($0C<<$18)|ArtNem_MTZ   ; loc_91716 $0C = Sprite Pointer in 0x024420 
-                dc.l    ($0D<<$18)|BM16_MTZ   ; loc_90456 $0D = Sprite Pointer in 0x024420
-                dc.l    ($08<<$18)|BM128_MTZ ; loc_94C56 $08 = Palette Pointer in 0x00294E
-                dc.l    ($0C<<$18)|ArtNem_MTZ   ; loc_91716 $0C = Sprite Pointer in 0x024420 
-                dc.l    ($0D<<$18)|BM16_MTZ   ; loc_90456 $0D = Sprite Pointer in 0x024420
-                dc.l    ($08<<$18)|BM128_MTZ ; loc_94C56 $08 = Palette Pointer in 0x00294E
-                dc.l    ($10<<$18)|ArtNem_GHZ   ; loc_81C00 $10 = Sprite Pointer in 0x024420 
-                dc.l    ($11<<$18)|BM16_GHZ   ; loc_80C60 $11 = Sprite Pointer in 0x024420
-                dc.l    ($0A<<$18)|BM128_GHZ ; loc_8692E $0A = Palette Pointer in 0x00294E
-                dc.l    ($12<<$18)|ArtNem_GHZ   ; loc_81C00 $12 = Sprite Pointer in 0x024420 
-                dc.l    ($13<<$18)|BM16_GHZ   ; loc_80C60 $13 = Sprite Pointer in 0x024420
-                dc.l    ($0B<<$18)|BM128_GHZ ; loc_8692E $0B = Palette Pointer in 0x00294E
-                dc.l    ($14<<$18)|ArtNem_HPZ   ; loc_98B76 $14 = Sprite Pointer in 0x024420 
-                dc.l    ($15<<$18)|BM16_HPZ   ; loc_97596 $15 = Sprite Pointer in 0x024420
-                dc.l    ($0C<<$18)|BM128_HPZ ; loc_9B9F8 $0C = Palette Pointer in 0x00294E
-                dc.l    ($16<<$18)|ArtNem_GHZ   ; loc_81C00 $16 = Sprite Pointer in 0x024420 
-                dc.l    ($17<<$18)|BM16_GHZ   ; loc_80C60 $17 = Sprite Pointer in 0x024420
-                dc.l    ($0D<<$18)|BM128_GHZ ; loc_8692E $0D = Palette Pointer in 0x00294E
-                dc.l    ($18<<$18)|Oil_Ocean_8x8_Tiles    ; loc_9ED58 $18 = Sprite Pointer in 0x024420 
-                dc.l    ($19<<$18)|Oil_Ocean_16x16_Map    ; loc_9D778 $19 = Sprite Pointer in 0x024420
-                dc.l    ($0E<<$18)|Oil_Ocean_128x128_Map  ; loc_A1A58 $0E = Palette Pointer in 0x00294E
-                dc.l    ($1A<<$18)|Dust_Hill_8x8_Tiles    ; loc_A5248 $1A = Sprite Pointer in 0x024420 
-                dc.l    ($1B<<$18)|Dust_Hill_16x16_Map    ; loc_A3F88 $1B = Sprite Pointer in 0x024420
-                dc.l    ($0F<<$18)|Dust_Hill_128x128_Map  ; loc_A8B6A $0F = Palette Pointer in 0x00294E
-                dc.l    ($1C<<$18)|Casino_Night_8x8_Tiles   ; loc_ABF2A $1C = Sprite Pointer in 0x024420 
-                dc.l    ($1D<<$18)|Casino_Night_16x16_Map   ; loc_AB5CA $1D = Sprite Pointer in 0x024420
-                dc.l    ($10<<$18)|Casino_Night_128x128_Map ; loc_AF026 $10 = Palette Pointer in 0x00294E
-                dc.l    ($1E<<$18)|Chemical_Plant_8x8_Tiles   ; loc_B2506 $1E = Sprite Pointer in 0x024420 
-                dc.l    ($1F<<$18)|Chemical_Plant_16x16_Map   ; loc_B0F26 $1F = Sprite Pointer in 0x024420
-                dc.l    ($11<<$18)|Chemical_Plant_128x128_Map ; loc_B6058 $11 = Palette Pointer in 0x00294E
-                dc.l    ($20<<$18)|ArtNem_GHZ   ; loc_81C00 $20 = Sprite Pointer in 0x024420 
-                dc.l    ($21<<$18)|BM16_GHZ   ; loc_80C60 $21 = Sprite Pointer in 0x024420
-                dc.l    ($12<<$18)|BM128_GHZ ; loc_8692E $12 = Palette Pointer in 0x00294E
-                dc.l    ($22<<$18)|Neo_Green_Hill_8x8_Tiles   ; loc_B9E58 $22 = Sprite Pointer in 0x024420 
-                dc.l    ($23<<$18)|Neo_Green_Hill_16x16_Map   ; loc_B8558 $23 = Sprite Pointer in 0x024420
-                dc.l    ($13<<$18)|Neo_Green_Hill_128x128_Map ; loc_BF568 $13 = Palette Pointer in 0x00294E
-                dc.l    ($24<<$18)|ArtNem_GHZ   ; loc_81C00 $24 = Sprite Pointer in 0x024420 
-                dc.l    ($25<<$18)|BM16_GHZ   ; loc_80C60 $25 = Sprite Pointer in 0x024420
-                dc.l    ($14<<$18)|BM128_GHZ ; loc_8692E $14 = Palette Pointer in 0x00294E
-ArtLoadCues: ; loc_24420:
+
+; ---------------------------------------------------------------------------
+; "MAIN LEVEL LOAD BLOCK" (after Nemesis)
+;
+; This struct array tells the engine where to find all the art associated with
+; a particular zone. Each zone gets three longwords, in which it stores three
+; pointers (in the lower 24 bits) and three jump table indeces (in the upper eight
+; bits). The assembled data looks something like this:
+;
+; aaBBBBBB
+; ccDDDDDD
+; eeFFFFFF
+;
+; aa = index for primary pattern load request list
+; BBBBBB = pointer to level art
+; cc = index for secondary pattern load request list
+; DDDDDD = pointer to 16x16 block mappings
+; ee = index for palette
+; FFFFFF = pointer to 128x128 block mappings
+;
+; Nemesis refers to this as the "main level load block". However, that name implies
+; that this is code (obviously, it isn't), or at least that it points to the level's
+; collision, object and ring placement arrays (it only points to art...
+; although the 128x128 mappings do affect the actual level layout and collision)
+; ---------------------------------------------------------------------------
+
+; declare some global variables to be used by the levartptrs macro
+cur_zone_id := 0
+cur_zone_str := "0"
+
+; macro for declaring a "main level load block" (MLLB)
+levartptrs macro plc1,plc2,palette,art,map16x16,map128x128
+;	!org LevelArtPointers+zone_id_{cur_zone_str}*12
+	dc.l (plc1<<24)|art
+	dc.l (plc2<<24)|map16x16
+	dc.l (palette<<24)|map128x128
+cur_zone_id := cur_zone_id+1
+cur_zone_str := "\{cur_zone_id}"
+    endm
+
+; dword_24354: MainLoadBlocks: saArtPtrs: TilesMainTable:
+LevelArtPointers:
+	levartptrs $04,		$05,		$04,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   0 ; GHZ  ; GREEN HILL ZONE
+	levartptrs $06,		$07,		$05,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   1 ; OWZ  ; OCEAN WIND ZONE (UNUSED)
+	levartptrs $08,		$09,		$06,	ArtNem_WZ,  BM16_WZ,  BM128_WZ	;   2 ; WZ   ; WOOD ZONE
+	levartptrs $0A,		$0B,		$07,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   3 ; SSZ  ; SAND SHOWER ZONE (UNUSED)
+	levartptrs $0C,		$0D,		$08,	ArtNem_MTZ, BM16_MTZ, BM128_MTZ	;   4 ; MTZ  ; METROPOLIS ZONE
+	levartptrs $0C,		$0D,		$08,	ArtNem_MTZ, BM16_MTZ, BM128_MTZ	;   5 ; MTZ  ; METROPOLIS ZONE 2
+	levartptrs $10,		$11,		$0A,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   6 ; BLZ  ; BLUE LAKE ZONE (UNUSED, LATER REPLACED WITH WING FORTRESS)
+	levartptrs $12,		$13,		$0B,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   7 ; HTZ  ; HILL TOP ZONE
+	levartptrs $14,		$15,		$0C,	ArtNem_HPZ, BM16_HPZ, BM128_HPZ	;   8 ; HPZ  ; HIDDEN PALACE ZONE
+	levartptrs $16,		$17,		$0D,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   9 ; RWZ  ; ROCK WORLD ZONE (UNUSED)
+	levartptrs $18,		$19,		$0E,	ArtNem_OOZ, BM16_OOZ, BM128_OOZ	;   A ; OOZ  ; OIL OCEAN ZONE
+	levartptrs $1A,		$1B,		$0F,	ArtNem_DHZ, BM16_DHZ, BM128_DHZ	;   B ; DHZ  ; DUST HILL ZONE
+	levartptrs $1C,		$1D,		$10,	ArtNem_CNZ, BM16_CNZ, BM128_CNZ	;   C ; CNZ  ; CASINO NIGHT ZONE
+	levartptrs $1E,		$1F,		$11,	ArtNem_CPZ, BM16_CPZ, BM128_CPZ	;   D ; CPZ  ; CHEMICAL PLANT ZONE
+	levartptrs $20,		$21,		$12,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   E ; GCZ  ; GENOCIDE CITY ZONE (BLANK, LATER REPLACED WITH DEATH EGG)
+	levartptrs $22,		$23,		$13,	ArtNem_NGHZ,BM16_NGHZ,BM128_NGHZ;   F ; NGHZ ; NEO GREEN HILL ZONE
+	levartptrs $24,		$25,		$14,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;  10 ; DEZ  ; DEATH EGG ZONE (BLANK, LATER REPLACED WITH SKY CHASE)
+
+; ===========================================================================
+; off_24420:
+ArtLoadCues:
                 dc.w    Standard_Sprites_1-ArtLoadCues ; $00
                 dc.w    Standard_Sprites_2-ArtLoadCues ; $01
                 dc.w    Standard_Sprites_3-ArtLoadCues ; $02                
@@ -41798,7 +41803,7 @@ loc_2463A: ; Not all sprites are loaded in to VRam
 Oil_Ocean_Sprites_1:   
 loc_24658:
                 dc.w    (((loc_24684-loc_24658-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Oil_Ocean_8x8_Tiles     ; loc_9ED58
+                dc.l    ArtNem_OOZ     ; loc_9ED58
                 dc.w    $0000
                 dc.l    OOz_Elevator            ; loc_75F70
                 dc.w    $6000   
@@ -41838,7 +41843,7 @@ loc_24684:
 Dust_Hill_Sprites_1:   
 loc_246C2:
                 dc.w    (((loc_246E2-loc_246C2-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Dust_Hill_8x8_Tiles     ; loc_A5248
+                dc.l    ArtNem_DHZ     ; loc_A5248
                 dc.w    $0000 
                 dc.l    Dhz_Box                 ; loc_7708A
                 dc.w    $7A80  
@@ -41866,7 +41871,7 @@ loc_246E2:
 Casino_Night_Sprites_1:   
 loc_24708:
                 dc.w    (((loc_24716-loc_24708-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Casino_Night_8x8_Tiles  ; loc_ABF2A
+                dc.l    ArtNem_CNZ  ; loc_ABF2A
                 dc.w    $0000                   
                 dc.l    Cnz_Cards               ; loc_AEF3C
                 dc.w    $7A00   
@@ -41884,7 +41889,7 @@ loc_24716:
 Chemical_Plant_Sprites_1:   
 loc_24730:
                 dc.w    (((loc_2476E-loc_24730-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Chemical_Plant_8x8_Tiles ; loc_B2506
+                dc.l    ArtNem_CPZ ; loc_B2506
                 dc.w    $0000 
                 dc.l    Cpz_Metal_Structure     ; loc_77A1C  
                 dc.w    $6E60
@@ -41922,7 +41927,7 @@ loc_2476E:
 Neo_Green_Hill_Sprites_1:   
 loc_24794:
                 dc.w    (((loc_247B4-loc_24794-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Neo_Green_Hill_8x8_Tiles ; loc_B9E58
+                dc.l    ArtNem_NGHZ ; loc_B9E58
                 dc.w    $0000 
                 dc.l    Nghz_Water_Surface      ; loc_78270
                 dc.w    $8000   
@@ -42039,7 +42044,7 @@ loc_24868:
 Casino_Night_Sprites_Previous_Build_1:                 
 loc_248B4:
                 dc.w    (((loc_248C2-loc_248B4-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto 
-                dc.l    Casino_Night_8x8_Tiles-$07E2 ; loc_AB748 ; Left over from previous build
+                dc.l    ArtNem_CNZ-$07E2 ; loc_AB748 ; Left over from previous build
                 dc.w    $0000
                 dc.l    Cnz_Cards-$07E2              ; loc_AE75A ; Left over from previous build
                 dc.w    $7A00 
@@ -42057,7 +42062,7 @@ loc_248C2:
 Chemical_Plant_Sprites_Previous_Build_1:                  
 loc_248DC:                 
                 dc.w    (((loc_2491A-loc_248DC-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Chemical_Plant_8x8_Tiles-$07E2 ; loc_B1D24
+                dc.l    ArtNem_CPZ-$07E2 ; loc_B1D24
                 dc.w    $0000 
                 dc.l    Cpz_Metal_Structure     ; loc_77A1C  
                 dc.w    $6E60
@@ -42093,7 +42098,7 @@ loc_2491A:
 Neo_Green_Hill_Sprites_Previous_Build_1:                    
 loc_2493A:      
                 dc.w    (((loc_2495A-loc_2493A-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-                dc.l    Neo_Green_Hill_8x8_Tiles-$07D2 ; loc_B9686
+                dc.l    ArtNem_NGHZ-$07D2 ; loc_B9686
                 dc.w    $0000
                 dc.l    Nghz_Water_Surface      ; loc_78270
                 dc.w    $8000   
@@ -43093,17 +43098,21 @@ HPz_Dyn_Background:      ; loc_2B06A: Unused - Left over from previous build
 ; Uncompressed art
 ; Pulsing orb in HPZ				; ArtUnc_2B46A: HPz_Orbs:
 ArtUnc_HPZPulseOrb:	BINCLUDE	"art/uncompressed/Pulsing orb (HPZ).bin"
+; --------------------------------------------------------------------------------------
+; Uncompressed art
+; Pulsing ball in OOZ 				; ArtUnc_2B76A: Ooz_Red_Balls:
+ArtUnc_OOZPulseBall:	BINCLUDE	"art/uncompressed/Pulsing ball (OOZ).bin"
+;---------------------------------------------------------------------------------------
+; Uncompressed art
+; Square rotating around ball in OOZ	 	; ArtUnc_2B8EA: ArtUnc_2BAEA:
+ArtUnc_OOZSquareBall1:	BINCLUDE	"art/uncompressed/Square rotating around ball in OOZ - 1.bin"
+ArtUnc_OOZSquareBall2:	BINCLUDE	"art/uncompressed/Square rotating around ball in OOZ - 2.bin"
+;---------------------------------------------------------------------------------------
+; Uncompressed art
+; Oil in OOZ    				; ArtUnc_2BCEA: ArtUnc_2C4EA:
+ArtUnc_Oil1:	BINCLUDE	"art/uncompressed/Oil - 1.bin"
+ArtUnc_Oil2:	BINCLUDE	"art/uncompressed/Oil - 2.bin"
 
-OOz_Red_Balls:           ; loc_2B76A:
-                BINCLUDE  "data\ooz\red_ball.dat"  
-OOz_Rotating_Square_1:   ; loc_2B8EA:
-                BINCLUDE  "data\ooz\r_squar1.dat"                             
-OOz_Rotating_Square_2:   ; loc_2BAEA:
-                BINCLUDE  "data\ooz\r_squar2.dat"  
-OOz_Oil_1:               ; loc_2BCEA:
-                BINCLUDE  "data\ooz\oil_1.dat"   
-OOz_Oil_2:               ; loc_2C4EA:
-                BINCLUDE  "data\ooz\oil_2.dat"                                 
 CPz_Dyn_Background:      ; loc_2CCEA:
                 BINCLUDE  "data\cpz\backgnd.dat"  
 NGHz_Water_Falls_1:      ; loc_2CEEA:
@@ -43143,7 +43152,7 @@ Hidden_Palace_Colision_1:  ; loc_2FEEA:
 Hidden_Palace_Colision_2:  ; loc_301EA:                
 		BINCLUDE	"level/collision/HPZ secondary 16x16 collision index.bin"
 Oil_Ocean_Colision:        ; loc_304EA:                
-                BINCLUDE  "data\ooz\ooz_col.dat" 
+		BINCLUDE	"level/collision/OOZ 16x16 collision index.bin"
 Dust_Hill_Colision:        ; loc_307EA:                
                 BINCLUDE  "data\dhz\dhz_col.dat"  
 Casino_Night_Colision_1:   ; loc_30AEA:                
@@ -43265,13 +43274,11 @@ Hpz_Background:    ; loc_3942E:
 Null_Layout_4:     ; loc_3A478:            
                 dc.b    $00, $00, $00, $00                                          
 OOz_1_Foreground:  ; loc_3A47C:  
-                BINCLUDE  "data\ooz\foreact1.dat"                        
+		BINCLUDE	"level/layout/OOZ_1.bin"
 OOz_2_Foreground:  ; loc_3AC7E:   
-                BINCLUDE  "data\ooz\foreact2.dat"                         
+		BINCLUDE	"level/layout/OOZ_2.bin"
 OOz_Background:    ; loc_3B480:             
-                dc.b    $05, $03  ; x / y
-                dc.b    $00, $00, $00, $00, $00, $00, $02, $4F, $02, $1F, $02, $1F, $49, $4A, $4B, $23
-                dc.b    $54, $6C, $4C, $4D, $4E, $32, $5A, $74                  
+		BINCLUDE	"level/layout/OOZ_BG.bin"
 Dhz_1_Foreground:  ; loc_3B49A:  
                 BINCLUDE  "data\dhz\foreact1.dat"                
 Dhz_2_Foreground:  ; loc_3BC9C:               
@@ -43528,10 +43535,10 @@ Hpz_1_Objects_Layout:	BINCLUDE	"level/objects/HPZ_1.bin"
 Hpz_2_Objects_Layout:
 	ObjectLayoutBoundary
 	ObjectLayoutBoundary		; yes, there are two here for some reason
-OOz_1_Objects_Layout:  ; loc_4565E: 
-                BINCLUDE  "data\ooz\obj_act1.dat"
-OOz_2_Objects_Layout:  ; loc_457C0:
-                BINCLUDE  "data\ooz\obj_act2.dat"
+OOz_1_Objects_Layout:	BINCLUDE	"level/objects/OOZ_1.bin"
+	ObjectLayoutBoundary
+OOz_2_Objects_Layout:	BINCLUDE	"level/objects/OOZ_2.bin"
+	ObjectLayoutBoundary
 Dhz_1_Objects_Layout:  ; loc_459AC:
                 BINCLUDE  "data\dhz\obj_act1.dat"
 Dhz_2_Objects_Layout:  ; loc_45A24:
@@ -44065,10 +44072,8 @@ Id_0900_Rings_Layout: ; loc_487C8:
                 dc.w    $FFFF               
 Id_0901_Rings_Layout: ; loc_487CA:                                 
                 dc.w    $FFFF                                            
-OOz_1_Rings_Layout:   ; loc_487CC:               
-                BINCLUDE  "data\ooz\rng_act1.dat"      
-OOz_2_Rings_Layout:   ; loc_4889E:             
-                BINCLUDE  "data\ooz\rng_act2.dat"                
+OOz_1_Rings_Layout:	BINCLUDE	"level/rings/OOZ_1.bin"
+OOz_2_Rings_Layout:	BINCLUDE	"level/rings/OOZ_2.bin"
 DHz_1_Rings_Layout:   ; loc_48968:               
                 dc.w    $FFFF     
 DHz_2_Rings_Layout:   ; loc_4896A:               
@@ -47257,69 +47262,75 @@ Hpz_Init_Sprites_Dyn_Reload: ; loc_9B884: ;  Orbs
 ; HPZ 128x128 block mappings (Kosinski compression)
 ; LevChunk_9B9F8: Hidden_Palace_128x128_Map:
 BM128_HPZ:	BINCLUDE	"mappings/128x128/HPZ.bin"
+;-----------------------------------------------------------------------------------
+; OOZ 16x16 block mappings (uncompressed)
+; LevBlock_9D778: Oil_Ocean_16x16_Map:
+BM16_OOZ:	BINCLUDE	"mappings/16x16/OOZ.bin"
+; ----------------------------------------------------------------------------------
+; OOZ main level patterns (Nemesis compression)
+; ArtNem_9ED58: Oil_Ocean_8x8_Tiles:
+ArtNem_OOZ:	BINCLUDE	"art/nemesis/OOZ primary.bin"
 
-
-Oil_Ocean_16x16_Map: ; loc_9D778:
-                BINCLUDE  "data\ooz\ooz_16.dat"
-Oil_Ocean_8x8_Tiles: ; loc_9ED58:  
-                BINCLUDE  "data\ooz\ooz_8.nem"                                 
 OOz_Init_Sprites_Dyn_Reload: ; loc_A186A: ;  red ball, oil ...
                 BINCLUDE  "data\ooz\init_spr.nem" 
-Oil_Ocean_128x128_Map: ; loc_A1A58:                 
-                BINCLUDE  "data\ooz\ooz_128.kos"                
-                dc.w    $0000, $0000, $0000, $0000, $0000 ; Filler           
-Dust_Hill_16x16_Map: ; loc_A3F88:
+
+; ----------------------------------------------------------------------------------
+; OOZ 128x128 block mappings (Kosinski compression)
+; LevChunk_A1A58: Oil_Ocean_128x128_Map:
+BM128_OOZ:	BINCLUDE	"mappings/128x128/OOZ.bin"
+
+BM16_DHZ: ; loc_A3F88:
                 BINCLUDE  "data\dhz\dhz_16.dat" 
-Dust_Hill_8x8_Tiles: ; loc_A5248:  
+ArtNem_DHZ: ; loc_A5248:  
                 BINCLUDE  "data\dhz\dhz_8.nem"
-Dust_Hill_128x128_Map: ; loc_A8B6A:               
+BM128_DHZ: ; loc_A8B6A:               
                 BINCLUDE  "data\dhz\dhz_128.kos"                
                 dc.w    $0000, $0000, $0000, $0000, $0000 ; Filler    
-Casino_Night_16x16_Map: ; loc_AB5CA:
+BM16_CNZ: ; loc_AB5CA:
                 BINCLUDE  "data\cnz\cnz_16.dat"  
-Casino_Night_8x8_Tiles: ; loc_ABF2A: 
+ArtNem_CNZ: ; loc_ABF2A: 
                 BINCLUDE  "data\cnz\cnz_8.nem"    
 Cnz_Cards: ; loc_AEF3C:               
                 BINCLUDE  "data\cnz\cards.nem"
-Casino_Night_128x128_Map: ; loc_AF026:                
+BM128_CNZ: ; loc_AF026:                
                 BINCLUDE  "data\cnz\cnz_128.kos"                
                 dc.w    $0000, $0000, $0000, $0000, $0000, $0000, $0000 ; Filler    
-Chemical_Plant_16x16_Map: ; loc_B0F26:  
+BM16_CPZ: ; loc_B0F26:  
                 BINCLUDE  "data\cpz\cpz_16.dat"  
-Chemical_Plant_8x8_Tiles: ; loc_B2506: 
+ArtNem_CPZ: ; loc_B2506: 
                 BINCLUDE  "data\cpz\cpz_8.nem"
 Cpz_Init_Sprites_Dyn_Reload: ; loc_B602E:  
                 BINCLUDE  "data\cpz\init_spr.nem" 
-Chemical_Plant_128x128_Map: ; loc_B6058:                 
+BM128_CPZ: ; loc_B6058:                 
                 BINCLUDE  "data\cpz\cpz_128.kos"                
                 dc.w    $0000, $0000, $0000 ; Filler  
-Neo_Green_Hill_16x16_Map: ; loc_B8558:
+BM16_NGHZ: ; loc_B8558:
                 BINCLUDE  "data\nghz\nghz_16.dat"   
-Neo_Green_Hill_8x8_Tiles: ; loc_B9E58:
+ArtNem_NGHZ: ; loc_B9E58:
                 BINCLUDE  "data\nghz\nghz_8.nem"                                
 Nghz_Init_Sprites_Dyn_Reload: ; loc_BF408:  Waterfalls
                 BINCLUDE  "data\nghz\init_spr.nem"  
-Neo_Green_Hill_128x128_Map: ; loc_BF568:                  
+BM128_NGHZ: ; loc_BF568:                  
                 BINCLUDE  "data\nghz\nghz_128.kos"                 
 loc_C2138: ; Leftover end of compressed Nghz 128x128 mappings...
                 dc.w    $C00B, $F8C4, $C00B, $5200, $F8C0, $F80E, $00F0, $0000  
 Unknow_Uncompressed_12x128_Map: ; loc_C2148:                                            
                 BINCLUDE  "data\all\unk_128.dat" 
-Chemical_Plant_16x16_Map_Previous_Builder: ; loc_C943C:                                            
+BM16_CPZ_Previous_Builder: ; loc_C943C:                                            
                 BINCLUDE  "data\all\cpz_16.dat"                 
-Chemical_Plant_8x8_Tiles_Previous_Builder: ; loc_CAA1C:                                            
+ArtNem_CPZ_Previous_Builder: ; loc_CAA1C:                                            
                 BINCLUDE  "data\sprites\cpz_8.nem"  
 Cpz_Building: ; loc_CDFC6: ;  Left over                                                        
                 BINCLUDE  "data\sprites\building.nem"   
-Chemical_Plant_128x128_Map_Previous_Builder:  ; loc_CE03A:                                              
+BM128_CPZ_Previous_Builder:  ; loc_CE03A:                                              
                 BINCLUDE  "data\all\cpz_128.dat"                  
-Neo_Green_Hill_16x16_Map_Previous_Builder: ; loc_D603A:                                            
+BM16_NGHZ_Previous_Builder: ; loc_D603A:                                            
                 BINCLUDE  "data\all\nghz_16.dat"                              
-Neo_Green_Hill_8x8_Tiles_Previous_Builder: ; loc_D793A:                                            
+ArtNem_NGHZ_Previous_Builder: ; loc_D793A:                                            
                 BINCLUDE  "data\nghz\nghz_8.nem"                                             
 Nghz_Init_Sprites_Dyn_Reload_2: ; loc_DCEEA: ; Waterfalls  ; Left over
                 BINCLUDE  "data\nghz\init_spr.nem"                  
-Neo_Green_Hill_128x128_Map_Previous_Builder: ; loc_DD04A:                                   
+BM128_NGHZ_Previous_Builder: ; loc_DD04A:                                   
                 BINCLUDE  "data\all\nghz_128.dat"                  
 Neo_Green_Hill_8x8_Incomplete_Tiles_Previous_Builder: ; loc_E504A:                                   
                 BINCLUDE  "data\sprites\nghz_8.nem"                                
