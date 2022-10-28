@@ -116,14 +116,35 @@ Secondary_Collision:		ds.b	$600
 VDP_Command_Buffer:		ds.w	7*$12	; stores 18 ($12) VDP commands to issue the next time ProcessDMAQueue is called
 VDP_Command_Buffer_Slot:	ds.l	1	; stores the address of the next open slot for a queued VDP command
 
-; $FFFFDD00 starting from here
+Sprite_Table_2:			ds.b	$280	; Sprite attribute table buffer for the bottom split screen in 2-player mode
+				ds.b	$80	; unused, but SAT buffer can spill over into this area when there are too many sprites on-screen
+
+Horiz_Scroll_Buf:		ds.l	224
+				ds.l	16 	; A bug/optimisation in 'SwScrl_CPZ' causes 'Horiz_Scroll_Buf' to overflow into this.
+				ds.b	$40	; unused
+Horiz_Scroll_Buf_End:
+
+Sonic_Stat_Record_Buf:		ds.b	$100
+
+Sonic_Pos_Record_Buf:		ds.b	$100
+Sonic_Pos_Record_Buf_End:
+
+unk_E600:			ds.b	$100
+
+Tails_Pos_Record_Buf:		ds.b	$100
+Tails_Pos_Record_Buf_End:
+
+Ring_Positions:			ds.b	$600
+Ring_Positions_End:
+
+; $FFFFEE00/Camera_RAM starting from here
 		dephase
 		!org 0
 
 Hint_counter_reserve:		equ $FFFFF624	; must contain a VDP command word, preferably a write to register $0A. Executed every V-INT.
 
 MiscLevelVariables:
-VIntSubE_RunCount:		equ $FFFFF628	; gets cleared at
+VIntSubE_RunCount:		equ $FFFFF628
 Vint_routine:			equ $FFFFF62A	; routine counter for V-int
 Sprite_count:			equ $FFFFF62C	; the number of sprites drawn in the current frame
 DMA_data_thunk:			equ $FFFFF640	; used as a RAM holder for the final DMA command word. Data will NOT be preserved across V-INTs, so consider this space reserved.
