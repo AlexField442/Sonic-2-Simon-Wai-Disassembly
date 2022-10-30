@@ -183,7 +183,130 @@ Camera_BG2_Y_pos:		ds.l	1	; used in CPZ
 Camera_BG3_X_pos:		ds.l	1	; unused (only initialised at beginning of level)?
 Camera_BG3_Y_pos:		ds.l	1	; unused (only initialised at beginning of level)?
 Camera_Positions_End:
-				ds.b	$E0	; $EE20-$EEFF
+
+Camera_Positions_P2:
+Camera_X_pos_P2:		ds.l	1
+Camera_Y_pos_P2:		ds.l	1
+Camera_BG_X_pos_P2:		ds.l	1	; only used sometimes as the layer deformation makes it sort of redundant
+Camera_BG_Y_pos_P2:		ds.l	1
+Camera_BG2_X_pos_P2:		ds.l	1	; unused (only initialised at beginning of level)?
+Camera_BG2_Y_pos_P2:		ds.l	1
+Camera_BG3_X_pos_P2:		ds.l	1	; unused (only initialised at beginning of level)?
+Camera_BG3_Y_pos_P2:		ds.l	1
+Camera_Positions_P2_End:
+
+Block_Crossed_Flags:
+Horiz_block_crossed_flag:	ds.b	1	; toggles between 0 and $10 when you cross a block boundary horizontally
+Verti_block_crossed_flag:	ds.b	1	; toggles between 0 and $10 when you cross a block boundary vertically
+Horiz_block_crossed_flag_BG:	ds.b	1	; toggles between 0 and $10 when background camera crosses a block boundary horizontally
+Verti_block_crossed_flag_BG:	ds.b	1	; toggles between 0 and $10 when background camera crosses a block boundary vertically
+Horiz_block_crossed_flag_BG2:	ds.b	1	; used in CPZ
+				ds.b	1	; $FFFFEE45 ; seems unused
+Horiz_block_crossed_flag_BG3:	ds.b	1
+				ds.b	1	; $FFFFEE47 ; seems unused
+Block_Crossed_Flags_End:
+
+Block_Crossed_Flags_P2:
+Horiz_block_crossed_flag_P2:	ds.b	1	; toggles between 0 and $10 when you cross a block boundary horizontally
+Verti_block_crossed_flag_P2:	ds.b	1	; toggles between 0 and $10 when you cross a block boundary vertically
+				ds.b	6	; $FFFFEE4A-$FFFFEE4F ; seems unused
+Block_Crossed_Flags_P2_End:
+
+Scroll_Flags_All:
+Scroll_flags:			ds.w	1	; bitfield ; bit 0 = redraw top row, bit 1 = redraw bottom row, bit 2 = redraw left-most column, bit 3 = redraw right-most column
+Scroll_flags_BG:		ds.w	1	; bitfield ; bits 0-3 as above, bit 4 = redraw top row (except leftmost block), bit 5 = redraw bottom row (except leftmost block), bits 6-7 = as bits 0-1
+Scroll_flags_BG2:		ds.w	1	; bitfield ; essentially unused; bit 0 = redraw left-most column, bit 1 = redraw right-most column
+Scroll_flags_BG3:		ds.w	1	; bitfield ; for CPZ; bits 0-3 as Scroll_flags_BG but using Y-dependent BG camera; bits 4-5 = bits 2-3; bits 6-7 = bits 2-3
+Scroll_Flags_All_End:
+
+Scroll_Flags_All_P2:
+Scroll_flags_P2:		ds.w	1	; bitfield ; bit 0 = redraw top row, bit 1 = redraw bottom row, bit 2 = redraw left-most column, bit 3 = redraw right-most column
+Scroll_flags_BG_P2:		ds.w	1	; bitfield ; bits 0-3 as above, bit 4 = redraw top row (except leftmost block), bit 5 = redraw bottom row (except leftmost block), bits 6-7 = as bits 0-1
+Scroll_flags_BG2_P2:		ds.w	1	; bitfield ; essentially unused; bit 0 = redraw left-most column, bit 1 = redraw right-most column
+Scroll_flags_BG3_P2:		ds.w	1	; bitfield ; for CPZ; bits 0-3 as Scroll_flags_BG but using Y-dependent BG camera; bits 4-5 = bits 2-3; bits 6-7 = bits 2-3
+Scroll_Flags_All_P2_End:
+
+Camera_Positions_Copy:
+Camera_RAM_copy:		ds.l	2	; copied over every V-int
+Camera_BG_copy:			ds.l	2	; copied over every V-int
+Camera_BG2_copy:		ds.l	2	; copied over every V-int
+Camera_BG3_copy:		ds.l	2	; copied over every V-int
+Camera_Positions_Copy_End:
+
+Camera_Positions_Copy_P2:
+Camera_P2_copy:			ds.l	8	; copied over every V-int
+Camera_Positions_Copy_P2_End:
+
+Scroll_Flags_Copy_All:
+Scroll_flags_copy:		ds.w	1	; copied over every V-int
+Scroll_flags_BG_copy:		ds.w	1	; copied over every V-int
+Scroll_flags_BG2_copy:		ds.w	1	; copied over every V-int
+Scroll_flags_BG3_copy:		ds.w	1	; copied over every V-int
+Scroll_Flags_Copy_All_End:
+
+Scroll_Flags_Copy_All_P2:
+Scroll_flags_copy_P2:		ds.w	1	; copied over every V-int
+Scroll_flags_BG_copy_P2:	ds.w	1	; copied over every V-int
+Scroll_flags_BG2_copy_P2:	ds.w	1	; copied over every V-int
+Scroll_flags_BG3_copy_P2:	ds.w	1	; copied over every V-int
+Scroll_Flags_Copy_All_P2_End:
+
+Camera_Difference:
+Camera_X_pos_diff:		ds.w	1	; (new X pos - old X pos) * 256
+Camera_Y_pos_diff:		ds.w	1	; (new Y pos - old Y pos) * 256
+Camera_Difference_End:
+
+Camera_BG_X_pos_diff:		ds.w	1	; Effective camera change used in HTZ screen shake
+Camera_BG_Y_pos_diff:		ds.w	1	; Effective camera change used in HTZ screen shake
+
+Camera_Difference_P2:
+Camera_X_pos_diff_P2:		ds.w	1	; (new X pos - old X pos) * 256
+Camera_Y_pos_diff_P2:		ds.w	1	; (new Y pos - old Y pos) * 256
+Camera_Difference_P2_End:
+
+Screen_Shaking_Flag_HTZ:	ds.b	1	; activates screen shaking code in HTZ's layer deformation routine
+Screen_Shaking_Flag:		ds.b	1	; activates screen shaking code (if existent) in layer deformation routine
+				ds.b	2	; $FFFFEEDE-$FFFFEEDF ; unused
+unk_EEC0:			ds.l	1	; unused, except on write in LevelSizeLoad...
+unk_EEC4:			ds.w	1	; same as above. The write being a long also overwrites the address below
+Camera_Max_Y_pos:		ds.w	1
+
+Camera_Boundaries:
+Camera_Min_X_pos:		ds.w	1
+Camera_Max_X_pos:		ds.w	1
+Camera_Min_Y_pos:		ds.w	1
+Camera_Max_Y_pos_now:		ds.w	1
+Camera_Boundaries_End:
+
+Camera_Delay:
+Horiz_scroll_delay_val:		ds.w	1	; if its value is a, where a != 0, X scrolling will be based on the player's X position a-1 frames ago
+Sonic_Pos_Record_Index:		ds.w	1	; into Sonic_Pos_Record_Buf and Sonic_Stat_Record_Buf
+Camera_Delay_End:
+
+Camera_Delay_P2:
+Horiz_scroll_delay_val_P2:	ds.w	1
+Tails_Pos_Record_Index:		ds.w	1	; into Tails_Pos_Record_Buf
+Camera_Delay_P2_End:
+
+Camera_Y_pos_bias:		ds.w	1	; added to y position for lookup/lookdown, $60 is center
+Camera_Y_pos_bias_End:
+
+				ds.b	2	; $FFFFEEDA ; seems unused
+Deform_lock:			ds.b	1	; set to 1 to stop all deformation
+				ds.b	1	; $FFFFEEDD ; seems unused
+Camera_Max_Y_Pos_Changing:	ds.b	1
+Dynamic_Resize_Routine:		ds.b	1
+unk_EEE0:			ds.w	1	; used in Unused_RecordPos and Tails' AI code
+Camera_BG_X_offset:		ds.w	1	; Used to control background scrolling in X in WFZ ending and HTZ screen shake
+Camera_BG_Y_offset:		ds.w	1	; Used to control background scrolling in Y in WFZ ending and HTZ screen shake
+HTZ_Terrain_Delay:		ds.w	1	; During HTZ screen shake, this is a delay between rising and sinking terrain during which there is no shaking
+HTZ_Terrain_Direction:		ds.b	1	; During HTZ screen shake, 0 if terrain/lava is rising, 1 if lowering
+				ds.b	3	; $FFFFEEE9-$FFFFEEEB ; seems unused
+Vscroll_Factor_P2_HInt:		ds.l	1
+Camera_X_pos_copy:		ds.l	1
+Camera_Y_pos_copy:		ds.l	1
+				ds.b	8	; $FFFFEEF8-$FFFFEEFF ; seems unused
+
 Camera_RAM_End:
 
 ; $FFFFEF00 starting from here
