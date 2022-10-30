@@ -266,7 +266,7 @@ Camera_Difference_P2_End:
 
 Screen_Shaking_Flag_HTZ:	ds.b	1	; activates screen shaking code in HTZ's layer deformation routine
 Screen_Shaking_Flag:		ds.b	1	; activates screen shaking code (if existent) in layer deformation routine
-				ds.b	2	; $FFFFEEDE-$FFFFEEDF ; unused
+				ds.b	2	; $FFFFEEBE-$FFFFEEBF ; unused
 unk_EEC0:			ds.l	1	; unused, except on write in LevelSizeLoad...
 unk_EEC4:			ds.w	1	; same as above. The write being a long also overwrites the address below
 Camera_Max_Y_pos:		ds.w	1
