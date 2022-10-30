@@ -36,6 +36,40 @@ VintID_PCM =		id(Vint_PCM_ptr)
 VintID_SSResults =	id(Vint_SSResults_ptr)
 VintID_TitleCardDup =	id(Vint_TitleCardDup_ptr)
 
+; palette IDs
+offset :=	PalPointers
+ptrsize :=	8
+idstart :=	0
+
+PalID_SEGA =		id(PalPtr_SEGA)
+PalID_Title =		id(PalPtr_Title)
+PalID_LevelSel =	id(PalPtr_LevelSel)
+PalID_SonicTails =	id(PalPtr_SonicTails)
+PalID_GHZ =		id(PalPtr_GHZ)
+PalID_OWZ =		id(PalPtr_OWZ)
+PalID_WZ =		id(PalPtr_WZ)
+PalID_SSZ =		id(PalPtr_SSZ)
+PalID_MTZ =		id(PalPtr_MTZ)
+PalID_MTZ2 =		id(PalPtr_MTZ2)
+PalID_BLZ =		id(PalPtr_BLZ)
+PalID_HTZ =		id(PalPtr_HTZ)
+PalID_HPZ =		id(PalPtr_HPZ)
+PalID_RWZ =		id(PalPtr_RWZ)
+PalID_OOZ =		id(PalPtr_OOZ)
+PalID_DHZ =		id(PalPtr_DHZ)
+PalID_CNZ =		id(PalPtr_CNZ)
+PalID_CPZ =		id(PalPtr_CPZ)
+PalID_GCZ =		id(PalPtr_GCZ)
+PalID_NGHZ =		id(PalPtr_NGHZ)
+PalID_DEZ =		id(PalPtr_DEZ)
+PalID_HPZ_U =		id(PalPtr_HPZ_U)
+PalID_CPZ_U =		id(PalPtr_CPZ_U)
+PalID_NGHZ_U =		id(PalPtr_NGHZ_U)
+PalID_SpecStg =		id(PalPtr_SpecStg)
+
+S1PalID_SpecStg =	PalID_CPZ_U	; leftover from Sonic 1 Special Stage
+PalID_CNZ2 =		PalID_BLZ	; loaded in CNZ2; identical to CNZ1 palette
+
 ; Music IDs
 offset :=	zMasterPlaylist
 ptrsize :=	1
@@ -137,13 +171,28 @@ Tails_Pos_Record_Buf_End:
 Ring_Positions:			ds.b	$600
 Ring_Positions_End:
 
-; $FFFFEE00/Camera_RAM starting from here
+Camera_RAM:
+
+Camera_Positions:
+Camera_X_pos:			ds.l	1
+Camera_Y_pos:			ds.l	1
+Camera_BG_X_pos:		ds.l	1	; only used sometimes as the layer deformation makes it sort of redundant
+Camera_BG_Y_pos:		ds.l	1
+Camera_BG2_X_pos:		ds.l	1	; used in CPZ
+Camera_BG2_Y_pos:		ds.l	1	; used in CPZ
+Camera_BG3_X_pos:		ds.l	1	; unused (only initialised at beginning of level)?
+Camera_BG3_Y_pos:		ds.l	1	; unused (only initialised at beginning of level)?
+Camera_Positions_End:
+				ds.b	$E0	; $EE20-$EEFF
+Camera_RAM_End:
+
+; $FFFFEF00 starting from here
 		dephase
 		!org 0
 
 Hint_counter_reserve:		equ $FFFFF624	; must contain a VDP command word, preferably a write to register $0A. Executed every V-INT.
 
-MiscLevelVariables:		equ	$FFFFF628
+MiscLevelVariables:		equ $FFFFF628
 VIntSubE_RunCount:		equ MiscLevelVariables
 Vint_routine:			equ $FFFFF62A	; routine counter for V-int
 Sprite_count:			equ $FFFFF62C	; the number of sprites drawn in the current frame
@@ -179,7 +228,11 @@ Current_Zone:			equ $FFFFFE10	; 1 byte
 Current_Act:			equ $FFFFFE11	; 1 byte
 
 Demo_mode_flag:			equ $FFFFFFF0	; 1 if a demo is playing (2 bytes)
+Demo_number:			equ $FFFFFFF2	; which demo will play next (2 bytes)
+Ending_demo_number:		equ $FFFFFFF4 ; zone for the ending demos (2 bytes, unused)
+Graphics_Flags:			equ $FFFFFFF8	; misc. bitfield
 Debug_mode_flag:		equ $FFFFFFFA
+Checksum_fourcc:		equ $FFFFFFFC
 
 ; ---------------------------------------------------------------------------
 ; VDP addressses
