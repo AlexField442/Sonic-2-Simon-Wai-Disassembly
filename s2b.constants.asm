@@ -143,8 +143,8 @@ Ring_Positions_End:
 
 Hint_counter_reserve:		equ $FFFFF624	; must contain a VDP command word, preferably a write to register $0A. Executed every V-INT.
 
-MiscLevelVariables:
-VIntSubE_RunCount:		equ $FFFFF628
+MiscLevelVariables:		equ	$FFFFF628
+VIntSubE_RunCount:		equ MiscLevelVariables
 Vint_routine:			equ $FFFFF62A	; routine counter for V-int
 Sprite_count:			equ $FFFFF62C	; the number of sprites drawn in the current frame
 DMA_data_thunk:			equ $FFFFF640	; used as a RAM holder for the final DMA command word. Data will NOT be preserved across V-INTs, so consider this space reserved.
