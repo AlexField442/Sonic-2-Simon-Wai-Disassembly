@@ -32,9 +32,9 @@
 padToPowerOfTwo = 1
 ;	| If 1, pads the end of the ROM to the next power of two bytes (for real hardware)
 ;
-
 zeroOffsetOptimization = 0
 ;	| If 1, makes a handful of zero-offset instructions smaller
+;
 
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; AS-specific macros and assembler settings
@@ -180,7 +180,7 @@ GameProgram:
 		tst.w	(VDP_control_port).l
 		btst	#6,($A1000D).l
 		beq.s	ChecksumTest
-		cmpi.l	#'init',($FFFFFFFC).w
+		cmpi.l	#'init',(Checksum_fourcc).w
 		beq.w	GameInit
 ; loc_31C:
 ChecksumTest:
@@ -207,8 +207,8 @@ GameClrStack:
 		dbf	d6,GameClrStack
 		move.b	($A10001).l,d0
 		andi.b	#$C0,d0
-		move.b	d0,($FFFFFFF8).w
-		move.l	#'init',($FFFFFFFC).w
+		move.b	d0,(Graphics_Flags).w
+		move.l	#'init',(Checksum_fourcc).w
 ; loc_36A:
 GameInit:              
 		lea	(RAM_Start&$FFFFFF).l,a6 
@@ -224,10 +224,10 @@ GameClrRAM:
 		bsr.w	JoypadInit
 		; Strangely, this loads the title screen, and not the Sega screen,
 		; and the August 21st prototype suggests this was NOT done by the pirates...
-		move.b	#4,($FFFFF600).w
+		move.b	#4,(Game_Mode).w
 ; loc_38E:
 MainGameLoop:
-		move.b	($FFFFF600).w,d0
+		move.b	(Game_Mode).w,d0
 		andi.w	#$1C,d0
 		jsr	GameModesArray(pc,d0.w)
 		bra.s	MainGameLoop
@@ -384,7 +384,7 @@ ShowErrDigit_NoOverflow: ; loc_5D0:
 		rts
 Error_WaitForC: ; loc_5D8:
 		bsr.w     ReadJoypads             ; loc_132C
-		cmpi.b  #$20, ($FFFFF605).w
+		cmpi.b  #$20, (Ctrl_1_Press).w
 		bne.w     Error_WaitForC          ; loc_5D8
 		rts 
 Art_Text:	BINCLUDE	"data\sprites\art_menu.dat"
@@ -403,8 +403,8 @@ loc_B14:
 		andi.w	#8,d0
 		beq.s	loc_B14
 		move.l	#$40000010,(VDP_control_port).l
-		move.l	($FFFFF616).w,(VDP_data_port).l
-		btst	#6,($FFFFFFF8).w
+		move.l	(Vscroll_Factor).w,(VDP_data_port).l
+		btst	#6,(Graphics_Flags).w
 		beq.s	loc_B42
 		move.w	#$700,d0
 
@@ -442,11 +442,11 @@ Vint_TitleCardDup_ptr:	offsetTableEntry.w Vint_TitleCard
 ; ===========================================================================
 ; loc_B82: VintSub00:
 Vint_Lag:
-		cmpi.b	#$8C,($FFFFF600).w
+		cmpi.b	#$8C,(Game_Mode).w
 		beq.s	loc_BBC
-		cmpi.b	#8,($FFFFF600).w
+		cmpi.b	#8,(Game_Mode).w
 		beq.s	loc_BBC
-		cmpi.b	#$C,($FFFFF600).w
+		cmpi.b	#$C,(Game_Mode).w
 		beq.s	loc_BBC
 		stopZ80
 		jsr	(sndDriverInput).l
@@ -457,7 +457,7 @@ loc_BBC:
 		tst.b	(Water_flag).w
 		beq.w	Vint0_NoWater
 		move.w	(VDP_control_port).l,d0
-		btst	#6,($FFFFFFF8).w
+		btst	#6,(Graphics_Flags).w
 		beq.s	loc_BDA
 		move.w	#$700,d0
 
@@ -499,8 +499,8 @@ loc_C42:
 Vint0_NoWater:
 		move.w	(VDP_control_port).l,d0
 		move.l	#$40000010,(VDP_control_port).l
-		move.l	($FFFFF616).w,(VDP_data_port).l
-		btst	#6,($FFFFFFF8).w
+		move.l	(Vscroll_Factor).w,(VDP_data_port).l
+		btst	#6,(Graphics_Flags).w
 		beq.s	loc_C88
 		move.w	#$700,d0
 
@@ -511,7 +511,7 @@ loc_C88:
 		move.w	#1,(Hint_flag).w
 		move.w	(Hint_counter_reserve).w,(VDP_control_port).l
 		move.w	#$8230,(VDP_control_port).l
-		move.l	($FFFFF61E).w,($FFFFEEEC).w
+		move.l	(Vscroll_Factor_P2).w,(Vscroll_Factor_P2_HInt).w
 		stopZ80
 		lea	(VDP_control_port).l,a5
 		move.l	#$94019340,(a5)
@@ -527,9 +527,9 @@ loc_C88:
 ; loc_CEC: VintSub2:
 Vint_SEGA:
 		bsr.w	Do_ControllerPal
-		tst.w	($FFFFF614).w
+		tst.w	(Demo_Time_left).w
 		beq.w	return_CFC	; Esrael's disasm has this as beq.s, which was in fact wrong
-		subq.w	#1,($FFFFF614).w
+		subq.w	#1,(Demo_Time_left).w
 
 return_CFC:
 		rts
@@ -539,9 +539,9 @@ Vint_PCM:
 		stopZ80
 		bsr.w	ReadJoypads
 		startZ80
-		tst.w	($FFFFF614).w
+		tst.w	(Demo_Time_left).w
 		beq.w	return_D28
-		subq.w	#1,($FFFFF614).w
+		subq.w	#1,(Demo_Time_left).w
 
 return_D28:  
 		rts
@@ -550,9 +550,9 @@ return_D28:
 Vint_Title:
 		bsr.w	Do_ControllerPal
 		bsr.w	ProcessDPLC
-		tst.w	($FFFFF614).w
+		tst.w	(Demo_Time_left).w
 		beq.w	return_D3E
-		subq.w	#1,($FFFFF614).w
+		subq.w	#1,(Demo_Time_left).w
 
 return_D3E:
 		rts
@@ -564,7 +564,7 @@ Vint_Unused6:
 ; ===========================================================================
 ; loc_D46: VintSub10:
 Vint_Pause:
-		cmpi.b	#$10,($FFFFF600).w	; is this the Special Stage?
+		cmpi.b	#$10,(Game_Mode).w	; is this the Special Stage?
 		beq.w	Vint_S1SS		; if yes, branch
 ; loc_D50: VintSub8:
 Vint_Level:
@@ -611,13 +611,13 @@ loc_DB6:
 		bsr.w	ProcessDMAQueue
 		jsr	(sndDriverInput).l
 		startZ80
-		movem.l	($FFFFEE00).w,d0-d7
-		movem.l	d0-d7,($FFFFEE60).w
-		movem.l	($FFFFEE20).w,d0-d7
-		movem.l	d0-d7,($FFFFEE80).w
-		movem.l	($FFFFEE50).w,d0-d3
-		movem.l	d0-d3,($FFFFEEA0).w
-		move.l	($FFFFF61E).w,($FFFFEEEC).w
+		movem.l	(Camera_RAM).w,d0-d7
+		movem.l	d0-d7,(Camera_RAM_copy).w
+		movem.l	(Camera_X_pos_P2).w,d0-d7
+		movem.l	d0-d7,(Camera_P2_copy).w
+		movem.l	(Scroll_flags).w,d0-d3
+		movem.l	d0-d3,(Scroll_flags_copy).w
+		move.l	(Vscroll_Factor_P2).w,(Vscroll_Factor_P2_HInt).w
 		cmpi.b	#$5C,(Hint_counter_reserve+1).w
 		bcc.s	Do_Updates
 		move.b	#1,(Do_Updates_in_H_int).w
@@ -634,9 +634,9 @@ Do_Updates:
 		bsr.w	LoadTilesAsYouMove
 		jsr	(HudUpdate).l
 		bsr.w	ProcessDPLC2
-		tst.w	($FFFFF614).w
+		tst.w	(Demo_Time_left).w
 		beq.w	return_E70
-		subq.w	#1,($FFFFF614).w
+		subq.w	#1,(Demo_Time_left).w
 
 return_E70:
 		rts
@@ -672,9 +672,9 @@ Vint_S1SS:
 		jsr	(sndDriverInput).l
 		startZ80
 		bsr.w	S1_Pal_Cycle_Special_Stage
-		tst.w	($FFFFF614).w
+		tst.w	(Demo_Time_left).w
 		beq.w	return_F16
-		subq.w	#1,($FFFFF614).w
+		subq.w	#1,(Demo_Time_left).w
 
 return_F16: 
 		rts
@@ -723,10 +723,10 @@ loc_F7E:
 		bsr.w	ProcessDMAQueue
 		jsr	(sndDriverInput).l
 		startZ80
-		movem.l	($FFFFEE00).w,d0-d7
-		movem.l	d0-d7,($FFFFEE60).w
-		movem.l	($FFFFEE50).w,d0-d1
-		movem.l	d0-d1,($FFFFEEA0).w
+		movem.l	(Camera_RAM).w,d0-d7
+		movem.l	d0-d7,(Camera_RAM_copy).w
+		movem.l	(Scroll_flags).w,d0-d1
+		movem.l	d0-d1,(Scroll_flags_copy).w
 		bsr.w	LoadTilesAsYouMove
 		jsr	(HudUpdate).l
 		bsr.w	ProcessDPLC
@@ -772,9 +772,9 @@ Vint_SSResults:
 		move.w	(DMA_data_thunk).w,(a5)
 		jsr	(sndDriverInput).l
 		startZ80
-		tst.w	($FFFFF614).w
+		tst.w	(Demo_Time_left).w
 		beq.w	return_10BC
-		subq.w	#1,($FFFFF614).w
+		subq.w	#1,(Demo_Time_left).w
 
 return_10BC:
 		rts
@@ -824,6 +824,7 @@ loc_1124:
 		jsr	(sndDriverInput).l
 		startZ80
 		rts
+
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; HORIZONTAL INTERRUPT HANDLER:
 ; loc_117C: HBlank:
@@ -840,16 +841,15 @@ loc_1196:
 		move.w	(VDP_control_port).l,d0
 		andi.w	#4,d0
 		beq.s	loc_1196
-		move.w	($FFFFF60C).w,d0
+		move.w	(VDP_Reg1_val).w,d0
 		andi.b	#$BF,d0
 		move.w	d0,(VDP_control_port).l
 		move.w	#$8228,(VDP_control_port).l
 		move.l	#$40000010,(VDP_control_port).l
-		move.l	($FFFFEEEC).w,(VDP_data_port).l
+		move.l	(Vscroll_Factor_P2_HInt).w,(VDP_data_port).l
 		stopZ80
 		lea	(VDP_control_port).l,a5
 		move.l	#$94019340,(a5)
-		;move.l	#$96EE9580,(a5)	; leaving the original uncommented in case something breaks...
 		move.l	#(($9600|((((Sprite_Table_2)>>1)&$FF00)>>8))<<16)|($9500|(((Sprite_Table_2)>>1)&$FF)),(a5)
 		move.w	#$977F,(a5)
 		move.w	#$7800,(a5)
@@ -861,7 +861,7 @@ loc_1208:
 		move.w	(VDP_control_port).l,d0
 		andi.w	#4,d0
 		beq.s	loc_1208
-		move.w	($FFFFF60C).w,d0
+		move.w	(VDP_Reg1_val).w,d0
 		ori.b	#$40,d0
 		move.w	d0,(VDP_control_port).l
 		move.l	(sp)+,d0
@@ -937,41 +937,62 @@ loc_12F6:
 		rts
 ; End of function sndDriverInput
 
+; ---------------------------------------------------------------------------
+; Subroutine to initialize joypads
+; ---------------------------------------------------------------------------
 
-JoypadInit: ; loc_12FC:
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_12FC:
+JoypadInit: 
 		stopZ80
-		moveq   #$40, D0
-		move.b  D0, ($00A10009)
-		move.b  D0, ($00A1000B)
-		move.b  D0, ($00A1000D)   
+		moveq	#$40,d0
+		move.b	d0,($A10009).l	; init port 1 (joypad 1)
+		move.b	d0,($A1000B).l	; init port 2 (joypad 2)
+		move.b	d0,($A1000D).l	; init port 3 (expansion/extra)
 		startZ80
 		rts
-ReadJoypads: ; loc_132C:               
-		lea     ($FFFFF604).w, A0
-		lea     ($00A10003), A1
-		bsr.s   Joypad_Read             ; loc_133A
-		addq.w  #$02, A1
-Joypad_Read: ; loc_133A:
-		move.b  #$00, (A1) 
+; End of function JoypadInit
+
+; ---------------------------------------------------------------------------
+; Subroutine to read joypad input, and send it to the RAM
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_132C:
+ReadJoypads:
+		lea	(Ctrl_1).w,a0		; address where joypad states are written
+		lea	($A10003).l,a1		; first joypad port
+		bsr.s	Joypad_Read		; do the first joypad
+		addq.w	#2,a1			; do the second joypad
+; loc_133A:
+Joypad_Read:
+		move.b	#0,(a1)
 		nop
 		nop
-		move.b  (A1), D0
-		lsl.b   #$02, D0  
-		andi.b  #$C0, D0
-		move.b  #$40, (A1) 
+		move.b	(a1),d0
+		lsl.b	#2,d0
+		andi.b	#$C0,d0
+		move.b	#$40,(a1)
 		nop
 		nop  
-		move.b  (A1), D1
-		andi.b  #$3F, D1 
-		or.b    D1, D0  
-		not.b   D0   
-		move.b  (A0), D1
-		eor.b   D0, D1
-		move.b  D0, (A0)+ 
-		and.b   D0, D1
-		move.b  D1, (A0)+ 
-		rts		  
-VDPRegSetup: ; loc_1368:		
+		move.b	(a1),d1
+		andi.b	#$3F,d1
+		or.b	d1,d0
+		not.b	d0
+		move.b	(a0),d1
+		eor.b	d0,d1
+		move.b	d0,(a0)+
+		and.b	d0,d1
+		move.b	d1,(a0)+
+		rts
+; End of function ReadJoypads
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_1368:
+VDPRegSetup:
 		lea     (VDP_control_port).l, A0
 		lea     (VDP_data_port).l, A1
 		lea     (VDPRegSetup_Array).l, A2 ; loc_13F2
@@ -980,7 +1001,7 @@ VDPRegSetup_Loop: ; loc_137C:
 		move.w  (A2)+, (A0)
 		dbf    D7, VDPRegSetup_Loop    ; loc_137C
 		move    (VDPReg_01).l, D0         ; loc_13F4
-		move.w  D0, ($FFFFF60C).w 
+		move.w  D0, (VDP_Reg1_val).w 
 		move.w  #$8ADF, (Hint_counter_reserve).w
 		moveq   #$00, D0
 		move.l  #$40000010, (VDP_control_port)
@@ -991,8 +1012,8 @@ VDPRegSetup_Loop: ; loc_137C:
 VDPRegSetup_ClearCRAM: ; loc_13B0:		 
 		move.w  D0, (A1)
 		dbf    D7, VDPRegSetup_ClearCRAM ; loc_13B0
-		clr.l   ($FFFFF616).w
-		clr.l   ($FFFFF61A).w
+		clr.l   (Vscroll_Factor).w
+		clr.l   (unk_F61A).w
 		move.l  D1, -(A7)
 		lea     (VDP_control_port), A5
 		move.w  #$8F01, (A5)
@@ -1037,8 +1058,8 @@ ClearScreen_DMA2Wait: ; loc_147A:
 		btst    #$01, D1 
 		bne.s   ClearScreen_DMA2Wait    ; loc_147A 
 		move.w  #$8F02, (A5)   
-		clr.l   ($FFFFF616).w
-		clr.l   ($FFFFF61A).w
+		clr.l   (Vscroll_Factor).w
+		clr.l   (unk_F61A).w
 		lea     ($FFFFF800).w, A1   
 		moveq   #$00, D0
 		move.w  #$00A0, D1
@@ -1101,12 +1122,12 @@ PauseGame:
 		nop
 		tst.b	($FFFFFE12).w
 		beq.w	Unpause
-		tst.w	($FFFFF63A).w
+		tst.w	(Game_paused).w
 		bne.s	+
-		btst	#7,($FFFFF605).w
+		btst	#7,(Ctrl_1_Press).w
 		beq.s	Pause_DoNothing
 +
-		move.w	#1,($FFFFF63A).w
+		move.w	#1,(Game_paused).w
 		move.b	#$FE,($FFFFFFE0).w
 ; loc_14F6:
 Pause_Loop:
@@ -1114,35 +1135,35 @@ Pause_Loop:
 		bsr.w	DelayProgram
 		tst.b	($FFFFFFD1).w
 		beq.s	Pause_ChkStart
-		btst	#6,($FFFFF605).w
+		btst	#6,(Ctrl_1_Press).w
 		beq.s	Pause_ChkBC
-		move.b	#4,($FFFFF600).w
+		move.b	#4,(Game_Mode).w
 		nop
 		bra.s	Pause_Resume
 ; ===========================================================================
 ; loc_1518:
 Pause_ChkBC:
-		btst	#4,($FFFFF604).w
+		btst	#4,(Ctrl_1_Held).w
 		bne.s	Pause_SlowMo
-		btst	#5,($FFFFF605).w
+		btst	#5,(Ctrl_1_Press).w
 		bne.s	Pause_SlowMo
 ; loc_1528:
 Pause_ChkStart:
-		btst	#7,($FFFFF605).w
+		btst	#7,(Ctrl_1_Press).w
 		beq.s	Pause_Loop
 ; loc_1530:
 Pause_Resume:
 		move.b	#$FF,($FFFFFFE0).w
 ; loc_1536:
 Unpause:
-		move.w	#0,($FFFFF63A).w
+		move.w	#0,(Game_paused).w
 ; return_153C:
 Pause_DoNothing:
 		rts
 ; ===========================================================================
 ; loc_153E:
 Pause_SlowMo:
-		move.w	#1,($FFFFF63A).w
+		move.w	#1,(Game_paused).w
 		move.b	#$FF,($FFFFFFE0).w
 		rts
 ; End of function PauseGame
@@ -2592,11 +2613,11 @@ PalCycle_Null: ; loc_1F52:
 		rts		     
 PalCycle_GHz: ; loc_1F54: ; $00 - Green Hill Rotating Palette routine
 		lea     (Pal_GHzCyc).l, A0        ; loc_2284
-		subq.w  #$01, ($FFFFF634).w
+		subq.w  #$01, (PalCycle_Timer).w
 		bpl.s   loc_1F80
-		move.w  #$0007, ($FFFFF634).w
-		move.w  ($FFFFF632).w, D0
-		addq.w  #$01, ($FFFFF632).w
+		move.w  #$0007, (PalCycle_Timer).w
+		move.w  (PalCycle_Frame).w, D0
+		addq.w  #$01, (PalCycle_Frame).w
 		andi.w  #$0003, D0
 		lsl.w   #$03, D0
 		move.l  $00(A0, D0), ($FFFFFB26).w
@@ -2604,14 +2625,14 @@ PalCycle_GHz: ; loc_1F54: ; $00 - Green Hill Rotating Palette routine
 loc_1F80:
 		rts  
 PalCycle_Wz: ; loc_1F82: ; $02 - Wood Rotating Palette routine
-		subq.w  #$01, ($FFFFF634).w
+		subq.w  #$01, (PalCycle_Timer).w
 		bpl.s   loc_1FB0
-		move.w  #$0002, ($FFFFF634).w
+		move.w  #$0002, (PalCycle_Timer).w
 		lea     (Pal_WzCyc).l, A0         ; loc_2324
-		move.w  ($FFFFF632).w, D0
-		subq.w  #$02, ($FFFFF632).w
+		move.w  (PalCycle_Frame).w, D0
+		subq.w  #$02, (PalCycle_Frame).w
 		bcc.s   loc_1FA4
-		move.w  #$0006, ($FFFFF632).w		 
+		move.w  #$0006, (PalCycle_Frame).w		 
 loc_1FA4:
 		lea     ($FFFFFB66).w, A1
 		move.l  $00(A0, D0), (A1)+
@@ -2619,42 +2640,42 @@ loc_1FA4:
 loc_1FB0:		
 		rts  
 PalCycle_Mz: ; loc_1FB2: ; $04/$05 - Metropolis Rotating Palette routine
-		subq.w  #$01, ($FFFFF634).w    
+		subq.w  #$01, (PalCycle_Timer).w    
 		bpl.s   loc_1FE2
-		move.w  #$0011, ($FFFFF634).w
+		move.w  #$0011, (PalCycle_Timer).w
 		lea     (Pal_MzCyc1).l, A0        ; loc_2334
-		move.w  ($FFFFF632).w, D0
-		addq.w  #$02, ($FFFFF632).w
-		cmpi.w  #$000C, ($FFFFF632).w
+		move.w  (PalCycle_Frame).w, D0
+		addq.w  #$02, (PalCycle_Frame).w
+		cmpi.w  #$000C, (PalCycle_Frame).w
 		bcs.s   loc_1FDA
-		move.w  #$0000, ($FFFFF632).w
+		move.w  #$0000, (PalCycle_Frame).w
 loc_1FDA:
 		lea     ($FFFFFB4A).w, A1
 		move.w  $00(A0, D0), (A1)
 loc_1FE2:
-		subq.w  #$01, ($FFFFF666).w
+		subq.w  #$01, (PalCycle_Timer2).w
 		bpl.s   loc_2016
-		move.w  #$0002, ($FFFFF666).w
+		move.w  #$0002, (PalCycle_Timer2).w
 		lea     (Pal_MzCyc2).l, A0        ; loc_2340
-		move.w  ($FFFFF652).w, D0
-		addq.w  #$02, ($FFFFF652).w
-		cmpi.w  #$0006, ($FFFFF652).w
+		move.w  (PalCycle_Frame2).w, D0
+		addq.w  #$02, (PalCycle_Frame2).w
+		cmpi.w  #$0006, (PalCycle_Frame2).w
 		bcs.s   loc_200A
-		move.w  #$0000, ($FFFFF652).w
+		move.w  #$0000, (PalCycle_Frame2).w
 loc_200A:
 		lea     ($FFFFFB42).w, A1
 		move.l  $00(A0, D0), (A1)+
 		move.w  $04(A0, D0), (A1)
 loc_2016:
-		subq.w  #$01, ($FFFFF668).w
+		subq.w  #$01, (PalCycle_Timer3).w
 		bpl.s   loc_2046
-		move.w  #$0009, ($FFFFF668).w
+		move.w  #$0009, (PalCycle_Timer3).w
 		lea     (Pal_MzCyc3).l, A0        ; loc_234C
-		move.w  ($FFFFF654).w, D0
-		addq.w  #$02, ($FFFFF654).w
-		cmpi.w  #$0014, ($FFFFF654).w
+		move.w  (PalCycle_Frame3).w, D0
+		addq.w  #$02, (PalCycle_Frame3).w
+		cmpi.w  #$0014, (PalCycle_Frame3).w
 		bcs.s   loc_203E
-		move.w  #$0000, ($FFFFF654).w
+		move.w  #$0000, (PalCycle_Frame3).w
 loc_203E:
 		lea     ($FFFFFB5E).w, A1
 		move.w  $00(A0, D0), (A1)
@@ -2662,13 +2683,13 @@ loc_2046:
 		rts		
 PalCycle_HTz: ; loc_2048: ; $07 - Hill Top Rotating Palette routine
 		lea     (Pal_HTzCyc1).l, A0       ; loc_22A4
-		subq.w  #$01, ($FFFFF634).w
+		subq.w  #$01, (PalCycle_Timer).w
 		bpl.s   loc_207A
-		move.w  #$0000, ($FFFFF634).w
-		move.w  ($FFFFF632).w, D0
-		addq.w  #$01, ($FFFFF632).w
+		move.w  #$0000, (PalCycle_Timer).w
+		move.w  (PalCycle_Frame).w, D0
+		addq.w  #$01, (PalCycle_Frame).w
 		andi.w  #$000F, D0
-		move.b  Pal_HTzCyc2(PC, D0), ($FFFFF635).w  ; loc_207C
+		move.b  Pal_HTzCyc2(PC, D0), (PalCycle_Timer+1).w  ; loc_207C
 		lsl.w   #$03, D0
 		move.l  $00(A0, D0), ($FFFFFB26).w
 		move.l  $04(A0, D0), ($FFFFFB3C).w 
@@ -2677,14 +2698,14 @@ loc_207A:
 Pal_HTzCyc2: ; loc_207C:
 		dc.w    $0B0B, $0B0A, $080A, $0B0B, $0B0B, $0D0F, $0D0B, $0B0B
 PalCycle_HPz: ; loc_208C: ; $08 - Hidden Palace Rotating Palette routine
-		subq.w  #$01, ($FFFFF634).w
+		subq.w  #$01, (PalCycle_Timer).w
 		bpl.s   loc_20CC
-		move.w  #$0004, ($FFFFF634).w
+		move.w  #$0004, (PalCycle_Timer).w
 		lea     (Pal_HPzCyc1).l, A0       ; loc_2360
-		move.w  ($FFFFF632).w, D0
-		subq.w  #$02, ($FFFFF632).w
+		move.w  (PalCycle_Frame).w, D0
+		subq.w  #$02, (PalCycle_Frame).w
 		bcc.s   loc_20AE
-		move.w  #$0006, ($FFFFF632).w
+		move.w  #$0006, (PalCycle_Frame).w
 loc_20AE:
 		lea     ($FFFFFB72).w, A1
 		move.l  $00(A0, D0), (A1)+
@@ -2696,39 +2717,39 @@ loc_20AE:
 loc_20CC:
 		rts             
 PalCycle_OOz: ; loc_20CE: ; $0A - Oil Ocean Rotating Palette routine
-		subq.w  #$01, ($FFFFF634).w
+		subq.w  #$01, (PalCycle_Timer).w
 		bpl.s   loc_20FA
-		move.w  #$0007, ($FFFFF634).w
+		move.w  #$0007, (PalCycle_Timer).w
 		lea     (Pal_OOzCyc).l, A0        ; loc_2380
-		move.w  ($FFFFF632).w, D0
-		addq.w  #$02, ($FFFFF632).w
-		andi.w  #$0006, ($FFFFF632).w
+		move.w  (PalCycle_Frame).w, D0
+		addq.w  #$02, (PalCycle_Frame).w
+		andi.w  #$0006, (PalCycle_Frame).w
 		lea     ($FFFFFB54).w, A1
 		move.l  $00(A0, D0), (A1)+
 		move.l  $04(A0, D0), (A1)
 loc_20FA:
 		rts    
 PalCycle_DHz: ; loc_20FC: ; $0B - Dust Hill Rotating Palette routine
-		subq.w  #$01, ($FFFFF634).w
+		subq.w  #$01, (PalCycle_Timer).w
 		bpl.s   loc_2122
-		move.w  #$0001, ($FFFFF634).w
+		move.w  #$0001, (PalCycle_Timer).w
 		lea     (Pal_DHzCyc).l, A0        ; loc_2390
-		move.w  ($FFFFF632).w, D0
-		addq.w  #$02, ($FFFFF632).w
-		andi.w  #$0006, ($FFFFF632).w
+		move.w  (PalCycle_Frame).w, D0
+		addq.w  #$02, (PalCycle_Frame).w
+		andi.w  #$0006, (PalCycle_Frame).w
 		move.w  $00(A0, D0), ($FFFFFB36).w
 loc_2122:
 		rts
 PalCycle_CNz: ; loc_2124: ; $0C - Casino Night Rotating Palette routine
-		subq.w  #$01, ($FFFFF634).w
+		subq.w  #$01, (PalCycle_Timer).w
 		bpl.w    loc_21C2
-		move.w  #$0007, ($FFFFF634).w
+		move.w  #$0007, (PalCycle_Timer).w
 		lea     (Pal_CNzCyc1).l, A0       ; loc_2398
-		move.w  ($FFFFF632).w, D0
-		addq.w  #$02, ($FFFFF632).w
-		cmpi.w  #$0006, ($FFFFF632).w
+		move.w  (PalCycle_Frame).w, D0
+		addq.w  #$02, (PalCycle_Frame).w
+		cmpi.w  #$0006, (PalCycle_Frame).w
 		bcs.s   loc_214E
-		move.w  #$0000, ($FFFFF632).w
+		move.w  #$0000, (PalCycle_Frame).w
 loc_214E:
 		lea     $00(A0, D0), A0
 		lea     ($FFFFFB00).w, A1
@@ -2744,11 +2765,11 @@ loc_214E:
 		move.w  $0006(A0), $0066(A1)
 		move.w  $000C(A0), $0068(A1)
 		lea     (Pal_CNzCyc3).l, A0       ; loc_23CE
-		move.w  ($FFFFF652).w, D0
-		addq.w  #$02, ($FFFFF652).w
-		cmpi.w  #$001C, ($FFFFF652).w
+		move.w  (PalCycle_Frame2).w, D0
+		addq.w  #$02, (PalCycle_Frame2).w
+		cmpi.w  #$001C, (PalCycle_Frame2).w
 		bcs.s   loc_21B2
-		move.w  #$0000, ($FFFFF652).w
+		move.w  #$0000, (PalCycle_Frame2).w
 loc_21B2:
 		lea     ($FFFFFB72).w, A1
 		move.w  $00(A0, D0), (A1)+
@@ -2757,41 +2778,41 @@ loc_21B2:
 loc_21C2:
 		rts		
 PalCycle_CPz: ; loc_21C4: ; $0D - Chemical Plant Rotating Palette routine
-		subq.w  #$01, ($FFFFF634).w
+		subq.w  #$01, (PalCycle_Timer).w
 		bpl.s   loc_2234
-		move.w  #$0007, ($FFFFF634).w
+		move.w  #$0007, (PalCycle_Timer).w
 		lea     (Pal_CPzCyc1).l, A0       ; loc_2422
-		move.w  ($FFFFF632).w, D0
-		addq.w  #$06, ($FFFFF632).w
-		cmpi.w  #$0036, ($FFFFF632).w
+		move.w  (PalCycle_Frame).w, D0
+		addq.w  #$06, (PalCycle_Frame).w
+		cmpi.w  #$0036, (PalCycle_Frame).w
 		bcs.s   loc_21EC
-		move.w  #$0000, ($FFFFF632).w
+		move.w  #$0000, (PalCycle_Frame).w
 loc_21EC:
 		lea     ($FFFFFB78).w, A1
 		move.l  $00(A0, D0), (A1)+
 		move.w  $04(A0, D0), (A1)
 		lea     (Pal_CPzCyc2).l, A0       ; loc_2458
-		move.w  ($FFFFF652).w, D0
-		addq.w  #$02, ($FFFFF652).w
-		cmpi.w  #$002A, ($FFFFF652).w
+		move.w  (PalCycle_Frame2).w, D0
+		addq.w  #$02, (PalCycle_Frame2).w
+		cmpi.w  #$002A, (PalCycle_Frame2).w
 		bcs.s   loc_2214
-		move.w  #$0000, ($FFFFF652).w
+		move.w  #$0000, (PalCycle_Frame2).w
 loc_2214:
 		move.w  $00(A0, D0), ($FFFFFB7E).w
 		lea     (Pal_CPzCyc3).l, A0       ; loc_2482
-		move.w  ($FFFFF654).w, D0
-		addq.w  #$02, ($FFFFF654).w
-		andi.w  #$001E, ($FFFFF654).w
+		move.w  (PalCycle_Frame3).w, D0
+		addq.w  #$02, (PalCycle_Frame3).w
+		andi.w  #$001E, (PalCycle_Frame3).w
 		move.w  $00(A0, D0), ($FFFFFB5E).w
 loc_2234:
 		rts		
 PalCycle_NGHz: ; loc_2236: ; $0F - Neo Green Hill Rotating Palette routine
 		lea     (Pal_GHzCyc).l, A0        ; loc_2284
-		subq.w  #$01, ($FFFFF634).w
+		subq.w  #$01, (PalCycle_Timer).w
 		bpl.s   loc_2262
-		move.w  #$0005, ($FFFFF634).w
-		move.w  ($FFFFF632).w, D0
-		addq.w  #$01, ($FFFFF632).w
+		move.w  #$0005, (PalCycle_Timer).w
+		move.w  (PalCycle_Frame).w, D0
+		addq.w  #$01, (PalCycle_Frame).w
 		andi.w  #$0003, D0
 		lsl.w   #$03, D0
 		lea     ($FFFFFB44).w, A1
@@ -2858,18 +2879,18 @@ Pal_CPzCyc3: ; loc_2482: ; $0D - Chemical Plant Rotating Palette
 		dc.w    $000E, $000C, $000A, $0008, $0006, $0004, $0002, $0004
 		dc.w    $0006, $0008, $000A, $000C, $000E, $002E, $004E, $002E     
 loc_24A2:
-		tst.b   ($FFFFF65F).w
+		tst.b   (Super_Sonic_palette).w
 		beq.s   loc_24DE
 		bmi.s   loc_24E0
-		subq.b  #$01, ($FFFFF65E).w 
+		subq.b  #$01, (Palette_timer).w 
 		bpl.s   loc_24DE
-		move.b  #$03, ($FFFFF65E).w
+		move.b  #$03, (Palette_timer).w
 		lea     (loc_2516).l, A0
-		move.w  ($FFFFF65C).w, D0
-		addq.w  #$08, ($FFFFF65C).w
-		cmpi.w  #$0030, ($FFFFF65C).w
+		move.w  (Palette_frame).w, D0
+		addq.w  #$08, (Palette_frame).w
+		cmpi.w  #$0030, (Palette_frame).w
 		bcs.s   loc_24D2
-		move.b  #$FF, ($FFFFF65F).w
+		move.b  #$FF, (Super_Sonic_palette).w
 loc_24D2:
 		lea     ($FFFFFB04).w, A1
 		move.l  $00(A0, D0), (A1)+
@@ -2877,15 +2898,15 @@ loc_24D2:
 loc_24DE:
 		rts
 loc_24E0:
-		subq.b  #$01, ($FFFFF65E).w
+		subq.b  #$01, (Palette_timer).w
 		bpl.s   loc_24DE
-		move.b  #$07, ($FFFFF65E).w
+		move.b  #$07, (Palette_timer).w
 		lea     (loc_2516).l, A0
-		move.w  ($FFFFF65C).w, D0
-		addq.w  #$08, ($FFFFF65C).w
-		cmpi.w  #$0078, ($FFFFF65C).w
+		move.w  (Palette_frame).w, D0
+		addq.w  #$08, (Palette_frame).w
+		cmpi.w  #$0078, (Palette_frame).w
 		bcs.s   loc_2508
-		move.w  #$0030, ($FFFFF65C).w
+		move.w  #$0030, (Palette_frame).w
 loc_2508:
 		lea     ($FFFFFB04).w, A1
 		move.l  $00(A0, D0), (A1)+
@@ -2910,15 +2931,15 @@ loc_2516:
 
 ; sub_2596: Pal_FadeTo:
 Pal_FadeFromBlack:
-		move.w	#$3F,($FFFFF626).w
+		move.w	#$3F,(Palette_fade_range).w
 ; loc_259C: Pal_FadeTo2:
 Pal_FadeFromBlack2:
 		moveq	#0,d0
 		lea	($FFFFFB00).w,a0
-		move.b	($FFFFF626).w,d0
+		move.b	(Palette_fade_start).w,d0
 		adda.w	d0,a0
 		moveq	#0,d1
-		move.b	($FFFFF627).w,d0
+		move.b	(Palette_fade_length).w,d0
 ; loc_25AE:
 .palettewrite:
 		move.w	d1,(a0)+
@@ -2944,10 +2965,10 @@ Pal_FadeFromBlack2:
 		moveq   #$00, D0
 		lea     ($FFFFFB00).w, A0
 		lea     ($FFFFFB80).w, A1
-		move.b  ($FFFFF626).w, D0
+		move.b  (Palette_fade_start).w, D0
 		adda.w  D0, A0
 		adda.w  D0, A1
-		move.b  ($FFFFF627).w, D0
+		move.b  (Palette_fade_length).w, D0
 loc_25E4:		
 		bsr.s   Pal_AddColor            ; loc_260E
 		dbf    D0, loc_25E4
@@ -2956,10 +2977,10 @@ loc_25E4:
 		moveq   #$00, D0
 		lea     ($FFFFFA80).w, A0
 		lea     ($FFFFFA00).w, A1
-		move.b  ($FFFFF626).w, D0
+		move.b  (Palette_fade_start).w, D0
 		adda.w  D0, A0
 		adda.w  D0, A1
-		move.b  ($FFFFF627).w, D0
+		move.b  (Palette_fade_length).w, D0
 loc_2606:		 
 		bsr.s   Pal_AddColor            ; loc_260E		 
 		dbf    D0, loc_2606
@@ -2990,7 +3011,7 @@ Pal_NoAdd: ; loc_2636:
 		addq.w  #$02, A0
 		rts
 Pal_FadeFrom: ; loc_263A:
-		move.w  #$003F, ($FFFFF626).w
+		move.w  #$003F, (Palette_fade_range).w
 		move.w  #$0015, D4
 loc_2644:
 		move.b  #VintID_Fade, (Vint_routine).w
@@ -3002,17 +3023,17 @@ loc_2644:
 Pal_FadeOut: ; loc_265A:		
 		moveq   #$00, D0
 		lea     ($FFFFFB00).w, A0
-		move.b  ($FFFFF626).w, D0
+		move.b  (Palette_fade_start).w, D0
 		adda.w  D0, A0
-		move.b  ($FFFFF627).w, D0
+		move.b  (Palette_fade_length).w, D0
 loc_266A:
 		bsr.s   Pal_DecColor            ; loc_2688
 		dbf    D0, loc_266A
 		moveq   #$00, D0
 		lea     ($FFFFFA80).w, A0
-		move.b  ($FFFFF626).w, D0
+		move.b  (Palette_fade_start).w, D0
 		adda.w  D0, A0
-		move.b  ($FFFFF627).w, D0
+		move.b  (Palette_fade_length).w, D0
 loc_2680:		
 		bsr.s   Pal_DecColor            ; loc_2688  
 		dbf    D0, loc_2680
@@ -3041,13 +3062,13 @@ Pal_NoDec: ; loc_26B4:
 		addq.w  #2, A0
 		rts 
 Pal_MakeWhite: ; loc_26B8:               ; Special Stage Blank Screen
-		move.w  #$003F, ($FFFFF626).w
+		move.w  #$003F, (Palette_fade_range).w
 		moveq   #$00, D0
 		lea     ($FFFFFB00).w, A0
-		move.b  ($FFFFF626).w, D0
+		move.b  (Palette_fade_start).w, D0
 		adda.w  D0, A0
 		move.w  #$0EEE, D1
-		move.b  ($FFFFF627).w, D0
+		move.b  (Palette_fade_length).w, D0
 loc_26D2:		
 		move.w  D1, (A0)+
 		dbf    D0, loc_26D2
@@ -3063,10 +3084,10 @@ Pal_WhiteToBlack: ; loc_26F2:
 		moveq   #$00, D0
 		lea     ($FFFFFB00).w, A0
 		lea     ($FFFFFB80).w, A1
-		move.b  ($FFFFF626).w, D0
+		move.b  (Palette_fade_start).w, D0
 		adda.w  D0, A0
 		adda.w  D0, A1
-		move.b  ($FFFFF627).w, D0
+		move.b  (Palette_fade_length).w, D0
 loc_2708:               
 		bsr.s   Pal_DecColor2           ; loc_2732
 		dbf    D0, loc_2708
@@ -3075,10 +3096,10 @@ loc_2708:
 		moveq   #$00, D0
 		lea     ($FFFFFA80).w, A0
 		lea     ($FFFFFA00).w, A1
-		move.b  ($FFFFF626).w, D0
+		move.b  (Palette_fade_start).w, D0
 		adda.w  D0, A0
 		adda.w  D0, A1
-		move.b  ($FFFFF627).w, D0
+		move.b  (Palette_fade_length).w, D0
 loc_272A:		
 		bsr.s   Pal_DecColor2           ; loc_2732
 		dbf    D0, loc_272A
@@ -3111,7 +3132,7 @@ loc_275E:
 		addq.w  #$02, A0
 		rts		        ; Special Stage Blank Screen End...
 Pal_MakeFlash: ; loc_2762:          ; Called by Special Stage Routine   
-		move.w  #$003F, ($FFFFF626).w
+		move.w  #$003F, (Palette_fade_range).w
 		move.w  #$0015, D4
 loc_276C:		
 		move.b  #VintID_Fade, (Vint_routine).w
@@ -3123,17 +3144,17 @@ loc_276C:
 Pal_ToWhite: ; loc_2782:
 		moveq   #$00, D0
 		lea     ($FFFFFB00).w, A0
-		move.b  ($FFFFF626).w, D0
+		move.b  (Palette_fade_start).w, D0
 		adda.w  D0, A0
-		move.b  ($FFFFF627).w, D0
+		move.b  (Palette_fade_length).w, D0
 loc_2792:		
 		bsr.s   Pal_AddColor2           ; loc_27B0
 		dbf    D0, loc_2792
 		moveq   #$00, D0
 		lea     ($FFFFFA80).w, A0
-		move.b  ($FFFFF626).w, D0
+		move.b  (Palette_fade_start).w, D0
 		adda.w  D0, A0
-		move.b  ($FFFFF627).w, D0
+		move.b  (Palette_fade_length).w, D0
 loc_27A8:		
 		bsr.s   Pal_AddColor2           ; loc_27B0
 		dbf    D0, loc_27A8
@@ -3166,12 +3187,12 @@ loc_27EC:
 		addq.w  #$02, A0
 		rts		 
 PalCycle_Sega: ; loc_27F0: ; "Sega" Logo rotating Palette
-		tst.b   ($FFFFF635).w
+		tst.b   (PalCycle_Timer+1).w
 		bne.s   loc_2850
 		lea     ($FFFFFB20).w, A1
 		lea     (Pal_Sega1).l, A0  ; loc_28A6 ; Load "Sega" Logo Palette
 		moveq   #$05, D1
-		move.w  ($FFFFF632).w, D0
+		move.w  (PalCycle_Frame).w, D0
 loc_2806:		
 		bpl.s   loc_2810
 		addq.w  #$02, A0
@@ -3190,7 +3211,7 @@ loc_281A:
 loc_2824:
 		addq.w  #$02, D0
 		dbf    D1, loc_2810
-		move.w  ($FFFFF632).w, D0
+		move.w  (PalCycle_Frame).w, D0
 		addq.w  #$02, D0
 		move.w  D0, D2
 		andi.w  #$001E, D2
@@ -3199,24 +3220,24 @@ loc_2824:
 loc_283A:
 		cmpi.w  #$0064, D0
 		blt.s   loc_2848
-		move.w  #$0401, ($FFFFF634).w
+		move.w  #$0401, (PalCycle_Timer).w
 		moveq   #-$C, D0
 loc_2848:
-		move.w  D0, ($FFFFF632).w
+		move.w  D0, (PalCycle_Frame).w
 		moveq   #$01, D0
 		rts		  
 loc_2850:
-		subq.b  #$01, ($FFFFF634).w
+		subq.b  #$01, (PalCycle_Timer).w
 		bpl.s   loc_28A2
-		move.b  #$04, ($FFFFF634).w
-		move.w  ($FFFFF632).w, D0
+		move.b  #$04, (PalCycle_Timer).w
+		move.w  (PalCycle_Frame).w, D0
 		addi.w  #$000C, D0
 		cmpi.w  #$0030, D0
 		bcs.s   loc_286E
 		moveq   #$00, D0
 		rts
 loc_286E:
-		move.w  D0, ($FFFFF632).w
+		move.w  D0, (PalCycle_Frame).w
 		lea     (Pal_Sega2).l, A0 ; loc_28B2 ; Load "Sega" Logo Palette
 		lea     $00(A0, D0), A0
 		lea     ($FFFFFB04).w, A1
@@ -3292,32 +3313,33 @@ loc_2946:
 		dbf    D7, loc_2946
 		rts
 PalPointers: ; loc_294E: ; Palette List		
-		dc.l    Pal_SegaBG, $FB00001F ; Sega Logo
-		dc.l    Pal_Title, $FB00001F ; Title Screen
-		dc.l    Pal_LevelSelect, $FB00001F ; Level Select Menu
-		dc.l    Pal_SonicTails, $FB000007 ; Sonic & Tails
-		dc.l    Pal_GHZ, $FB200017 ; Green Hill
-		dc.l    Pal_GHZ, $FB200017 ; Level $01 
-		dc.l    Pal_WZ, $FB200017 ; Wood
-		dc.l    Pal_GHZ, $FB200017 ; Level $03
-		dc.l    Pal_MTZ, $FB200017 ; Metropolis
-		dc.l    Pal_MTZ, $FB200017 ; Metropolis
-		dc.l    Pal_CNz2, $FB200017 ; Level $06 / Casino Night Act 2
-		dc.l    Pal_HTZ, $FB200017 ; Hill Top
-		dc.l    Pal_HPZ, $FB200017 ; Hidden Palace
-		dc.l    Pal_GHZ, $FB200017 ; Level $09
-		dc.l    Pal_OOZ, $FB200017 ; Oil Ocean
-		dc.l    Pal_DHz, $FB200017 ; Dust Hill
-		dc.l    Pal_CNz1, $FB200017 ; Casino Night
-		dc.l    Pal_CPz, $FB200017 ; Chemical Plant
-		dc.l    Pal_GHZ, $FB200017 ; Genocide City
-		dc.l    Pal_NGHz, $FB200017 ; Neo Green Hill
-		dc.l    Pal_GHZ, $FB200017 ; Death Egg
-		dc.l    Pal_HPZ_U, $FB00001F ; Hidden Palace Underwater 
-		dc.l    Pal_CPzWater, $FB00001F ; Chemical Plant Underwater  
-		dc.l    Pal_NGHzWater, $FB00001F ; Neo Green Hill Underwater
-		dc.l    Pal_SpecialStage, $FB00001F
-Pal_SegaBG:		BINCLUDE	"art/palettes/Sega screen.bin"
+PalPtr_SEGA:		dc.l    Pal_SEGA, $FB00001F
+PalPtr_Title:		dc.l    Pal_Title, $FB00001F
+PalPtr_LevelSel:	dc.l    Pal_LevelSelect, $FB00001F
+PalPtr_SonicTails:	dc.l    Pal_SonicTails, $FB000007
+PalPtr_GHZ:	dc.l    Pal_GHZ, $FB200017
+PalPtr_OWZ:	dc.l    Pal_GHZ, $FB200017
+PalPtr_WZ:	dc.l    Pal_WZ, $FB200017
+PalPtr_SSZ:	dc.l    Pal_GHZ, $FB200017
+PalPtr_MTZ:	dc.l    Pal_MTZ, $FB200017
+PalPtr_MTZ2:	dc.l    Pal_MTZ, $FB200017
+PalPtr_BLZ:	dc.l    Pal_CNz2, $FB200017	; also apparently meant for CNZ2 at one point
+PalPtr_HTZ:	dc.l    Pal_HTZ, $FB200017
+PalPtr_HPZ:	dc.l    Pal_HPZ, $FB200017
+PalPtr_RWZ:	dc.l    Pal_GHZ, $FB200017
+PalPtr_OOZ:	dc.l    Pal_OOZ, $FB200017
+PalPtr_DHZ:	dc.l    Pal_DHz, $FB200017
+PalPtr_CNZ:	dc.l    Pal_CNz1, $FB200017
+PalPtr_CPZ:	dc.l    Pal_CPz, $FB200017
+PalPtr_GCZ:	dc.l    Pal_GHZ, $FB200017
+PalPtr_NGHZ:	dc.l    Pal_NGHz, $FB200017
+PalPtr_DEZ:	dc.l    Pal_GHZ, $FB200017
+PalPtr_HPZ_U:	dc.l    Pal_HPZ_U, $FB00001F
+PalPtr_CPZ_U:	dc.l    Pal_CPzWater, $FB00001F
+PalPtr_NGHZ_U:	dc.l    Pal_NGHzWater, $FB00001F
+PalPtr_SpecStg:	dc.l    Pal_SpecialStage, $FB00001F
+
+Pal_SEGA:		BINCLUDE	"art/palettes/Sega screen.bin"
 Pal_Title: ; loc_2A96: ; Title Screen
 		dc.w    $0C00, $0002, $0800, $0026, $0048, $006C, $008E, $00AE
 		dc.w    $04A0, $0040, $0060, $0080, $00A0, $06A4, $0000, $0000
@@ -3414,7 +3436,7 @@ loc_31DC:
 		bne.s   loc_31DC
 		rts
 PseudoRandomNumber: ; loc_31E4:
-		move.l  ($FFFFF636).w, D1 
+		move.l  (RNG_seed).w, D1 
 		bne.s   loc_31F0
 		move.l  #$2A6D365A, D1
 loc_31F0:		
@@ -3428,7 +3450,7 @@ loc_31F0:
 		add.w   D1, D0
 		move.w  D0, D1
 		swap  D1
-		move.l  D1, ($FFFFF636).w
+		move.l  D1, (RNG_seed).w
 		rts
 CalcSine: ; loc_320A:		
 		andi.w  #$00FF, D0
@@ -3562,7 +3584,7 @@ SegaScreen: ; loc_360C: ; SEGA Logo
 		move.w  #$8C81, (A6)
 		clr.b   (Water_fullscreen_flag).w
 		move    #$2700, SR
-		move.w  ($FFFFF60C).w, D0
+		move.w  (VDP_Reg1_val).w, D0
 		andi.b  #$BF, D0
 		move.w  D0, (VDP_control_port)
 		bsr.w     ClearScreen             ; loc_1418
@@ -3583,7 +3605,7 @@ SegaScreen: ; loc_360C: ; SEGA Logo
 		moveq   #$27, D1
 		moveq   #$1B, D2
 		bsr.w     PlaneMapToVRAM_H40         ; loc_154C
-		tst.b   ($FFFFFFF8).w
+		tst.b   (Graphics_Flags).w
 		bmi.s   loc_36BE
 		lea     (Chunk_Table+$A40), A1
 		move.l  #$453A0003, D0
@@ -3591,14 +3613,14 @@ SegaScreen: ; loc_360C: ; SEGA Logo
 		moveq   #$01, D2
 		bsr.w     PlaneMapToVRAM_H40         ; loc_154C
 loc_36BE:
-		moveq   #$00, D0
+		moveq   #PalID_SEGA, D0
 		bsr.w     PalLoad2		; loc_28FE
-		move.w  #$FFF6, ($FFFFF632).w
-		move.w  #$0000, ($FFFFF634).w
-		move.w  #$0000, ($FFFFF662).w
-		move.w  #$0000, ($FFFFF660).w
-		move.w  #$00B4, ($FFFFF614).w
-		move.w  ($FFFFF60C).w, D0
+		move.w  #$FFF6, (PalCycle_Frame).w
+		move.w  #$0000, (PalCycle_Timer).w
+		move.w  #$0000, (unk_F662).w
+		move.w  #$0000, (unk_F660).w
+		move.w  #$00B4, (Demo_Time_left).w
+		move.w  (VDP_Reg1_val).w, D0
 		ori.b   #$40, D0
 		move.w  D0, (VDP_control_port)
 Sega_WaitPalette: ; loc_36F0:		   
@@ -3610,25 +3632,26 @@ Sega_WaitPalette: ; loc_36F0:
 		bsr.w     PlaySound		; loc_14C6
 		move.b  #VintID_SEGA, (Vint_routine).w
 		bsr.w     DelayProgram            ; loc_31D8
-		move.w  #$00B4, ($FFFFF614).w
+		move.w  #$00B4, (Demo_Time_left).w
 Sega_WaitEnd: ; loc_3718:		
 		move.b  #VintID_PCM, (Vint_routine).w
 		bsr.w     DelayProgram            ; loc_31D8
-		tst.w   ($FFFFF614).w
+		tst.w   (Demo_Time_left).w
 		beq.s   Sega_GoToTitleScreen    ; loc_3730
-		andi.b  #$80, ($FFFFF605).w
+		andi.b  #$80, (Ctrl_1_Press).w
 		beq.s   Sega_WaitEnd            ; loc_3718   
 Sega_GoToTitleScreen: ; loc_3730:		
-		move.b  #$04, ($FFFFF600).w
+		move.b  #$04, (Game_Mode).w
 		rts
 ;===============================================================================
 ; Sega Logo
 ; [ End ]              
 ;=============================================================================== 
-;===============================================================================
-; Title Screen
-; [ Begin ]              
-;===============================================================================		   
+
+; ---------------------------------------------------------------------------
+; Title screen game screen; also contains the level select screen
+; ---------------------------------------------------------------------------
+
 ; loc_3738:
 TitleScreen:
 		move.b	#$FD,d0
@@ -3668,9 +3691,9 @@ loc_3794:
 loc_37A4:
 		move.l	d0,(a1)+
 		dbf	d1,loc_37A4
-		lea	($FFFFEE00).w,a1
+		lea	(Camera_RAM).w,a1
 		moveq	#0,d0
-		move.w	#$3F,d1
+		move.w	#bytesToLcnt(Camera_RAM_End-Camera_RAM),d1
 
 loc_37B4:
 		move.l	d0,(a1)+
@@ -3685,7 +3708,7 @@ loc_37C4:
 
 		; Leftover from Sonic 1, which had a "SONIC TEAM PRESENTS"
 		; screen load Sonic's palette for the font
-		moveq	#3,d0
+		moveq	#PalID_SonicTails,d0
 		bsr.w	PalLoad1
 		bsr.w	Pal_FadeFromBlack
 
@@ -3710,7 +3733,7 @@ loc_3818:
 		move.w	#0,(Demo_mode_flag).w
 		move.w	#0,($FFFFFFDA).w
 		move.w	#$F00,(Current_ZoneAndAct).w
-		move.w	#0,($FFFFF634).w
+		move.w	#0,(PalCycle_Timer).w
 		bsr.w	Pal_FadeFrom
 
 		move	#$2700,sr
@@ -3741,13 +3764,13 @@ loc_3818:
 		moveq	#$1F,d1
 		moveq	#$1B,d2
 		bsr.w	PlaneMapToVRAM_H40
-		moveq	#1,d0
+		moveq	#PalID_Title,d0
 		bsr.w	PalLoad1
 		move.b	#MusID_Title,d0
 		bsr.w	PlayMusic
 		move.b	#0,(Debug_mode_flag).w
 		move.w	#0,($FFFFFFD8).w
-		move.w	#$178,($FFFFF614).w
+		move.w	#$178,(Demo_Time_left).w
 		lea	($FFFFB080).w,a1
 		moveq	#0,d0
 		move.w	#$F,d1	; hilarious, they actually fixed the bug that caused the "PRESS START BUTTON" text to not display in Sonic 1
@@ -3766,9 +3789,9 @@ loc_38EE:
 		move.w	#0,($FFFFFFD4).w
 		move.w	#0,($FFFFFFD6).w
 		move.b	#1,($FFFFFFD0).w	; enable "level select" flag without using the cheat
-		move.w	#4,($FFFFEED2).w
+		move.w	#4,(Sonic_Pos_Record_Index).w
 		move.w	#0,(Sonic_Pos_Record_Buf).w
-		move.w	($FFFFF60C).w,d0
+		move.w	(VDP_Reg1_val).w,d0
 		ori.b	#$40,d0
 		move.w	d0,(VDP_control_port).l
 		bsr.w	Pal_FadeFromBlack
@@ -3782,7 +3805,7 @@ TitleScreen_Loop:
 		bsr.w	RunPLC_RAM
 
 ; Title_ChkRegion:
-		tst.b	($FFFFFFF8).w
+		tst.b	(Graphics_Flags).w
 		bpl.s	Title_RegionJ
 		lea	(LevelSelectCode_US).l,a0
 		bra.s	Title_EnterCheat
@@ -3793,7 +3816,7 @@ Title_RegionJ:
 Title_EnterCheat:
 		move.w	($FFFFFFD4).w,d0
 		adda.w	d0,a0
-		move.b	($FFFFF605).w,d0
+		move.b	(Ctrl_1_Press).w,d0
 		andi.b	#$F,d0
 		cmp.b	(a0),d0
 		bne.s	Title_CheatFail
@@ -3805,7 +3828,7 @@ Title_EnterCheat:
 		lsr.w	#1,d1
 		andi.w	#3,d1
 		beq.s	Title_PlayRing
-		tst.b	($FFFFFFF8).w
+		tst.b	(Graphics_Flags).w
 		bpl.s	Title_PlayRing
 		moveq	#1,d1
 		move.b	d1,1(a0,d1.w)
@@ -3825,26 +3848,26 @@ Title_CheatFail:
 		move.w	#0,($FFFFFFD4).w
 ; loc_39D2:
 Title_CountC:
-		move.b	($FFFFF605).w,d0
+		move.b	(Ctrl_1_Press).w,d0
 		andi.b	#$20,d0
 		beq.s	TitleScreen_SkipC
 		addq.w	#1,($FFFFFFD6).w
 
 ; loc_39E0: Title_Cheat_NoC:
 TitleScreen_SkipC:
-		tst.w	($FFFFF614).w
+		tst.w	(Demo_Time_left).w
 		beq.w	Demo_Mode
-		andi.b	#$80, ($FFFFF605).w
+		andi.b	#$80, (Ctrl_1_Press).w
 		beq.w	TitleScreen_Loop
 ; loc_39F2:
 Title_ChkLevSel:
 		tst.b	($FFFFFFD0).w
 		beq.w	PlayLevel
-		btst	#6,($FFFFF604).w
+		btst	#6,(Ctrl_1_Held).w
 		beq.w	PlayLevel
 		move.b	#MusID_LevelSel,d0
 		bsr.w	PlayMusic
-		moveq	#2,d0
+		moveq	#PalID_LevelSel,d0
 		bsr.w	PalLoad2
 		lea	(Horiz_Scroll_Buf).w,a1
 		moveq	#0,d0
@@ -3853,7 +3876,7 @@ Title_ChkLevSel:
 Title_ClrScroll:
 		move.l	d0,(a1)+
 		dbf	d1,Title_ClrScroll
-		move.l	d0,($FFFFF616).w
+		move.l	d0,(Vscroll_Factor).w
 		move	#$2700,sr
 		lea	(VDP_data_port).l,a6
 		move.l	#$60000003,(VDP_control_port).l
@@ -3872,10 +3895,10 @@ LevelSelect_Loop:
 		bsr.w	RunPLC_RAM
 		tst.l	($FFFFF680).w
 		bne.s	LevelSelect_Loop
-		andi.b	#$F0,($FFFFF605).w
+		andi.b	#$F0,(Ctrl_1_Press).w
 		beq.s	LevelSelect_Loop
 		move.w	#0,($FFFFFFD8).w
-		btst	#4,($FFFFF604).w
+		btst	#4,(Ctrl_1_Held).w
 		beq.s	loc_3A7C
 		move.w	#1,($FFFFFFD8).w
 
@@ -3883,7 +3906,7 @@ loc_3A7C:
 		move.w	($FFFFFF82).w,d0
 		cmpi.w	#$1A,d0
 		bne.s	LevelSelect_PressStart
-		btst	#6,($FFFFF605).w
+		btst	#6,(Ctrl_1_Press).w
 		bne.s	LevelSelect_Loop
 		move.w	($FFFFFF84).w,d0
 		addi.w	#$80,d0
@@ -3902,7 +3925,7 @@ LevelSelect_PressStart:
 		bne.s	LevelSelect_StartZone
 
 ; LevelSelect_SpecialStage:
-		move.b	#$10,($FFFFF600).w
+		move.b	#$10,(Game_Mode).w
 		clr.w	(Current_ZoneAndAct).w
 		move.b	#3,($FFFFFE12).w
 		moveq	#0,d0
@@ -3935,7 +3958,7 @@ LevelSelect_StartZone:
 		move.w	d0,(Current_ZoneAndAct).w
 ; loc_3B12:
 PlayLevel:
-		move.b	#$C,($FFFFF600).w
+		move.b	#$C,(Game_Mode).w
 		move.b	#3,($FFFFFE12).w
 		moveq	#0,d0
 		move.w	d0,($FFFFFE20).w
@@ -3975,7 +3998,7 @@ LevelSelectCode_US:
 		even
 ; ===========================================================================
 Demo_Mode: ; loc_3B62:
-		move.w  #$001E, ($FFFFF614).w
+		move.w  #$001E, (Demo_Time_left).w
 loc_3B68:		
 		move.b  #VintID_Title, (Vint_routine).w
 		bsr.w     DelayProgram            ; loc_31D8
@@ -3985,34 +4008,34 @@ loc_3B68:
 		move.w  D0, ($FFFFB008).w
 		cmpi.w  #$1C00, D0
 		bcs.s   Run_Demo_Mode           ; loc_3B8E
-		move.b  #$00, ($FFFFF600).w
+		move.b  #$00, (Game_Mode).w
 		rts
 Run_Demo_Mode: ; loc_3B8E:
-		andi.b  #$80, ($FFFFF605).w 
+		andi.b  #$80, (Ctrl_1_Press).w 
 		bne.w     Title_ChkLevSel
-		tst.w   ($FFFFF614).w
+		tst.w   (Demo_Time_left).w
 		bne.w     loc_3B68
 		move.b  #$E0, D0
 		bsr.w     PlaySound		; loc_14C6
-		move.w  ($FFFFFFF2).w, D0
+		move.w  (Demo_number).w, D0
 		andi.w  #$0007, D0
 		add.w   D0, D0
 		move.w  Demo_Mode_Level_Array(PC, D0), D0 ; loc_3C16 Load Demo sequence array
 		move.w  D0, (Current_ZoneAndAct).w
-		addq.w  #1, ($FFFFFFF2).w
-		cmpi.w  #$0004, ($FFFFFFF2).w
+		addq.w  #1, (Demo_number).w
+		cmpi.w  #$0004, (Demo_number).w
 		bcs.s   loc_3BCC
-		move.w  #$0000, ($FFFFFFF2).w
+		move.w  #$0000, (Demo_number).w
 loc_3BCC:
 		move.w  #$0001, (Demo_mode_flag).w
-		move.b  #$08, ($FFFFF600).w
+		move.b  #$08, (Game_Mode).w
 		cmpi.w  #$0000, D0
 		bne.s   loc_3BE4
 		move.w  #$0001, ($FFFFFFD8).w
 loc_3BE4:
 		cmpi.w  #$0600, D0
 		bne.s   loc_3BF8
-		move.b  #$10, ($FFFFF600).w
+		move.b  #$10, (Game_Mode).w
 		clr.w   (Current_ZoneAndAct).w
 		clr.b   ($FFFFFE16).w
 loc_3BF8:
@@ -4029,7 +4052,7 @@ Demo_Mode_Level_Array: ; loc_3C16: ; Demo sequence array
 ; ===========================================================================
 ; loc_3C2E:
 LevelSelect_Controls:
-		move.b	($FFFFF605).w,d1
+		move.b	(Ctrl_1_Press).w,d1
 		andi.b	#3,d1
 		bne.s	loc_3C3E
 		subq.w	#1,($FFFFFF80).w
@@ -4037,7 +4060,7 @@ LevelSelect_Controls:
 
 loc_3C3E:
 		move.w	#$B,($FFFFFF80).w
-		move.b	($FFFFF604).w,d1
+		move.b	(Ctrl_1_Held).w,d1
 		andi.b	#3,d1
 		beq.s	LevelSelect_Controls2
 		move.w	($FFFFFF82).w,d0
@@ -4065,7 +4088,7 @@ LevelSelect_Controls2:
 		cmpi.w	#$1A,($FFFFFF82).w
 		bne.s	return_3CC2
 		move.w	($FFFFFF84).w,d0
-		move.b	($FFFFF605).w,d1
+		move.b	(Ctrl_1_Press).w,d1
 		andi.b	#$C,d1
 		beq.s	loc_3CAA
 		btst	#2,d1
@@ -4083,7 +4106,7 @@ loc_3C9A:
 		moveq	#0,d0
 
 loc_3CAA:
-		btst	#6,($FFFFF605).w
+		btst	#6,(Ctrl_1_Press).w
 		beq.s	loc_3CBA
 		addi.b	#$10,d0
 		andi.b	#$7F,d0
@@ -4335,7 +4358,7 @@ MusicList:	dc.b	MusID_GHZ
 ; ---------------------------------------------------------------------------
 ; loc_4150:
 Level:
-		bset	#7,($FFFFF600).w	; add $80 to screen mode (for pre level sequence)
+		bset	#7,(Game_Mode).w	; add $80 to screen mode (for pre level sequence)
 		tst.w	(Demo_mode_flag).w	; test the old flag for the credits demos (now unused)
 		bmi.s	+
 		move.b	#$F9,d0
@@ -4389,7 +4412,7 @@ Level_ClrRAM:
 
 		lea	(MiscLevelVariables).w,a1
 		moveq	#0,d0
-		move.w	#$15,d1
+		move.w	#bytesToLcnt(MiscLevelVariables_End-MiscLevelVariables),d1
 
 -		move.l	d0,(a1)+
 		dbf	d1,-
@@ -4427,7 +4450,7 @@ Level_InitWater:
 		move.w	#$9001,(a6)		; Scroll table size: 64x32
 		move.w	#$8004,(a6)		; H-INT disabled
 		move.w	#$8720,(a6)		; Background palette/color: 2/0
-		btst	#5,($FFFFF604).w
+		btst	#5,(Ctrl_1_Held).w
 		beq.s	loc_4262
 		move.w	#$8C89,(a6)		; H res 40 cells, no interlace, S/H enabled
 
@@ -4464,25 +4487,25 @@ loc_427C:
 Level_LoadPal:
 		move.w	#$1E,($FFFFFE14).w
 
-		moveq	#3,d0
+		moveq	#PalID_SonicTails,d0
 		bsr.w	PalLoad2	; load Sonic's (and Tails') palette
 
 		tst.b	(Water_flag).w	; is this a water level?
 		beq.s	Level_GetBgm	; if not, branch
 
-		moveq	#$15,d0			; use HPZ underwater palette
+		moveq	#PalID_HPZ_U,d0		; use HPZ underwater palette
 		cmpi.b	#8,(Current_Zone).w	; is this Hidden Palace Zone?
 		beq.s	Level_WaterPal		; if yes, branch
-		moveq	#$16,d0			; use CPZ underwater palette
+		moveq	#PalID_CPZ_U,d0		; use CPZ underwater palette
 		cmpi.b	#$D,(Current_Zone).w	; if this Chemical Plant Zone?
 		beq.s	Level_WaterPal		; if yes, branch
-		moveq	#$17,d0			; use NGHZ underwater palette
+		moveq	#PalID_NGHZ_U,d0	; use NGHZ underwater palette
 ; loc_42F0: LevelInit_UnderwaterPalette:
 Level_WaterPal:
 		bsr.w	PalLoad3_Water		; ACTUALLY load the underwater palette
 		tst.b	($FFFFFE30).w		; is this the start of a level?
 		beq.s	Level_GetBgm		; if yes, branch
-		move.b	($FFFFFE53).w, (Water_fullscreen_flag).w
+		move.b	($FFFFFE53).w,(Water_fullscreen_flag).w
 ; loc_4300: LevelInit_NoUnderwaterPalette:
 Level_GetBgm:
 		tst.w	(Demo_mode_flag).w
@@ -4508,11 +4531,11 @@ Level_TtlCard:
 		jsr	(Head_Up_Display_Base).l
 
 loc_434E:
-		moveq   #$03, D0
+		moveq   #PalID_SonicTails, D0
 		bsr.w     PalLoad1		; loc_28E2
 		bsr.w     LevelSizeLoad         ; loc_5904
 		bsr.w     Background_Scroll_Layer ; loc_5D5C
-		bset    #$02, ($FFFFEE50).w
+		bset    #$02, (Scroll_flags).w
 		bsr.w     Main_Level_Load_16_128_Blocks ; loc_779A
 		jsr     Load_16x16_Mappings_For_Dyn_Sprites ; loc_2293A
 		bsr.w     Load_Tiles_From_Start   ; loc_76BE
@@ -4530,12 +4553,12 @@ Skip_Head_Up_Display: ; loc_4390:
 		subi.w  #$0020, ($FFFFB048).w
 		tst.b   ($FFFFFFD2).w
 		beq.s   loc_43BC
-		btst    #$06, ($FFFFF604).w
+		btst    #$06, (Ctrl_1_Held).w
 		beq.s   loc_43BC
 		move.b  #$01, (Debug_mode_flag).w
 loc_43BC:
-		move.w  #$0000, ($FFFFF602).w
-		move.w  #$0000, ($FFFFF604).w
+		move.w  #$0000, (Ctrl_1_Logical).w
+		move.w  #$0000, (Ctrl_1).w
 		tst.b   (Water_flag).w
 		beq.s   loc_43E6
 		move.b  #$04, ($FFFFB780).w
@@ -4570,7 +4593,7 @@ loc_4424:
 		move.b  #$01, ($FFFFFE1F).w
 		move.b  #$01, ($FFFFFE1D).w
 		move.b  #$01, ($FFFFFE1E).w
-		move.w  #$0004, ($FFFFEED2).w
+		move.w  #$0004, (Sonic_Pos_Record_Index).w
 		move.w  #$0000, (Sonic_Pos_Record_Buf).w
 		move.w  #$0000, ($FFFFF790).w
 		move.w  #$0000, ($FFFFF740).w
@@ -4582,7 +4605,7 @@ loc_4424:
 		tst.w   (Demo_mode_flag).w
 		bpl.s   loc_4498
 		lea     (Demo_End_Index).l, A1    ; loc_4A7A
-		move.w  ($FFFFFFF4).w, D0
+		move.w  (Ending_demo_number).w, D0
 		subq.w  #$01, D0
 		lsl.w   #$02, D0
 		move.l  $00(A1, D0), A1
@@ -4592,23 +4615,23 @@ loc_4498:
 		lea     (Demo_Tails_Ghz).l, A1   ; loc_4DF8 Green Hill - Tails Demo control
 		move.b  $0001(A1), ($FFFFF742).w
 		subq.b  #$01, ($FFFFF742).w
-		move.w  #$0668, ($FFFFF614).w
+		move.w  #$0668, (Demo_Time_left).w
 		tst.w   (Demo_mode_flag).w
 		bpl.s   loc_44D2
-		move.w  #$021C, ($FFFFF614).w
-		cmpi.w  #$0004, ($FFFFFFF4).w
+		move.w  #$021C, (Demo_Time_left).w
+		cmpi.w  #$0004, (Ending_demo_number).w
 		bne.s   loc_44D2
-		move.w  #$01FE, ($FFFFF614).w
+		move.w  #$01FE, (Demo_Time_left).w
 loc_44D2:
 		tst.b   (Water_flag).w
 		beq.s   loc_44F2
-		moveq   #$15, D0
+		moveq   #PalID_HPZ_U, D0
 		cmpi.b  #$08, (Current_Zone).w
 		beq.s   loc_44EE
-		moveq   #$16, D0
+		moveq   #PalID_CPZ_U, D0
 		cmpi.b  #$0D, (Current_Zone).w
 		beq.s   loc_44EE
-		moveq   #$17, D0
+		moveq   #PalID_NGHZ_U, D0
 loc_44EE:
 		bsr.w     PalLoad4_Water          ; loc_2932
 loc_44F2:
@@ -4617,7 +4640,7 @@ loc_44F6:
 		move.b  #VintID_Level, (Vint_routine).w
 		bsr.w     DelayProgram            ; loc_31D8
 		dbf    D1, loc_44F6 
-		move.w  #$202F, ($FFFFF626).w
+		move.w  #$202F, (Palette_fade_range).w
 		bsr.w     Pal_FadeFromBlack2             ; loc_259C
 		tst.w   (Demo_mode_flag).w
 		bmi.s   Level_ClrTitleCard      ; loc_4526
@@ -4630,7 +4653,7 @@ Level_ClrTitleCard: ; loc_4526:
 		moveq   #$02, D0
 		jsr     (LoadPLC).l		 ; loc_173C
 loc_452E:		
-		bclr    #$07, ($FFFFF600).w
+		bclr    #$07, (Game_Mode).w
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Main level loop (when all title card and loading sequences are finished)
@@ -4665,9 +4688,9 @@ loc_456E:
 		bsr.w	End_Level_Art_Load
 		jsr	(BuildSprites).l
 		jsr	(ObjectsManager).l
-		cmpi.b	#8,($FFFFF600).w
+		cmpi.b	#8,(Game_Mode).w
 		beq.s	loc_45B0
-		cmpi.b	#$C,($FFFFF600).w
+		cmpi.b	#$C,(Game_Mode).w
 		beq.w	Level_MainLoop
 		rts
 ; ---------------------------------------------------------------------------
@@ -4675,22 +4698,22 @@ loc_456E:
 loc_45B0:
 		tst.w   ($FFFFFE02).w
 		bne.s   loc_45CE
-		tst.w   ($FFFFF614).w
+		tst.w   (Demo_Time_left).w
 		beq.s   loc_45CE
-		cmpi.b  #$08, ($FFFFF600).w
+		cmpi.b  #$08, (Game_Mode).w
 		beq.w    Level_MainLoop         ; loc_4534
-		move.b  #$00, ($FFFFF600).w
+		move.b  #$00, (Game_Mode).w
 		rts
 loc_45CE:
-		cmpi.b  #$08, ($FFFFF600).w
+		cmpi.b  #$08, (Game_Mode).w
 		bne.s   loc_45E8
-		move.b  #$00, ($FFFFF600).w
+		move.b  #$00, (Game_Mode).w
 		tst.w   (Demo_mode_flag).w
 		bpl.s   loc_45E8
-		move.b  #$1C, ($FFFFF600).w
+		move.b  #$1C, (Game_Mode).w
 loc_45E8:
-		move.w  #$003C, ($FFFFF614).w
-		move.w  #$003F, ($FFFFF626).w
+		move.w  #$003C, (Demo_Time_left).w
+		move.w  #$003F, (Palette_fade_range).w
 		clr.w   ($FFFFF794).w
 loc_45F8:		
 		move.b  #VintID_Level, (Vint_routine).w
@@ -4704,7 +4727,7 @@ loc_45F8:
 		move.w  #$0002, ($FFFFF794).w
 		bsr.w     Pal_FadeOut             ; loc_265A
 loc_4628:
-		tst.w   ($FFFFF614).w
+		tst.w   (Demo_Time_left).w
 		bne.s   loc_45F8
 		rts
 ; ===========================================================================
@@ -4719,7 +4742,7 @@ loc_4628:
 UpdateWaterSurface:
 		tst.b	(Water_flag).w
 		beq.s	loc_4658
-		move.w	($FFFFEE00).w,d1
+		move.w	(Camera_X_pos).w,d1
 		btst	#0,($FFFFFE05).w
 		beq.s	loc_4646
 		addi.w	#$20,d1
@@ -4745,7 +4768,7 @@ loc_4658:
 WaterEffects:
 		tst.b	(Water_flag).w		; does the level have water?
 		beq.s	return_46B6		; if not, branch
-		tst.b	($FFFFEEDC).w
+		tst.b	(Deform_lock).w
 		bne.s	MoveWater
 		cmpi.b	#6,($FFFFB024).w	; is Sonic dead?
 		bcc.s	MoveWater		; if yes, branch
@@ -4764,7 +4787,7 @@ loc_4686:
 		move.w	D0, (Water_Level_1).w
 		; calculate distance between water surface and top of screen
 		move.w	(Water_Level_1).w,d0
-		sub.w	($FFFFEE04).w,d0
+		sub.w	(Camera_Y_pos).w,d0
 		bcc.s	loc_46A8
 		tst.w	d0
 		bpl.s	loc_46A8
@@ -4848,7 +4871,7 @@ DynamicWater_Null:
 ; ===========================================================================
 ; loc_472E:
 DynamicWater_CPZ2:
-		cmpi.w	#$1DE0,($FFFFEE00).w
+		cmpi.w	#$1DE0,(Camera_X_pos).w
 		bcs.s	return_473C
 		move.w	#$510,(Water_Level_3).w
 
@@ -4908,11 +4931,11 @@ loc_47CC:
 		move.w  #$0000, $0012(A1)
 		move.b  #$0F, $001C(A1)
 		bset    #$01, $0022(A1)
-		btst    #$00, ($FFFFF604).w
+		btst    #$00, (Ctrl_1_Held).w
 		beq.s   loc_47F6
 		subq.w  #$01, $000C(A1)
 loc_47F6:
-		btst    #$01, ($FFFFF604).w
+		btst    #$01, (Ctrl_1_Held).w
 		beq.s   loc_4802
 		addq.w  #$01, $000C(A1)
 loc_4802:
@@ -4989,7 +5012,7 @@ Move_Sonic_Demo_Record: ; unused subroutine for	recording demos
 		lea     ($00FE8000), A1
 		move.w  ($FFFFF790).w, D0
 		adda.w  D0, A1
-		move.b  ($FFFFF604).w, D0
+		move.b  (Ctrl_1_Held).w, D0
 		cmp.b   (A1), D0
 		bne.s   loc_4908
 		addq.b  #$01, $0001(A1)
@@ -5007,7 +5030,7 @@ loc_491C:
 		lea     ($00FEC000), A1
 		move.w  ($FFFFF740).w, D0
 		adda.w  D0, A1
-		move.b  ($FFFFF606).w, D0
+		move.b  (Ctrl_2_Held).w, D0
 		cmp.b   (A1), D0
 		bne.s   loc_4946
 		addq.b  #$01, $0001(A1)
@@ -5022,16 +5045,16 @@ loc_4946:
 loc_495A:
 		rts
 Move_Demo_On: ; loc_495C:
-		tst.b   ($FFFFF604).w
+		tst.b   (Ctrl_1_Held).w
 		bpl.s   loc_496E
 		tst.w   (Demo_mode_flag).w
 		bmi.s   loc_496E
-		move.b  #$04, ($FFFFF600).w
+		move.b  #$04, (Game_Mode).w
 loc_496E:
 		lea     (Demo_Index).l, A1        ; loc_49F2
 		moveq   #$00, D0
 		move.b  (Current_Zone).w, D0
-		cmpi.b  #$10, ($FFFFF600).w
+		cmpi.b  #$10, (Game_Mode).w
 		bne.s   loc_4984
 		moveq   #$06, D0
 loc_4984:
@@ -5040,7 +5063,7 @@ loc_4984:
 		move.w  ($FFFFF790).w, D0
 		adda.w  D0, A1
 		move.b  (A1), D0
-		lea     ($FFFFF604).w, A0
+		lea     (Ctrl_1).w, A0
 		move.b  D0, D1
 		moveq   #$00, D2
 		eor.b   D2, D0
@@ -5058,7 +5081,7 @@ loc_49B2:
 		move.w  ($FFFFF740).w, D0
 		adda.w  D0, A1
 		move.b  (A1), D0
-		lea     ($FFFFF606).w, A0
+		lea     (Ctrl_2).w, A0
 		move.b  D0, D1
 		moveq   #$00, D2
 		eor.b   D2, D0
@@ -5072,7 +5095,7 @@ loc_49B2:
 loc_49E8:
 		rts
 loc_49EA:
-		move.w  #$0000, ($FFFFF606).w
+		move.w  #$0000, (Ctrl_2).w
 		rts
 Demo_Index: ; loc_49F2: ; Demo sequence array
 		dc.l    Demo_Green_Hill     ; $00 - Green Hill
@@ -5280,16 +5303,16 @@ End_Level_Art_Load: ; loc_4CC0: ; Test for load end level sprites...
 		bne.w     Skip_End_Level_Art_Load ; loc_4CF6
 		cmpi.w  #$0001, (Current_ZoneAndAct).w
 		beq.s   Skip_End_Level_Art_Load ; loc_4CF6
-		move.w  ($FFFFEE00).w, D0
-		move.w  ($FFFFEECA).w, D1
+		move.w  (Camera_X_pos).w, D0
+		move.w  (Camera_Max_X_pos).w, D1
 		subi.w  #$0100, D1
 		cmp.w   D1, D0
 		blt.s   Skip_End_Level_Art_Load ; loc_4CF6
 		tst.b   ($FFFFFE1E).w
 		beq.s   Skip_End_Level_Art_Load ; loc_4CF6
-		cmp.w   ($FFFFEEC8).w, D1
+		cmp.w   (Camera_Min_X_pos).w, D1
 		beq.s   Skip_End_Level_Art_Load ; loc_4CF6
-		move.w  D1, ($FFFFEEC8).w
+		move.w  D1, (Camera_Min_X_pos).w
 		moveq   #$27, D0
 		bra.w     LoadPLC2		; loc_176E
 Skip_End_Level_Art_Load: ; loc_4CF6:
@@ -5396,7 +5419,7 @@ SpecialStage: ; loc_5200:
 		move.w  #$8004, (A6)
 		move.w  #$8AAF, (Hint_counter_reserve).w
 		move.w  #$9011, (A6)
-		move.w  ($FFFFF60C).w, D0
+		move.w  (VDP_Reg1_val).w, D0
 		andi.b  #$BF, D0
 		move.w  D0, (VDP_control_port)
 		bsr.w     ClearScreen             ; loc_1418
@@ -5423,7 +5446,7 @@ loc_5280:
 		dbf    D1, loc_5280
 		lea     ($FFFFF700).w, A1
 		moveq   #$00, D0
-		move.w  #$003F, D1
+		move.w  #$3F,d1
 loc_5290:		
 		move.l  D0, (A1)+
 		dbf    D1, loc_5290
@@ -5441,11 +5464,11 @@ loc_52B0:
 		dbf    D1, loc_52B0
 		clr.b   (Water_fullscreen_flag).w
 		clr.w   ($FFFFFE02).w
-		moveq   #$16, D0
+		moveq	#S1PalID_SpecStg,d0		; loads the wrong palette; should be PalID_SpecStg
 		bsr.w     PalLoad1		; loc_28E2
 		jsr     (S1_Special_Stage_Load) ; loc_21A36
-		move.l  #$00000000, ($FFFFEE00).w
-		move.l  #$00000000, ($FFFFEE04).w
+		move.l  #$00000000, (Camera_X_pos).w
+		move.l  #$00000000, (Camera_Y_pos).w
 		move.b  #$09, ($FFFFB000).w
 		bsr.w     S1_Pal_Cycle_Special_Stage ; loc_5584
 		clr.w   ($FFFFF750).w
@@ -5462,14 +5485,14 @@ loc_52B0:
 		clr.w   ($FFFFFE20).w
 		clr.b   ($FFFFFE1B).w
 		move.w  #$0000, (Debug_placement_mode).w
-		move.w  #$0708, ($FFFFF614).w
+		move.w  #$0708, (Demo_Time_left).w
 		tst.b   ($FFFFFFD2).w
 		beq.s   loc_533C
-		btst    #$06, ($FFFFF604).w
+		btst    #$06, (Ctrl_1_Held).w
 		beq.s   loc_533C
 		move.b  #$01, (Debug_mode_flag).w
 loc_533C:
-		move.w  ($FFFFF60C).w, D0
+		move.w  (VDP_Reg1_val).w, D0
 		ori.b   #$40, D0
 		move.w  D0, (VDP_control_port)
 		bsr.w     Pal_MakeWhite           ; loc_26B8
@@ -5478,33 +5501,33 @@ loc_534E:
 		move.b  #VintID_S1SS, (Vint_routine).w
 		bsr.w     DelayProgram            ; loc_31D8
 		bsr.w     Move_Sonic_In_Demo      ; loc_48DE
-		move.w  ($FFFFF604).w, ($FFFFF602).w
+		move.w  (Ctrl_1).w, (Ctrl_1_Logical).w
 		jsr     (RunObjects)          ; loc_CFD0
 		jsr     (BuildSprites)         ; loc_D4DA
 		jsr     (S1_SS_Show_Layout)     ; loc_21508
 		bsr.w     S1_SS_Bg_Animate        ; loc_5806
 		tst.w   (Demo_mode_flag).w
 		beq.s   loc_538A
-		tst.w   ($FFFFF614).w
+		tst.w   (Demo_Time_left).w
 		beq.w    loc_54B8
 loc_538A:
-		cmpi.b  #$10, ($FFFFF600).w
+		cmpi.b  #$10, (Game_Mode).w
 		beq.w     loc_534E
 		tst.w   (Demo_mode_flag).w
 		bne.w     loc_54C0
-		move.b  #$0C, ($FFFFF600).w
+		move.b  #$0C, (Game_Mode).w
 		cmpi.w  #$0503, (Current_ZoneAndAct).w
 		bcs.s   loc_53AE
 		clr.w   (Current_ZoneAndAct).w
 loc_53AE:
-		move.w  #$003C, ($FFFFF614).w
-		move.w  #$003F, ($FFFFF626).w
+		move.w  #$003C, (Demo_Time_left).w
+		move.w  #$003F, (Palette_fade_range).w
 		clr.w   ($FFFFF794).w
 loc_53BE:		
 		move.b  #VintID_SSResults, (Vint_routine).w
 		bsr.w     DelayProgram            ; loc_31D8
 		bsr.w     Move_Sonic_In_Demo      ; loc_48DE
-		move.w  ($FFFFF604).w, ($FFFFF602).w
+		move.w  (Ctrl_1).w, (Ctrl_1_Logical).w
 		jsr     (RunObjects).l          ; loc_CFD0
 		jsr     (BuildSprites).l         ; loc_D4DA
 		jsr     (S1_SS_Show_Layout).l     ; loc_21508
@@ -5514,7 +5537,7 @@ loc_53BE:
 		move.w  #$0002, ($FFFFF794).w
 		bsr.w     Pal_ToWhite             ; loc_2782
 loc_53F8:
-		tst.w   ($FFFFF614).w
+		tst.w   (Demo_Time_left).w
 		bne.s   loc_53BE
 		move    #$2700, SR
 		lea     (VDP_control_port), A6
@@ -5527,7 +5550,7 @@ loc_53F8:
 		bsr.w     NemDec              ; loc_15FC
 		jsr     (Head_Up_Display_Base)  ; loc_23184
 		move    #$2300, SR
-		moveq   #$16, D0
+		moveq	#S1PalID_SpecStg,d0	; same wrong palette
 		bsr.w     PalLoad2		; loc_28FE
 		moveq   #$00, D0
 		bsr.w     LoadPLC2		; loc_176E
@@ -5563,10 +5586,10 @@ loc_5480:
 		bsr.w     Pal_MakeFlash           ; loc_2762
 		rts
 loc_54B8:
-		move.b  #$00, ($FFFFF600).w
+		move.b  #$00, (Game_Mode).w
 		rts
 loc_54C0:
-		cmpi.b  #$0C, ($FFFFF600).w
+		cmpi.b  #$0C, (Game_Mode).w
 		beq.s   loc_54B8
 		rts
 SS_Background_Load: ; loc_54CA:
@@ -5627,7 +5650,7 @@ loc_5544:
 		bsr.w     PlaneMapToVRAM_H40         ; loc_154C
 		rts		             
 S1_Pal_Cycle_Special_Stage: ; loc_5584:
-		tst.w   ($FFFFF63A).w
+		tst.w   (Game_paused).w
 		bne.s   loc_5608
 		subq.w  #$01, ($FFFFF79C).w
 		bpl.s   loc_5608
@@ -5651,12 +5674,12 @@ loc_55B4:
 		move.w  #$8200, D0
 		move.b  (A1)+, D0
 		move.w  D0, (A6)
-		move.b  (A1), ($FFFFF616).w
+		move.b  (A1), (Vscroll_Factor_FG).w
 		move.w  #$8400, D0
 		move.b  (A0)+, D0
 		move.w  D0, (A6) 
 		move.l  #$40000010, (VDP_control_port) 
-		move.l  ($FFFFF616).w, (VDP_data_port)
+		move.l  (Vscroll_Factor).w, (VDP_data_port)
 		moveq   #$00, D0
 		move.b  (A0)+, D0
 		bmi.s   loc_560A
@@ -5734,19 +5757,19 @@ Pal_S1_SS_Cycle2: ; loc_5734:
 S1_SS_Bg_Animate: ; loc_5806:
 		move.w  ($FFFFF7A0).w, D0
 		bne.s   loc_5818
-		move.w  #$0000, ($FFFFEE0C).w
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
+		move.w  #$0000, (Camera_BG_Y_pos).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
 loc_5818:
 		cmpi.w  #$0008, D0
 		bcc.s   loc_5870
 		cmpi.w  #$0006, D0
 		bne.s   loc_5832
-		addq.w  #$01, ($FFFFEE18).w
-		addq.w  #$01, ($FFFFEE0C).w
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
+		addq.w  #$01, (Camera_BG3_X_pos).w
+		addq.w  #$01, (Camera_BG_Y_pos).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
 loc_5832:
 		moveq   #$00, D0
-		move.w  ($FFFFEE08).w, D0
+		move.w  (Camera_BG_X_pos).w, D0
 		neg.w   D0
 		swap  D0
 		lea     (loc_58ED).l, A1
@@ -5770,7 +5793,7 @@ loc_5848:
 loc_5870:
 		cmpi.w  #$000C, D0
 		bne.s   loc_5896
-		subq.w  #$01, ($FFFFEE18).w
+		subq.w  #$01, (Camera_BG3_X_pos).w
 		lea     (Decomp_Buffer+$100).w, A3
 		move.l  #$00018000, D2
 		moveq   #$06, D1
@@ -5785,12 +5808,12 @@ loc_5896:
 		lea     (loc_58E5).l, A2
 loc_58A0:
 		lea     (Horiz_Scroll_Buf).w, A1
-		move.w  ($FFFFEE18).w, D0
+		move.w  (Camera_BG3_X_pos).w, D0
 		neg.w   D0
 		swap  D0
 		moveq   #$00, D3
 		move.b  (A2)+, D3
-		move.w  ($FFFFEE0C).w, D2
+		move.w  (Camera_BG_Y_pos).w, D2
 		neg.w   D2
 		andi.w  #$00FF, D2
 		lsl.w   #$02, D2
@@ -5827,39 +5850,39 @@ loc_58ED:
 
 ; loc_5904:
 LevelSizeLoad:
-		clr.w	($FFFFEE50).w
-		clr.w	($FFFFEE52).w
-		clr.w	($FFFFEE54).w
-		clr.w	($FFFFEE56).w
-		clr.w	($FFFFEE58).w
-		clr.w	($FFFFEE5A).w
-		clr.w	($FFFFEE5C).w
-		clr.w	($FFFFEE5E).w
-		clr.w	($FFFFEEA0).w
-		clr.w	($FFFFEEA2).w
-		clr.w	($FFFFEEA4).w
-		clr.w	($FFFFEEA6).w
-		clr.w	($FFFFEEA8).w
-		clr.w	($FFFFEEAA).w
-		clr.w	($FFFFEEAC).w
-		clr.w	($FFFFEEAE).w
-		clr.b	($FFFFEEDC).w
-		clr.b	($FFFFEEBC).w
-		clr.b	($FFFFEEBD).w
+		clr.w	(Scroll_flags).w
+		clr.w	(Scroll_flags_BG).w
+		clr.w	(Scroll_flags_BG2).w
+		clr.w	(Scroll_flags_BG3).w
+		clr.w	(Scroll_flags_P2).w
+		clr.w	(Scroll_flags_BG_P2).w
+		clr.w	(Scroll_flags_BG2_P2).w
+		clr.w	(Scroll_flags_BG3_P2).w
+		clr.w	(Scroll_flags_copy).w
+		clr.w	(Scroll_flags_BG_copy).w
+		clr.w	(Scroll_flags_BG2_copy).w
+		clr.w	(Scroll_flags_BG3_copy).w
+		clr.w	(Scroll_flags_copy_P2).w
+		clr.w	(Scroll_flags_BG_copy_P2).w
+		clr.w	(Scroll_flags_BG2_copy_P2).w
+		clr.w	(Scroll_flags_BG3_copy_P2).w
+		clr.b	(Deform_lock).w
+		clr.b	(Screen_Shaking_Flag_HTZ).w
+		clr.b	(Screen_Shaking_Flag).w
 		moveq	#0,d0
-		move.b	d0,($FFFFEEDF).w
+		move.b	d0,(Dynamic_Resize_Routine).w
 		move.w	(Current_ZoneAndAct).w,d0
 		ror.b	#1,d0
 		lsr.w	#4,d0
 		lea	LevelSize(pc,d0.w),a0
 		move.l	(a0)+,d0
-		move.l	d0,($FFFFEEC8).w
-		move.l	d0,($FFFFEEC0).w
+		move.l	d0,(Camera_Min_X_pos).w
+		move.l	d0,(unk_EEC0).w
 		move.l	(a0)+,d0
-		move.l	d0,($FFFFEECC).w
-		move.l	d0,($FFFFEEC4).w
-		move.w	#$1010,($FFFFEE40).w
-		move.w	#$60,($FFFFEED8).w
+		move.l	d0,(Camera_Min_Y_pos).w
+		move.l	d0,(unk_EEC4).w
+		move.w	#$1010,(Horiz_block_crossed_flag).w
+		move.w	#$60,(Camera_Y_pos_bias).w
 		bra.w	LevelSize_CheckLamp
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -5915,23 +5938,23 @@ LevelSize_PreventUnderflow:
 		moveq	#0,d1
 
 loc_5AD0:
-		move.w  ($FFFFEECA).w, D2
+		move.w  (Camera_Max_X_pos).w, D2
 		cmp.w   D2, D1
 		bcs.s   loc_5ADA
 		move.w  D2, D1
 loc_5ADA:
-		move.w  D1, ($FFFFEE00).w
-		move.w  D1, ($FFFFEE20).w
+		move.w  D1, (Camera_X_pos).w
+		move.w  D1, (Camera_X_pos_P2).w
 		subi.w  #$0060, D0
 		bcc.s   loc_5AEA
 		moveq   #$00, D0
 loc_5AEA:
-		cmp.w   ($FFFFEECE).w, D0
+		cmp.w   (Camera_Max_Y_pos_now).w, D0
 		blt.s   loc_5AF4
-		move.w  ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos_now).w, D0
 loc_5AF4:
-		move.w  D0, ($FFFFEE04).w
-		move.w  D0, ($FFFFEE24).w
+		move.w  D0, (Camera_Y_pos).w
+		move.w  D0, (Camera_Y_pos_P2).w
 		bsr.w     Background_Scroll_Speed ; loc_5B8A
 		rts
 ; loc_5B02: Player_Start_Position_Array:
@@ -5963,16 +5986,16 @@ StartLocations:
 Background_Scroll_Speed: ; loc_5B8A: ; Background Position
 		tst.b   ($FFFFFE30).w
 		bne.s   loc_5BB8
-		move.w  D0, ($FFFFEE0C).w
-		move.w  D0, ($FFFFEE14).w
-		move.w  D1, ($FFFFEE08).w
-		move.w  D1, ($FFFFEE10).w
-		move.w  D1, ($FFFFEE18).w
-		move.w  D0, ($FFFFEE2C).w
-		move.w  D0, ($FFFFEE34).w
-		move.w  D1, ($FFFFEE28).w
-		move.w  D1, ($FFFFEE30).w
-		move.w  D1, ($FFFFEE38).w   
+		move.w  D0, (Camera_BG_Y_pos).w
+		move.w  D0, (Camera_BG2_Y_pos).w
+		move.w  D1, (Camera_BG_X_pos).w
+		move.w  D1, (Camera_BG2_X_pos).w
+		move.w  D1, (Camera_BG3_X_pos).w
+		move.w  D0, (Camera_BG_Y_pos_P2).w
+		move.w  D0, (Camera_BG2_Y_pos_P2).w
+		move.w  D1, (Camera_BG_X_pos_P2).w
+		move.w  D1, (Camera_BG2_X_pos_P2).w
+		move.w  D1, (Camera_BG3_X_pos_P2).w   
 loc_5BB8:		
 		moveq   #$00, D2
 		move.b  (Current_Zone).w, D2
@@ -5998,52 +6021,52 @@ Bg_Scroll_Speed_Index: ; loc_5BC8:
 		dc.w    Bg_Scroll_Speed_NGHz-Bg_Scroll_Speed_Index ; $0F - Neo Green Hill Background Position 
 		dc.w    Bg_Scroll_Speed_Null4-Bg_Scroll_Speed_Index ; $10 - Death Egg Background Position (Null)
 Bg_Scroll_Speed_GHz: ; loc_5BEA: ; Green Hill Background Position
-		clr.l   ($FFFFEE08).w
-		clr.l   ($FFFFEE0C).w
-		clr.l   ($FFFFEE14).w
-		clr.l   ($FFFFEE1C).w
+		clr.l   (Camera_BG_X_pos).w
+		clr.l   (Camera_BG_Y_pos).w
+		clr.l   (Camera_BG2_Y_pos).w
+		clr.l   (Camera_BG3_Y_pos).w
 		lea     (TempArray_LayerDef).w, A2
 		clr.l   (A2)+
 		clr.l   (A2)+
 		clr.l   (A2)+
-		clr.l   ($FFFFEE28).w
-		clr.l   ($FFFFEE2C).w
-		clr.l   ($FFFFEE34).w
-		clr.l   ($FFFFEE3C).w
+		clr.l   (Camera_BG_X_pos_P2).w
+		clr.l   (Camera_BG_Y_pos_P2).w
+		clr.l   (Camera_BG2_Y_pos_P2).w
+		clr.l   (Camera_BG3_Y_pos_P2).w
 		rts               
 Bg_Scroll_Speed_Null: ; loc_5C16: ; Null
 		rts   
 Bg_Scroll_Speed_Wz: ; loc_5C18: ; Wood Background Position               
 		asr.w   #$02, D0
 		addi.w  #$0400, D0
-		move.w  D0, ($FFFFEE0C).w
+		move.w  D0, (Camera_BG_Y_pos).w
 		asr.w   #$03, D1
-		move.w  D1, ($FFFFEE08).w
+		move.w  D1, (Camera_BG_X_pos).w
 		rts
 Bg_Scroll_Speed_Mz: ; loc_5C2A: ; Metropolis Background Position		 
 		asr.w   #$02, D0
-		move.w  D0, ($FFFFEE0C).w
+		move.w  D0, (Camera_BG_Y_pos).w
 		asr.w   #$03, D1
-		move.w  D1, ($FFFFEE08).w
+		move.w  D1, (Camera_BG_X_pos).w
 		rts
 Bg_Scroll_Speed_HTz: ; loc_5C38: ; Hill Top Background Position  
-		clr.l   ($FFFFEE08).w
-		clr.l   ($FFFFEE0C).w
-		clr.l   ($FFFFEE14).w
-		clr.l   ($FFFFEE1C).w
+		clr.l   (Camera_BG_X_pos).w
+		clr.l   (Camera_BG_Y_pos).w
+		clr.l   (Camera_BG2_Y_pos).w
+		clr.l   (Camera_BG3_Y_pos).w
 		lea     (TempArray_LayerDef).w, A2
 		clr.l   (A2)+
 		clr.l   (A2)+
 		clr.l   (A2)+
-		clr.l   ($FFFFEE28).w
-		clr.l   ($FFFFEE2C).w
-		clr.l   ($FFFFEE34).w
-		clr.l   ($FFFFEE3C).w
+		clr.l   (Camera_BG_X_pos_P2).w
+		clr.l   (Camera_BG_Y_pos_P2).w
+		clr.l   (Camera_BG2_Y_pos_P2).w
+		clr.l   (Camera_BG3_Y_pos_P2).w
 		rts
 Bg_Scroll_Speed_HPz: ; loc_5C64: ; Hidden Palace Background Position  
 		asr.w   #$01, D0
-		move.w  D0, ($FFFFEE0C).w
-		clr.l   ($FFFFEE08).w
+		move.w  D0, (Camera_BG_Y_pos).w
+		clr.l   (Camera_BG_X_pos).w
 		rts 
 Bg_Scroll_Speed_S1_Spring_Yard: ; loc_5C70:  
 		asl.l   #$04, D0
@@ -6052,16 +6075,16 @@ Bg_Scroll_Speed_S1_Spring_Yard: ; loc_5C70:
 		add.l   D2, D0
 		asr.l   #$08, D0
 		addq.w  #$01, D0
-		move.w  D0, ($FFFFEE0C).w
-		clr.l   ($FFFFEE08).w
+		move.w  D0, (Camera_BG_Y_pos).w
+		clr.l   (Camera_BG_X_pos).w
 		rts
 Bg_Scroll_Speed_Null2: ; loc_5C86:
 		rts  
 Bg_Scroll_Speed_OOz: ; loc_5C88: ; Oil Ocean Background Position 
 		lsr.w   #$03, D0
 		addi.w  #$0050, D0
-		move.w  D0, ($FFFFEE0C).w
-		clr.l   ($FFFFEE08).w
+		move.w  D0, (Camera_BG_Y_pos).w
+		clr.l   (Camera_BG_X_pos).w
 		rts    
 Bg_Scroll_Speed_S1_Spring_Yard2: ; loc_5C98: 
 		asl.l   #$04, D0
@@ -6070,49 +6093,49 @@ Bg_Scroll_Speed_S1_Spring_Yard2: ; loc_5C98:
 		add.l   D2, D0
 		asr.l   #$08, D0
 		addq.w  #$01, D0
-		move.w  D0, ($FFFFEE0C).w
-		clr.l   ($FFFFEE08).w
+		move.w  D0, (Camera_BG_Y_pos).w
+		clr.l   (Camera_BG_X_pos).w
 		rts		
 ;loc_5CAE: 
 		asr.w   #$03, D0
-		move.w  D0, ($FFFFEE0C).w
+		move.w  D0, (Camera_BG_Y_pos).w
 		rts		
 Bg_Scroll_Speed_DHz: ; loc_5CB6: ; Dust Hill Background Position
-		clr.l   ($FFFFEE08).w
-		clr.l   ($FFFFEE28).w
+		clr.l   (Camera_BG_X_pos).w
+		clr.l   (Camera_BG_X_pos_P2).w
 		tst.b   (Current_Act).w
 		bne.s   loc_5CD6
 		divu.w  #$0003, D0
 		subi.w  #$0140, D0
-		move.w  D0, ($FFFFEE0C).w
-		move.w  D0, ($FFFFEE2C).w
+		move.w  D0, (Camera_BG_Y_pos).w
+		move.w  D0, (Camera_BG_Y_pos_P2).w
 		rts
 loc_5CD6: 
 		divu.w  #$0006, D0
 		subi.w  #$0010, D0
-		move.w  D0, ($FFFFEE0C).w
-		move.w  D0, ($FFFFEE2C).w
+		move.w  D0, (Camera_BG_Y_pos).w
+		move.w  D0, (Camera_BG_Y_pos_P2).w
 		rts   
 Bg_Scroll_Speed_CNz: ; loc_5CE8: ; Casino Night Background Position 
 		lsr.w   #$06, D0
-		move.w  D0, ($FFFFEE0C).w
-		move.w  D0, ($FFFFEE2C).w
-		clr.l   ($FFFFEE08).w
+		move.w  D0, (Camera_BG_Y_pos).w
+		move.w  D0, (Camera_BG_Y_pos_P2).w
+		clr.l   (Camera_BG_X_pos).w
 		lea     (TempArray_LayerDef).w, A2
 		clr.l   (A2)+
 		clr.l   (A2)+
 		clr.l   (A2)+
-		clr.l   ($FFFFEE28).w
-		clr.l   ($FFFFEE2C).w
-		clr.l   ($FFFFEE34).w
-		clr.l   ($FFFFEE3C).w
+		clr.l   (Camera_BG_X_pos_P2).w
+		clr.l   (Camera_BG_Y_pos_P2).w
+		clr.l   (Camera_BG2_Y_pos_P2).w
+		clr.l   (Camera_BG3_Y_pos_P2).w
 		rts								      
 Bg_Scroll_Speed_CPz: ; loc_5D12: ; Chemical Plant Background Position 
 		lsr.w   #$02, D0
-		move.w  D0, ($FFFFEE0C).w
-		move.w  D0, ($FFFFEE2C).w
-		clr.l   ($FFFFEE08).w
-		clr.l   ($FFFFEE10).w
+		move.w  D0, (Camera_BG_Y_pos).w
+		move.w  D0, (Camera_BG_Y_pos_P2).w
+		clr.l   (Camera_BG_X_pos).w
+		clr.l   (Camera_BG2_X_pos).w
 		rts
 Bg_Scroll_Speed_Null3: ; loc_5D26: ; Genocide City Background Position (Null)
 		rts    
@@ -6121,15 +6144,15 @@ Bg_Scroll_Speed_NGHz: ; loc_5D28: ; Neo Green Hill Background Position
 		beq.s   loc_5D3A
 		subi.w  #$00E0, D0
 		lsr.w   #$01, D0
-		move.w  D0, ($FFFFEE0C).w
+		move.w  D0, (Camera_BG_Y_pos).w
 		bra.s   loc_5D42
 loc_5D3A:
 		subi.w  #$0180, D0
-		move.w  D0, ($FFFFEE0C).w
+		move.w  D0, (Camera_BG_Y_pos).w
 loc_5D42:
-		clr.l   ($FFFFEE08).w
-		clr.l   ($FFFFEE14).w
-		clr.l   ($FFFFEE1C).w
+		clr.l   (Camera_BG_X_pos).w
+		clr.l   (Camera_BG2_Y_pos).w
+		clr.l   (Camera_BG3_Y_pos).w
 		lea     (TempArray_LayerDef).w, A2
 		clr.l   (A2)+
 		clr.l   (A2)+
@@ -6138,50 +6161,50 @@ loc_5D42:
 Bg_Scroll_Speed_Null4: ; loc_5D5A: ; Death Egg Background Position (Null)
 		rts              
 Background_Scroll_Layer: ; loc_5D5C:
-		tst.b   ($FFFFEEDC).w
+		tst.b   (Deform_lock).w
 		beq.s   loc_5D64
 		rts   
 loc_5D64:  
-		clr.w   ($FFFFEE50).w
-		clr.w   ($FFFFEE52).w
-		clr.w   ($FFFFEE54).w
-		clr.w   ($FFFFEE56).w
-		clr.w   ($FFFFEE58).w
-		clr.w   ($FFFFEE5A).w
-		clr.w   ($FFFFEE5C).w
-		clr.w   ($FFFFEE5E).w
+		clr.w   (Scroll_flags).w
+		clr.w   (Scroll_flags_BG).w
+		clr.w   (Scroll_flags_BG2).w
+		clr.w   (Scroll_flags_BG3).w
+		clr.w   (Scroll_flags_P2).w
+		clr.w   (Scroll_flags_BG_P2).w
+		clr.w   (Scroll_flags_BG2_P2).w
+		clr.w   (Scroll_flags_BG3_P2).w
 		lea     ($FFFFB000).w, A0
-		lea     ($FFFFEE00).w, A1
-		lea     ($FFFFEE40).w, A2
-		lea     ($FFFFEE50).w, A3
-		lea     ($FFFFEEB0).w, A4
-		lea     ($FFFFEED0).w, A5
+		lea     (Camera_X_pos).w, A1
+		lea     (Horiz_block_crossed_flag).w, A2
+		lea     (Scroll_flags).w, A3
+		lea     (Camera_X_pos_diff).w, A4
+		lea     (Horiz_scroll_delay_val).w, A5
 		lea     (Sonic_Pos_Record_Buf).w, A6
 		bsr.w     Scroll_Horizontal       ; loc_6AEC
-		lea     ($FFFFEE04).w, A1
-		lea     ($FFFFEE41).w, A2
-		lea     ($FFFFEEB2).w, A4
+		lea     (Camera_Y_pos).w, A1
+		lea     (Verti_block_crossed_flag).w, A2
+		lea     (Camera_Y_pos_diff).w, A4
 		bsr.w     Scroll_Vertical         ; loc_6B84
 		tst.w   ($FFFFFFD8).w
 		beq.s   loc_5DEA
 		lea     ($FFFFB040).w, A0
-		lea     ($FFFFEE20).w, A1
-		lea     ($FFFFEE48).w, A2
-		lea     ($FFFFEE58).w, A3
-		lea     ($FFFFEEB8).w, A4
-		lea     ($FFFFEED4).w, A5
+		lea     (Camera_X_pos_P2).w, A1
+		lea     (Horiz_block_crossed_flag_P2).w, A2
+		lea     (Scroll_flags_P2).w, A3
+		lea     (Camera_X_pos_diff_P2).w, A4
+		lea     (Horiz_scroll_delay_val_P2).w, A5
 		lea     (Tails_Pos_Record_Buf).w, A6
 		bsr.w     Scroll_Horizontal       ; loc_6AEC
-		lea     ($FFFFEE24).w, A1
-		lea     ($FFFFEE49).w, A2
-		lea     ($FFFFEEBA).w, A4
+		lea     (Camera_Y_pos_P2).w, A1
+		lea     (Verti_block_crossed_flag_P2).w, A2
+		lea     (Camera_Y_pos_diff_P2).w, A4
 		bsr.w     Scroll_Vertical         ; loc_6B84
 loc_5DEA:		
 		bsr.w     Dyn_Screen_Boss_Loader  ; loc_79C0
-		move.w  ($FFFFEE04).w, ($FFFFF616).w
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
-		move.l  ($FFFFEE00).w, ($FFFFEEF0).w
-		move.l  ($FFFFEE04).w, ($FFFFEEF4).w
+		move.w  (Camera_Y_pos).w, (Vscroll_Factor_FG).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
+		move.l  (Camera_X_pos).w, (Camera_X_pos_copy).w
+		move.l  (Camera_Y_pos).w, (Camera_Y_pos_copy).w
 		moveq   #$00, D0
 		move.b  (Current_Zone).w, D0
 		add.w   D0, D0
@@ -6206,24 +6229,24 @@ Bg_Scroll_Index: ; loc_5E16:
 		dc.w    Bg_Scroll_NGHz-Bg_Scroll_Index; $0F - Neo Green Hill Background Scroll 
 		dc.w    Bg_Scroll_Null-Bg_Scroll_Index; $10 - Death Egg (Null) Background Scroll    
 loc_5E38: ; Title Screen Background Scroll
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
+		move.w  (Camera_X_pos).w, D0
 		cmpi.w  #$1C00, D0
 		bcc.s   loc_5E4A
 		addq.w  #$08, D0
 loc_5E4A:
-		move.w  D0, ($FFFFEE00).w
+		move.w  D0, (Camera_X_pos).w
 		lea     (Horiz_Scroll_Buf).w, A1
-		move.w  ($FFFFEE00).w, D2
+		move.w  (Camera_X_pos).w, D2
 		neg.w   D2
 		moveq   #$00, D0
 		bra.s   loc_5E78
 Bg_Scroll_GHz: ; loc_5E5C: ; $00 - Green Hill Background Scroll		
 		tst.w   ($FFFFFFD8).w
 		bne.w    loc_5FA2
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
 		lea     (Horiz_Scroll_Buf).w, A1
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		neg.w   D0
 		move.w  D0, D2
 		swap  D0
@@ -6338,20 +6361,20 @@ loc_5FA2:
 		bne.s   loc_5FB0
 		subq.w  #$01, (TempArray_LayerDef).w
 loc_5FB0:		
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
-		andi.l  #$FFFEFFFE, ($FFFFF616).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
+		andi.l  #$FFFEFFFE, (Vscroll_Factor).w
 		lea     (Horiz_Scroll_Buf).w, A1
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		move.w  #$000A, D1 
 		bsr.s   loc_5FF8
 		moveq   #$00, D0
-		move.w  D0, ($FFFFF620).w
-		subi.w  #$00E0, ($FFFFF620).w
-		move.w  ($FFFFEE24).w, ($FFFFF61E).w
-		subi.w  #$00E0, ($FFFFF61E).w
-		andi.l  #$FFFEFFFE, ($FFFFF61E).w
+		move.w  D0, (Vscroll_Factor_P2_BG).w
+		subi.w  #$00E0, (Vscroll_Factor_P2_BG).w
+		move.w  (Camera_Y_pos_P2).w, (Vscroll_Factor_P2_FG).w
+		subi.w  #$00E0, (Vscroll_Factor_P2_FG).w
+		andi.l  #$FFFEFFFE, (Vscroll_Factor_P2).w
 		lea     ($FFFFE1B0).w, A1
-		move.w  ($FFFFEE20).w, D0
+		move.w  (Camera_X_pos_P2).w, D0
 		move.w  #$000E, D1
 loc_5FF8:
 		neg.w   D0
@@ -6422,40 +6445,40 @@ loc_6088:
 		dbf    D1, loc_6088    
 		rts		  
 Bg_Scroll_Wz: ; loc_6098: ; Wood Background Scroll
-		move.w  ($FFFFEEB0).w, D4
+		move.w  (Camera_X_pos_diff).w, D4
 		ext.l   D4
 		asl.l   #$05, D4
-		move.w  ($FFFFEEB2).w, D5
+		move.w  (Camera_Y_pos_diff).w, D5
 		ext.l   D5
 		asl.l   #$06, D5
 		bsr.w     Scroll_Block1           ; loc_6CB4
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
 		lea     (Horiz_Scroll_Buf).w, A1
 		move.w  #$00DF, D1
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		neg.w   D0
 		swap  D0
-		move.w  ($FFFFEE08).w, D0
+		move.w  (Camera_BG_X_pos).w, D0
 		neg.w   D0
 loc_60C8:
 		move.l  D0, (A1)+
 		dbf    D1, loc_60C8
 		rts               
 Bg_Scroll_Mz: ; loc_60D0: ; Metropolis Background Scroll 
-		move.w  ($FFFFEEB0).w, D4
+		move.w  (Camera_X_pos_diff).w, D4
 		ext.l   D4
 		asl.l   #$05, D4
-		move.w  ($FFFFEEB2).w, D5
+		move.w  (Camera_Y_pos_diff).w, D5
 		ext.l   D5
 		asl.l   #$06, D5
 		bsr.w     Scroll_Block1           ; loc_6CB4
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
 		lea     (Horiz_Scroll_Buf).w, A1
 		move.w  #$00DF, D1
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		neg.w   D0
 		swap  D0
-		move.w  ($FFFFEE08).w, D0
+		move.w  (Camera_BG_X_pos).w, D0
 		neg.w   D0
 loc_6100:
 		move.l  D0, (A1)+
@@ -6464,11 +6487,11 @@ loc_6100:
 Bg_Scroll_HTz: ; loc_6108: ; Hill Top Background Scroll 
 		tst.w   ($FFFFFFD8).w
 		bne.w    loc_62B4
-		tst.b   ($FFFFEEBC).w
+		tst.b   (Screen_Shaking_Flag_HTZ).w
 		bne.w    loc_6236
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
 		lea     (Horiz_Scroll_Buf).w, A1
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		neg.w   D0
 		move.w  D0, D2
 		swap  D0
@@ -6595,21 +6618,21 @@ loc_621E:
 		dbf    D2, loc_6218 
 		rts
 loc_6236:
-		move.w  ($FFFFEEB4).w, D4
+		move.w  (Camera_BG_X_pos_diff).w, D4
 		ext.l   D4
 		lsl.l   #$08, D4
 		moveq   #$02, D6
 		bsr.w     Scroll_Block2           ; loc_6D1E
-		move.w  ($FFFFEEB6).w, D5
+		move.w  (Camera_BG_Y_pos_diff).w, D5
 		ext.l   D5
 		lsl.l   #$08, D5
 		moveq   #$00, D6
 		bsr.w     Scroll_Block3           ; loc_6D52
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
-		move.w  ($FFFFEE04).w, ($FFFFF616).w
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
+		move.w  (Camera_Y_pos).w, (Vscroll_Factor_FG).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
 		moveq   #$00, D2
-		tst.b   ($FFFFEEBD).w
+		tst.b   (Screen_Shaking_Flag).w
 		beq.s   loc_6292
 		move.w  ($FFFFFE04).w, D0
 		andi.w  #$003F, D0
@@ -6617,19 +6640,19 @@ loc_6236:
 		lea     $00(A1, D0), A1
 		moveq   #$00, D0
 		move.b  (A1)+, D0
-		add.w   D0, ($FFFFF616).w
-		add.w   D0, ($FFFFF618).w
-		add.w   D0, ($FFFFEEF4).w
+		add.w   D0, (Vscroll_Factor_FG).w
+		add.w   D0, (Vscroll_Factor_BG).w
+		add.w   D0, (Camera_Y_pos_copy).w
 		move.b  (A1)+, D2
-		add.w   D2, ($FFFFEEF0).w
+		add.w   D2, (Camera_X_pos_copy).w
 loc_6292:
 		lea     (Horiz_Scroll_Buf).w, A1
 		move.w  #$00DF, D1
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		add.w   D2, D0
 		neg.w   D0
 		swap  D0
-		move.w  ($FFFFEE08).w, D0
+		move.w  (Camera_BG_X_pos).w, D0
 		add.w   D2, D0
 		neg.w   D0
 loc_62AC:
@@ -6637,62 +6660,62 @@ loc_62AC:
 		dbf    D1, loc_62AC
 		rts
 loc_62B4:
-		move.w  ($FFFFEEB0).w, D4
+		move.w  (Camera_X_pos_diff).w, D4
 		ext.l   D4
 		asl.l   #$06, D4
-		move.w  ($FFFFEEB2).w, D5
+		move.w  (Camera_Y_pos_diff).w, D5
 		ext.l   D5
 		asl.l   #$02, D5
 		moveq   #$00, D5
 		bsr.w     Scroll_Block1           ; loc_6CB4
-		move.b  #$00, ($FFFFEE52).w
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
-		andi.l  #$FFFEFFFE, ($FFFFF616).w
+		move.b  #$00, (Scroll_flags_BG).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
+		andi.l  #$FFFEFFFE, (Vscroll_Factor).w
 		lea     (Horiz_Scroll_Buf).w, A1
 		move.w  #$006F, D1
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		neg.w   D0
 		swap  D0
-		move.w  ($FFFFEE08).w, D0
+		move.w  (Camera_BG_X_pos).w, D0
 		neg.w   D0
 loc_62F4:
 		move.l  D0, (A1)+
 		dbf    D1, loc_62F4
-		move.w  ($FFFFEEB8).w, D4
+		move.w  (Camera_X_pos_diff_P2).w, D4
 		ext.l   D4
 		asl.l   #$06, D4
-		add.l   D4, ($FFFFEE28).w
+		add.l   D4, (Camera_BG_X_pos_P2).w
 		moveq   #$00, D0
-		move.w  D0, ($FFFFF620).w
-		subi.w  #$00E0, ($FFFFF620).w
-		move.w  ($FFFFEE24).w, ($FFFFF61E).w
-		subi.w  #$00E0, ($FFFFF61E).w
-		andi.l  #$FFFEFFFE, ($FFFFF61E).w
+		move.w  D0, (Vscroll_Factor_P2_BG).w
+		subi.w  #$00E0, (Vscroll_Factor_P2_BG).w
+		move.w  (Camera_Y_pos_P2).w, (Vscroll_Factor_P2_FG).w
+		subi.w  #$00E0, (Vscroll_Factor_P2_FG).w
+		andi.l  #$FFFEFFFE, (Vscroll_Factor_P2).w
 		lea     ($FFFFE1B0).w, A1
 		move.w  #$0073, D1
-		move.w  ($FFFFEE20).w, D0
+		move.w  (Camera_X_pos_P2).w, D0
 		neg.w   D0
 		swap  D0
-		move.w  ($FFFFEE28).w, D0
+		move.w  (Camera_BG_X_pos_P2).w, D0
 		neg.w   D0
 loc_633C:
 		move.l  D0, (A1)+
 		dbf    D1, loc_633C
 		rts		 
 Bg_Scroll_HPz: ; loc_6344: ; Hidden Palace Background Scroll 
-		move.w  ($FFFFEEB0).w, D4
+		move.w  (Camera_X_pos_diff).w, D4
 		ext.l   D4
 		asl.l   #$06, D4
 		moveq   #$02, D6
 		bsr.w     Scroll_Block2           ; loc_6D1E
-		move.w  ($FFFFEEB2).w, D5
+		move.w  (Camera_Y_pos_diff).w, D5
 		ext.l   D5
 		asl.l   #$07, D5
 		moveq   #$06, D6
 		bsr.w     Scroll_Block3           ; loc_6D52
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
 		lea     (TempArray_LayerDef).w, A1
-		move.w  ($FFFFEE00).w, D2
+		move.w  (Camera_X_pos).w, D2
 		neg.w   D2
 		move.w  D2, D0
 		asr.w   #$01, D0
@@ -6739,7 +6762,7 @@ loc_6378:
 		swap  D3
 		move.w  D3, (A1)+
 		move.w  D3, -(A2)
-		move.w  ($FFFFEE08).w, D0
+		move.w  (Camera_BG_X_pos).w, D0
 		neg.w   D0
 		move.w  #$0019, D1
 loc_63DA:
@@ -6753,27 +6776,27 @@ loc_63EC:
 		move.w  D0, (A1)+
 		dbf    D1, loc_63EC
 		lea     (TempArray_LayerDef).w, A2
-		move.w  ($FFFFEE0C).w, D0
+		move.w  (Camera_BG_Y_pos).w, D0
 		move.w  D0, D2
 		andi.w  #$03F0, D0
 		lsr.w   #$03, D0
 		lea     $00(A2, D0), A2
 		bra.w     loc_6AA8
 Bg_Scroll_OOz: ; loc_640A: ; Oil Ocean Background Scroll               
-		move.w  ($FFFFEEB0).w, D4
+		move.w  (Camera_X_pos_diff).w, D4
 		ext.l   D4
 		asl.l   #$05, D4
-		move.w  ($FFFFEEB2).w, D5
+		move.w  (Camera_Y_pos_diff).w, D5
 		ext.l   D5
 		asl.l   #$05, D5
 		bsr.w     Scroll_Block1           ; loc_6CB4
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
 		lea     (Horiz_Scroll_Buf).w, A1
 		move.w  #$00DF, D1
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		neg.w   D0
 		swap  D0
-		move.w  ($FFFFEE08).w, D0
+		move.w  (Camera_BG_X_pos).w, D0
 		neg.w   D0
 loc_643A:
 		move.l  D0, (A1)+
@@ -6782,8 +6805,8 @@ loc_643A:
 Bg_Scroll_DHz: ; loc_6442: ; Dust Hill Background Scroll		
 		tst.w   ($FFFFFFD8).w
 		bne.w     loc_656C
-		move.w  ($FFFFEE04).w, D0
-		move.l  ($FFFFEE0C).w, D3
+		move.w  (Camera_Y_pos).w, D0
+		move.l  (Camera_BG_Y_pos).w, D3
 		tst.b   (Current_Act).w
 		bne.s   loc_6462
 		divu.w  #$0003, D0
@@ -6796,10 +6819,10 @@ loc_646A:
 		swap  D0
 		moveq   #$06, D6
 		bsr.w     loc_6D5A
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
 		lea     (TempArray_LayerDef).w, A2
 		lea     $001E(A2), A3
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		ext.l   D0
 		asl.l   #$04, D0
 		divs.w  #$000A, D0
@@ -6859,7 +6882,7 @@ loc_646A:
 		lea     (loc_6554).l, A3
 		lea     (TempArray_LayerDef).w, A2
 		lea     (Horiz_Scroll_Buf).w, A1
-		move.w  ($FFFFEE0C).w, D1
+		move.w  (Camera_BG_Y_pos).w, D1
 		moveq   #$00, D0
 loc_6526:		
 		move.b  (A3)+, D0
@@ -6869,7 +6892,7 @@ loc_6526:
 		neg.w   D1
 		subq.w  #$02, A2
 		move.w  #$00DF, D2
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		neg.w   D0
 		swap  D0
 		move.w  (A2)+, D0
@@ -6889,7 +6912,7 @@ loc_6554:
 		dc.b    $02, $02, $07, $07, $20, $12, $17, $25
 loc_656C:
 		moveq   #$00, D0
-		move.w  ($FFFFEE04).w, D0
+		move.w  (Camera_Y_pos).w, D0
 		tst.b   (Current_Act).w
 		bne.s   loc_6582
 		divu.w  #$0003, D0
@@ -6899,12 +6922,12 @@ loc_6582:
 		divu.w  #$0006, D0
 		subi.w  #$0010, D0
 loc_658A:
-		move.w  D0, ($FFFFEE0C).w
-		move.w  D0, ($FFFFF618).w
-		andi.l  #$FFFEFFFE, ($FFFFF616).w
+		move.w  D0, (Camera_BG_Y_pos).w
+		move.w  D0, (Vscroll_Factor_BG).w
+		andi.l  #$FFFEFFFE, (Vscroll_Factor).w
 		lea     (TempArray_LayerDef).w, A2
 		lea     $001E(A2), A3
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		ext.l   D0
 		asl.l   #$04, D0
 		divs.w  #$000A, D0
@@ -6964,7 +6987,7 @@ loc_658A:
 		lea     (loc_6678).l, A3
 		lea     (TempArray_LayerDef).w, A2
 		lea     (Horiz_Scroll_Buf).w, A1
-		move.w  ($FFFFEE0C).w, D1
+		move.w  (Camera_BG_Y_pos).w, D1
 		lsr.w   #$01, D1
 		moveq   #$00, D0
 loc_664A:
@@ -6975,7 +6998,7 @@ loc_664A:
 		neg.w   D1
 		subq.w  #$02, A2
 		move.w  #$006F, D2
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		neg.w   D0
 		swap  D0
 		move.w  (A2)+, D0
@@ -6997,7 +7020,7 @@ loc_6679:
 		dc.b    $01, $03, $04, $10, $09, $0B, $13
 loc_6690:
 		moveq   #$00, D0
-		move.w  ($FFFFEE24).w, D0
+		move.w  (Camera_Y_pos_P2).w, D0
 		tst.b   (Current_Act).w
 		bne.s   loc_66A6
 		divu.w  #$0003, D0
@@ -7007,15 +7030,15 @@ loc_66A6:
 		divu.w  #$0006, D0
 		subi.w  #$0010, D0
 loc_66AE:
-		move.w  D0, ($FFFFEE2C).w
-		move.w  D0, ($FFFFF620).w
-		subi.w  #$00E0, ($FFFFF620).w
-		move.w  ($FFFFEE24).w, ($FFFFF61E).w
-		subi.w  #$00E0, ($FFFFF61E).w
-		andi.l  #$FFFEFFFE, ($FFFFF61E).w
+		move.w  D0, (Camera_BG_Y_pos_P2).w
+		move.w  D0, (Vscroll_Factor_P2_BG).w
+		subi.w  #$00E0, (Vscroll_Factor_P2_BG).w
+		move.w  (Camera_Y_pos_P2).w, (Vscroll_Factor_P2_FG).w
+		subi.w  #$00E0, (Vscroll_Factor_P2_FG).w
+		andi.l  #$FFFEFFFE, (Vscroll_Factor_P2).w
 		lea     (TempArray_LayerDef).w, A2
 		lea     $001E(A2), A3
-		move.w  ($FFFFEE20).w, D0
+		move.w  (Camera_X_pos_P2).w, D0
 		ext.l   D0
 		asl.l   #$04, D0
 		divs.w  #$000A, D0
@@ -7075,7 +7098,7 @@ loc_66AE:
 		lea     loc_6679(PC), A3
 		lea     (TempArray_LayerDef).w, A2
 		lea     ($FFFFE1B0).w, A1
-		move.w  ($FFFFEE2C).w, D1
+		move.w  (Camera_BG_Y_pos_P2).w, D1
 		lsr.w   #$01, D1
 		moveq   #$17, D0
 		bra.s   loc_6782
@@ -7088,7 +7111,7 @@ loc_6782:
 		neg.w   D1
 		subq.w  #$02, A2
 		move.w  #$0073, D2
-		move.w  ($FFFFEE20).w, D0
+		move.w  (Camera_X_pos_P2).w, D0
 		neg.w   D0
 		swap  D0
 		move.w  (A2)+, D0
@@ -7106,96 +7129,96 @@ loc_67A8:
 Bg_Scroll_CNz: ; loc_67AE: ; Casino Night Background Scroll 
 		tst.w   ($FFFFFFD8).w
 		bne.w     loc_67F2
-		move.w  ($FFFFEEB0).w, D4
+		move.w  (Camera_X_pos_diff).w, D4
 		ext.l   D4
 		asl.l   #$06, D4
-		move.w  ($FFFFEEB2).w, D5
+		move.w  (Camera_Y_pos_diff).w, D5
 		ext.l   D5
 		asl.l   #$02, D5
 		bsr.w     Scroll_Block1           ; loc_6CB4
-		clr.b   ($FFFFEE52).w
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
+		clr.b   (Scroll_flags_BG).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
 		lea     (Horiz_Scroll_Buf).w, A1
 		move.w  #$00DF, D1
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		neg.w   D0
 		swap  D0
-		move.w  ($FFFFEE08).w, D0
+		move.w  (Camera_BG_X_pos).w, D0
 		neg.w   D0
 loc_67EA:
 		move.l  D0, (A1)+
 		dbf    D1, loc_67EA
 		rts
 loc_67F2:
-		move.w  ($FFFFEEB0).w, D4
+		move.w  (Camera_X_pos_diff).w, D4
 		ext.l   D4
 		asl.l   #$06, D4
-		move.w  ($FFFFEEB2).w, D5
+		move.w  (Camera_Y_pos_diff).w, D5
 		ext.l   D5
 		asl.l   #$02, D5
 		moveq   #$00, D5
 		bsr.w     Scroll_Block1           ; loc_6CB4
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
-		andi.l  #$FFFEFFFE, ($FFFFF616).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
+		andi.l  #$FFFEFFFE, (Vscroll_Factor).w
 		lea     (Horiz_Scroll_Buf).w, A1
 		move.w  #$006F, D1
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		neg.w   D0
 		swap  D0
-		move.w  ($FFFFEE08).w, D0
+		move.w  (Camera_BG_X_pos).w, D0
 		neg.w   D0
 loc_682C:
 		move.l  D0, (A1)+
 		dbf    D1, loc_682C
-		move.w  ($FFFFEEB8).w, D4
+		move.w  (Camera_X_pos_diff_P2).w, D4
 		ext.l   D4
 		asl.l   #$06, D4
-		add.l   D4, ($FFFFEE28).w
+		add.l   D4, (Camera_BG_X_pos_P2).w
 		moveq   #$00, D0
-		move.w  D0, ($FFFFF620).w
-		subi.w  #$00E0, ($FFFFF620).w
-		move.w  ($FFFFEE24).w, ($FFFFF61E).w
-		subi.w  #$00E0, ($FFFFF61E).w
-		andi.l  #$FFFEFFFE, ($FFFFF61E).w
+		move.w  D0, (Vscroll_Factor_P2_BG).w
+		subi.w  #$00E0, (Vscroll_Factor_P2_BG).w
+		move.w  (Camera_Y_pos_P2).w, (Vscroll_Factor_P2_FG).w
+		subi.w  #$00E0, (Vscroll_Factor_P2_FG).w
+		andi.l  #$FFFEFFFE, (Vscroll_Factor_P2).w
 		lea     ($FFFFE1B0).w, A1
 		move.w  #$0073, D1
-		move.w  ($FFFFEE20).w, D0
+		move.w  (Camera_X_pos_P2).w, D0
 		neg.w   D0
 		swap  D0
-		move.w  ($FFFFEE28).w, D0
+		move.w  (Camera_BG_X_pos_P2).w, D0
 		neg.w   D0
 loc_6874:
 		move.l  D0, (A1)+
 		dbf    D1, loc_6874
 		rts		 
 Bg_Scroll_CPz: ; loc_687C: ; Chemical Plant Background Scroll
-		move.w  ($FFFFEEB0).w, D4
+		move.w  (Camera_X_pos_diff).w, D4
 		ext.l   D4
 		asl.l   #$05, D4
-		move.w  ($FFFFEEB2).w, D5
+		move.w  (Camera_Y_pos_diff).w, D5
 		ext.l   D5
 		asl.l   #$06, D5
 		bsr.w     Scroll_Block1           ; loc_6CB4
-		move.w  ($FFFFEEB0).w, D4
+		move.w  (Camera_X_pos_diff).w, D4
 		ext.l   D4
 		asl.l   #$07, D4
 		moveq   #$04, D6
 		bsr.w     Scroll_Block4           ; loc_6D86
-		move.w  ($FFFFEE0C).w, D0
-		move.w  D0, ($FFFFEE14).w
-		move.w  D0, ($FFFFF618).w
-		move.b  ($FFFFEE52).w, D0
-		or.b    ($FFFFEE54).w, D0
-		move.b  D0, ($FFFFEE56).w
-		clr.b   ($FFFFEE52).w
-		clr.b   ($FFFFEE54).w
+		move.w  (Camera_BG_Y_pos).w, D0
+		move.w  D0, (Camera_BG2_Y_pos).w
+		move.w  D0, (Vscroll_Factor_BG).w
+		move.b  (Scroll_flags_BG).w, D0
+		or.b    (Scroll_flags_BG2).w, D0
+		move.b  D0, (Scroll_flags_BG3).w
+		clr.b   (Scroll_flags_BG).w
+		clr.b   (Scroll_flags_BG2).w
 		move.b  ($FFFFFE0F).w, D1
 		andi.w  #$0007, D1
 		bne.s   loc_68CC
 		subq.w  #$01, (TempArray_LayerDef).w
 loc_68CC:
 		lea     (loc_718F).l, A0
-		move.w  ($FFFFEE0C).w, D0
+		move.w  (Camera_BG_Y_pos).w, D0
 		move.w  D0, D2
 		andi.w  #$03F0, D0
 		lsr.w   #$04, D0
@@ -7203,25 +7226,25 @@ loc_68CC:
 		move.w  D0, D4
 		lea     (Horiz_Scroll_Buf).w, A1
 		move.w  #$000E, D1
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		neg.w   D0
 		swap  D0
 		andi.w  #$000F, D2
-		move.w  ($FFFFEE08).w, D0
+		move.w  (Camera_BG_X_pos).w, D0
 		cmpi.b  #$12, D4
 		beq.s   loc_694A
 		bcs.s   loc_6908
-		move.w  ($FFFFEE10).w, D0
+		move.w  (Camera_BG2_X_pos).w, D0
 loc_6908:
 		neg.w   D0
 		add.w   D2, D2
 		jmp     loc_6922(PC, D2)
 loc_6910:		
-		move.w  ($FFFFEE08).w, D0
+		move.w  (Camera_BG_X_pos).w, D0
 		cmpi.b  #$12, D4
 		beq.s   loc_6954
 		bcs.s   loc_6920
-		move.w  ($FFFFEE10).w, D0
+		move.w  (Camera_BG2_X_pos).w, D0
 loc_6920:
 		neg.w   D0
 loc_6922:
@@ -7252,7 +7275,7 @@ loc_694A:
 loc_6954:
 		move.w  #$000F, D2
 loc_6958:
-		move.w  ($FFFFEE08).w, D3
+		move.w  (Camera_BG_X_pos).w, D3
 		neg.w   D3
 		move.w  (TempArray_LayerDef).w, D0
 		andi.w  #$001F, D0
@@ -7268,12 +7291,12 @@ loc_696E:
 		dbf    D1, loc_6910
 		rts				 
 Bg_Scroll_NGHz: ; loc_6982: ; Neo Green Hill Background Scroll  
-		move.w  ($FFFFEEB0).w, D4
+		move.w  (Camera_X_pos_diff).w, D4
 		ext.l   D4
 		muls.w  #$0119, D4
 		moveq   #$02, D6
 		bsr.w     Scroll_Block2           ; loc_6D1E
-		move.w  ($FFFFEEB2).w, D5
+		move.w  (Camera_Y_pos_diff).w, D5
 		ext.l   D5
 		asl.l   #$07, D5
 		tst.b   (Current_Act).w
@@ -7282,10 +7305,10 @@ Bg_Scroll_NGHz: ; loc_6982: ; Neo Green Hill Background Scroll
 loc_69A2:
 		moveq   #$06, D6
 		bsr.w     Scroll_Block3           ; loc_6D52
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
 		lea     (TempArray_LayerDef).w, A2
 		lea     $0006(A2), A3
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		ext.l   D0
 		asl.l   #$04, D0
 		divs.w  #$000A, D0
@@ -7326,7 +7349,7 @@ loc_69A2:
 		move.w  D1, (A3)+
 		move.w  D1, (A2)
 		move.w  D1, $0004(A2)
-		move.w  ($FFFFEE08).w, D0
+		move.w  (Camera_BG_X_pos).w, D0
 		move.w  D0, $0002(A2)
 		move.w  D0, $0016(A2)
 		_move.w  D0, 0(A2)
@@ -7334,7 +7357,7 @@ loc_69A2:
 		lea     (loc_6A64).l, A3
 		lea     (TempArray_LayerDef).w, A2
 		lea     (Horiz_Scroll_Buf).w, A1
-		move.w  ($FFFFEE0C).w, D1
+		move.w  (Camera_BG_Y_pos).w, D1
 		moveq   #$00, D0
 loc_6A36:		
 		move.b  (A3)+, D0
@@ -7344,7 +7367,7 @@ loc_6A36:
 		neg.w   D1
 		subq.w  #$02, A2
 		move.w  #$00DF, D2
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		neg.w   D0
 		swap  D0
 		move.w  (A2)+, D0
@@ -7362,20 +7385,20 @@ loc_6A5E:
 loc_6A64:
 		dc.b    $B0, $70, $30, $60, $15, $0C, $0E, $06, $0C, $1F, $30, $C0
 Bg_Scroll_Null: ; loc_6A70: ; Null Background Scroll
-		move.w  ($FFFFEEB0).w, D4
+		move.w  (Camera_X_pos_diff).w, D4
 		ext.l   D4
 		asl.l   #$05, D4
-		move.w  ($FFFFEEB2).w, D5
+		move.w  (Camera_Y_pos_diff).w, D5
 		ext.l   D5
 		asl.l   #$06, D5
 		bsr.w     Scroll_Block1           ; loc_6CB4
-		move.w  ($FFFFEE0C).w, ($FFFFF618).w
+		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
 		lea     (Horiz_Scroll_Buf).w, A1
 		move.w  #$00DF, D1
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		neg.w   D0
 		swap  D0
-		move.w  ($FFFFEE08).w, D0
+		move.w  (Camera_BG_X_pos).w, D0
 		neg.w   D0
 loc_6AA0:             
 		move.l  D0, (A1)+
@@ -7384,7 +7407,7 @@ loc_6AA0:
 loc_6AA8:
 		lea     (Horiz_Scroll_Buf).w, A1
 		move.w  #$000E, D1
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		neg.w   D0
 		swap  D0
 		andi.w  #$000F, D2
@@ -7460,9 +7483,9 @@ loc_6B4A:
 		move.w  #$FFF0, D0
 loc_6B54:
 		add.w   (A1), D0
-		cmp.w   ($FFFFEEC8).w, D0
+		cmp.w   (Camera_Min_X_pos).w, D0
 		bgt.s   loc_6B78
-		move.w  ($FFFFEEC8).w, D0
+		move.w  (Camera_Min_X_pos).w, D0
 		bra.s   loc_6B78
 loc_6B62:		
 		cmpi.w  #$0010, D0
@@ -7470,9 +7493,9 @@ loc_6B62:
 		move.w  #$0010, D0
 loc_6B6C:
 		add.w   (A1), D0
-		cmp.w   ($FFFFEECA).w, D0
+		cmp.w   (Camera_Max_X_pos).w, D0
 		blt.s   loc_6B78
-		move.w  ($FFFFEECA).w, D0
+		move.w  (Camera_Max_X_pos).w, D0
 loc_6B78:
 		move.w  D0, D1
 		sub.w   (A1), D1
@@ -7491,23 +7514,23 @@ loc_6B96:
 		btst    #$01, $0022(A0)
 		beq.s   loc_6BB6
 		addi.w  #$0020, D0
-		sub.w   ($FFFFEED8).w, D0
+		sub.w   (Camera_Y_pos_bias).w, D0
 		bcs.s   loc_6C00
 		subi.w  #$0040, D0
 		bcc.s   loc_6C00
-		tst.b   ($FFFFEEDE).w
+		tst.b   (Camera_Max_Y_Pos_Changing).w
 		bne.s   loc_6C12
 		bra.s   loc_6BC2
 loc_6BB6:
-		sub.w   ($FFFFEED8).w, D0
+		sub.w   (Camera_Y_pos_bias).w, D0
 		bne.s   loc_6BC6
-		tst.b   ($FFFFEEDE).w
+		tst.b   (Camera_Max_Y_Pos_Changing).w
 		bne.s   loc_6C12
 loc_6BC2:		
 		clr.w   (A4)
 		rts
 loc_6BC6:
-		cmpi.w  #$0060, ($FFFFEED8).w
+		cmpi.w  #$0060, (Camera_Y_pos_bias).w
 		bne.s   loc_6BEE 
 		move.w  $0014(A0), D1
 		bpl.s   loc_6BD6
@@ -7537,7 +7560,7 @@ loc_6C00:
 		bra.s   loc_6C18
 loc_6C12:
 		moveq   #$00, D0
-		move.b  D0, ($FFFFEEDE).w
+		move.b  D0, (Camera_Max_Y_Pos_Changing).w
 loc_6C18:		
 		moveq   #$00, D1
 		move.w  D0, D1
@@ -7552,7 +7575,7 @@ loc_6C28:
 		add.l   (A1), D1
 		swap  D1
 loc_6C32:		
-		cmp.w   ($FFFFEECC).w, D1
+		cmp.w   (Camera_Min_Y_pos).w, D1
 		bgt.s   loc_6C84
 loc_6C38:
 		cmpi.w  #$FF00, D1
@@ -7563,7 +7586,7 @@ loc_6C38:
 		andi.w  #$03FF, $0008(A1)
 		bra.s   loc_6C84
 loc_6C54:   
-		move.w  ($FFFFEECC).w, D1
+		move.w  (Camera_Min_Y_pos).w, D1
 		bra.s   loc_6C84             
 loc_6C5A:
 		ext.l   D1
@@ -7571,7 +7594,7 @@ loc_6C5A:
 		add.l   (A1), D1
 		swap  D1
 loc_6C62:		
-		cmp.w   ($FFFFEECE).w, D1
+		cmp.w   (Camera_Max_Y_pos_now).w, D1
 		blt.s   loc_6C84
 		subi.w  #$0800, D1
 		bcs.s   loc_6C80
@@ -7580,7 +7603,7 @@ loc_6C62:
 		andi.w  #$03FF, $0008(A1)
 		bra.s   loc_6C84
 loc_6C80:
-		move.w  ($FFFFEECE).w, D1
+		move.w  (Camera_Max_Y_pos_now).w, D1
 loc_6C84:
 		move.w  (A1), D4
 		swap  D1
@@ -7605,126 +7628,126 @@ loc_6CAE:
 loc_6CB2:
 		rts  
 Scroll_Block1: ; loc_6CB4:
-		move.l  ($FFFFEE08).w, D2
+		move.l  (Camera_BG_X_pos).w, D2
 		move.l  D2, D0
 		add.l   D4, D0
-		move.l  D0, ($FFFFEE08).w
+		move.l  D0, (Camera_BG_X_pos).w
 		move.l  D0, D1
 		swap  D1
 		andi.w  #$0010, D1
-		move.b  ($FFFFEE42).w, D3
+		move.b  (Horiz_block_crossed_flag_BG).w, D3
 		eor.b   D3, D1
 		bne.s   loc_6CE8
-		eori.b  #$10, ($FFFFEE42).w
+		eori.b  #$10, (Horiz_block_crossed_flag_BG).w
 		sub.l   D2, D0
 		bpl.s   loc_6CE2
-		bset    #$02, ($FFFFEE52).w
+		bset    #$02, (Scroll_flags_BG).w
 		bra.s   loc_6CE8
 loc_6CE2:
-		bset    #$03, ($FFFFEE52).w
+		bset    #$03, (Scroll_flags_BG).w
 loc_6CE8:
-		move.l  ($FFFFEE0C).w, D3
+		move.l  (Camera_BG_Y_pos).w, D3
 		move.l  D3, D0
 		add.l   D5, D0
-		move.l  D0, ($FFFFEE0C).w
+		move.l  D0, (Camera_BG_Y_pos).w
 		move.l  D0, D1
 		swap  D1
 		andi.w  #$0010, D1
-		move.b  ($FFFFEE43).w, D2
+		move.b  (Verti_block_crossed_flag_BG).w, D2
 		eor.b   D2, D1
 		bne.s   loc_6D1C
-		eori.b  #$10, ($FFFFEE43).w
+		eori.b  #$10, (Verti_block_crossed_flag_BG).w
 		sub.l   D3, D0
 		bpl.s   loc_6D16
-		bset    #$00, ($FFFFEE52).w
+		bset    #$00, (Scroll_flags_BG).w
 		rts
 loc_6D16:
-		bset    #$01, ($FFFFEE52).w
+		bset    #$01, (Scroll_flags_BG).w
 loc_6D1C:
 		rts  
 Scroll_Block2: ;  loc_6D1E:
-		move.l  ($FFFFEE08).w, D2
+		move.l  (Camera_BG_X_pos).w, D2
 		move.l  D2, D0
 		add.l   D4, D0
-		move.l  D0, ($FFFFEE08).w
+		move.l  D0, (Camera_BG_X_pos).w
 		move.l  D0, D1
 		swap  D1
 		andi.w  #$0010, D1
-		move.b  ($FFFFEE42).w, D3
+		move.b  (Horiz_block_crossed_flag_BG).w, D3
 		eor.b   D3, D1
 		bne.s   loc_6D50
-		eori.b  #$10, ($FFFFEE42).w
+		eori.b  #$10, (Horiz_block_crossed_flag_BG).w
 		sub.l   D2, D0
 		bpl.s   loc_6D4A
-		bset    D6, ($FFFFEE52).w
+		bset    D6, (Scroll_flags_BG).w
 		bra.s   loc_6D50
 loc_6D4A:
 		addq.b  #$01, D6
-		bset    D6, ($FFFFEE52).w
+		bset    D6, (Scroll_flags_BG).w
 loc_6D50:
 		rts
 Scroll_Block3: ; loc_6D52:
-		move.l  ($FFFFEE0C).w, D3
+		move.l  (Camera_BG_Y_pos).w, D3
 		move.l  D3, D0
 		add.l   D5, D0
 loc_6D5A:		
-		move.l  D0, ($FFFFEE0C).w
+		move.l  D0, (Camera_BG_Y_pos).w
 		move.l  D0, D1
 		swap  D1
 		andi.w  #$0010, D1
-		move.b  ($FFFFEE43).w, D2
+		move.b  (Verti_block_crossed_flag_BG).w, D2
 		eor.b   D2, D1
 		bne.s   loc_6D84
-		eori.b  #$10, ($FFFFEE43).w
+		eori.b  #$10, (Verti_block_crossed_flag_BG).w
 		sub.l   D3, D0
 		bpl.s   loc_6D7E
-		bset    D6, ($FFFFEE52).w
+		bset    D6, (Scroll_flags_BG).w
 		rts
 loc_6D7E:
 		addq.b  #$01, D6
-		bset    D6, ($FFFFEE52).w
+		bset    D6, (Scroll_flags_BG).w
 loc_6D84:
 		rts
 Scroll_Block4: ; loc_6D86:
-		move.l  ($FFFFEE10).w, D2
+		move.l  (Camera_BG2_X_pos).w, D2
 		move.l  D2, D0
 		add.l   D4, D0
-		move.l  D0, ($FFFFEE10).w
+		move.l  D0, (Camera_BG2_X_pos).w
 		move.l  D0, D1
 		swap  D1
 		andi.w  #$0010, D1
-		move.b  ($FFFFEE44).w, D3
+		move.b  (Horiz_block_crossed_flag_BG2).w, D3
 		eor.b   D3, D1
 		bne.s   loc_6DB8
-		eori.b  #$10, ($FFFFEE44).w
+		eori.b  #$10, (Horiz_block_crossed_flag_BG2).w
 		sub.l   D2, D0
 		bpl.s   loc_6DB2
-		bset    D6, ($FFFFEE54).w
+		bset    D6, (Scroll_flags_BG2).w
 		bra.s   loc_6DB8
 loc_6DB2:
 		addq.b  #$01, D6
-		bset    D6, ($FFFFEE54).w
+		bset    D6, (Scroll_flags_BG2).w
 loc_6DB8:
 		rts		  
 ; Scroll_Block5: ;loc_6DBA:  Left Over GHz S1 Scroll
-		move.l  ($FFFFEE18).w, D2
+		move.l  (Camera_BG3_X_pos).w, D2
 		move.l  D2, D0
 		add.l   D4, D0
-		move.l  D0, ($FFFFEE18).w
+		move.l  D0, (Camera_BG3_X_pos).w
 		move.l  D0, D1
 		swap  D1
 		andi.w  #$0010, D1
-		move.b  ($FFFFEE46).w, D3
+		move.b  (Horiz_block_crossed_flag_BG3).w, D3
 		eor.b   D3, D1
 		bne.s   loc_6DEC
-		eori.b  #$10, ($FFFFEE46).w
+		eori.b  #$10, (Horiz_block_crossed_flag_BG3).w
 		sub.l   D2, D0
 		bpl.s   loc_6DE6
-		bset    D6, ($FFFFEE56).w
+		bset    D6, (Scroll_flags_BG3).w
 		bra.s   loc_6DEC
 loc_6DE6:
 		addq.b  #$01, D6
-		bset    D6, ($FFFFEE56).w
+		bset    D6, (Scroll_flags_BG3).w
 loc_6DEC:
 		rts
 ; ============================================================================
@@ -7738,13 +7761,13 @@ loc_6DEC:
 ; loc_6DEE: LoadTilesAsYouMove_BGOnly:
 		lea	(VDP_control_port).l,a5
 		lea	(VDP_data_port).l,a6
-		lea	($FFFFEE52).w,a2
-		lea	($FFFFEE08).w,a3
+		lea	(Scroll_flags_BG).w,a2
+		lea	(Camera_BG_X_pos).w,a3
 		lea	(Level_Layout+$80).w,a4
 		move.w	#$6000,d2
 		bsr.w	Draw_BG1
-		lea	($FFFFEE54).w,a2
-		lea	($FFFFEE10).w,a3
+		lea	(Scroll_flags_BG2).w,a2
+		lea	(Camera_BG2_X_pos).w,a3
 		bra.w	Draw_BG2
 
 ; ===========================================================================
@@ -7758,31 +7781,31 @@ loc_6DEC:
 LoadTilesAsYouMove:
 		lea	(VDP_control_port).l,a5
 		lea	(VDP_data_port).l,a6
-		lea	($FFFFEEA2).w,a2
-		lea	($FFFFEE68).w,a3
+		lea	(Scroll_flags_BG_copy).w,a2
+		lea	(Camera_BG_copy).w,a3
 		lea	(Level_Layout+$80).w,a4	; first background line
 		move.w	#$6000,d2
 		bsr.w	Draw_BG1
 
-		lea	($FFFFEEA4).w,a2
-		lea	($FFFFEE70).w,a3
+		lea	(Scroll_flags_BG2_copy).w,a2
+		lea	(Camera_BG2_copy).w,a3
 		bsr.w	Draw_BG2
 
-		lea	($FFFFEEA6).w,a2
-		lea	($FFFFEE78).w,a3 
+		lea	(Scroll_flags_BG3_copy).w,a2
+		lea	(Camera_BG3_copy).w,a3 
 		bsr.w	Draw_BG3
 
 		tst.w	($FFFFFFD8).w
 		beq.s	loc_6E6C
-		lea	($FFFFEEA8).w,a2
-		lea	($FFFFEE80).w,a3
+		lea	(Scroll_flags_copy_P2).w,a2
+		lea	(Camera_P2_copy).w,a3
 		lea	(Level_Layout).w,a4
 		move.w	#$6000,d2
 		bsr.w	Draw_FG_P2
 
 loc_6E6C:
-		lea	($FFFFEEA0).w,a2
-		lea	($FFFFEE60).w,a3
+		lea	(Scroll_flags_copy).w,a2
+		lea	(Camera_RAM_copy).w,a3
 		lea	(Level_Layout).w,a4
 		move.w	#$4000,d2
 
@@ -7808,7 +7831,7 @@ Draw_All:
 		addi.w	#16,d4		; move onto the next row
 		dbf	d6,Draw_All	; repeat for all rows
 
-		move.b	#0,($FFFFEEA0).w
+		move.b	#0,(Scroll_flags_copy).w
 		rts
 ; ===========================================================================
 ; loc_6EB4:
@@ -8022,7 +8045,7 @@ loc_7095:
 		move.w  #$00E0, D4
 loc_70C8:
 		lea     loc_7095(PC), A0
-		move.w  ($FFFFEE0C).w, D0
+		move.w  (Camera_BG_Y_pos).w, D0
 		add.w   D4, D0
 		andi.w  #$01F0, D0
 		lsr.w   #$04, D0
@@ -8058,7 +8081,7 @@ loc_7116:
 		move.w  #$0140, D5
 loc_712A:
 		lea     loc_7094(PC), A0
-		move.w  ($FFFFEE0C).w, D0
+		move.w  (Camera_BG_Y_pos).w, D0
 		andi.w  #$01F0, D0
 		lsr.w   #$04, D0
 		lea     $00(A0, D0), A0
@@ -8107,7 +8130,7 @@ loc_71D0:
 		move.w  #$00E0, D4
 loc_71E2:		 
 		lea     loc_718F(PC), A0
-		move.w  ($FFFFEE0C).w, D0
+		move.w  (Camera_BG_Y_pos).w, D0
 		add.w   D4, D0
 		andi.w  #$03F0, D0 
 		lsr.w   #$04, D0
@@ -8133,7 +8156,7 @@ loc_7212:
 		move.w  #$0140, D5
 loc_7226:		
 		lea     loc_718E(PC), A0
-		move.w  ($FFFFEE0C).w, D0
+		move.w  (Camera_BG_Y_pos).w, D0
 		andi.w  #$07F0, D0
 		lsr.w   #$04, D0
 		lea     $00(A0, D0), A0
@@ -8247,7 +8270,7 @@ loc_7358:
 		bne.s   loc_73D6
 		move.l  A2, -(A7)
 		move.w  D6, -(A7)
-		lea     ($FFFFEF00).w, A2
+		lea     (Block_cache).w, A2
 		move.l  D0, D1
 		or.w    D2, D1
 		swap  D1
@@ -8279,7 +8302,7 @@ loc_73A8:
 		dbf    D6, loc_7376   
 		move.l  (A7)+, D1
 		addi.l  #$00800000, D1
-		lea     ($FFFFEF00).w, A2   
+		lea     (Block_cache).w, A2   
 		move.l  D1, (A5)
 		swap  D1
 		move.w  (A7)+, D6  
@@ -8609,16 +8632,16 @@ Load_Tiles_From_Start: ; loc_76BE:
 		lea     (VDP_data_port), A6
 		tst.w   ($FFFFFFD8).w
 		beq.s   loc_76DE
-		lea     ($FFFFEE20).w, A3
+		lea     (Camera_X_pos_P2).w, A3
 		lea     (Level_Layout).w, A4
 		move.w  #$6000, D2
 		bsr.s   loc_773A
 loc_76DE:
-		lea     ($FFFFEE00).w, A3
+		lea     (Camera_X_pos).w, A3
 		lea     (Level_Layout).w, A4
 		move.w  #$4000, D2
 		bsr.s   loc_770A
-		lea     ($FFFFEE08).w, A3
+		lea     (Camera_BG_X_pos).w, A3
 		lea     (Level_Layout+$80).w, A4
 		move.w  #$6000, D2
 		tst.w   ($FFFFFFD8).w
@@ -8804,7 +8827,7 @@ Load_Level_Palete: ; loc_7870:
 		move.b  (A2), D0
 		cmpi.w  #$0C01, (Current_ZoneAndAct).w
 		bne.s   loc_7880         
-		moveq   #$0A, D0		
+		moveq   #PalID_CNZ2, D0		
 loc_7880:
 		bsr.w     PalLoad1		; loc_28E2
 		rts  
@@ -8958,33 +8981,33 @@ Dyn_Screen_Boss_Loader: ; loc_79C0: ; Boss Loader / Level Dynamic Resize
 		move.w  DynResize_Index(PC, D0), D0 ; loc_7A26
 		jsr     DynResize_Index(PC, D0)     ; loc_7A26
 		moveq   #$02, D1
-		move.w  ($FFFFEEC6).w, D0
-		sub.w   ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos).w, D0
+		sub.w   (Camera_Max_Y_pos_now).w, D0
 		beq.s   loc_79FE
 		bcc.s   loc_7A00
 		neg.w   D1
-		move.w  ($FFFFEE04).w, D0
-		cmp.w   ($FFFFEEC6).w, D0
+		move.w  (Camera_Y_pos).w, D0
+		cmp.w   (Camera_Max_Y_pos).w, D0
 		bls.s   loc_79F4
-		move.w  D0, ($FFFFEECE).w
-		andi.w  #$FFFE, ($FFFFEECE).w
+		move.w  D0, (Camera_Max_Y_pos_now).w
+		andi.w  #$FFFE, (Camera_Max_Y_pos_now).w
 loc_79F4:
-		add.w   D1, ($FFFFEECE).w
-		move.b  #$01, ($FFFFEEDE).w
+		add.w   D1, (Camera_Max_Y_pos_now).w
+		move.b  #$01, (Camera_Max_Y_Pos_Changing).w
 loc_79FE:
 		rts
 loc_7A00:
-		move.w  ($FFFFEE04).w, D0
+		move.w  (Camera_Y_pos).w, D0
 		addi.w  #$0008, D0
-		cmp.w   ($FFFFEECE).w, D0
+		cmp.w   (Camera_Max_Y_pos_now).w, D0
 		bcs.s   loc_7A1A
 		btst    #$01, ($FFFFB022).w
 		beq.s   loc_7A1A
 		add.w   D1, D1
 		add.w   D1, D1
 loc_7A1A:
-		add.w   D1, ($FFFFEECE).w
-		move.b  #$01, ($FFFFEEDE).w
+		add.w   D1, (Camera_Max_Y_pos_now).w
+		move.b  #$01, (Camera_Max_Y_Pos_Changing).w
 		rts
 DynResize_Index: ; loc_7A26:
 		dc.w    loc_7A48-DynResize_Index
@@ -9010,7 +9033,7 @@ loc_7A48:
 		rts
 loc_7A50:
 		moveq   #$00, D0
-		move.b  ($FFFFEEDF).w, D0
+		move.b  (Dynamic_Resize_Routine).w, D0
 		move.w  loc_7A5E(PC, D0), D0
 		jmp     loc_7A5E(PC, D0)
 loc_7A5E:
@@ -9018,12 +9041,12 @@ loc_7A5E:
 		dc.w    loc_7AB4-loc_7A5E
 		dc.w    loc_7AC8-loc_7A5E
 loc_7A64:
-		cmpi.w  #$26E0, ($FFFFEE00).w
+		cmpi.w  #$26E0, (Camera_X_pos).w
 		bcs.s   loc_7AB2
-		move.w  ($FFFFEE00).w, ($FFFFEEC8).w
-		move.w  #$0390, ($FFFFEEC6).w
-		move.w  #$0390, ($FFFFEECE).w
-		addq.b  #$02, ($FFFFEEDF).w
+		move.w  (Camera_X_pos).w, (Camera_Min_X_pos).w
+		move.w  #$0390, (Camera_Max_Y_pos).w
+		move.w  #$0390, (Camera_Max_Y_pos_now).w
+		addq.b  #$02, (Dynamic_Resize_Routine).w
 		bsr.w     SingleObjLoad        ; loc_E772
 		bne.s   loc_7A9E
 		move.b  #$55, (A1)
@@ -9039,16 +9062,16 @@ loc_7A9E:
 loc_7AB2:
 		rts
 loc_7AB4:
-		cmpi.w  #$2880, ($FFFFEE00).w
+		cmpi.w  #$2880, (Camera_X_pos).w
 		bcs.s   loc_7AC6
-		move.w  #$2880, ($FFFFEEC8).w
-		addq.b  #$02, ($FFFFEEDF).w
+		move.w  #$2880, (Camera_Min_X_pos).w
+		addq.b  #$02, (Dynamic_Resize_Routine).w
 loc_7AC6:
 		rts
 loc_7AC8:
 		tst.b   ($FFFFF7A7).w
 		beq.s   loc_7AD4
-		move.b  #$00, ($FFFFF600).w
+		move.b  #$00, (Game_Mode).w
 loc_7AD4:
 		rts
 		rts
@@ -9068,7 +9091,7 @@ loc_7AE4:
 		tst.b   (Current_Act).w
 		bne.w     loc_7CF6
 		moveq   #$00, D0
-		move.b  ($FFFFEEDF).w, D0
+		move.b  (Dynamic_Resize_Routine).w, D0
 		move.w  loc_7AFA(PC, D0), D0
 		jmp     loc_7AFA(PC, D0)
 loc_7AFA:
@@ -9076,117 +9099,117 @@ loc_7AFA:
 		dc.w    loc_7B6C-loc_7AFA
 		dc.w    loc_7C20-loc_7AFA
 loc_7B00:
-		cmpi.w  #$0400, ($FFFFEE04).w
+		cmpi.w  #$0400, (Camera_Y_pos).w
 		bcs.s   loc_7B48
-		cmpi.w  #$1800, ($FFFFEE00).w
+		cmpi.w  #$1800, (Camera_X_pos).w
 		bcs.s   loc_7B48
-		move.b  #$01, ($FFFFEEBC).w
-		move.l  ($FFFFEE00).w, ($FFFFEE08).w
-		move.l  ($FFFFEE04).w, ($FFFFEE0C).w
+		move.b  #$01, (Screen_Shaking_Flag_HTZ).w
+		move.l  (Camera_X_pos).w, (Camera_BG_X_pos).w
+		move.l  (Camera_Y_pos).w, (Camera_BG_Y_pos).w
 		moveq   #$00, D0
-		move.w  D0, ($FFFFEEB4).w
-		move.w  D0, ($FFFFEEB6).w
-		move.w  D0, ($FFFFEEE2).w
-		move.w  #$0140, ($FFFFEEE4).w
-		subi.w  #$0100, ($FFFFEE0C).w
-		move.w  #$0000, ($FFFFEEE6).w
-		addq.b  #$02, ($FFFFEEDF).w
+		move.w  D0, (Camera_BG_X_pos_diff).w
+		move.w  D0, (Camera_BG_Y_pos_diff).w
+		move.w  D0, (Camera_BG_X_offset).w
+		move.w  #$0140, (Camera_BG_Y_offset).w
+		subi.w  #$0100, (Camera_BG_Y_pos).w
+		move.w  #$0000, (HTZ_Terrain_Delay).w
+		addq.b  #$02, (Dynamic_Resize_Routine).w
 loc_7B46:		
 		rts
 loc_7B48:
-		tst.b   ($FFFFEEBC).w
+		tst.b   (Screen_Shaking_Flag_HTZ).w
 		beq.s   loc_7B46
 		move.w  #$0200, D0
 		moveq   #$00, D1
-		move.w  D1, ($FFFFEEB4).w
-		move.w  D1, ($FFFFEEB6).w
+		move.w  D1, (Camera_BG_X_pos_diff).w
+		move.w  D1, (Camera_BG_Y_pos_diff).w
 		bsr.w     loc_7C84
 		or.w    D0, D1
 		bne.s   loc_7B46
-		move.b  #$00, ($FFFFEEBC).w
+		move.b  #$00, (Screen_Shaking_Flag_HTZ).w
 		rts
 loc_7B6C:
-		tst.b   ($FFFFEEE8).w
+		tst.b   (HTZ_Terrain_Direction).w
 		bne.s   loc_7B8A
-		cmpi.w  #$0140, ($FFFFEEE4).w
+		cmpi.w  #$0140, (Camera_BG_Y_offset).w
 		beq.s   loc_7BA2
 		move.w  ($FFFFFE04).w, D0
 		andi.w  #$0003, D0
 		bne.s   loc_7BC0
-		addq.w  #$01, ($FFFFEEE4).w
+		addq.w  #$01, (Camera_BG_Y_offset).w
 		bra.s   loc_7BC0
 loc_7B8A:
-		cmpi.w  #$00E0, ($FFFFEEE4).w
+		cmpi.w  #$00E0, (Camera_BG_Y_offset).w
 		beq.s   loc_7BA2
 		move.w  ($FFFFFE04).w, D0
 		andi.w  #$0003, D0
 		bne.s   loc_7BC0
-		subq.w  #$01, ($FFFFEEE4).w
+		subq.w  #$01, (Camera_BG_Y_offset).w
 		bra.s   loc_7BC0
 loc_7BA2:
-		move.b  #$00, ($FFFFEEBD).w
-		subq.w  #$01, ($FFFFEEE6).w
+		move.b  #$00, (Screen_Shaking_Flag).w
+		subq.w  #$01, (HTZ_Terrain_Delay).w
 		bpl.s   loc_7BC0
-		move.w  #$0078, ($FFFFEEE6).w
-		eori.b  #$01, ($FFFFEEE8).w
-		move.b  #$01, ($FFFFEEBD).w
+		move.w  #$0078, (HTZ_Terrain_Delay).w
+		eori.b  #$01, (HTZ_Terrain_Direction).w
+		move.b  #$01, (Screen_Shaking_Flag).w
 loc_7BC0:
-		cmpi.w  #$1800, ($FFFFEE00).w
+		cmpi.w  #$1800, (Camera_X_pos).w
 		bcs.s   loc_7BE8
-		cmpi.w  #$1F00, ($FFFFEE00).w
+		cmpi.w  #$1F00, (Camera_X_pos).w
 		bcc.s   loc_7C04
-		move.w  ($FFFFEEB0).w, ($FFFFEEB4).w
-		move.w  ($FFFFEEB2).w, ($FFFFEEB6).w
-		move.w  ($FFFFEE00).w, D0
-		move.w  ($FFFFEE04).w, D1
+		move.w  (Camera_X_pos_diff).w, (Camera_BG_X_pos_diff).w
+		move.w  (Camera_Y_pos_diff).w, (Camera_BG_Y_pos_diff).w
+		move.w  (Camera_X_pos).w, D0
+		move.w  (Camera_Y_pos).w, D1
 		bra.w     loc_7C84
 loc_7BE8:
-		move.l  #$04000000, ($FFFFEE08).w
+		move.l  #$04000000, (Camera_BG_X_pos).w
 		moveq   #$00, D0
-		move.l  D0, ($FFFFEE0C).w
-		move.l  D0, ($FFFFEEE2).w
-		move.b  D0, ($FFFFEEE8).w
-		subq.b  #$02, ($FFFFEEDF).w
+		move.l  D0, (Camera_BG_Y_pos).w
+		move.l  D0, (Camera_BG_X_offset).w
+		move.b  D0, (HTZ_Terrain_Direction).w
+		subq.b  #$02, (Dynamic_Resize_Routine).w
 		rts
 loc_7C04:
-		move.l  #$04000000, ($FFFFEE08).w
+		move.l  #$04000000, (Camera_BG_X_pos).w
 		moveq   #$00, D0
-		move.l  D0, ($FFFFEE0C).w
-		move.l  D0, ($FFFFEEE2).w
-		move.b  D0, ($FFFFEEE8).w
-		addq.b  #$02, ($FFFFEEDF).w
+		move.l  D0, (Camera_BG_Y_pos).w
+		move.l  D0, (Camera_BG_X_offset).w
+		move.b  D0, (HTZ_Terrain_Direction).w
+		addq.b  #$02, (Dynamic_Resize_Routine).w
 		rts
 loc_7C20:
-		cmpi.w  #$1F00, ($FFFFEE00).w
+		cmpi.w  #$1F00, (Camera_X_pos).w
 		bcc.s   loc_7C60
-		move.b  #$01, ($FFFFEEBC).w
-		move.l  ($FFFFEE00).w, ($FFFFEE08).w
-		move.l  ($FFFFEE04).w, ($FFFFEE0C).w
+		move.b  #$01, (Screen_Shaking_Flag_HTZ).w
+		move.l  (Camera_X_pos).w, (Camera_BG_X_pos).w
+		move.l  (Camera_Y_pos).w, (Camera_BG_Y_pos).w
 		moveq   #$00, D0
-		move.w  D0, ($FFFFEEB4).w
-		move.w  D0, ($FFFFEEB6).w
-		move.w  D0, ($FFFFEEE2).w
-		move.w  #$0140, ($FFFFEEE4).w
-		subi.w  #$0100, ($FFFFEE0C).w
-		move.w  #$0000, ($FFFFEEE6).w
-		subq.b  #$02, ($FFFFEEDF).w
+		move.w  D0, (Camera_BG_X_pos_diff).w
+		move.w  D0, (Camera_BG_Y_pos_diff).w
+		move.w  D0, (Camera_BG_X_offset).w
+		move.w  #$0140, (Camera_BG_Y_offset).w
+		subi.w  #$0100, (Camera_BG_Y_pos).w
+		move.w  #$0000, (HTZ_Terrain_Delay).w
+		subq.b  #$02, (Dynamic_Resize_Routine).w
 loc_7C5E:		
 		rts
 loc_7C60:
-		tst.b   ($FFFFEEBC).w
+		tst.b   (Screen_Shaking_Flag_HTZ).w
 		beq.s   loc_7C5E
 		move.w  #$0200, D0
 		moveq   #$00, D1
-		move.w  D1, ($FFFFEEB4).w
-		move.w  D1, ($FFFFEEB6).w
+		move.w  D1, (Camera_BG_X_pos_diff).w
+		move.w  D1, (Camera_BG_Y_pos_diff).w
 		bsr.w     loc_7C84
 		or.w    D0, D1
 		bne.s   loc_7C5E
-		move.b  #$00, ($FFFFEEBC).w
+		move.b  #$00, (Screen_Shaking_Flag_HTZ).w
 		rts
 loc_7C84:
-		sub.w   ($FFFFEE08).w, D0
-		sub.w   ($FFFFEEE2).w, D0
+		sub.w   (Camera_BG_X_pos).w, D0
+		sub.w   (Camera_BG_X_offset).w, D0
 		bpl.s   loc_7C9A
 		cmpi.w  #$FFF0, D0
 		bgt.s   loc_7C98
@@ -9198,9 +9221,9 @@ loc_7C9A:
 		bcs.s   loc_7CA4
 		move.w  #$0010, D0
 loc_7CA4:
-		move.b  D0, ($FFFFEEB4).w
-		sub.w   ($FFFFEE0C).w, D1
-		sub.w   ($FFFFEEE4).w, D1
+		move.b  D0, (Camera_BG_X_pos_diff).w
+		sub.w   (Camera_BG_Y_pos).w, D1
+		sub.w   (Camera_BG_Y_offset).w, D1
 		bpl.s   loc_7CBE
 		cmpi.w  #$FFF0, D1
 		bgt.s   loc_7CBC
@@ -9212,24 +9235,24 @@ loc_7CBE:
 		bcs.s   loc_7CC8
 		move.w  #$0010, D1
 loc_7CC8:
-		move.b  D1, ($FFFFEEB6).w
+		move.b  D1, (Camera_BG_Y_pos_diff).w
 		rts
-		btst    #$00, ($FFFFF606).w
+		btst    #$00, (Ctrl_2_Held).w
 		beq.s   loc_7CE0
-		tst.w   ($FFFFEEE4).w
+		tst.w   (Camera_BG_Y_offset).w
 		beq.s   loc_7CE0
-		subq.w  #$01, ($FFFFEEE4).w
+		subq.w  #$01, (Camera_BG_Y_offset).w
 loc_7CE0:
-		btst    #$01, ($FFFFF606).w
+		btst    #$01, (Ctrl_2_Held).w
 		beq.s   loc_7CF4
-		cmpi.w  #$0700, ($FFFFEEE4).w
+		cmpi.w  #$0700, (Camera_BG_Y_offset).w
 		beq.s   loc_7CF4
-		addq.w  #$01, ($FFFFEEE4).w
+		addq.w  #$01, (Camera_BG_Y_offset).w
 loc_7CF4:
 		rts
 loc_7CF6:
 		moveq   #$00, D0
-		move.b  ($FFFFEEDF).w, D0
+		move.b  (Dynamic_Resize_Routine).w, D0
 		move.w  loc_7D04(PC, D0), D0
 		jmp     loc_7D04(PC, D0)
 loc_7D04:
@@ -9239,197 +9262,197 @@ loc_7D04:
 		dc.w    loc_7EA8-loc_7D04
 		dc.w    loc_7F5C-loc_7D04
 loc_7D0E:
-		cmpi.w  #$14C0, ($FFFFEE00).w
+		cmpi.w  #$14C0, (Camera_X_pos).w
 		bcs.s   loc_7D6C
-		move.b  #$01, ($FFFFEEBC).w
-		move.l  ($FFFFEE00).w, ($FFFFEE08).w
-		move.l  ($FFFFEE04).w, ($FFFFEE0C).w
+		move.b  #$01, (Screen_Shaking_Flag_HTZ).w
+		move.l  (Camera_X_pos).w, (Camera_BG_X_pos).w
+		move.l  (Camera_Y_pos).w, (Camera_BG_Y_pos).w
 		moveq   #$00, D0
-		move.w  D0, ($FFFFEEB4).w
-		move.w  D0, ($FFFFEEB6).w
-		move.w  D0, ($FFFFEEE2).w
-		move.w  #$02C0, ($FFFFEEE4).w
-		subi.w  #$0100, ($FFFFEE0C).w
-		move.w  #$0000, ($FFFFEEE6).w
-		addq.b  #$02, ($FFFFEEDF).w
-		cmpi.w  #$0380, ($FFFFEE04).w
+		move.w  D0, (Camera_BG_X_pos_diff).w
+		move.w  D0, (Camera_BG_Y_pos_diff).w
+		move.w  D0, (Camera_BG_X_offset).w
+		move.w  #$02C0, (Camera_BG_Y_offset).w
+		subi.w  #$0100, (Camera_BG_Y_pos).w
+		move.w  #$0000, (HTZ_Terrain_Delay).w
+		addq.b  #$02, (Dynamic_Resize_Routine).w
+		cmpi.w  #$0380, (Camera_Y_pos).w
 		bcs.s   loc_7D6A
-		move.w  #$F980, ($FFFFEEE2).w
-		addi.w  #$0480, ($FFFFEE08).w
-		move.w  #$0300, ($FFFFEEE4).w
-		addq.b  #$06, ($FFFFEEDF).w
+		move.w  #$F980, (Camera_BG_X_offset).w
+		addi.w  #$0480, (Camera_BG_X_pos).w
+		move.w  #$0300, (Camera_BG_Y_offset).w
+		addq.b  #$06, (Dynamic_Resize_Routine).w
 loc_7D6A:
 		rts
 loc_7D6C:
-		tst.b   ($FFFFEEBC).w
+		tst.b   (Screen_Shaking_Flag_HTZ).w
 		beq.s   loc_7D6A
 		move.w  #$0200, D0
 		moveq   #$00, D1
-		move.w  D1, ($FFFFEEB4).w
-		move.w  D1, ($FFFFEEB6).w
+		move.w  D1, (Camera_BG_X_pos_diff).w
+		move.w  D1, (Camera_BG_Y_pos_diff).w
 		bsr.w     loc_7C84
 		or.w    D0, D1
 		bne.s   loc_7D6A
-		move.b  #$00, ($FFFFEEBC).w
+		move.b  #$00, (Screen_Shaking_Flag_HTZ).w
 		rts
 loc_7D90:
-		tst.b   ($FFFFEEE8).w
+		tst.b   (HTZ_Terrain_Direction).w
 		bne.s   loc_7DAE
-		cmpi.w  #$02C0, ($FFFFEEE4).w
+		cmpi.w  #$02C0, (Camera_BG_Y_offset).w
 		beq.s   loc_7DC6
 		move.w  ($FFFFFE04).w, D0
 		andi.w  #$0003, D0
 		bne.s   loc_7DE4
-		addq.w  #$01, ($FFFFEEE4).w
+		addq.w  #$01, (Camera_BG_Y_offset).w
 		bra.s   loc_7DE4
 loc_7DAE:
-		cmpi.w  #$0000, ($FFFFEEE4).w
+		cmpi.w  #$0000, (Camera_BG_Y_offset).w
 		beq.s   loc_7DC6
 		move.w  ($FFFFFE04).w, D0
 		andi.w  #$0003, D0
 		bne.s   loc_7DE4
-		subq.w  #$01, ($FFFFEEE4).w
+		subq.w  #$01, (Camera_BG_Y_offset).w
 		bra.s   loc_7DE4
 loc_7DC6:
-		move.b  #$00, ($FFFFEEBD).w
-		subq.w  #$01, ($FFFFEEE6).w
+		move.b  #$00, (Screen_Shaking_Flag).w
+		subq.w  #$01, (HTZ_Terrain_Delay).w
 		bpl.s   loc_7DE4
-		move.w  #$0078, ($FFFFEEE6).w
-		eori.b  #$01, ($FFFFEEE8).w
-		move.b  #$01, ($FFFFEEBD).w
+		move.w  #$0078, (HTZ_Terrain_Delay).w
+		eori.b  #$01, (HTZ_Terrain_Direction).w
+		move.b  #$01, (Screen_Shaking_Flag).w
 loc_7DE4:
-		cmpi.w  #$14C0, ($FFFFEE00).w
+		cmpi.w  #$14C0, (Camera_X_pos).w
 		bcs.s   loc_7E0C
-		cmpi.w  #$1B00, ($FFFFEE00).w
+		cmpi.w  #$1B00, (Camera_X_pos).w
 		bcc.s   loc_7E28
-		move.w  ($FFFFEEB0).w, ($FFFFEEB4).w
-		move.w  ($FFFFEEB2).w, ($FFFFEEB6).w
-		move.w  ($FFFFEE00).w, D0
-		move.w  ($FFFFEE04).w, D1
+		move.w  (Camera_X_pos_diff).w, (Camera_BG_X_pos_diff).w
+		move.w  (Camera_Y_pos_diff).w, (Camera_BG_Y_pos_diff).w
+		move.w  (Camera_X_pos).w, D0
+		move.w  (Camera_Y_pos).w, D1
 		bra.w     loc_7C84
 loc_7E0C:
-		move.l  #$04000000, ($FFFFEE08).w
+		move.l  #$04000000, (Camera_BG_X_pos).w
 		moveq   #$00, D0
-		move.l  D0, ($FFFFEE0C).w
-		move.l  D0, ($FFFFEEE2).w
-		move.b  D0, ($FFFFEEE8).w
-		subq.b  #$02, ($FFFFEEDF).w
+		move.l  D0, (Camera_BG_Y_pos).w
+		move.l  D0, (Camera_BG_X_offset).w
+		move.b  D0, (HTZ_Terrain_Direction).w
+		subq.b  #$02, (Dynamic_Resize_Routine).w
 		rts
 loc_7E28:
-		move.l  #$04000000, ($FFFFEE08).w
+		move.l  #$04000000, (Camera_BG_X_pos).w
 		moveq   #$00, D0
-		move.l  D0, ($FFFFEE0C).w
-		move.l  D0, ($FFFFEEE2).w
-		move.b  D0, ($FFFFEEE8).w
-		addq.b  #$02, ($FFFFEEDF).w
+		move.l  D0, (Camera_BG_Y_pos).w
+		move.l  D0, (Camera_BG_X_offset).w
+		move.b  D0, (HTZ_Terrain_Direction).w
+		addq.b  #$02, (Dynamic_Resize_Routine).w
 		rts
 loc_7E44:
-		cmpi.w  #$1B00, ($FFFFEE00).w
+		cmpi.w  #$1B00, (Camera_X_pos).w
 		bcc.s   loc_7E84
-		move.b  #$01, ($FFFFEEBC).w
-		move.l  ($FFFFEE00).w, ($FFFFEE08).w
-		move.l  ($FFFFEE04).w, ($FFFFEE0C).w
+		move.b  #$01, (Screen_Shaking_Flag_HTZ).w
+		move.l  (Camera_X_pos).w, (Camera_BG_X_pos).w
+		move.l  (Camera_Y_pos).w, (Camera_BG_Y_pos).w
 		moveq   #$00, D0
-		move.w  D0, ($FFFFEEB4).w
-		move.w  D0, ($FFFFEEB6).w
-		move.w  D0, ($FFFFEEE2).w
-		move.w  #$02C0, ($FFFFEEE4).w
-		subi.w  #$0100, ($FFFFEE0C).w
-		move.w  #$0000, ($FFFFEEE6).w
-		subq.b  #$02, ($FFFFEEDF).w
+		move.w  D0, (Camera_BG_X_pos_diff).w
+		move.w  D0, (Camera_BG_Y_pos_diff).w
+		move.w  D0, (Camera_BG_X_offset).w
+		move.w  #$02C0, (Camera_BG_Y_offset).w
+		subi.w  #$0100, (Camera_BG_Y_pos).w
+		move.w  #$0000, (HTZ_Terrain_Delay).w
+		subq.b  #$02, (Dynamic_Resize_Routine).w
 loc_7E82:		
 		rts
 loc_7E84:
-		tst.b   ($FFFFEEBC).w
+		tst.b   (Screen_Shaking_Flag_HTZ).w
 		beq.s   loc_7E82
 		move.w  #$0200, D0
 		moveq   #$00, D1
-		move.w  D1, ($FFFFEEB4).w
-		move.w  D1, ($FFFFEEB6).w
+		move.w  D1, (Camera_BG_X_pos_diff).w
+		move.w  D1, (Camera_BG_Y_pos_diff).w
 		bsr.w     loc_7C84
 		or.w    D0, D1
 		bne.s   loc_7E82
-		move.b  #$00, ($FFFFEEBC).w
+		move.b  #$00, (Screen_Shaking_Flag_HTZ).w
 		rts
 loc_7EA8:
-		tst.b   ($FFFFEEE8).w
+		tst.b   (HTZ_Terrain_Direction).w
 		bne.s   loc_7EC6
-		cmpi.w  #$0300, ($FFFFEEE4).w
+		cmpi.w  #$0300, (Camera_BG_Y_offset).w
 		beq.s   loc_7EDE
 		move.w  ($FFFFFE04).w, D0
 		andi.w  #$0003, D0
 		bne.s   loc_7EFC
-		addq.w  #$01, ($FFFFEEE4).w
+		addq.w  #$01, (Camera_BG_Y_offset).w
 		bra.s   loc_7EFC
 loc_7EC6:
-		cmpi.w  #$0000, ($FFFFEEE4).w
+		cmpi.w  #$0000, (Camera_BG_Y_offset).w
 		beq.s   loc_7EDE
 		move.w  ($FFFFFE04).w, D0
 		andi.w  #$0003, D0
 		bne.s   loc_7EFC
-		subq.w  #$01, ($FFFFEEE4).w
+		subq.w  #$01, (Camera_BG_Y_offset).w
 		bra.s   loc_7EFC
 loc_7EDE:
-		move.b  #$00, ($FFFFEEBD).w
-		subq.w  #$01, ($FFFFEEE6).w
+		move.b  #$00, (Screen_Shaking_Flag).w
+		subq.w  #$01, (HTZ_Terrain_Delay).w
 		bpl.s   loc_7EFC
-		move.w  #$0078, ($FFFFEEE6).w
-		eori.b  #$01, ($FFFFEEE8).w
-		move.b  #$01, ($FFFFEEBD).w
+		move.w  #$0078, (HTZ_Terrain_Delay).w
+		eori.b  #$01, (HTZ_Terrain_Direction).w
+		move.b  #$01, (Screen_Shaking_Flag).w
 loc_7EFC:
-		cmpi.w  #$14C0, ($FFFFEE00).w
+		cmpi.w  #$14C0, (Camera_X_pos).w
 		bcs.s   loc_7F24
-		cmpi.w  #$1B00, ($FFFFEE00).w
+		cmpi.w  #$1B00, (Camera_X_pos).w
 		bcc.s   loc_7F40
-		move.w  ($FFFFEEB0).w, ($FFFFEEB4).w
-		move.w  ($FFFFEEB2).w, ($FFFFEEB6).w
-		move.w  ($FFFFEE00).w, D0
-		move.w  ($FFFFEE04).w, D1
+		move.w  (Camera_X_pos_diff).w, (Camera_BG_X_pos_diff).w
+		move.w  (Camera_Y_pos_diff).w, (Camera_BG_Y_pos_diff).w
+		move.w  (Camera_X_pos).w, D0
+		move.w  (Camera_Y_pos).w, D1
 		bra.w     loc_7C84
 loc_7F24:
-		move.l  #$04000000, ($FFFFEE08).w
+		move.l  #$04000000, (Camera_BG_X_pos).w
 		moveq   #$00, D0
-		move.l  D0, ($FFFFEE0C).w
-		move.l  D0, ($FFFFEEE2).w
-		move.b  D0, ($FFFFEEE8).w
-		subq.b  #$06, ($FFFFEEDF).w
+		move.l  D0, (Camera_BG_Y_pos).w
+		move.l  D0, (Camera_BG_X_offset).w
+		move.b  D0, (HTZ_Terrain_Direction).w
+		subq.b  #$06, (Dynamic_Resize_Routine).w
 		rts
 loc_7F40:
-		move.l  #$04000000, ($FFFFEE08).w
+		move.l  #$04000000, (Camera_BG_X_pos).w
 		moveq   #$00, D0
-		move.l  D0, ($FFFFEE0C).w
-		move.l  D0, ($FFFFEEE2).w
-		move.b  D0, ($FFFFEEE8).w
-		addq.b  #$02, ($FFFFEEDF).w
+		move.l  D0, (Camera_BG_Y_pos).w
+		move.l  D0, (Camera_BG_X_offset).w
+		move.b  D0, (HTZ_Terrain_Direction).w
+		addq.b  #$02, (Dynamic_Resize_Routine).w
 		rts
 loc_7F5C:
-		cmpi.w  #$1B00, ($FFFFEE00).w
+		cmpi.w  #$1B00, (Camera_X_pos).w
 		bcc.s   loc_7FA4
-		move.b  #$01, ($FFFFEEBC).w
-		move.l  ($FFFFEE00).w, ($FFFFEE08).w
-		move.l  ($FFFFEE04).w, ($FFFFEE0C).w
+		move.b  #$01, (Screen_Shaking_Flag_HTZ).w
+		move.l  (Camera_X_pos).w, (Camera_BG_X_pos).w
+		move.l  (Camera_Y_pos).w, (Camera_BG_Y_pos).w
 		moveq   #$00, D0
-		move.w  D0, ($FFFFEEB4).w
-		move.w  D0, ($FFFFEEB6).w
-		move.w  #$F980, ($FFFFEEE2).w
-		addi.w  #$0480, ($FFFFEE08).w
-		move.w  #$0300, ($FFFFEEE4).w
-		subi.w  #$0100, ($FFFFEE0C).w
-		move.w  #$0000, ($FFFFEEE6).w
-		subq.b  #$02, ($FFFFEEDF).w
+		move.w  D0, (Camera_BG_X_pos_diff).w
+		move.w  D0, (Camera_BG_Y_pos_diff).w
+		move.w  #$F980, (Camera_BG_X_offset).w
+		addi.w  #$0480, (Camera_BG_X_pos).w
+		move.w  #$0300, (Camera_BG_Y_offset).w
+		subi.w  #$0100, (Camera_BG_Y_pos).w
+		move.w  #$0000, (HTZ_Terrain_Delay).w
+		subq.b  #$02, (Dynamic_Resize_Routine).w
 loc_7FA2:		
 		rts
 loc_7FA4:
-		tst.b   ($FFFFEEBC).w
+		tst.b   (Screen_Shaking_Flag_HTZ).w
 		beq.s   loc_7FA2
 		move.w  #$0200, D0
 		moveq   #$00, D1
-		move.w  D1, ($FFFFEEB4).w
-		move.w  D1, ($FFFFEEB6).w
+		move.w  D1, (Camera_BG_X_pos_diff).w
+		move.w  D1, (Camera_BG_Y_pos_diff).w
 		bsr.w     loc_7C84
 		or.w    D0, D1
 		bne.s   loc_7FA2
-		move.b  #$00, ($FFFFEEBC).w
+		move.b  #$00, (Screen_Shaking_Flag_HTZ).w
 		rts
 loc_7FC8:
 		rts
@@ -10713,7 +10736,7 @@ loc_8FCC:
 		add.l   D0, D3
 		move.l  D3, $002C(A0)
 		addi.w  #$0038, $0012(A0)
-		move.w  ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos_now).w, D0
 		addi.w  #$00E0, D0
 		cmp.w   $002C(A0), D0
 		bcc.s   loc_8FF8
@@ -11614,7 +11637,7 @@ loc_9FEC:
 		move.b  #$05, $001E(A0)
 		bchg    #0, $001A(A0)
 loc_9FFE:
-		move.w  ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos_now).w, D0
 		addi.w  #$00E0, D0
 		cmp.w   $000C(A0), D0
 		bcs.w    DeleteObject            ; loc_D3B4
@@ -12441,7 +12464,7 @@ loc_AAFA:
 		lea     (loc_AB1C).l, A1
 		bsr.w     AnimateSprite           ; loc_D412
 		bsr.w     ObjectFall              ; loc_D24E
-		move.w  ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos_now).w, D0
 		addi.w  #$00E0, D0
 		cmp.w   $000C(A0), D0
 		bcs.w    DeleteObject            ; loc_D3B4
@@ -12735,7 +12758,7 @@ loc_AE3E:
 loc_AE78:
 		tst.b   ($FFFFFEC6).w
 		beq.s   loc_AEB2
-		move.w  ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos_now).w, D0
 		addi.w  #$00E0, D0
 		cmp.w   $000C(A0), D0
 		bcs.s   loc_AEB2
@@ -13206,7 +13229,7 @@ Monitor_Invincibility: ; loc_B5A8:
 loc_B5D2:
 		rts
 Monitor_SuperSonic: ; loc_B5D4:
-		move.b  #$01, ($FFFFF65F).w
+		move.b  #$01, (Super_Sonic_palette).w
 		move.w  #$00AF, D0
 		jmp     (PlayMusic).l            ; loc_14C0
 loc_B5E4:
@@ -13306,55 +13329,63 @@ Obj26_MapUnc_B6D2:	BINCLUDE	"mappings/sprite/obj26.bin"
 ; ===========================================================================
 		nop
 ; ===========================================================================
-;=============================================================================== 
-; Object 0x0E - Sonic & Tails in Title Screen   
-; [ Begin ]
-;===============================================================================		              
-Obj_0x0E_Sonic_Tails: ; loc_B7B4:		
-		moveq   #$00, D0
-		move.b  $0024(A0), D0
-		move.w  Sonic_Tails_Index(PC, D0), D1  ; loc_B7C2
-		jmp     Sonic_Tails_Index(PC, D1)      ; loc_B7C2
-Sonic_Tails_Index: ; loc_B7C2:
-		dc.w    loc_B7CA-Sonic_Tails_Index
-		dc.w    loc_B80C-Sonic_Tails_Index
-		dc.w    loc_B820-Sonic_Tails_Index
-		dc.w    loc_B836-Sonic_Tails_Index             
-loc_B7CA:
-		addq.b  #$02, $0024(A0)
-		move.w  #$0148, $0008(A0)
-		move.w  #$00C4, $000A(A0)
-		move.l  #Sonic_Tails_Mappings, $0004(A0) ; loc_BAA2
-		move.w  #$4200, $0002(A0)
-		move.b  #$01, $0018(A0)
-		move.b  #$1D, $001F(A0)
-		tst.b   $001A(A0)
-		beq.s   loc_B80C
-		move.w  #$00FC, $0008(A0)
-		move.w  #$00CC, $000A(A0)
-		move.w  #$2200, $0002(A0) 
-loc_B80C:
-		bra.w     DisplaySprite           ; loc_D3C2		   
-loc_B810:
-		subq.b  #$01, $001F(A0)
-		bpl.s   loc_B81E
-		addq.b  #$02, $0024(A0)
-		bra.w     DisplaySprite           ; loc_D3C2
-loc_B81E:
+; ---------------------------------------------------------------------------
+; Object 0E - Sonic and Tails on the title screen
+; ---------------------------------------------------------------------------
+; Sprite_B7B4: Obj_0x0E_Sonic_Tails:
+Obj0E:
+		moveq	#0,d0
+		move.b	$24(a0),d0
+		move.w	Obj0E_Index(pc,d0.w),d1
+		jmp	Obj0E_Index(pc,d1.w)
+; ===========================================================================
+; off_B7C2:
+Obj0E_Index:	offsetTable
+		offsetTableEntry.w Obj0E_Init
+		offsetTableEntry.w Obj0E_Display
+		offsetTableEntry.w Obj0E_Move
+		offsetTableEntry.w Obj0E_Display2
+; ===========================================================================
+; loc_B7CA:
+Obj0E_Init:
+		addq.b	#2,$24(a0)
+		move.w	#$148,8(a0)
+		move.w	#$C4,$A(a0)
+		move.l	#Obj0E_MapUnc_BAA2,4(a0)
+		move.w	#$4200,2(a0)
+		move.b	#1,$18(a0)
+		move.b	#$1D,$1F(a0)
+		tst.b	$1A(a0)
+		beq.s	Obj0E_Display
+		move.w	#$FC,8(a0)
+		move.w	#$CC,$A(a0)
+		move.w	#$2200,2(a0)
+; loc_B80C:
+Obj0E_Display:
+		bra.w     DisplaySprite
+; ---------------------------------------------------------------------------
+; The rest of this object's code is unused due to the above branch to
+; DisplaySprite; causes Sonic and Tails to rise like the Sonic 1 title
+; loc_B810:
+		subq.b	#1,$1F(a0)
+		bpl.s	+
+		addq.b	#2,$24(a0)
+		bra.w	DisplaySprite
++
 		rts
-loc_B820:
-		subi.w  #$0008, $000A(A0)
-		cmpi.w  #$0096, $000A(A0)
-		bne.s   loc_B832
-		addq.b  #$02, $0024(A0)
-loc_B832:
-		bra.w     DisplaySprite           ; loc_D3C2
-loc_B836:
-		bra.w     DisplaySprite           ; loc_D3C2
-;=============================================================================== 
-; Object 0x0E - Object 0x0E - Sonic & Tails in Title Screen   
-; [ End ]
-;===============================================================================		  
+; ===========================================================================
+; loc_B820:
+Obj0E_Move:
+		subi.w	#8,$A(a0)
+		cmpi.w	#$96,$A(a0)
+		bne.s	+
+		addq.b	#2,$24(a0)
++
+		bra.w	DisplaySprite
+; ===========================================================================
+; loc_B836:
+Obj0E_Display2:
+		bra.w	DisplaySprite
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -13386,7 +13417,7 @@ Obj0F_Init:
 		bsr.w	Adjust2PArtPointer
 ; loc_B874:
 Obj0F_Main:
-		move.b	($FFFFF605).w,d0
+		move.b	(Ctrl_1_Press).w,d0
 		btst	#5,d0		; is C pressed?
 		beq.s	loc_B888	; if not, branch
 		addq.b	#1,$1A(a0)	; increment mappings by one
@@ -13405,66 +13436,18 @@ return_B894:
 ; ---------------------------------------------------------------------------
 Obj0F_MapUnc_B896:	BINCLUDE	"mappings/sprite/obj0F.bin"
 
-;=============================================================================== 
-; Object 0x0F 
-; [ End ]
-;===============================================================================  
-loc_B956:  ; Unknow Object Data
-		dc.w    loc_B958-loc_B956
-loc_B958:
-		dc.b    $07, $00, $01, $02, $03, $04, $05, $06, $07, $FE, $02, $00, $00, $02, $1F, $00
-		dc.b    $01, $FF
-S1_Obj_0x0F_Mappings: ; loc_B96A:  ; Unknow Mappings
-		dc.w    loc_B972-S1_Obj_0x0F_Mappings
-		dc.w    loc_B974-S1_Obj_0x0F_Mappings
-		dc.w    loc_B9A6-S1_Obj_0x0F_Mappings
-		dc.w    loc_BA98-S1_Obj_0x0F_Mappings
-loc_B972:
-		dc.w    $0000
-loc_B974:
-		dc.w    $0006
-		dc.l    $000C00F0, $00780000, $000000F3, $00790020
-		dc.l    $000000F3, $00790030, $000C00F4, $007A0038
-		dc.l    $000800F8, $007C0060, $000800FB, $007D0078
-loc_B9A6:
-		dc.w    $001E
-		dc.l    $B80F0000, $0000FF80, $B80F0000, $0000FF80
-		dc.l    $B80F0000, $0000FF80, $B80F0000, $0000FF80
-		dc.l    $B80F0000, $0000FF80, $B80F0000, $0000FF80
-		dc.l    $B80F0000, $0000FF80, $B80F0000, $0000FF80
-		dc.l    $B80F0000, $0000FF80, $B80F0000, $0000FF80
-		dc.l    $D80F0000, $0000FF80, $D80F0000, $0000FF80
-		dc.l    $D80F0000, $0000FF80, $D80F0000, $0000FF80
-		dc.l    $D80F0000, $0000FF80, $D80F0000, $0000FF80
-		dc.l    $D80F0000, $0000FF80, $D80F0000, $0000FF80
-		dc.l    $D80F0000, $0000FF80, $D80F0000, $0000FF80
-		dc.l    $F80F0000, $0000FF80, $F80F0000, $0000FF80
-		dc.l    $F80F0000, $0000FF80, $F80F0000, $0000FF80
-		dc.l    $F80F0000, $0000FF80, $F80F0000, $0000FF80
-		dc.l    $F80F0000, $0000FF80, $F80F0000, $0000FF80
-		dc.l    $F80F0000, $0000FF80, $F80F0000, $0000FF80
-loc_BA98:
-		dc.w    $0001
-		dc.l    $FC040000, $0000FFF8				
-Sonic_Tails_Mappings:		
-loc_BAA2:				          
-		dc.w    loc_BAA6-loc_BAA2
-		dc.w    loc_BB00-loc_BAA2 
-loc_BAA6: ; Object $0E - Mappings
-		dc.w    $000B ; Sonic in Title Screen
-		dc.l    $D40D0000, $0000FFD8, $CC0E0008, $0004FFF8
-		dc.l    $CC070014, $000A0018, $E40F001C, $000EFFE0
-		dc.l    $E40B002C, $00160000, $EC070038, $001C0018
-		dc.l    $040F0040, $0020FFD8, $040F0050, $0028FFF8
-		dc.l    $0C060060, $00300018, $24040066, $0033FFE8
-		dc.l    $240D0068, $0034FFF8
-loc_BB00:
-		dc.w    $000A ; Tails in Title Screen
-		dc.l    $DC060070, $0038FFEC, $F40F0076, $003BFFD4
-		dc.l    $F40F0086, $0043FFF4, $E4090096, $004BFFFC
-		dc.l    $DC0B009C, $004E0014, $FC0800A8, $00540014
-		dc.l    $040500AB, $00550014, $140400AF, $0057FFD4
-		dc.l    $140D00B1, $0058FFE4, $140D00B9, $005C0004
+; ---------------------------------------------------------------------------
+; (unknown) animation script
+off_B956:	dc.w	byte_B958-off_B956
+byte_B958:	dc.b    7, 0, 1, 2, 3, 4, 5, 6, 7, $FE, 2, 0, 0, 2, $1F, 0
+		dc.b    1, $FF
+
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+S1Obj0F_MapUnc_B96A:	BINCLUDE	"mappings/sprite/obj0F_S1.bin"	; "PRESS START BUTTON" text and TM; leftover from Sonic 1
+Obj0E_MapUnc_BAA2:	BINCLUDE	"mappings/sprite/obj0E.bin"	; Sonic and Tails on the title screen
+; ===========================================================================
 		nop
 
 ; ===========================================================================
@@ -13671,7 +13654,7 @@ loc_BDE4:
 		addq.b  #$02, $0024(A0)
 		rts
 loc_BDF0:
-		move.b  ($FFFFF605).w, D0
+		move.b  (Ctrl_1_Press).w, D0
 		andi.b  #$70, D0
 		bne.s   loc_BE10
 		btst    #$00, $001A(A0)
@@ -13683,10 +13666,10 @@ loc_BDF0:
 loc_BE10:
 		tst.b   ($FFFFFE1A).w
 		bne.s   loc_BE2A
-		move.b  #$14, ($FFFFF600).w
+		move.b  #$14, (Game_Mode).w
 		tst.b   ($FFFFFE18).w
 		bne.s   loc_BE34
-		move.b  #$00, ($FFFFF600).w
+		move.b  #$00, (Game_Mode).w
 		bra.s   loc_BE34
 loc_BE2A:
 		clr.l   ($FFFFFE38).w
@@ -13812,7 +13795,7 @@ loc_BF66:
 		clr.b   ($FFFFFE30).w
 		tst.b   ($FFFFF7CD).w
 		beq.s   loc_BF8E
-		move.b  #$10, ($FFFFF600).w
+		move.b  #$10, (Game_Mode).w
 		bra.s   loc_BF94
 loc_BF8E:
 		move.w  #$0001, ($FFFFFE02).w
@@ -13848,8 +13831,8 @@ loc_C004:
 		clr.b   ($FFFFF7CC).w
 		move.w  #MusID_ActClear, D0
 		jmp     (PlayMusic).l            ; loc_14C0
-		addq.w  #$02, ($FFFFEECA).w
-		cmpi.w  #$2100, ($FFFFEECA).w
+		addq.w  #$02, (Camera_Max_X_pos).w
+		cmpi.w  #$2100, (Camera_Max_X_pos).w
 		beq.w    DeleteObject            ; loc_D3B4
 		rts
 loc_C030:
@@ -14762,7 +14745,7 @@ Obj_Index:
 		dc.l	Obj0B			; Section of pipe that tips you off from CPZ
 		dc.l	Obj0C			; Small floating platform (used in CPZ in the Nick Arcade prototype)
 		dc.l    Obj_0x0D_End_Panel		; loc_F1F4 
-		dc.l    Obj_0x0E_Sonic_Tails              ; loc_B7B4 
+		dc.l	Obj0E			; Sonic and Tails on the title screen
 		dc.l	Obj0F			; Mappings test?
 		dc.l    Obj_0x10		          ; loc_223E2
 		dc.l    Obj_0x11_Bridge		   ; loc_7FDC 
@@ -15208,10 +15191,10 @@ loc_D4C8:
 ; Bizarrely, Sonic 1 used a table instead of a direct reference to the
 ; foreground camera's X position
 ; dword_D4CA:
-BldSpr_ScrPos:	dc.l	0		; NULL
-		dc.l	$FFFFEEF0	; COPY of camera X position
-		dc.l	$FFFFEE08	; BG1 camera X position
-		dc.l	$FFFFEE18	; BG2 camera X position
+BldSpr_ScrPos:	dc.l	0			; NULL
+		dc.l	Camera_X_pos_copy	; COPY of camera X position
+		dc.l	Camera_BG_X_pos		; BG1 camera X position
+		dc.l	Camera_BG3_X_pos	; BG3 camera X position
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to convert mappings (etc) to proper Megadrive sprites
@@ -15359,7 +15342,7 @@ BranchTo_BuildSprites_NextObj:
 ; loc_D5F4:
 BuildSprites_MultiDraw:
 		move.l	a4,-(sp)
-		lea	($FFFFEE00).w,a4
+		lea	(Camera_X_pos).w,a4
 		movea.w	2(a0),a3
 		movea.l	4(a0),a5
 		moveq	#0,d0
@@ -15600,7 +15583,7 @@ loc_D804:
 ; [ Begin ]		         
 ;===============================================================================  
 BldSpr_ScrPos_2p: ; loc_D814:		
-		dc.l    $00000000, $FFFFEE00, $FFFFEE08, $FFFFEE18
+		dc.l    $00000000, Camera_X_pos, Camera_BG_X_pos, Camera_BG3_X_pos
 Build_Sprites_2p: ; loc_D824:
 		tst.w   (Hint_flag).w
 		bne.s   Build_Sprites_2p        ; loc_D824
@@ -15806,7 +15789,7 @@ loc_DA64:
 		rts
 loc_DA6C:
 		move.l  A4, -(A7)
-		lea     ($FFFFEE00).w, A4
+		lea     (Camera_X_pos).w, A4
 		move.w  $0002(A0), A3
 		move.l  $0004(A0), A5
 		moveq   #$00, D0
@@ -15890,7 +15873,7 @@ loc_DB4A:
 		bra.w     loc_D928		     
 loc_DB4E:
 		move.l  A4, -(A7)
-		lea     ($FFFFEE20).w, A4
+		lea     (Camera_X_pos_P2).w, A4
 		move.w  $0002(A0), A3
 		move.l  $0004(A0), A5
 		moveq   #$00, D0
@@ -16151,12 +16134,12 @@ loc_DDC8:
 		dc.b    $08, $08, $08, $08, $10, $10, $10, $10, $18, $18, $18, $18, $20, $20, $20, $20
 loc_DDD8:
 		move.w  $0008(A0), D0
-		sub.w   ($FFFFEE00).w, D0
+		sub.w   (Camera_X_pos).w, D0
 		bmi.s   loc_DDFC
 		cmpi.w  #$0140, D0
 		bge.s   loc_DDFC
 		move.w  $000C(A0), D1
-		sub.w   ($FFFFEE04).w, D1
+		sub.w   (Camera_Y_pos).w, D1
 		bmi.s   loc_DDFC
 		cmpi.w  #$00E0, D1
 		bge.s   loc_DDFC
@@ -16169,7 +16152,7 @@ loc_DDFC:
 		moveq   #$00, D1
 		move.b  $0019(A0), D1
 		move.w  $0008(A0), D0
-		sub.w   ($FFFFEE00).w, D0
+		sub.w   (Camera_X_pos).w, D0
 		add.w   D1, D0
 		bmi.s   loc_DE30
 		add.w   D1, D1
@@ -16177,7 +16160,7 @@ loc_DDFC:
 		cmpi.w  #$0140, D0
 		bge.s   loc_DE30
 		move.w  $000C(A0), D1
-		sub.w   ($FFFFEE04).w, D1
+		sub.w   (Camera_Y_pos).w, D1
 		bmi.s   loc_DE30
 		cmpi.w  #$00E0, D1
 		bge.s   loc_DE30
@@ -16199,7 +16182,7 @@ loc_DE46:
 		addq.b  #$02, ($FFFFF710).w
 		bsr.w     loc_E140
 		lea     (Ring_Positions).w, A1
-		move.w  ($FFFFEE00).w, D4
+		move.w  (Camera_X_pos).w, D4
 		subq.w  #$08, D4
 		bhi.s   loc_DE62
 		moveq   #$01, D4
@@ -16223,7 +16206,7 @@ loc_DE7A:
 		move.b  #$01, ($FFFFF711).w
 		rts
 loc_DE90:
-		lea     ($FFFFEF80).w, A2
+		lea     (Ring_consumption_table).w, A2
 		move.w  (A2)+, D1
 		subq.w  #$01, D1
 		bcs.s   loc_DEC6
@@ -16239,12 +16222,12 @@ loc_DE9A:
 		bne.s   loc_DEC2
 		move.w  #$FFFF, (A1)
 		move.w  #$0000, -2(A2)
-		subq.w  #$01, ($FFFFEF80).w
+		subq.w  #$01, (Ring_consumption_table).w
 loc_DEC2:
 		dbf    D1, loc_DE9A
 loc_DEC6:		
 		move.w  ($FFFFF712).w, A1
-		move.w  ($FFFFEE00).w, D4
+		move.w  (Camera_X_pos).w, D4
 		subq.w  #$08, D4
 		bhi.s   loc_DEDA
 		moveq   #$01, D4
@@ -16283,7 +16266,7 @@ loc_DF06:
 		rts
 loc_DF20:
 		move.w  ($FFFFF716).w, A1
-		move.w  ($FFFFEE20).w, D4
+		move.w  (Camera_X_pos_P2).w, D4
 		subq.w  #$08, D4
 		bhi.s   loc_DF34
 		moveq   #$01, D4
@@ -16373,12 +16356,12 @@ loc_DFF4:
 loc_DFFA:
 		move.w  #$0604, (A1)
 		bsr.w     CollectRing
-		lea     ($FFFFEF82).w, A3
+		lea     (Ring_consumption_table+2).w, A3
 loc_E006:
 		tst.w   (A3)+
 		bne.s   loc_E006
 		move.w  A1, -(A3)
-		addq.w  #$01, ($FFFFEF80).w
+		addq.w  #$01, (Ring_consumption_table).w
 loc_E010:
 		lea     $0006(A1), A1
 		cmpa.l  A1, A2
@@ -16392,7 +16375,7 @@ loc_E01C:
 		bne.s   loc_E02A
 		rts
 loc_E02A:
-		lea     ($FFFFEE00).w, A3
+		lea     (Camera_X_pos).w, A3
 loc_E02E:		
 		tst.w   (A0)
 		bmi.w    loc_E08C
@@ -16434,7 +16417,7 @@ loc_E08C:
 		bne.w    loc_E02E  
 		rts
 loc_E098:
-		lea     ($FFFFEE00).w, A3
+		lea     (Camera_X_pos).w, A3
 		move.w  #$0078, D6
 		move.w  ($FFFFF712).w, A0
 		move.w  ($FFFFF714).w, A4
@@ -16442,7 +16425,7 @@ loc_E098:
 		bne.s   loc_E0C4
 		rts
 loc_E0AE:
-		lea     ($FFFFEE20).w, A3
+		lea     (Camera_X_pos_P2).w, A3
 		move.w  #$0158, D6
 		move.w  ($FFFFF716).w, A0
 		move.w  ($FFFFF718).w, A4
@@ -16499,8 +16482,9 @@ loc_E140: ; Load Rings routine
 loc_E14A:
 		move.l  D0, (A1)+
 		dbf    D1, loc_E14A
-		lea     ($FFFFEF80).w, A1
-		move.w  #$000F, D1
+		lea     (Ring_consumption_table).w, A1
+		; Coding error, that '-$40' shouldn't be there: only half of 'Ring_consumption_table' is cleared.
+		move.w	#bytesToLcnt(Ring_consumption_table_End-Ring_consumption_table-$40),d1
 loc_E158:
 		move.l  D0, (A1)+
 		dbf    D1, loc_E158
@@ -16650,7 +16634,7 @@ ObjectsManager_Init:
 
 		lea	($FFFFFC00).w,a2
 		moveq	#0,d2
-		move.w	($FFFFEE00).w,d6
+		move.w	(Camera_X_pos).w,d6
 		subi.w	#$80,d6
 		bcc.s	+
 		moveq	#0,d6
@@ -16693,13 +16677,13 @@ loc_E2EE:
 		addq.b  #$02, ($FFFFF76C).w
 		bra.w     loc_E3DC
 Load_Object_Pos_Sub_02: ;loc_E310:
-		move.w  ($FFFFEE00).w, D1
+		move.w  (Camera_X_pos).w, D1
 		subi.w  #$0080, D1
 		andi.w  #$FF80, D1
 		move.w  D1, ($FFFFF7DA).w
 		lea     ($FFFFFC00).w, A2
 		moveq   #$00, D2
-		move.w  ($FFFFEE00).w, D6
+		move.w  (Camera_X_pos).w, D6
 		andi.w  #$FF80, D6
 		cmp.w   ($FFFFF76E).w, D6
 		beq.w    loc_E3DA
@@ -16811,13 +16795,13 @@ loc_E3DC:
 		moveq   #$00, D6
 		bsr.w     loc_E570
 Load_Object_Pos_Sub_03: ; loc_E458:
-		move.w  ($FFFFEE00).w, D1
+		move.w  (Camera_X_pos).w, D1
 		andi.w  #$FF00, D1
 		move.w  D1, ($FFFFF7DA).w
-		move.w  ($FFFFEE20).w, D1
+		move.w  (Camera_X_pos_P2).w, D1
 		andi.w  #$FF00, D1
 		move.w  D1, ($FFFFF7DC).w
-		move.b  ($FFFFEE00).w, D6
+		move.b  (Camera_X_pos).w, D6
 		andi.w  #$00FF, D6
 		move.w  ($FFFFF76E).w, D0
 		cmp.w   ($FFFFF76E).w, D6
@@ -16829,7 +16813,7 @@ Load_Object_Pos_Sub_03: ; loc_E458:
 		lea     ($FFFFF789).w, A6
 		bsr.s   loc_E4C2
 loc_E498:
-		move.b  ($FFFFEE20).w, D6
+		move.b  (Camera_X_pos_P2).w, D6
 		andi.w  #$00FF, D6
 		move.w  ($FFFFF78C).w, D0
 		cmp.w   ($FFFFF78C).w, D6
@@ -17910,7 +17894,7 @@ End_Panel_Sub_02: ; loc_F256:
 		move.w  #$00CF, D0
 		jsr     (PlayMusic).l            ; loc_14C0
 		clr.b   ($FFFFFE1E).w
-		move.w  ($FFFFEECA).w, ($FFFFEEC8).w
+		move.w  (Camera_Max_X_pos).w, (Camera_Min_X_pos).w
 		addq.b  #$02, $0024(A0)
 loc_F27E:
 		rts
@@ -17959,12 +17943,12 @@ End_Panel_Sub_04: ; loc_F31C:
 		btst    #$01, ($FFFFB022).w
 		bne.s   loc_F338
 		move.b  #$01, ($FFFFF7CC).w
-		move.w  #$0800, ($FFFFF602).w
+		move.w  #$0800, (Ctrl_1_Logical).w
 loc_F338:
 		tst.b   ($FFFFB000).w
 		beq.s   loc_F34E
 		move.w  ($FFFFB008).w, D0
-		move.w  ($FFFFEECA).w, D1
+		move.w  (Camera_Max_X_pos).w, D1
 		addi.w  #$0128, D1
 		cmp.w   D1, D0
 		bcs.s   loc_F3B6
@@ -17973,7 +17957,7 @@ loc_F34E:
 loc_F352:		
 		tst.b   ($FFFFB5C0).w
 		bne.s   loc_F3B6
-		move.w  ($FFFFEECA).w, ($FFFFEEC8).w
+		move.w  (Camera_Max_X_pos).w, (Camera_Min_X_pos).w
 		clr.b   ($FFFFFE2D).w
 		clr.b   ($FFFFFE1E).w
 		move.b  #$3A, ($FFFFB5C0).w
@@ -18802,7 +18786,7 @@ Obj01_Init:
 		move.b	#$D,$3F(a0)
 		move.b	#0,$2C(a0)
 		move.b	#4,$2D(a0)
-		move.w	#0,($FFFFEED2).w
+		move.w	#0,(Sonic_Pos_Record_Index).w
 		move.w	#$3F,d2
 
 loc_FCD4:
@@ -18817,7 +18801,7 @@ loc_FCD4:
 Obj01_Control:
 		tst.w	(Debug_mode_flag).w		; is Debug Mode enabled?
 		beq.s	loc_FCFC			; if not, branch
-		btst	#4,($FFFFF605).w		; is button B pressed?
+		btst	#4,(Ctrl_1_Press).w		; is button B pressed?
 		beq.s	loc_FCFC			; if not, branch
 		move.w	#1,(Debug_placement_mode).w	; change Sonic into a ring/item
 		clr.b	($FFFFF7CC).w			; unlock control
@@ -18827,7 +18811,7 @@ Obj01_Control:
 loc_FCFC:
 		tst.b	($FFFFF7CC).w		; are controls locked?
 		bne.s	loc_FD08		; if yes, branch
-		move.w	($FFFFF604).w,($FFFFF602).w	; copy new held buttons to enable joypad control
+		move.w	(Ctrl_1).w,(Ctrl_1_Logical).w	; copy new held buttons to enable joypad control
 
 loc_FD08:
 		btst	#0,$2A(a0)		; is Sonic interacting with another object that holds him in place or controls his movement somehow?
@@ -18946,14 +18930,14 @@ Obj01_ExitChk:
 
 ; loc_FDFA: CopySonicMovesForTails:
 Sonic_RecordPos:
-		move.w	($FFFFEED2).w,d0
+		move.w	(Sonic_Pos_Record_Index).w,d0
 		lea	(Sonic_Pos_Record_Buf).w,a1
 		lea	(a1,d0.w),a1
 		move.w	8(a0),(a1)+
 		move.w	$C(a0),(a1)+
-		addq.b	#4,($FFFFEED3).w
+		addq.b	#4,(Sonic_Pos_Record_Index+1).w
 		lea	(Sonic_Stat_Record_Buf).w,a1
-		move.w	($FFFFF604).w,(a1,d0.w)
+		move.w	(Ctrl_1).w,(a1,d0.w)
 		rts
 ; End of function Sonic_RecordPos
 
@@ -18965,7 +18949,7 @@ Sonic_RecordPos:
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 
 ; loc_FE1E: Unused_RecordPos:
-		move.w	($FFFFEEE0).w,d0
+		move.w	(unk_EEE0).w,d0
 		subq.b	#4,d0
 		lea	(unk_E600).w,a1
 		lea	(a1,d0.w),a2
@@ -18978,7 +18962,7 @@ Sonic_RecordPos:
 		lea	(a1,d0.w),a2
 		move.w	8(a0),(a2)+
 		move.w	$C(a0),(a2)
-		addq.b	#4,($FFFFEEE1).w
+		addq.b	#4,(unk_EEE0+1).w
 
 return_FE4C:
 		rts
@@ -19129,12 +19113,12 @@ Sonic_Move:
 		bne.w	Obj01_Traction			; if yes, branch
 		tst.w	$2E(a0)				; is Sonic's controls locked?
 		bne.w	Obj01_UpdateSpeedOnGround	; if yes, branch
-		btst	#2,($FFFFF602).w		; is left being pressed?
+		btst	#2,(Ctrl_1_Held_Logical).w	; is left being pressed?
 		beq.s	Obj01_NotLeft			; if not, branch
 		bsr.w	Sonic_MoveLeft
 ; loc_FFB0:
 Obj01_NotLeft:
-		btst	#3,($FFFFF602).w	; is right being pressed?
+		btst	#3,(Ctrl_1_Held_Logical).w	; is right being pressed?
 		beq.s	Obj01_NotRight		; if not, branch
 		bsr.w	Sonic_MoveRight
 ; loc_FFBC:
@@ -19195,14 +19179,14 @@ loc_10048:
 ; ===========================================================================
 ; loc_10050:
 Sonic_LookUp:
-		btst	#0,($FFFFF602).w	; is up being pressed?
+		btst	#0,(Ctrl_1_Held_Logical).w	; is up being pressed?
 		beq.s	Sonic_Duck		; if not, branch
 		move.b	#7,$1C(a0)		; use "looking up" animation
 		bra.s	Obj01_UpdateSpeedOnGround
 ; ===========================================================================
 ; loc_10060:
 Sonic_Duck:
-		btst	#1,($FFFFF602).w	; is down being pressed?
+		btst	#1,(Ctrl_1_Held_Logical).w	; is down being pressed?
 		beq.s	Obj01_UpdateSpeedOnGround	; if not, branch
 		move.b	#8,$1C(a0)		; use "ducking" animation
 ; ===========================================================================
@@ -19211,7 +19195,7 @@ Sonic_Duck:
 ; ---------------------------------------------------------------------------
 ; sub_1006E:
 Obj01_UpdateSpeedOnGround:
-		move.b	($FFFFF602).w,d0
+		move.b	(Ctrl_1_Held_Logical).w,d0
 		andi.b	#$C,d0
 		bne.s	Obj01_Traction
 		move.w	$14(a0),d0
@@ -19428,12 +19412,12 @@ Sonic_RollSpeed:
 		bne.w	Sonic_SetRollSpeeds
 		tst.w	$2E(a0)
 		bne.s	Sonic_ApplyRollSpeed
-		btst	#2,($FFFFF602).w	; is left being pressed?
+		btst	#2,(Ctrl_1_Held_Logical).w	; is left being pressed?
 		beq.s	loc_10234		; if not, branch
 		bsr.w	Sonic_RollLeft
 
 loc_10234:
-		btst	#3,($FFFFF602).w	; is right being pressed?
+		btst	#3,(Ctrl_1_Held_Logical).w	; is right being pressed?
 		beq.s	Sonic_ApplyRollSpeed	; if not, branch
 		bsr.w	Sonic_RollRight
 ; loc_10240:
@@ -19551,7 +19535,7 @@ Sonic_ChgJumpDir:
 		btst	#4,$22(a0)		; did Sonic jump from rolling?
 		bne.s	Obj01_Jump_ResetScr	; if yes, branch to skip midair control
 		move.w	$10(a0),d0
-		btst	#2,($FFFFF602).w
+		btst	#2,(Ctrl_1_Held_Logical).w
 		beq.s	+	; if not holding left, branch
 
 		bset	#0,$22(a0)
@@ -19562,7 +19546,7 @@ Sonic_ChgJumpDir:
 		bgt.s	+	; if new speed is less than the maximum, branch
 		move.w	d1,d0	; limit speed in air going left, even if Sonic was already going faster (speed limit/cap)
 +
-		btst	#3,($FFFFF602).w
+		btst	#3,(Ctrl_1_Held_Logical).w
 		beq.s	+	; if not holding right, branch
 
 		bclr	#0,$22(a0)
@@ -19575,11 +19559,11 @@ Sonic_ChgJumpDir:
 
 ; loc_1034A: Obj01_ResetScr2:
 Obj01_Jump_ResetScr:
-		cmpi.w	#$60,($FFFFEED8).w	; is screen in its default position?
+		cmpi.w	#$60,(Camera_Y_pos_bias).w	; is screen in its default position?
 		beq.s	Sonic_JumpPeakDecelerate	; if yes, branch
 		bcc.s	+			; depending on the sign of the difference,
-		addq.w	#4,($FFFFEED8).w	; either add 2
-+		subq.w  #2,($FFFFEED8).w	; or subtract 2
+		addq.w	#4,(Camera_Y_pos_bias).w	; either add 2
++		subq.w  #2,(Camera_Y_pos_bias).w	; or subtract 2
 
 ; loc_1035C:
 Sonic_JumpPeakDecelerate:
@@ -19625,11 +19609,11 @@ Sonic_LevelBound:
 		asl.l	#8,d0
 		add.l	d0,d1
 		swap	d1
-		move.w	($FFFFEEC8).w,d0
+		move.w	(Camera_Min_X_pos).w,d0
 		addi.w	#$10,d0
 		cmp.w	d1,d0		; has Sonic touched the left boundary?
 		bhi.s	Sonic_Boundary_Sides	; if yes, branch
-		move.w	($FFFFEECA).w,d0
+		move.w	(Camera_Max_X_pos).w,d0
 		addi.w	#320-24,d0	; screen width - Sonic's width_pixels
 		tst.b	($FFFFF7AA).w
 		bne.s	loc_103BA
@@ -19640,7 +19624,7 @@ loc_103BA:
 		bls.s	Sonic_Boundary_Sides	; if yes, branch
 ; loc_103BE:
 Sonic_Boundary_CheckBottom:
-		move.w	($FFFFEECE).w,d0
+		move.w	(Camera_Max_Y_pos_now).w,d0
 		addi.w	#$E0,d0
 		cmp.w	$C(a0),d0
 		blt.s	Sonic_Boundary_Bottom
@@ -19688,10 +19672,10 @@ Sonic_Roll:
 loc_1041E:
 		cmpi.w	#$80,d0		; is Sonic moving at $80 speed or faster?
 		bcs.s	Obj01_NoRoll	; if not, branch
-		move.b	($FFFFF602).w,d0
+		move.b	(Ctrl_1_Held_Logical).w,d0
 		andi.b	#$C,d0		; is left/right being pressed?
 		bne.s	Obj01_NoRoll	; if yes, branch
-		btst	#1,($FFFFF602).w	; is down being pressed?
+		btst	#1,(Ctrl_1_Held_Logical).w	; is down being pressed?
 		bne.s	Obj01_ChkRoll	; if yes, branch
 ; return_10436: Sonic_NoRoll:
 Obj01_NoRoll:
@@ -19728,7 +19712,7 @@ return_10474:
 
 ; loc_10476:
 Sonic_Jump:
-		move.b	($FFFFF603).w,d0
+		move.b	(Ctrl_1_Press_Logical).w,d0
 		andi.b	#$70,d0		; is A, B or C pressed?
 		beq.w	return_1051A	; if not, branch
 		moveq	#0,d0
@@ -19798,7 +19782,7 @@ Sonic_JumpHeight:
 loc_1053A:
 		cmp.w	$12(a0),d1	; is Sonic going up faster than d1?
 		ble.s	return_1054E	; if not, branch
-		move.b	($FFFFF602).w,d0
+		move.b	(Ctrl_1_Held_Logical).w,d0
 		andi.b	#$70,d0		; is A/B/C pressed?
 		bne.s	return_1054E	; if yes, branch
 		move.w	d1,$12(a0)	; immediately reduce Sonic's upward speed to d1
@@ -19828,7 +19812,7 @@ Sonic_CheckSpindash:
 		bne.s	Sonic_UpdateSpindash
 		cmpi.b	#8,$1C(a0)
 		bne.s	return_10592
-		move.b	($FFFFF603).w,d0
+		move.b	(Ctrl_1_Press_Logical).w,d0
 		andi.b	#$70,d0
 		beq.w	return_10592
 		move.b	#9,$1C(a0)
@@ -19842,7 +19826,7 @@ return_10592:
 ; ===========================================================================
 ; loc_10594:
 Sonic_UpdateSpindash:
-		move.b	($FFFFF602).w,d0
+		move.b	(Ctrl_1_Held_Logical).w,d0
 		btst	#1,d0
 		bne.s	Sonic_ChargingSpindash
 
@@ -19851,7 +19835,7 @@ Sonic_UpdateSpindash:
 		move.b	#2,$1C(a0)
 		addq.w	#5,$C(a0)
 		move.b	#0,$39(a0)
-		move.w	#$2000,($FFFFEED0).w
+		move.w	#$2000,(Horiz_scroll_delay_val).w
 		move.w	#$800,$14(a0)
 		btst	#0,$22(a0)
 		beq.s	loc_105D2
@@ -19863,7 +19847,7 @@ loc_105D2:
 ; ===========================================================================
 ; loc_105DA:
 Sonic_ChargingSpindash:
-		move.b	($FFFFF603).w,d0
+		move.b	(Ctrl_1_Press_Logical).w,d0
 		andi.b	#$70,d0
 		beq.w	loc_105E8
 		nop
@@ -20313,7 +20297,7 @@ loc_1098C:
 ; ===========================================================================
 ; loc_109A6:
 Sonic_HurtStop: ; loc_109A6:
-		move.w  ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos_now).w, D0
 		addi.w  #$00E0, D0
 		cmp.w   $000C(A0), D0
 		bcs.w    JmpTo_KillSonic          ; loc_10E30
@@ -20354,7 +20338,7 @@ Sonic_Death: ; loc_109FE:
 ; [ Begin ]		         
 ;===============================================================================		   
 Sonic_GameOver: ; loc_10A1A:
-		move.w  ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos_now).w, D0
 		addi.w  #$0100, D0
 		cmp.w   $000C(A0), D0
 		bcc.w    loc_10A9C
@@ -20861,7 +20845,7 @@ loc_10F94:
 ; [ Begin ]		         
 ;===============================================================================     
 Tails_Control2: ; loc_10F96:
-		move.b  ($FFFFF606).w, D0
+		move.b  (Ctrl_2_Held).w, D0
 		andi.b  #$7F, D0
 		beq.s   Tails_ControlNoKeysPressed    ; loc_10FAE
 		move.w  #$0000, ($FFFFF700).w
@@ -20902,7 +20886,7 @@ loc_11004:
 		lea     (unk_E600).w, A1
 		lsl.b   #$02, D1
 		addq.b  #$04, D1
-		move.w  ($FFFFEEE0).w, D0
+		move.w  (unk_EEE0).w, D0
 		sub.b   D1, D0
 		move.w  $00(A1, D0), $0008(A0)
 		move.w  $02(A1, D0), $000C(A0)
@@ -20921,10 +20905,10 @@ loc_11038:
 		move.w  #$0010, D1
 		lsl.b   #$02, D1
 		addq.b  #$04, D1
-		move.w  ($FFFFEED2).w, D0
+		move.w  (Sonic_Pos_Record_Index).w, D0
 		sub.b   D1, D0
 		lea     (Sonic_Stat_Record_Buf).w, A1
-		move.w  $00(A1, D0), ($FFFFF606).w
+		move.w  $00(A1, D0), (Ctrl_2).w
 		rts
 		
 ;=============================================================================== 
@@ -20932,12 +20916,12 @@ loc_11038:
 ; [ Begin ]		         
 ;===============================================================================    
 Tails_RecordMoves: ; loc_11056:
-		move.w  ($FFFFEED6).w, D0
+		move.w  (Tails_Pos_Record_Index).w, D0
 		lea     (Tails_Pos_Record_Buf).w, A1
 		lea     $00(A1, D0), A1
 		move.w  $0008(A0), (A1)+
 		move.w  $000C(A0), (A1)+
-		addq.b  #$04, ($FFFFEED7).w
+		addq.b  #$04, (Tails_Pos_Record_Index+1).w
 		rts
 ;=============================================================================== 
 ; Sub Routine Tails_RecordMoves
@@ -21001,11 +20985,11 @@ Tails_Move: ; loc_1110C:
 		bne.w    loc_1121E
 		tst.w   $002E(A0)
 		bne.w    loc_111F2
-		btst    #$02, ($FFFFF606).w
+		btst    #$02, (Ctrl_2_Held).w
 		beq.s   loc_11134
 		bsr.w     Tails_MoveLeft          ; loc_112AE
 loc_11134:
-		btst    #$03, ($FFFFF606).w
+		btst    #$03, (Ctrl_2_Held).w
 		beq.s   loc_11140
 		bsr.w     Tails_MoveRight         ; loc_11320
 loc_11140:
@@ -21058,16 +21042,16 @@ loc_111CC:
 		bra.s   loc_111F2
 ;===============================================================================               
 Tails_LookUp: ; loc_111D4:
-		btst    #$00, ($FFFFF606).w
+		btst    #$00, (Ctrl_2_Held).w
 		beq.s   loc_111E4
 		move.b  #$07, $001C(A0)
 		bra.s   loc_111F2
 loc_111E4:
-		btst    #$01, ($FFFFF606).w
+		btst    #$01, (Ctrl_2_Held).w
 		beq.s   loc_111F2
 		move.b  #$08, $001C(A0)
 loc_111F2:
-		move.b  ($FFFFF606).w, D0
+		move.b  (Ctrl_2_Held).w, D0
 		andi.b  #$0C, D0
 		bne.s   loc_1121E
 		move.w  $0014(A0), D0
@@ -21251,11 +21235,11 @@ Tails_RollSpeed: ; loc_1138C:
 		bne.w    loc_11408
 		tst.w   $002E(A0)
 		bne.s   loc_113C4
-		btst    #$02, ($FFFFF606).w
+		btst    #$02, (Ctrl_2_Held).w
 		beq.s   loc_113B8
 		bsr.w     Tails_RollLeft          ; loc_1143E
 loc_113B8:
-		btst    #$03, ($FFFFF606).w
+		btst    #$03, (Ctrl_2_Held).w
 		beq.s   loc_113C4
 		bsr.w     Tails_RollRight         ; loc_11462
 loc_113C4:
@@ -21362,7 +21346,7 @@ Tails_ChgJumpDir: ; loc_11484:
 		btst    #$04, $0022(A0)
 		bne.s   loc_114CE
 		move.w  $0010(A0), D0
-		btst    #$02, ($FFFFF606).w
+		btst    #$02, (Ctrl_2_Held).w
 		beq.s   loc_114B4
 		bset    #$00, $0022(A0)
 		sub.w   D5, D0
@@ -21372,7 +21356,7 @@ Tails_ChgJumpDir: ; loc_11484:
 		bgt.s   loc_114B4
 		move.w  D1, D0
 loc_114B4:
-		btst    #$03, ($FFFFF606).w
+		btst    #$03, (Ctrl_2_Held).w
 		beq.s   loc_114CA
 		bclr    #$00, $0022(A0)
 		add.w   D5, D0
@@ -21419,11 +21403,11 @@ Tails_LevelBoundaries: ; loc_114FE:
 		asl.l   #$08, D0
 		add.l   D0, D1
 		swap  D1
-		move.w  ($FFFFEEC8).w, D0
+		move.w  (Camera_Min_X_pos).w, D0
 		addi.w  #$0010, D0
 		cmp.w   D1, D0
 		bhi.s   loc_1156A
-		move.w  ($FFFFEECA).w, D0
+		move.w  (Camera_Max_X_pos).w, D0
 		addi.w  #$0128, D0
 		tst.b   ($FFFFF7AA).w
 		bne.s   loc_1152C
@@ -21432,7 +21416,7 @@ loc_1152C:
 		cmp.w   D1, D0
 		bls.s   loc_1156A
 loc_11530:		
-		move.w  ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos_now).w, D0
 		addi.w  #$00E0, D0
 		cmp.w   $000C(A0), D0
 		blt.s   loc_11540
@@ -21471,10 +21455,10 @@ Tails_Roll: ; loc_11582:
 loc_11590:
 		cmpi.w  #$0080, D0
 		bcs.s   loc_115A8
-		move.b  ($FFFFF606).w, D0
+		move.b  (Ctrl_2_Held).w, D0
 		andi.b  #$0C, D0
 		bne.s   loc_115A8
-		btst    #$01, ($FFFFF606).w
+		btst    #$01, (Ctrl_2_Held).w
 		bne.s   loc_115AA
 loc_115A8:
 		rts
@@ -21505,7 +21489,7 @@ loc_115E6:
 ; [ Begin ]		         
 ;===============================================================================		  
 Tails_Jump: ; loc_115E8:
-		move.b  ($FFFFF607).w, D0
+		move.b  (Ctrl_2_Press).w, D0
 		andi.b  #$70, D0
 		beq.w    loc_1168C
 		moveq   #$00, D0
@@ -21569,7 +21553,7 @@ Tails_JumpHeight: ; loc_11696:
 loc_116AC:
 		cmp.w   $0012(A0), D1
 		ble.s   loc_116C0
-		move.b  ($FFFFF606).w, D0
+		move.b  (Ctrl_2_Held).w, D0
 		andi.b  #$70, D0
 		bne.s   loc_116C0
 		move.w  D1, $0012(A0)
@@ -21595,7 +21579,7 @@ Tails_Spindash: ; loc_116D2:
 		bne.s   loc_11706
 		cmpi.b  #$08, $001C(A0)
 		bne.s   loc_11704
-		move.b  ($FFFFF607).w, D0
+		move.b  (Ctrl_2_Press).w, D0
 		andi.b  #$70, D0
 		beq.w    loc_11704
 		move.b  #$09, $001C(A0)
@@ -21606,7 +21590,7 @@ Tails_Spindash: ; loc_116D2:
 loc_11704:
 		rts
 loc_11706:
-		move.b  ($FFFFF606).w, D0
+		move.b  (Ctrl_2_Held).w, D0
 		btst    #$01, D0
 		bne.s   loc_1174C
 		move.b  #$0E, $0016(A0)
@@ -21614,7 +21598,7 @@ loc_11706:
 		move.b  #$02, $001C(A0)
 		addq.w  #$05, $000C(A0)
 		move.b  #$00, $0039(A0)
-		move.w  #$2000, ($FFFFEED4).w
+		move.w  #$2000, (Horiz_scroll_delay_val_P2).w
 		move.w  #$0800, $0014(A0)
 		btst    #$00, $0022(A0)
 		beq.s   loc_11744
@@ -21623,7 +21607,7 @@ loc_11744:
 		bset    #$02, $0022(A0)
 		rts
 loc_1174C:
-		move.b  ($FFFFF607).w, D0
+		move.b  (Ctrl_2_Press).w, D0
 		andi.b  #$70, D0
 		beq.w    loc_1175A
 		nop
@@ -22012,7 +21996,7 @@ loc_11ADE:
 ; [ Begin ]		         
 ;===============================================================================		 
 Tails_HurtStop: ; loc_11AF4:
-		move.w  ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos_now).w, D0
 		addi.w  #$00E0, D0
 		cmp.w   $000C(A0), D0
 		bcs.w    KillTails               ; loc_12074
@@ -22045,7 +22029,7 @@ Tails_Death: ; loc_11B32:
 ; [ Begin ]		         
 ;===============================================================================		 
 Tails_GameOver: ; loc_11B4A:
-		move.w  ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos_now).w, D0
 		addi.w  #$0100, D0
 		cmp.w   $000C(A0), D0
 		bcc.w    loc_11B8C
@@ -22641,11 +22625,11 @@ loc_121C0:
 		clr.w   $0012(A0)
 		move.b  #$80, $0001(A0)
 		move.w  $0008(A0), D0
-		sub.w   ($FFFFEE00).w, D0
+		sub.w   (Camera_X_pos).w, D0
 		addi.w  #$0080, D0
 		move.w  D0, $0008(A0)
 		move.w  $000C(A0), D0
-		sub.w   ($FFFFEE04).w, D0
+		sub.w   (Camera_Y_pos).w, D0
 		addi.w  #$0080, D0
 		move.w  D0, $000A(A0)
 		move.b  #$0C, $0024(A0)
@@ -22723,7 +22707,7 @@ loc_12390:
 		move.w  #$0000, $0012(A0)
 		move.w  #$0000, $0010(A0)
 		move.w  #$0000, $0014(A0)
-		move.b  #$01, ($FFFFEEDC).w
+		move.b  #$01, (Deform_lock).w
 		move.l  (A7)+, A0
 		rts
 loc_123F6:
@@ -24592,16 +24576,16 @@ Lamp_Post_Save_Info: ; loc_13C6A:
 		move.w  ($FFFFFE20).w, ($FFFFFE36).w
 		move.b  ($FFFFFE1B).w, ($FFFFFE54).w
 		move.l  ($FFFFFE22).w, ($FFFFFE38).w
-		move.b  ($FFFFEEDF).w, ($FFFFFE3C).w
-		move.w  ($FFFFEECE).w, ($FFFFFE3E).w
-		move.w  ($FFFFEE00).w, ($FFFFFE40).w
-		move.w  ($FFFFEE04).w, ($FFFFFE42).w
-		move.w  ($FFFFEE08).w, ($FFFFFE44).w
-		move.w  ($FFFFEE0C).w, ($FFFFFE46).w
-		move.w  ($FFFFEE10).w, ($FFFFFE48).w
-		move.w  ($FFFFEE14).w, ($FFFFFE4A).w
-		move.w  ($FFFFEE18).w, ($FFFFFE4C).w
-		move.w  ($FFFFEE1C).w, ($FFFFFE4E).w
+		move.b  (Dynamic_Resize_Routine).w, ($FFFFFE3C).w
+		move.w  (Camera_Max_Y_pos_now).w, ($FFFFFE3E).w
+		move.w  (Camera_X_pos).w, ($FFFFFE40).w
+		move.w  (Camera_Y_pos).w, ($FFFFFE42).w
+		move.w  (Camera_BG_X_pos).w, ($FFFFFE44).w
+		move.w  (Camera_BG_Y_pos).w, ($FFFFFE46).w
+		move.w  (Camera_BG2_X_pos).w, ($FFFFFE48).w
+		move.w  (Camera_BG2_Y_pos).w, ($FFFFFE4A).w
+		move.w  (Camera_BG3_X_pos).w, ($FFFFFE4C).w
+		move.w  (Camera_BG3_Y_pos).w, ($FFFFFE4E).w
 		move.w  (Water_Level_2).w, ($FFFFFE50).w
 		move.b  (Water_routine).w, ($FFFFFE52).w
 		move.b  (Water_fullscreen_flag).w, ($FFFFFE53).w
@@ -24617,18 +24601,18 @@ Lamp_Post_Load_Info: ; loc_13CE4:
 		move.l  ($FFFFFE38).w, ($FFFFFE22).w
 		move.b  #$3B, ($FFFFFE25).w
 		subq.b  #$01, ($FFFFFE24).w
-		move.b  ($FFFFFE3C).w, ($FFFFEEDF).w
+		move.b  ($FFFFFE3C).w, (Dynamic_Resize_Routine).w
 		move.b  ($FFFFFE52).w, (Water_routine).w
-		move.w  ($FFFFFE3E).w, ($FFFFEECE).w
-		move.w  ($FFFFFE3E).w, ($FFFFEEC6).w
-		move.w  ($FFFFFE40).w, ($FFFFEE00).w
-		move.w  ($FFFFFE42).w, ($FFFFEE04).w
-		move.w  ($FFFFFE44).w, ($FFFFEE08).w
-		move.w  ($FFFFFE46).w, ($FFFFEE0C).w
-		move.w  ($FFFFFE48).w, ($FFFFEE10).w
-		move.w  ($FFFFFE4A).w, ($FFFFEE14).w
-		move.w  ($FFFFFE4C).w, ($FFFFEE18).w
-		move.w  ($FFFFFE4E).w, ($FFFFEE1C).w
+		move.w  ($FFFFFE3E).w, (Camera_Max_Y_pos_now).w
+		move.w  ($FFFFFE3E).w, (Camera_Max_Y_pos).w
+		move.w  ($FFFFFE40).w, (Camera_X_pos).w
+		move.w  ($FFFFFE42).w, (Camera_Y_pos).w
+		move.w  ($FFFFFE44).w, (Camera_BG_X_pos).w
+		move.w  ($FFFFFE46).w, (Camera_BG_Y_pos).w
+		move.w  ($FFFFFE48).w, (Camera_BG2_X_pos).w
+		move.w  ($FFFFFE4A).w, (Camera_BG2_Y_pos).w
+		move.w  ($FFFFFE4C).w, (Camera_BG3_X_pos).w
+		move.w  ($FFFFFE4E).w, (Camera_BG3_Y_pos).w
 		tst.b   (Water_flag).w
 		beq.s   loc_13D7A
 		move.w  ($FFFFFE50).w, (Water_Level_2).w
@@ -24639,7 +24623,7 @@ loc_13D7A:
 		bpl.s   loc_13D8C
 		move.w  ($FFFFFE32).w, D0
 		subi.w  #$00A0, D0
-		move.w  D0, ($FFFFEEC8).w
+		move.w  D0, (Camera_Min_X_pos).w
 loc_13D8C:
 		rts
 ; ===========================================================================
@@ -25869,7 +25853,7 @@ Obj04_Action:
 		move.w	d1,$C(a0)
 		tst.b	$32(a0)
 		bne.s	Obj04_Animate
-		btst	#7,($FFFFF605).w	; is the Start button pressed?
+		btst	#7,(Ctrl_1_Press).w	; is the Start button pressed?
 		beq.s	Obj04_Display		; if not, branch
 		addq.b	#3,$1A(a0)		; use different frames
 		move.b	#1,$32(a0)		; stop animation
@@ -25877,7 +25861,7 @@ Obj04_Action:
 ; ===========================================================================
 ; loc_15106:
 Obj04_Animate:
-		tst.w	($FFFFF63A).w		; if the game paused?
+		tst.w	(Game_paused).w		; if the game paused?
 		bne.s	Obj04_Display		; if yes, branch
 		move.b	#0,$32(a0)		; resume animation
 		subq.b	#3,$1A(a0)		; use normal frames
@@ -25905,7 +25889,7 @@ Obj04_Action2:
 		move.w	d1,$C(a0)
 		tst.b	$32(a0)
 		bne.s	Obj04_Animate2
-		btst	#7,($FFFFF605).w	; is the Start button pressed?
+		btst	#7,(Ctrl_1_Press).w	; is the Start button pressed?
 		beq.s	loc_151A8		; if not, branch
 		addq.b	#2,$1A(a0)		; use different frames
 		move.b	#1,$32(a0)		; stop animation
@@ -25913,7 +25897,7 @@ Obj04_Action2:
 ; ===========================================================================
 ; loc_15198:
 Obj04_Animate2:
-		tst.w	($FFFFF63A).w		; is the game paused?
+		tst.w	(Game_paused).w		; is the game paused?
 		bne.s	loc_151BE		; if yes, branch
 		move.b	#0,$32(a0)		; resume animation
 		subq.b	#2,$1A(a0)		; use normal frames
@@ -26877,7 +26861,7 @@ loc_16100:
 loc_16102:
 		bsr.w     J_SpeedToPos_00         ; loc_16216
 		addi.w  #$0038, $0012(A0)
-		move.w  ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos_now).w, D0
 		addi.w  #$00E0, D0
 		cmp.w   $000C(A0), D0
 		bcs.w    J_DeleteObject_0B       ; loc_16204
@@ -27956,7 +27940,7 @@ loc_172C0:
 loc_172D6:
 		bsr.w     J_SpeedToPos_03         ; loc_17476
 		addi.w  #$0018, $0012(A0)
-		move.w  ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos_now).w, D0
 		addi.w  #$00E0, D0
 		cmp.w   $000C(A0), D0
 		bcc.s   loc_172F2
@@ -28438,11 +28422,11 @@ loc_17A68:
 		cmpi.b  #$06, D0
 		bcs.s   loc_17AB4
 		bne.s   loc_17A96
-		cmpi.w  #$0380, ($FFFFEE04).w
+		cmpi.w  #$0380, (Camera_Y_pos).w
 		bcc.s   loc_17AB4
 		bra.s   loc_17A9E
 loc_17A96:
-		cmpi.w  #$0380, ($FFFFEE04).w
+		cmpi.w  #$0380, (Camera_Y_pos).w
 		bcs.s   loc_17AB4
 loc_17A9E:
 		lea     ($FFFFFC00).w, A2
@@ -28454,13 +28438,13 @@ loc_17AB0:
 		bra.w     J_DeleteObject_0F       ; loc_17C80
 loc_17AB4:
 		move.w  $0032(A0), D0
-		add.w   ($FFFFEEE4).w, D0
+		add.w   (Camera_BG_Y_offset).w, D0
 		move.w  D0, $000C(A0)
 		moveq   #$00, D0
 		move.b  $0028(A0), D0
 		move.w  loc_17AD8(PC, D0), D1
 		jsr     loc_17AD8(PC, D1)
-		tst.b   ($FFFFEEBC).w
+		tst.b   (Screen_Shaking_Flag_HTZ).w
 		beq.w    loc_17C8C
 		rts
 loc_17AD8:
@@ -29505,7 +29489,7 @@ loc_18AF0:
 loc_18B8E:
 		move.l  A1, $003C(A0)
 loc_18B92:
-		btst    #$06, ($FFFFF607).w
+		btst    #$06, (Ctrl_2_Press).w
 		bne.s   loc_18BAC
 		lea     ($FFFFF7E0).w, A2
 		moveq   #$00, D0
@@ -29533,7 +29517,7 @@ loc_18BE0:
 		beq.s   loc_18C34
 		addi.w  #$0018, $0012(A0)
 		bmi.s   loc_18C32
-		move.w  ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos_now).w, D0
 		addi.w  #$00E0, D0
 		cmp.w   $000C(A0), D0
 		bcs.s   loc_18C6C
@@ -32996,7 +32980,7 @@ loc_1BE5C:
 		add.l   D0, D3
 		move.l  D3, $000C(A0)
 		addi.w  #$0008, $0012(A0)
-		move.w  ($FFFFEECE).w, D0
+		move.w  (Camera_Max_Y_pos_now).w, D0
 		addi.w  #$00E0, D0
 		cmp.w   $000C(A0), D0
 		bcc.s   loc_1BE88
@@ -37978,18 +37962,18 @@ Obj8A_Init:
 		move.l	#Obj8A_MapUnc_207C6,4(a0)
 		move.w	#$5A0,2(a0)
 		bsr.w	J_Adjust2PArtPointer_24
-		move.w	($FFFFFFF4).w,d0
+		move.w	(Ending_demo_number).w,d0
 		move.b	d0,$1A(a0)
 		move.b	#0,1(a0)
 		move.b	#0,$18(a0)
-		cmpi.b	#4,($FFFFF600).w
+		cmpi.b	#4,(Game_Mode).w
 		bne.s	Obj8A_Display
 		move.w	#$300,2(a0)
 		bsr.w	J_Adjust2PArtPointer_24
 		move.b	#$A,$1A(a0)
 		tst.b	($FFFFFFD3).w
 		beq.s	Obj8A_Display
-		cmpi.b	#$72,($FFFFF604).w
+		cmpi.b	#$72,(Ctrl_1_Held).w
 		bne.s	Obj8A_Display
 		move.w	#$EEE,($FFFFFBC0).w
 		move.w	#$880,($FFFFFBC2).w
@@ -38094,7 +38078,7 @@ loc_20F32:
 		clr.b   ($FFFFFE1E).w
 		clr.b   ($FFFFF7AA).w
 		move.b  #$01, ($FFFFF7CC).w
-		move.w  #$0800, ($FFFFF602).w
+		move.w  #$0800, (Ctrl_1_Logical).w
 		clr.b   $0025(A0)
 		bclr    #$03, ($FFFFB022).w
 		bset    #$01, ($FFFFB022).w
@@ -38566,13 +38550,13 @@ S1_SS_Show_Layout: ; loc_21508:
 		muls.w  #$0018, D4
 		muls.w  #$0018, D5
 		moveq   #$00, D2
-		move.w  ($FFFFEE00).w, D2
+		move.w  (Camera_X_pos).w, D2
 		divu.w  #$0018, D2
 		swap  D2
 		neg.w   D2
 		addi.w  #$FF4C, D2
 		moveq   #$00, D3
-		move.w  ($FFFFEE04).w, D3
+		move.w  (Camera_Y_pos).w, D3
 		divu.w  #$0018, D3
 		swap  D3
 		neg.w   D3
@@ -38608,12 +38592,12 @@ loc_2157A:
 		move.w  (A7)+, D5
 		lea     (Chunk_Table), A0
 		moveq   #$00, D0
-		move.w  ($FFFFEE04).w, D0
+		move.w  (Camera_Y_pos).w, D0
 		divu.w  #$0018, D0
 		mulu.w  #$0080, D0
 		adda.l  D0, A0
 		moveq   #$00, D0
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		divu.w  #$0018, D0
 		adda.w  D0, A0
 		lea     (Level_Layout).w, A4
@@ -39256,7 +39240,7 @@ loc_21D64:
 loc_21DA4:
 		tst.w   (Debug_mode_flag).w
 		beq.s   loc_21DB8
-		btst    #$04, ($FFFFF605).w
+		btst    #$04, (Ctrl_1_Press).w
 		beq.s   loc_21DB8
 		move.w  #$0001, (Debug_placement_mode).w
 loc_21DB8:
@@ -39291,15 +39275,15 @@ SonicInSS_Display: ; loc_21DFA:
 		jsr     Sonic_Animate           ; (loc_10AB2)
 		rts
 SonicInSS_Move: ; loc_21E20:
-		btst    #$02, ($FFFFF602).w
+		btst    #$02, (Ctrl_1_Held_Logical).w
 		beq.s   loc_21E2C
 		bsr.w     SonicInSS_MoveLeft          ; loc_21EB8
 loc_21E2C:
-		btst    #$03, ($FFFFF602).w
+		btst    #$03, (Ctrl_1_Held_Logical).w
 		beq.s   loc_21E38
 		bsr.w     SonicInSS_MoveRight     ; loc_21EE8
 loc_21E38:
-		move.b  ($FFFFF602).w, D0
+		move.b  (Ctrl_1_Held_Logical).w, D0
 		andi.b  #$0C, D0
 		bne.s   loc_21E68
 		move.w  $0014(A0), D0
@@ -39403,7 +39387,7 @@ loc_21F14:
 ; [ Begin ]		         
 ;===============================================================================		 
 SonicInSS_Jump: ; loc_21F16:
-		move.b  ($FFFFF603).w, D0
+		move.b  (Ctrl_1_Press_Logical).w, D0
 		andi.b  #$70, D0
 		beq.s   loc_21F58
 		move.b  ($FFFFF750).w, D0
@@ -39441,7 +39425,7 @@ SonicInSS_Null: ; loc_21F5A:
 		move.w  #$FC00, D1
 		cmp.w   $0012(A0), D1
 		ble.s   loc_21F74
-		move.b  ($FFFFF602).w, D0
+		move.b  (Ctrl_1_Held_Logical).w, D0
 		andi.b  #$70, D0
 		bne.s   loc_21F74
 		move.w  D1, $0012(A0)
@@ -39455,17 +39439,17 @@ loc_21F74:
 S1SS_FixCamera: ; loc_21F76:
 		move.w  $000C(A0), D2
 		move.w  $0008(A0), D3
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		subi.w  #$00A0, D3
 		bcs.s   loc_21F8E
 		sub.w   D3, D0
-		sub.w   D0, ($FFFFEE00).w
+		sub.w   D0, (Camera_X_pos).w
 loc_21F8E:
-		move.w  ($FFFFEE04).w, D0
+		move.w  (Camera_Y_pos).w, D0
 		subi.w  #$0070, D2
 		bcs.s   loc_21F9E
 		sub.w   D2, D0
-		sub.w   D0, ($FFFFEE04).w
+		sub.w   D0, (Camera_Y_pos).w
 loc_21F9E:
 		rts
 ;=============================================================================== 
@@ -39476,7 +39460,7 @@ loc_21FA0:
 		addi.w  #$0040, ($FFFFF752).w
 		cmpi.w  #$1800, ($FFFFF752).w
 		bne.s   loc_21FB4
-		move.b  #$0C, ($FFFFF600).w
+		move.b  #$0C, (Game_Mode).w
 loc_21FB4:
 		cmpi.w  #$3000, ($FFFFF752).w
 		blt.s   loc_21FD2
@@ -39495,7 +39479,7 @@ loc_21FD2:
 loc_21FF4:
 		subq.w  #$01, $0038(A0)
 		bne.s   loc_22000
-		move.b  #$0C, ($FFFFF600).w
+		move.b  #$0C, (Game_Mode).w
 loc_22000:
 		jsr     Sonic_Animate           ; (loc_10AB2)
 		jsr     LoadSonicDynPLC  ; (loc_10DDC)
@@ -39933,10 +39917,10 @@ loc_2244E:
 		bne.w    Dynamic_Normal          ; loc_22630
 		lea     ($FFFFF7F0).w, A3
 		moveq   #$00, D0
-		move.w  ($FFFFEE00).w, D1
+		move.w  (Camera_X_pos).w, D1
 		neg.w   D1
 		asr.w   #$03, D1
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		lsr.w   #$04, D0
 		add.w   D1, D0
 		subi.w  #$0010, D0
@@ -39985,7 +39969,7 @@ loc_224C4:
 		dc.w    $4C80, $4D80, $4580, $4880, $4900, $4B80, $4C80, $4D80		 
 loc_22584:
 		lea     (TempArray_LayerDef).w, A1
-		move.w  ($FFFFEE00).w, D2
+		move.w  (Camera_X_pos).w, D2
 		neg.w   D2
 		asr.w   #$03, D2
 		move.l  A2, -(A7)
@@ -40224,7 +40208,7 @@ loc_22866:
 loc_2286E:
 		rts
 loc_22870:
-		move.w  ($FFFFEE00).w, D0
+		move.w  (Camera_X_pos).w, D0
 		cmpi.w  #$1940, D0
 		bcs.s   loc_2286E  
 		cmpi.w  #$1F80, D0
@@ -40605,7 +40589,7 @@ loc_22FE8:
 		cmp.l   ($FFFFFFC0).w, D0
 		bcs.s   loc_23010
 		addi.l  #$00001388, ($FFFFFFC0).w
-		tst.b   ($FFFFFFF8).w
+		tst.b   (Graphics_Flags).w
 		bmi.s   loc_23010
 		addq.b  #$01, ($FFFFFE12).w
 		addq.b  #$01, ($FFFFFE1C).w
@@ -40639,7 +40623,7 @@ loc_23050:
 loc_2305A:
 		tst.b   ($FFFFFE1E).w
 		beq.s   loc_230B6 
-		tst.w   ($FFFFF63A).w
+		tst.w   (Game_paused).w
 		bne.s   loc_230B6
 		lea     ($FFFFFE22).w, A1
 		cmpi.l  #$00093B3B, (A1)+
@@ -40760,15 +40744,15 @@ loc_231D8:
 		dc.l    $FFFF0000
 loc_231DC:
 		move.l  #$5C400003, (VDP_control_port)
-		move.w  ($FFFFEE00).w, D1
+		move.w  (Camera_X_pos).w, D1
 		lsr.w   #7, D1
 		move.w  ($FFFFFE04).w, D1
 		lsr.w   #6, D1
 		swap  D1
 		move.w  ($FFFFB008).w, D1 
 		bsr.s   loc_2320E
-		move.w  ($FFFFEE04).w, D1
-		move.w  ($FFFFEE08).w, D1
+		move.w  (Camera_Y_pos).w, D1
+		move.w  (Camera_BG_X_pos).w, D1
 		lsr.w   #7, D1
 		move.b  ($FFFFFE78).w, D1
 		swap  D1
@@ -41056,14 +41040,14 @@ loc_23B7E:
 		dc.w    loc_23BEC-loc_23B7E
 loc_23B82:
 		addq.b  #$02, (Debug_placement_mode).w
-		move.w  ($FFFFEECC).w, ($FFFFFEF0).w
-		move.w  ($FFFFEEC6).w, ($FFFFFEF2).w
+		move.w  (Camera_Min_Y_pos).w, ($FFFFFEF0).w
+		move.w  (Camera_Max_Y_pos).w, ($FFFFFEF2).w
 		andi.w  #$07FF, ($FFFFB00C).w
-		andi.w  #$07FF, ($FFFFEE04).w
-		andi.w  #$07FF, ($FFFFEE0C).w
+		andi.w  #$07FF, (Camera_Y_pos).w
+		andi.w  #$07FF, (Camera_BG_Y_pos).w
 		move.b  #$00, $001A(A0)
 		move.b  #$00, $001C(A0)
-		cmpi.b  #$10, ($FFFFF600).w
+		cmpi.b  #$10, (Game_Mode).w
 		bne.s   loc_23BBC
 		moveq   #$06, D0
 		bra.s   loc_23BC2
@@ -41084,7 +41068,7 @@ loc_23BDC:
 		move.b  #$01, ($FFFFFE0B).w
 loc_23BEC:
 		moveq   #$06, D0
-		cmpi.b  #$10, ($FFFFF600).w
+		cmpi.b  #$10, (Game_Mode).w
 		beq.s   loc_23BFC
 		moveq   #$00, D0
 		move.b  (Current_Zone).w, D0
@@ -41098,10 +41082,10 @@ loc_23BFC:
 loc_23C14:
 		moveq   #$00, D4
 		move.w  #$0001, D1
-		move.b  ($FFFFF605).w, D4
+		move.b  (Ctrl_1_Press).w, D4
 		andi.w  #$000F, D4
 		bne.s   loc_23C56
-		move.b  ($FFFFF604).w, D0
+		move.b  (Ctrl_1_Held).w, D0
 		andi.w  #$000F, D0
 		bne.s   loc_23C3E
 		move.b  #$0C, ($FFFFFE0A).w
@@ -41115,7 +41099,7 @@ loc_23C3E:
 		bne.s   loc_23C56
 		move.b  #$FF, ($FFFFFE0B).w
 loc_23C56:
-		move.b  ($FFFFF604).w, D4
+		move.b  (Ctrl_1_Held).w, D4
 loc_23C5A:
 		moveq   #$00, D1
 		move.b  ($FFFFFE0B).w, D1
@@ -41128,7 +41112,7 @@ loc_23C5A:
 		beq.s   loc_23C84
 		sub.l   D1, D2
 		moveq   #$00, D0
-		move.w  ($FFFFEECC).w, D0
+		move.w  (Camera_Min_Y_pos).w, D0
 		swap  D0
 		cmp.l   D0, D2
 		bge.s   loc_23C84
@@ -41138,7 +41122,7 @@ loc_23C84:
 		beq.s   loc_23C9E
 		add.l   D1, D2
 		moveq   #$00, D0
-		move.w  ($FFFFEEC6).w, D0
+		move.w  (Camera_Max_Y_pos).w, D0
 		addi.w  #$00DF, D0
 		swap  D0
 		cmp.l   D0, D2
@@ -41158,16 +41142,16 @@ loc_23CB2:
 		move.l  D2, $000C(A0)
 		move.l  D3, $0008(A0)
 loc_23CBA:
-		btst    #$06, ($FFFFF604).w
+		btst    #$06, (Ctrl_1_Held).w
 		beq.s   loc_23CF2
-		btst    #$05, ($FFFFF605).w
+		btst    #$05, (Ctrl_1_Press).w
 		beq.s   loc_23CD6
 		subq.b  #$01, ($FFFFFE06).w
 		bcc.s   loc_23CEE
 		add.b   D6, ($FFFFFE06).w
 		bra.s   loc_23CEE
 loc_23CD6:
-		btst    #$06, ($FFFFF605).w
+		btst    #$06, (Ctrl_1_Press).w
 		beq.s   loc_23CF2
 		addq.b  #$01, ($FFFFFE06).w
 		cmp.b   ($FFFFFE06).w, D6
@@ -41176,7 +41160,7 @@ loc_23CD6:
 loc_23CEE:
 		bra.w     loc_23D9E
 loc_23CF2:
-		btst    #$05, ($FFFFF605).w
+		btst    #$05, (Ctrl_1_Press).w
 		beq.s   loc_23D36
 		jsr     SingleObjLoad        ; (loc_E772)
 		bne.s   loc_23D36
@@ -41192,7 +41176,7 @@ loc_23CF2:
 		move.b  $04(A2, D0), $0028(A1)
 		rts
 loc_23D36:
-		btst    #$04, ($FFFFF605).w
+		btst    #$04, (Ctrl_1_Press).w
 		beq.s   loc_23D9C
 		moveq   #$00, D0
 		move.w  D0, (Debug_placement_mode).w
@@ -41207,9 +41191,9 @@ loc_23D5E:
 		move.w  D0, $000E(A0)
 		move.w  $0008(A0), ($FFFFB048).w
 		move.w  $000C(A0), ($FFFFB04C).w
-		move.w  ($FFFFFEF0).w, ($FFFFEECC).w
-		move.w  ($FFFFFEF2).w, ($FFFFEEC6).w
-		cmpi.b  #$10, ($FFFFF600).w
+		move.w  ($FFFFFEF0).w, (Camera_Min_Y_pos).w
+		move.w  ($FFFFFEF2).w, (Camera_Max_Y_pos).w
+		cmpi.b  #$10, (Game_Mode).w
 		bne.s   loc_23D9C
 		move.b  #$02, ($FFFFB01C).w
 		bset    #$02, ($FFFFB022).w
@@ -41650,23 +41634,23 @@ cur_zone_str := "\{cur_zone_id}"
 
 ; dword_24354: MainLoadBlocks: saArtPtrs: TilesMainTable:
 LevelArtPointers:
-	levartptrs $04,		$05,		$04,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   0 ; GHZ  ; GREEN HILL ZONE
-	levartptrs $06,		$07,		$05,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   1 ; OWZ  ; OCEAN WIND ZONE (UNUSED)
-	levartptrs $08,		$09,		$06,	ArtNem_WZ,  BM16_WZ,  BM128_WZ	;   2 ; WZ   ; WOOD ZONE
-	levartptrs $0A,		$0B,		$07,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   3 ; SSZ  ; SAND SHOWER ZONE (UNUSED)
-	levartptrs $0C,		$0D,		$08,	ArtNem_MTZ, BM16_MTZ, BM128_MTZ	;   4 ; MTZ  ; METROPOLIS ZONE
-	levartptrs $0C,		$0D,		$08,	ArtNem_MTZ, BM16_MTZ, BM128_MTZ	;   5 ; MTZ  ; METROPOLIS ZONE 2
-	levartptrs $10,		$11,		$0A,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   6 ; BLZ  ; BLUE LAKE ZONE (UNUSED, LATER REPLACED WITH WING FORTRESS)
-	levartptrs $12,		$13,		$0B,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   7 ; HTZ  ; HILL TOP ZONE
-	levartptrs $14,		$15,		$0C,	ArtNem_HPZ, BM16_HPZ, BM128_HPZ	;   8 ; HPZ  ; HIDDEN PALACE ZONE
-	levartptrs $16,		$17,		$0D,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   9 ; RWZ  ; ROCK WORLD ZONE (UNUSED)
-	levartptrs $18,		$19,		$0E,	ArtNem_OOZ, BM16_OOZ, BM128_OOZ	;   A ; OOZ  ; OIL OCEAN ZONE
-	levartptrs $1A,		$1B,		$0F,	ArtNem_DHZ, BM16_DHZ, BM128_DHZ	;   B ; DHZ  ; DUST HILL ZONE
-	levartptrs $1C,		$1D,		$10,	ArtNem_CNZ, BM16_CNZ, BM128_CNZ	;   C ; CNZ  ; CASINO NIGHT ZONE
-	levartptrs $1E,		$1F,		$11,	ArtNem_CPZ, BM16_CPZ, BM128_CPZ	;   D ; CPZ  ; CHEMICAL PLANT ZONE
-	levartptrs $20,		$21,		$12,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   E ; GCZ  ; GENOCIDE CITY ZONE (BLANK, LATER REPLACED WITH DEATH EGG)
-	levartptrs $22,		$23,		$13,	ArtNem_NGHZ,BM16_NGHZ,BM128_NGHZ;   F ; NGHZ ; NEO GREEN HILL ZONE
-	levartptrs $24,		$25,		$14,	ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;  10 ; DEZ  ; DEATH EGG ZONE (BLANK, LATER REPLACED WITH SKY CHASE)
+	levartptrs $04,		$05, PalID_GHZ,  ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   0 ; GHZ  ; GREEN HILL ZONE
+	levartptrs $06,		$07, PalID_OWZ,  ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   1 ; OWZ  ; OCEAN WIND ZONE (UNUSED)
+	levartptrs $08,		$09, PalID_WZ,   ArtNem_WZ,  BM16_WZ,  BM128_WZ		;   2 ; WZ   ; WOOD ZONE
+	levartptrs $0A,		$0B, PalID_SSZ,  ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   3 ; SSZ  ; SAND SHOWER ZONE (UNUSED)
+	levartptrs $0C,		$0D, PalID_MTZ,  ArtNem_MTZ, BM16_MTZ, BM128_MTZ	;   4 ; MTZ  ; METROPOLIS ZONE
+	levartptrs $0C,		$0D, PalID_MTZ2, ArtNem_MTZ, BM16_MTZ, BM128_MTZ	;   5 ; MTZ  ; METROPOLIS ZONE 2
+	levartptrs $10,		$11, PalID_BLZ,  ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   6 ; BLZ  ; BLUE LAKE ZONE (UNUSED, LATER REPLACED WITH WING FORTRESS)
+	levartptrs $12,		$13, PalID_HTZ,  ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   7 ; HTZ  ; HILL TOP ZONE
+	levartptrs $14,		$15, PalID_HPZ,  ArtNem_HPZ, BM16_HPZ, BM128_HPZ	;   8 ; HPZ  ; HIDDEN PALACE ZONE
+	levartptrs $16,		$17, PalID_RWZ,  ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   9 ; RWZ  ; ROCK WORLD ZONE (UNUSED)
+	levartptrs $18,		$19, PalID_OOZ,  ArtNem_OOZ, BM16_OOZ, BM128_OOZ	;   A ; OOZ  ; OIL OCEAN ZONE
+	levartptrs $1A,		$1B, PalID_DHZ,  ArtNem_DHZ, BM16_DHZ, BM128_DHZ	;   B ; DHZ  ; DUST HILL ZONE
+	levartptrs $1C,		$1D, PalID_CNZ,  ArtNem_CNZ, BM16_CNZ, BM128_CNZ	;   C ; CNZ  ; CASINO NIGHT ZONE
+	levartptrs $1E,		$1F, PalID_CPZ,  ArtNem_CPZ, BM16_CPZ, BM128_CPZ	;   D ; CPZ  ; CHEMICAL PLANT ZONE
+	levartptrs $20,		$21, PalID_GCZ,  ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   E ; GCZ  ; GENOCIDE CITY ZONE (BLANK, LATER REPLACED WITH DEATH EGG)
+	levartptrs $22,		$23, PalID_NGHZ, ArtNem_NGHZ,BM16_NGHZ,BM128_NGHZ	;   F ; NGHZ ; NEO GREEN HILL ZONE
+	levartptrs $24,		$25, PalID_DEZ,  ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;  10 ; DEZ  ; DEATH EGG ZONE (BLANK, LATER REPLACED WITH SKY CHASE)
 
 ; ===========================================================================
 ; off_24420:
