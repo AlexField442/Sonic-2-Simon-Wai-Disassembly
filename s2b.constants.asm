@@ -309,27 +309,84 @@ Camera_Y_pos_copy:		ds.l	1
 
 Camera_RAM_End:
 
-; $FFFFEF00 starting from here
+Block_cache:			ds.w	512/16*2	; Width of plane in blocks, with each block getting two words.
+Ring_consumption_table:		ds.b	$80	; contains RAM addresses of rings currently being consumed
+Ring_consumption_table_End:
+
+				ds.b	$600	; $FFFFF000-$FFFFF5FF ; unused, leftover from the Sonic 1 sound driver
+
+Game_Mode:			ds.b	1	; see GameModesArray (master level trigger, Mstr_Lvl_Trigger)
+				ds.b	1	; unused
+Ctrl_1_Logical:					; 2 bytes
+Ctrl_1_Held_Logical:		ds.b	1	; 1 byte
+Ctrl_1_Press_Logical:		ds.b	1	; 1 byte
+Ctrl_1:						; 2 bytes
+Ctrl_1_Held:			ds.b	1	; 1 byte ; (pressed and held were switched around before)
+Ctrl_1_Press:			ds.b	1	; 1 byte
+Ctrl_2:						; 2 bytes
+Ctrl_2_Held:			ds.b	1	; 1 byte
+Ctrl_2_Press:			ds.b	1	; 1 byte
+				ds.b	4	; $FFFFF608-$FFFFF60B ; seems unused
+VDP_Reg1_val:			ds.w	1	; normal value of VDP register #1 when display is disabled
+				ds.b	6	; $FFFFF60E-$FFFFF613 ; seems unused
+Demo_Time_left:			ds.w	1	; 2 bytes
+
+Vscroll_Factor:
+Vscroll_Factor_FG:		ds.w	1
+Vscroll_Factor_BG:		ds.w	1
+unk_F61A:			ds.l	1	; Only ever cleared, never used
+Vscroll_Factor_P2:
+Vscroll_Factor_P2_FG:		ds.w	1
+Vscroll_Factor_P2_BG:		ds.w	1
+				ds.b	2	; $FFFFF622-$FFFFF623 ; seems unused
+Hint_counter_reserve:		ds.w	1	; Must contain a VDP command word, preferably a write to register $0A. Executed every V-INT.
+Palette_fade_range:				; Range affected by the palette fading routines
+Palette_fade_start:		ds.b	1	; Offset from the start of the palette to tell what range of the palette will be affected in the palette fading routines
+Palette_fade_length:		ds.b	1	; Number of entries to change in the palette fading routines
+
+MiscLevelVariables:
+VIntSubE_RunCount:		ds.b	1
+				ds.b	1	; $FFFFF629 ; seems unused
+Vint_routine:			ds.b	1	; routine counter for V-int
+				ds.b	1	; $FFFFF62B ; seems unused
+Sprite_count:			ds.b	1	; the number of sprites drawn in the current frame
+				ds.b	5	; $FFFFF62D-$FFFFF631 ; seems unused
+PalCycle_Frame:			ds.w	1	; ColorID loaded in PalCycle
+PalCycle_Timer:			ds.w	1	; number of frames until next PalCycle call
+RNG_seed:			ds.l	1	; used for random number generation
+Game_paused:			ds.w	1	
+				ds.b	4	; $FFFFF63C-$FFFFF63F ; seems unused
+DMA_data_thunk:			ds.w	1	; Used as a RAM holder for the final DMA command word. Data will NOT be preserved across V-INTs, so consider this space reserved.
+				ds.w	1	; $FFFFF642-$FFFFF643 ; seems unused
+Hint_flag:			ds.w	1	; unless this is 1, H-int won't run
+
+Water_Level_1:			ds.w	1
+Water_Level_2:			ds.w	1
+Water_Level_3:			ds.w	1
+Water_on:			ds.b	1	; is set based on Water_flag
+Water_routine:			ds.b	1
+Water_fullscreen_flag:		ds.b	1	; was "Water_move"
+Do_Updates_in_H_int:		ds.b	1
+
+				ds.b	2	; $FFFFF650-$FFFFF651 ; seems unused
+PalCycle_Frame2:		ds.w	1
+PalCycle_Frame3:		ds.w	1
+				ds.b	6	; $FFFFF656-$FFFFF65B ; seems unused
+Palette_frame:			ds.w	1
+Palette_timer:			ds.b	1
+Super_Sonic_palette:		ds.b	1
+
+unk_F660:			ds.w	1	; Cleared once, never used
+unk_F662:			ds.w	1	; Cleared once, never used
+				ds.b	2	; $FFFFF664-$FFFFF665 ; seems unused
+PalCycle_Timer2:		ds.w	1
+PalCycle_Timer3:		ds.w	1
+				ds.b	$16	; $FFFFF66A-$FFFFF67F ; seems unused
+MiscLevelVariables_End
+
+; $FFFFF680 starting from here
 		dephase
 		!org 0
-
-Hint_counter_reserve:		equ $FFFFF624	; must contain a VDP command word, preferably a write to register $0A. Executed every V-INT.
-
-MiscLevelVariables:		equ $FFFFF628
-VIntSubE_RunCount:		equ MiscLevelVariables
-Vint_routine:			equ $FFFFF62A	; routine counter for V-int
-Sprite_count:			equ $FFFFF62C	; the number of sprites drawn in the current frame
-DMA_data_thunk:			equ $FFFFF640	; used as a RAM holder for the final DMA command word. Data will NOT be preserved across V-INTs, so consider this space reserved.
-Hint_flag:			equ $FFFFF644	; unless this is 1, H-int won't run
-
-Water_Level_1:			equ $FFFFF646
-Water_Level_2:			equ $FFFFF648
-Water_Level_3:			equ $FFFFF64A
-Water_on:			equ $FFFFF64C
-Water_routine:			equ $FFFFF64D
-Water_fullscreen_flag:		equ $FFFFF64E
-
-Do_Updates_in_H_int:		equ $FFFFF64F
 
 Water_flag:			equ $FFFFF730
 
