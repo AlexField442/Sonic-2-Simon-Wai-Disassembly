@@ -1484,6 +1484,8 @@ loc_1730:
 ;	  (or hacker) is responsible for making sure that no more than
 ;	  16 (well, 15 because of a bug in ProcessDPLC_Pop) load requests
 ;         are copied into the buffer.
+;    _________DO NOT PUT MORE THAN 16 LOAD REQUESTS IN A LIST!__________
+;         (or if you change the size of Plc_Buffer, the limit becomes (Plc_Buffer_Only_End-Plc_Buffer)/6)
 
 ; sub_173C:
 LoadPLC:
@@ -1492,7 +1494,7 @@ LoadPLC:
 		add.w	d0,d0
 		move.w	(a1,d0.w),d0
 		lea	(a1,d0.w),a1
-		lea	($FFFFF680).w,a2 
+		lea	(Plc_Buffer).w,a2 
 
 loc_1754:
 		tst.l	(a2)
@@ -1529,7 +1531,7 @@ LoadPLC2:
 		move.w	(a1,d0.w),d0 
 		lea	(a1,d0.w),a1
 		bsr.s	ClearPLC
-		lea	($FFFFF680).w,a2 
+		lea	(Plc_Buffer).w,a2 
 		move.w	(a1)+,d0
 		bmi.s	loc_1794	; if it's negative, skip the next loop
 
@@ -1549,12 +1551,11 @@ loc_1794:
 ; Clear the pattern load queue ($FFF680 - $FFF700)
 ; loc_179A:
 ClearPLC:
-		lea	($FFFFF680).w,a2
-		moveq	#$1F,d0
+		lea	(Plc_Buffer).w,a2
 
-loc_17A0:
-		clr.l	(a2)+
-		dbf	d0,loc_17A0
+		moveq	#bytesToLcnt(Plc_Buffer_End-Plc_Buffer),d0
+-		clr.l	(a2)+
+		dbf	d0,-
 		rts
 ; End of function ClearPLC
 
@@ -1566,11 +1567,11 @@ loc_17A0:
 
 ; sub_17A8: RunPLC:
 RunPLC_RAM:
-		tst.l	($FFFFF680).w
+		tst.l	(Plc_Buffer).w
 		beq.s	return_17FC
-		tst.w	($FFFFF6F8).w
+		tst.w	(Plc_Buffer_Reg18).w
 		bne.s	return_17FC
-		move.l	($FFFFF680).w,a0
+		move.l	(Plc_Buffer).w,a0
 		lea	NemDec_Output(pc),a3
 		nop
 		lea	(Decomp_Buffer).w,a1
@@ -1580,20 +1581,20 @@ RunPLC_RAM:
 
 loc_17CA: 
 		andi.w	#$7FFF,d2
-		move.w	d2,($FFFFF6F8).w
+		move.w	d2,(Plc_Buffer_Reg18).w
 		bsr.w	NemDec4
 		move.b	(a0)+,d5
 		asl.w	#8,d5
 		move.b	(A0)+,d5
 		moveq	#$10,d6
 		moveq	#0,d0
-		move.l	a0,($FFFFF680).w
-		move.l	a3,($FFFFF6E0).w
-		move.l	d0,($FFFFF6E4).w
-		move.l	d0,($FFFFF6E8).w
-		move.l	d0,($FFFFF6EC).w
-		move.l	d5,($FFFFF6F0).w
-		move.l	d6,($FFFFF6F4).w
+		move.l	a0,(Plc_Buffer).w
+		move.l	a3,(Plc_Buffer_Reg0).w
+		move.l	d0,(Plc_Buffer_Reg4).w
+		move.l	d0,(Plc_Buffer_Reg8).w
+		move.l	d0,(Plc_Buffer_RegC).w
+		move.l	d5,(Plc_Buffer_Reg10).w
+		move.l	d6,(Plc_Buffer_Reg14).w
 
 return_17FC:    
 		rts
@@ -1604,24 +1605,24 @@ return_17FC:
 ; Process one PLC from the queue
 ; loc_17FE:
 ProcessDPLC:
-		tst.w	($FFFFF6F8).w
+		tst.w	(Plc_Buffer_Reg18).w
 		beq.w	return_1896
-		move.w	#9,($FFFFF6FA).w
+		move.w	#9,(Plc_Buffer_Reg1A).w
 		moveq	#0,d0
-		move.w	($FFFFF684).w,d0
-		addi.w	#$120, ($FFFFF684).w
+		move.w	(Plc_Buffer+4).w,d0
+		addi.w	#$120, (Plc_Buffer+4).w
 		bra.s	ProcessDPLC_Main
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
 ; Process one PLC from the queue
 ; loc_181A:
 ProcessDPLC2:
-		tst.w	($FFFFF6F8).w
+		tst.w	(Plc_Buffer_Reg18).w
 		beq.s	return_1896
-		move.w	#3,($FFFFF6FA).w
+		move.w	#3,(Plc_Buffer_Reg1A).w
 		moveq	#0,d0
-		move.w	($FFFFF684).w,d0
-		addi.w	#$60,($FFFFF684).w
+		move.w	(Plc_Buffer+4).w,d0
+		addi.w	#$60,(Plc_Buffer+4).w
 ; loc_1832:
 ProcessDPLC_Main:
 		lea	(VDP_control_port).l,a4
@@ -1631,29 +1632,29 @@ ProcessDPLC_Main:
 		swap	d0
 		move.l	d0,(a4)
 		subq.w	#4,a4
-		move.l	($FFFFF680).w,a0
-		move.l	($FFFFF6E0).w,a3
-		move.l	($FFFFF6E4).w,d0
-		move.l	($FFFFF6E8).w,d1
-		move.l	($FFFFF6EC).w,d2
-		move.l	($FFFFF6F0).w,d5
-		move.l	($FFFFF6F4).w,d6
+		move.l	(Plc_Buffer).w,a0
+		move.l	(Plc_Buffer_Reg0).w,a3
+		move.l	(Plc_Buffer_Reg4).w,d0
+		move.l	(Plc_Buffer_Reg8).w,d1
+		move.l	(Plc_Buffer_RegC).w,d2
+		move.l	(Plc_Buffer_Reg10).w,d5
+		move.l	(Plc_Buffer_Reg14).w,d6
 		lea	(Decomp_Buffer).w,a1
 
 loc_1866:
 		move.w	#8,a5
 		bsr.w	NemDec3
-		subq.w	#1,($FFFFF6F8).w
+		subq.w	#1,(Plc_Buffer_Reg18).w
 		beq.s	ProcessDPLC_Pop
-		subq.w	#1,($FFFFF6FA).w
+		subq.w	#1,(Plc_Buffer_Reg1A).w
 		bne.s	loc_1866
-		move.l	a0,($FFFFF680).w
-		move.l	a3,($FFFFF6E0).w
-		move.l	d0,($FFFFF6E4).w
-		move.l	d1,($FFFFF6E8).w
-		move.l	d2,($FFFFF6EC).w
-		move.l	d5,($FFFFF6F0).w
-		move.l	d6,($FFFFF6F4).w
+		move.l	a0,(Plc_Buffer).w
+		move.l	a3,(Plc_Buffer_Reg0).w
+		move.l	d0,(Plc_Buffer_Reg4).w
+		move.l	d1,(Plc_Buffer_Reg8).w
+		move.l	d2,(Plc_Buffer_RegC).w
+		move.l	d5,(Plc_Buffer_Reg10).w
+		move.l	d6,(Plc_Buffer_Reg14).w
 
 return_1896:
 		rts
@@ -1663,12 +1664,11 @@ return_1896:
 ; https://forums.sonicretro.org/index.php?threads/how-to-fix-pattern-load-cues-queue-shifting-bug.28339/
 ; loc_1898:
 ProcessDPLC_Pop:
-		lea	($FFFFF680).w,a0
-		moveq	#$15,d0
+		lea	(Plc_Buffer).w,a0
 
-loc_189E:
-		move.l	6(a0),(a0)+
-		dbf	d0,loc_189E
+		moveq	#bytesToLcnt(Plc_Buffer_Only_End-Plc_Buffer-6),d0
+-		move.l	6(a0),(a0)+
+		dbf	d0,-
 		rts
 ; End of function ProcessDPLC
 
@@ -3684,7 +3684,7 @@ loc_3784:
 loc_3794:
 		move.l	d0,(a1)+
 		dbf	d1,loc_3794
-		lea	($FFFFF700).w,a1
+		lea	(Misc_Variables).w,a1
 		moveq	#0,d0
 		move.w	#$3F,d1
 
@@ -3893,7 +3893,7 @@ LevelSelect_Loop:
 		bsr.w	DelayProgram
 		bsr.w	LevelSelect_Controls
 		bsr.w	RunPLC_RAM
-		tst.l	($FFFFF680).w
+		tst.l	(Plc_Buffer).w
 		bne.s	LevelSelect_Loop
 		andi.b	#$F0,(Ctrl_1_Press).w
 		beq.s	LevelSelect_Loop
@@ -4417,7 +4417,7 @@ Level_ClrRAM:
 -		move.l	d0,(a1)+
 		dbf	d1,-
 
-		lea	($FFFFF700).w,a1
+		lea	(Misc_Variables).w,a1
 		moveq	#0,d0
 		move.w	#$3F,d1
 
@@ -4526,7 +4526,7 @@ Level_TtlCard:
 		move.w	($FFFFB108).w,d0
 		cmp.w	($FFFFB130).w,d0	; has the title card sequence finished?
 		bne.s	Level_TtlCard		; if not, branch
-		tst.l	($FFFFF680).w		; are there any items in the pattern load cue?
+		tst.l	(Plc_Buffer).w		; are there any items in the pattern load cue?
 		bne.s	Level_TtlCard		; if yes, branch
 		jsr	(Head_Up_Display_Base).l
 
@@ -4596,7 +4596,7 @@ loc_4424:
 		move.w  #$0004, (Sonic_Pos_Record_Index).w
 		move.w  #$0000, (Sonic_Pos_Record_Buf).w
 		move.w  #$0000, ($FFFFF790).w
-		move.w  #$0000, ($FFFFF740).w
+		move.w  #$0000, (Demo_button_index_2P).w
 		lea     (Demo_Index).l, A1        ; loc_49F2
 		moveq   #$00, D0
 		move.b  (Current_Zone).w, D0
@@ -4613,8 +4613,8 @@ loc_4498:
 		move.b  $0001(A1), ($FFFFF792).w
 		subq.b  #$01, ($FFFFF792).w
 		lea     (Demo_Tails_Ghz).l, A1   ; loc_4DF8 Green Hill - Tails Demo control
-		move.b  $0001(A1), ($FFFFF742).w
-		subq.b  #$01, ($FFFFF742).w
+		move.b  $0001(A1), (Demo_press_counter_2P).w
+		subq.b  #$01, (Demo_press_counter_2P).w
 		move.w  #$0668, (Demo_Time_left).w
 		tst.w   (Demo_mode_flag).w
 		bpl.s   loc_44D2
@@ -5028,7 +5028,7 @@ loc_491C:
 		cmpi.b  #$00, (Current_Zone).w
 		bne.s   loc_495A
 		lea     ($00FEC000), A1
-		move.w  ($FFFFF740).w, D0
+		move.w  (Demo_button_index_2P).w, D0
 		adda.w  D0, A1
 		move.b  (Ctrl_2_Held).w, D0
 		cmp.b   (A1), D0
@@ -5040,8 +5040,8 @@ loc_491C:
 loc_4946:
 		move.b  D0, $0002(A1)
 		move.b  #$00, $0003(A1)
-		addq.w  #$02, ($FFFFF740).w
-		andi.w  #$03FF, ($FFFFF740).w
+		addq.w  #$02, (Demo_button_index_2P).w
+		andi.w  #$03FF, (Demo_button_index_2P).w
 loc_495A:
 		rts
 Move_Demo_On: ; loc_495C:
@@ -5078,7 +5078,7 @@ loc_49B2:
 		cmpi.b  #$00, (Current_Zone).w
 		bne.s   loc_49EA
 		lea     (Demo_Tails_Ghz).l, A1    ; loc_4DF8
-		move.w  ($FFFFF740).w, D0
+		move.w  (Demo_button_index_2P).w, D0
 		adda.w  D0, A1
 		move.b  (A1), D0
 		lea     (Ctrl_2).w, A0
@@ -5088,10 +5088,10 @@ loc_49B2:
 		move.b  D1, (A0)+
 		and.b   D1, D0
 		move.b  D0, (A0)+
-		subq.b  #$01, ($FFFFF742).w
+		subq.b  #$01, (Demo_press_counter_2P).w
 		bcc.s   loc_49E8
-		move.b  $0003(A1), ($FFFFF742).w
-		addq.w  #$02, ($FFFFF740).w
+		move.b  $0003(A1), (Demo_press_counter_2P).w
+		addq.w  #$02, (Demo_button_index_2P).w
 loc_49E8:
 		rts
 loc_49EA:
@@ -5405,10 +5405,13 @@ Demo_Chemical_Plant: ; loc_50F8: ; $07 - Chemical Plant Sonic Demo control
 JumpToDynamic_Art_Cues: ;  loc_51F8:
 		jmp     Dynamic_Art_Cues ; loc_223EC 
 		dc.w    $0000 ; Filler  
-;===============================================================================
-; Special Stage
-; [ Begin ]               
-;===============================================================================				 
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Sonic 1 Special Stages
+; You can technically "access" them, unlike the Nick Arcade prototype, but
+; it has to be done on less accurate emulators such as Kega; more accurate
+; emulations/hardware tends to hang before or after loading
+; ---------------------------------------------------------------------------
 SpecialStage: ; loc_5200:       
 		move.w  #$00CA, D0
 		bsr.w     PlaySound		; loc_14C6
@@ -5444,7 +5447,7 @@ loc_5260:
 loc_5280:		
 		move.l  D0, (A1)+
 		dbf    D1, loc_5280
-		lea     ($FFFFF700).w, A1
+		lea     (Misc_Variables).w, A1
 		moveq   #$00, D0
 		move.w  #$3F,d1
 loc_5290:		
@@ -5471,8 +5474,8 @@ loc_52B0:
 		move.l  #$00000000, (Camera_Y_pos).w
 		move.b  #$09, ($FFFFB000).w
 		bsr.w     S1_Pal_Cycle_Special_Stage ; loc_5584
-		clr.w   ($FFFFF750).w
-		move.w  #$0040, ($FFFFF752).w
+		clr.w   (SpecialStage_angle).w
+		move.w  #$0040, (SpecialStage_speed).w
 		move.w  #MusID_SpecStg, D0
 		bsr.w     PlayMusic              ; loc_14C0
 		move.w  #$0000, ($FFFFF790).w
@@ -5579,7 +5582,7 @@ loc_5480:
 		bsr.w     RunPLC_RAM              ; loc_17A8
 		tst.w   ($FFFFFE02).w
 		beq.s   loc_5480
-		tst.l   ($FFFFF680).w
+		tst.l   (Plc_Buffer).w
 		bne.s   loc_5480
 		move.w  #$00CA, D0
 		bsr.w     PlaySound		; loc_14C6
@@ -7809,10 +7812,10 @@ loc_6E6C:
 		lea	(Level_Layout).w,a4
 		move.w	#$4000,d2
 
-		tst.b	($FFFFF720).w		; is the screen redraw flag set?
+		tst.b	(Screen_redraw_flag).w	; is the screen redraw flag set?
 		beq.s	Draw_FG			; is not, branch
 
-		move.b	#0,($FFFFF720).w	; clear the flag immediately
+		move.b	#0,(Screen_redraw_flag).w	; clear the flag immediately
 
 		moveq	#-16,d4			; X (relative to camera)
 		moveq	#(1+224/16+1)-1,d6	; cover the screen, plus an extra row at the top and bottom
@@ -13624,7 +13627,7 @@ Time_Game_Over_Index: ; loc_BD84:
 		dc.w    loc_BDCE-Time_Game_Over_Index
 		dc.w    loc_BDF0-Time_Game_Over_Index
 loc_BD8A:
-		tst.l   ($FFFFF680).w
+		tst.l   (Plc_Buffer).w
 		beq.s   loc_BD92
 		rts
 loc_BD92:
@@ -13695,7 +13698,7 @@ Level_Results_Index: ; loc_BE46:
 		dc.w    loc_BEF6-Level_Results_Index
 		dc.w    loc_BF66-Level_Results_Index
 loc_BE4E:
-		tst.l   ($FFFFF680).w
+		tst.l   (Plc_Buffer).w
 		beq.s   loc_BE56
 		rts
 loc_BE56:
@@ -13867,7 +13870,7 @@ SS_Results_Index: ; loc_C076:
 		dc.w    loc_C1A4-SS_Results_Index
 		dc.w    loc_C1D2-SS_Results_Index
 loc_C08C:
-		tst.l   ($FFFFF680).w
+		tst.l   (Plc_Buffer).w
 		beq.s   loc_C094
 		rts
 loc_C094:
@@ -15210,7 +15213,7 @@ BuildSprites:
 		lea	($FFFFF800).w,a2
 		moveq	#0,d5
 		moveq	#0,d4
-		tst.b	($FFFFF711).w
+		tst.b	(Level_started_flag).w
 		beq.s	loc_D4F4
 		bsr.w	loc_E01C
 
@@ -15594,7 +15597,7 @@ Build_Sprites_2p: ; loc_D824:
 		move.l  #$00000001, (A2)+
 		move.l  #$01D80F02, (A2)+
 		move.l  #$00000000, (A2)+
-		tst.b   ($FFFFF711).w
+		tst.b   (Level_started_flag).w
 		beq.s   loc_D854
 		bsr.w     loc_E098
 loc_D854:
@@ -15695,7 +15698,7 @@ loc_D964:
 		lea     (Sprite_Table_2).w, A2
 		moveq   #$00, D5
 		moveq   #$00, D4
-		tst.b   ($FFFFF711).w
+		tst.b   (Level_started_flag).w
 		beq.s   loc_D976
 		bsr.w     loc_E0AE
 loc_D976:
@@ -16172,14 +16175,14 @@ loc_DE30:
 ;========================= Load Ring List - [ Start ] ==========================		 
 Load_Ring_Pos: ; loc_DE34:
 		moveq   #$00, D0
-		move.b  ($FFFFF710).w, D0
+		move.b  (Rings_manager_routine).w, D0
 		move.w  loc_DE42(PC, D0), D0
 		jmp     loc_DE42(PC, D0)
 loc_DE42:  
 		dc.w    loc_DE46-loc_DE42
 		dc.w    loc_DE90-loc_DE42
 loc_DE46: 
-		addq.b  #$02, ($FFFFF710).w
+		addq.b  #$02, (Rings_manager_routine).w
 		bsr.w     loc_E140
 		lea     (Ring_Positions).w, A1
 		move.w  (Camera_X_pos).w, D4
@@ -16192,8 +16195,8 @@ loc_DE5E:
 loc_DE62:
 		cmp.w   $0002(A1), D4
 		bhi.s   loc_DE5E
-		move.w  A1, ($FFFFF712).w
-		move.w  A1, ($FFFFF716).w
+		move.w  A1, (Ring_start_addr).w
+		move.w  A1, (Ring_start_addr_P2).w
 		addi.w  #$0150, D4
 		bra.s   loc_DE7A
 loc_DE76:		
@@ -16201,9 +16204,9 @@ loc_DE76:
 loc_DE7A:
 		cmp.w   $0002(A1), D4
 		bhi.s   loc_DE76   
-		move.w  A1, ($FFFFF714).w
-		move.w  A1, ($FFFFF718).w
-		move.b  #$01, ($FFFFF711).w
+		move.w  A1, (Ring_end_addr).w
+		move.w  A1, (Ring_end_addr_P2).w
+		move.b  #$01, (Level_started_flag).w
 		rts
 loc_DE90:
 		lea     (Ring_consumption_table).w, A2
@@ -16226,7 +16229,7 @@ loc_DE9A:
 loc_DEC2:
 		dbf    D1, loc_DE9A
 loc_DEC6:		
-		move.w  ($FFFFF712).w, A1
+		move.w  (Ring_start_addr).w, A1
 		move.w  (Camera_X_pos).w, D4
 		subq.w  #$08, D4
 		bhi.s   loc_DEDA
@@ -16243,8 +16246,8 @@ loc_DEE2:
 loc_DEE4:
 		cmp.w   -4(A1), D4
 		bls.s   loc_DEE2
-		move.w  A1, ($FFFFF712).w
-		move.w  ($FFFFF714).w, A2
+		move.w  A1, (Ring_start_addr).w
+		move.w  (Ring_end_addr).w, A2
 		addi.w  #$0150, D4
 		bra.s   loc_DEFC
 loc_DEF8:		
@@ -16258,14 +16261,14 @@ loc_DF04:
 loc_DF06:
 		cmp.w   -4(A2), D4
 		bls.s   loc_DF04
-		move.w  A2, ($FFFFF714).w
+		move.w  A2, (Ring_end_addr).w
 		tst.w   ($FFFFFFD8).w
 		bne.s   loc_DF20
-		move.w  A1, ($FFFFF716).w
-		move.w  A2, ($FFFFF718).w
+		move.w  A1, (Ring_start_addr_P2).w
+		move.w  A2, (Ring_end_addr_P2).w
 		rts
 loc_DF20:
-		move.w  ($FFFFF716).w, A1
+		move.w  (Ring_start_addr_P2).w, A1
 		move.w  (Camera_X_pos_P2).w, D4
 		subq.w  #$08, D4
 		bhi.s   loc_DF34
@@ -16282,8 +16285,8 @@ loc_DF3C:
 loc_DF3E:
 		cmp.w   -4(A1), D4
 		bls.s   loc_DF3C
-		move.w  A1, ($FFFFF716).w
-		move.w  ($FFFFF718).w, A2
+		move.w  A1, (Ring_start_addr_P2).w
+		move.w  (Ring_end_addr_P2).w, A2
 		addi.w  #$0150, D4
 		bra.s   loc_DF56
 loc_DF52:
@@ -16297,17 +16300,17 @@ loc_DF5E:
 loc_DF60:
 		cmp.w   -4(A2), D4
 		bls.s   loc_DF5E
-		move.w  A2, ($FFFFF718).w
+		move.w  A2, (Ring_end_addr_P2).w
 		rts
 		
 ;===============================================================================		
 TouchRings: ; loc_DF6C:
-		move.w  ($FFFFF712).w, A1
-		move.w  ($FFFFF714).w, A2
+		move.w  (Ring_start_addr).w, A1
+		move.w  (Ring_end_addr).w, A2
 		cmpa.w  #$B000, A0
 		beq.s   loc_DF82
-		move.w  ($FFFFF716).w, A1
-		move.w  ($FFFFF718).w, A2
+		move.w  (Ring_start_addr_P2).w, A1
+		move.w  (Ring_end_addr_P2).w, A2
 loc_DF82:
 		cmpa.l  A1, A2
 		beq.w    loc_E01A
@@ -16369,8 +16372,8 @@ loc_E010:
 loc_E01A:
 		rts				  
 loc_E01C:
-		move.w  ($FFFFF712).w, A0
-		move.w  ($FFFFF714).w, A4
+		move.w  (Ring_start_addr).w, A0
+		move.w  (Ring_end_addr).w, A4
 		cmpa.l  A0, A4
 		bne.s   loc_E02A
 		rts
@@ -16419,16 +16422,16 @@ loc_E08C:
 loc_E098:
 		lea     (Camera_X_pos).w, A3
 		move.w  #$0078, D6
-		move.w  ($FFFFF712).w, A0
-		move.w  ($FFFFF714).w, A4
+		move.w  (Ring_start_addr).w, A0
+		move.w  (Ring_end_addr).w, A4
 		cmpa.l  A0, A4
 		bne.s   loc_E0C4
 		rts
 loc_E0AE:
 		lea     (Camera_X_pos_P2).w, A3
 		move.w  #$0158, D6
-		move.w  ($FFFFF716).w, A0
-		move.w  ($FFFFF718).w, A4
+		move.w  (Ring_start_addr_P2).w, A0
+		move.w  (Ring_end_addr_P2).w, A4
 		cmpa.l  A0, A4		
 		bne.s   loc_E0C4
 		rts
@@ -20848,16 +20851,16 @@ Tails_Control2: ; loc_10F96:
 		move.b  (Ctrl_2_Held).w, D0
 		andi.b  #$7F, D0
 		beq.s   Tails_ControlNoKeysPressed    ; loc_10FAE
-		move.w  #$0000, ($FFFFF700).w
-		move.w  #$012C, ($FFFFF702).w
+		move.w  #$0000, (unk_F700).w
+		move.w  #$012C, (Tails_control_counter).w
 		rts
 Tails_ControlNoKeysPressed: ; loc_10FAE:
-		tst.w   ($FFFFF702).w
+		tst.w   (Tails_control_counter).w
 		beq.s   Tails_DoControl        ; loc_10FBA
-		subq.w  #$01, ($FFFFF702).w
+		subq.w  #$01, (Tails_control_counter).w
 		rts
 Tails_DoControl: ; loc_10FBA:
-		move.w  ($FFFFF708).w, D0
+		move.w  (Tails_CPU_routine).w, D0
 		move.w  Tails_ControlIndex(PC, D0), D0 ; loc_10FC6
 		jmp     Tails_ControlIndex(PC, D0)     ; loc_10FC6
 Tails_ControlIndex: ; loc_10FC6:
@@ -20866,23 +20869,23 @@ Tails_ControlIndex: ; loc_10FC6:
 		dc.w    Tails_Control_02-Tails_ControlIndex  ; loc_10FEA
 		dc.w    Tails_ControlCopySonicMoves-Tails_ControlIndex ; loc_11024
 Tails_Control_00: ; loc_10FCE:
-		move.w  #$0006, ($FFFFF708).w
+		move.w  #$0006, (Tails_CPU_routine).w
 		rts
 Tails_Control_01: ; loc_10FD6:
-		move.w  #$0006, ($FFFFF708).w
+		move.w  #$0006, (Tails_CPU_routine).w
 		rts
-		move.w  #$0040, ($FFFFF706).w
-		move.w  #$0004, ($FFFFF708).w
+		move.w  #$0040, (unk_F706).w
+		move.w  #$0004, (Tails_CPU_routine).w
 Tails_Control_02: ; loc_10FEA:
-		move.w  #$0006, ($FFFFF708).w
+		move.w  #$0006, (Tails_CPU_routine).w
 		rts
-		move.w  ($FFFFF706).w, D1
+		move.w  (unk_F706).w, D1
 		subq.w  #$01, D1
 		cmpi.w  #$0010, D1
 		bne.s   loc_11004
-		move.w  #$0006, ($FFFFF708).w
+		move.w  #$0006, (Tails_CPU_routine).w
 loc_11004:
-		move.w  D1, ($FFFFF706).w
+		move.w  D1, (unk_F706).w
 		lea     (unk_E600).w, A1
 		lsl.b   #$02, D1
 		addq.b  #$04, D1
@@ -38542,7 +38545,7 @@ S1_SS_Show_Layout: ; loc_21508:
 		bsr.w     loc_2188A
 		move.w  D5, -(A7)
 		lea     (Level_Layout).w, A1
-		move.b  ($FFFFF750).w, D0
+		move.b  (SpecialStage_angle).w, D0
 		andi.b  #$FC, D0
 		jsr    ( CalcSine).l		; loc_320A
 		move.w  D0, D4
@@ -38651,7 +38654,7 @@ loc_21642:
 loc_2164A:
 		lea     (Chunk_Table+$400C), A1
 		moveq   #$00, D0
-		move.b  ($FFFFF750).w, D0
+		move.b  (SpecialStage_angle).w, D0
 		lsr.b   #$02, D0
 		andi.w  #$000F, D0
 		moveq   #$23, D1
@@ -39269,9 +39272,9 @@ SonicInSS_Display: ; loc_21DFA:
 		bsr.w     SonicInSS_ChkItems2     ; loc_2224E
 		jsr     SpeedToPos              ; (loc_D27A)
 		bsr.w     S1SS_FixCamera          ; loc_21F76
-		move.w  ($FFFFF750).w, D0
-		add.w   ($FFFFF752).w, D0
-		move.w  D0, ($FFFFF750).w
+		move.w  (SpecialStage_angle).w, D0
+		add.w   (SpecialStage_speed).w, D0
+		move.w  D0, (SpecialStage_angle).w
 		jsr     Sonic_Animate           ; (loc_10AB2)
 		rts
 SonicInSS_Move: ; loc_21E20:
@@ -39302,7 +39305,7 @@ loc_21E5A:
 loc_21E64:
 		move.w  D0, $0014(A0)
 loc_21E68:
-		move.b  ($FFFFF750).w, D0
+		move.b  (SpecialStage_angle).w, D0
 		addi.b  #$20, D0
 		andi.b  #$C0, D0
 		neg.b   D0
@@ -39390,7 +39393,7 @@ SonicInSS_Jump: ; loc_21F16:
 		move.b  (Ctrl_1_Press_Logical).w, D0
 		andi.b  #$70, D0
 		beq.s   loc_21F58
-		move.b  ($FFFFF750).w, D0
+		move.b  (SpecialStage_angle).w, D0
 		andi.b  #$FC, D0
 		neg.b   D0
 		subi.b  #$40, D0
@@ -39457,21 +39460,21 @@ loc_21F9E:
 ; [ End ]		         
 ;===============================================================================		  
 loc_21FA0:
-		addi.w  #$0040, ($FFFFF752).w
-		cmpi.w  #$1800, ($FFFFF752).w
+		addi.w  #$0040, (SpecialStage_speed).w
+		cmpi.w  #$1800, (SpecialStage_speed).w
 		bne.s   loc_21FB4
 		move.b  #$0C, (Game_Mode).w
 loc_21FB4:
-		cmpi.w  #$3000, ($FFFFF752).w
+		cmpi.w  #$3000, (SpecialStage_speed).w
 		blt.s   loc_21FD2
-		move.w  #$0000, ($FFFFF752).w
-		move.w  #$4000, ($FFFFF750).w
+		move.w  #$0000, (SpecialStage_speed).w
+		move.w  #$4000, (SpecialStage_angle).w
 		addq.b  #$02, $0024(A0)
 		move.w  #$003C, $0038(A0)
 loc_21FD2:
-		move.w  ($FFFFF750).w, D0
-		add.w   ($FFFFF752).w, D0
-		move.w  D0, ($FFFFF750).w
+		move.w  (SpecialStage_angle).w, D0
+		add.w   (SpecialStage_speed).w, D0
+		move.w  D0, (SpecialStage_angle).w
 		jsr     Sonic_Animate           ; (loc_10AB2)
 		jsr     LoadSonicDynPLC  ; (loc_10DDC)
 		bsr.w     S1SS_FixCamera          ; loc_21F76
@@ -39493,7 +39496,7 @@ loc_22000:
 SonicInSS_Fall: ; loc_22016:
 		move.l  $000C(A0), D2
 		move.l  $0008(A0), D3
-		move.b  ($FFFFF750).w, D0
+		move.b  (SpecialStage_angle).w, D0
 		andi.b  #$FC, D0
 		jsr    ( CalcSine).l		; loc_320A
 		move.w  $0010(A0), D4
@@ -39770,9 +39773,9 @@ loc_222FC:
 		tst.b   $0036(A0)
 		bne.w    loc_223E0
 		move.b  #$1E, $0036(A0)
-		btst    #$06, ($FFFFF753).w
+		btst    #$06, (SpecialStage_direction).w
 		beq.s   loc_22326
-		asl.w   ($FFFFF752).w
+		asl.w   (SpecialStage_speed).w
 		move.l  $0032(A0), A1
 		subq.l  #$01, A1
 		move.b  #$2A, (A1)
@@ -39785,9 +39788,9 @@ loc_22330:
 		tst.b   $0036(A0)
 		bne.w    loc_223E0
 		move.b  #$1E, $0036(A0)
-		btst    #$06, ($FFFFF753).w
+		btst    #$06, (SpecialStage_direction).w
 		bne.s   loc_2235A
-		asr.w   ($FFFFF752).w
+		asr.w   (SpecialStage_speed).w
 		move.l  $0032(A0), A1
 		subq.l  #$01, A1
 		move.b  #$29, (A1)
@@ -39807,7 +39810,7 @@ loc_22364:
 		subq.l  #$01, D0
 		move.l  D0, $0004(A2)
 loc_2238C:
-		neg.w   ($FFFFF752).w
+		neg.w   (SpecialStage_speed).w
 		move.w  #$00A9, D0
 		jmp     (PlaySound).l             ; loc_14C6
 loc_2239A:
@@ -40213,10 +40216,10 @@ loc_22870:
 		bcs.s   loc_2286E  
 		cmpi.w  #$1F80, D0
 		bcc.s   loc_2286E
-		subq.b  #$01, ($FFFFF721).w
+		subq.b  #$01, (CPZ_UnkScroll_Timer).w
 		bpl.s   loc_2286E
-		move.b  #$07, ($FFFFF721).w
-		move.b  #$01, ($FFFFF720).w
+		move.b  #$07, (CPZ_UnkScroll_Timer).w
+		move.b  #$01, (Screen_redraw_flag).w
 		lea     (Chunk_Table+$7500), A1
 		bsr.s   loc_228A0
 		lea     (Chunk_Table+$7D00), A1

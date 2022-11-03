@@ -384,15 +384,67 @@ PalCycle_Timer3:		ds.w	1
 				ds.b	$16	; $FFFFF66A-$FFFFF67F ; seems unused
 MiscLevelVariables_End
 
-; $FFFFF680 starting from here
+Plc_Buffer:			ds.b	$60	; Pattern load queue (each entry is 6 bytes)
+Plc_Buffer_Only_End:
+				; these seem to store nemesis decompression state so PLC processing can be spread out across frames
+Plc_Buffer_Reg0:		ds.l	1	
+Plc_Buffer_Reg4:		ds.l	1	
+Plc_Buffer_Reg8:		ds.l	1	
+Plc_Buffer_RegC:		ds.l	1	
+Plc_Buffer_Reg10:		ds.l	1	
+Plc_Buffer_Reg14:		ds.l	1	
+Plc_Buffer_Reg18:		ds.w	1	; amount of current entry remaining to decompress
+Plc_Buffer_Reg1A:		ds.w	1	
+				ds.b	4	; seems unused
+Plc_Buffer_End:
+
+Misc_Variables:
+unk_F700:			ds.w	1	; cleared once in Tails CPU routine, never used
+
+; extra variables for the second player (CPU) in 1-player mode
+Tails_control_counter:		ds.w	1	; how long until the CPU takes control
+				ds.b	2	; $FFFFF704-$FFFFF705 ; seems unused
+unk_F706:			ds.w	1	; used in unused Tails CPU routines
+Tails_CPU_routine:		ds.w	1
+				ds.b	6	; $FFFFF70A-$FFFFF70F ; seems unused
+
+Rings_manager_routine:		ds.b	1
+Level_started_flag:		ds.b	1
+
+Ring_Manager_Addresses:
+Ring_start_addr:		ds.w	1
+Ring_end_addr:			ds.w	1
+Ring_Manager_Addresses_End:
+
+Ring_Manager_Addresses_P2:
+Ring_start_addr_P2:		ds.w	1
+Ring_end_addr_P2:		ds.w	1
+Ring_Manager_Addresses_P2_End:
+				ds.b	6	; $FFFFF71A-$FFFFF71F ; seems unused
+
+Screen_redraw_flag:		ds.b	1	; if whole screen needs to redraw
+CPZ_UnkScroll_Timer:		ds.b	1	; used only in unused CPZ scrolling function
+				ds.b	$E	; $FFFFF722-$FFFFF72F ; seems unused
+Water_flag:			ds.b	1	; if the level has water or oil
+				ds.b	$F	; $FFFFF731-$FFFFF73F ; seems unused
+Demo_button_index_2P:		ds.w	1	; index into button press demo data, for player 2
+Demo_press_counter_2P:		ds.w	1	; frames remaining until next button press, for player 2
+				ds.b	$C	; $FFFFF744-$FFFFF74F ; seems unused
+
+SpecialStage_angle:		ds.w	1	; current angle of Special Stage
+SpecialStage_speed:		ds.b	1	; switches between slow or fast depending on whether the UP/DOWN blocks are hit (also written to next byte)
+SpecialStage_direction:		ds.b	1	; current turning direction
+				ds.b	$C	; $FFFFF754-$FFFFF75F ; seems unused
+
+Sonic_Speeds:
+Sonic_top_speed:		ds.w	1
+Sonic_acceleration:		ds.w	1
+Sonic_deceleration:		ds.w	1
+Sonic_Speeds_End:
+
+; $FFFFF766 starting from here
 		dephase
 		!org 0
-
-Water_flag:			equ $FFFFF730
-
-Sonic_top_speed:		equ $FFFFF760
-Sonic_acceleration:		equ $FFFFF762
-Sonic_deceleration:		equ $FFFFF764
 
 Primary_Angle:			equ $FFFFF768
 Secondary_Angle:		equ $FFFFF76A
