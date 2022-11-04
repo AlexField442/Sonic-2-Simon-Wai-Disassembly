@@ -442,16 +442,95 @@ Sonic_acceleration:		ds.w	1
 Sonic_deceleration:		ds.w	1
 Sonic_Speeds_End:
 
-; $FFFFF766 starting from here
+Sonic_LastLoadedDPLC:		ds.b	1	; mapping frame number when Sonic last had his tiles requested to be transferred from ROM to VRAM. can be set to a dummy value like -1 to force a refresh DMA
+				ds.b	1	; $FFFFF767 ; seems unused
+Primary_Angle:			ds.b	1
+				ds.b	1	; $FFFFF769 ; seems unused
+Secondary_Angle:		ds.b	1
+				ds.b	1	; $FFFFF76B ; seems unused
+Obj_placement_routine:		ds.b	1
+				ds.b	1	; $FFFFF76D ; seems unused
+Camera_X_pos_last:		ds.w	1	; Camera_X_pos_coarse from the previous frame
+Camera_X_pos_last_End:
+
+Object_Manager_Addresses:
+Obj_load_addr_right:		ds.l	1	; contains the address of the next object to load when moving right
+Obj_load_addr_left:		ds.l	1	; contains the address of the last object loaded when moving left
+Object_Manager_Addresses_End:
+
+Object_Manager_Addresses_P2:
+Obj_load_addr_right_P2:		ds.l	1
+Obj_load_addr_left_P2:		ds.l	1
+Object_Manager_Addresses_P2_End:
+
+Object_manager_2P_RAM:	; The next 16 bytes belong to this.
+Object_RAM_block_indices:	ds.b	6	; seems to be an array of horizontal chunk positions, used for object position range checks
+Player_1_loaded_object_blocks:	ds.b	3
+Player_2_loaded_object_blocks:	ds.b	3
+
+Camera_X_pos_last_P2:		ds.w	1
+Camera_X_pos_last_P2_End:
+
+Obj_respawn_index_P2:		ds.b	2	; respawn table indices of the next objects when moving left or right for the second player
+Obj_respawn_index_P2_End:
+Object_manager_2P_RAM_End:
+
+Demo_button_index:		ds.w	1	; index into button press demo data, for player 1
+Demo_press_counter:		ds.b	1	; frames remaining until next button press, for player 1
+				ds.b	1	; $FFFFF793 ; seems unused
+PalChangeSpeed:			ds.w	1
+Collision_addr:			ds.l	1
+
+SSPalCycle_Frame:		ds.w	1
+SSPalCycle_Timer:		ds.w	1
+unk_F79E:			ds.w	1
+unk_F7A0:			ds.w	1
+				ds.b	5	; $FFFFF7A2-$FFFFF7A6 ; seems unused
+Boss_defeated_flag:		ds.b	1
+				ds.b	2	; $FFFFF7A8-$FFFFF7A9 ; seems unused
+Current_Boss_ID:		ds.b	1
+				ds.b	5	; $FFFFF7AB-$FFFFF7AF ; seems unused
+MTZ_Platform_Cog_X:		ds.w	1	; X position of moving MTZ platform for cog animation.
+MTZCylinder_Angle_Sonic:	ds.b	1
+MTZCylinder_Angle_Tails:	ds.b	1
+				ds.b	$A	; $FFFFF7B4-$FFFFF7BD ; seems unused
+BigRingGraphics:		ds.w	1	; S1 holdover
+				ds.b	7	; $FFFFF7C0-$FFFFF7C6 ; seems unused
+WindTunnel_flag:		ds.b	1
+				ds.b	1	; $FFFFF7C8 ; seems unused
+WindTunnel_holding_flag:	ds.b	1
+Sliding_flag:			ds.b	1	; merged into the character's status flag in the final, likely to fix bugs with Tails
+				ds.b	1	; $FFFFF7CB ; seems unused
+Control_Locked:			ds.b	1
+Enter_SpecialStage_flag:	ds.b	1
+				ds.b	2	; $FFFFF7CE-$FFFFF7CF ; seems unused
+Chain_Bonus_counter:		ds.w	1	; counts up when you destroy things that give points, resets when you touch the ground
+Bonus_Countdown_1:		ds.w	1	; level results time bonus
+Bonus_Countdown_2:		ds.w	1	; level results ring bonus
+Update_Bonus_score:		ds.b	1
+				ds.b	3	; $FFFFF7D7-$FFFFF7D9 ; seems unused
+
+Camera_X_pos_coarse:		ds.w	1	; (Camera_X_pos - 128) / 256
+Camera_X_pos_coarse_End:
+
+Camera_X_pos_coarse_P2:		ds.w	1
+Camera_X_pos_coarse_P2_End:
+
+Tails_LastLoadedDPLC:		ds.b	1	; mapping frame number when Tails last had his tiles requested to be transferred from ROM to VRAM. can be set to a dummy value like -1 to force a refresh DMA.
+TailsTails_LastLoadedDPLC:	ds.b	1	; mapping frame number when Tails' tails last had their tiles requested to be transferred from ROM to VRAM. can be set to a dummy value like -1 to force a refresh DMA.
+ButtonVine_Trigger:		ds.b	$10	; 16 bytes flag array, #subtype byte set when button/vine of respective subtype activated
+Anim_Counters:			ds.b	$10	; $FFFFF7F0-$FFFFF7FF
+Misc_Variables_End:
+
+Sprite_Table:			ds.b	$280	; Sprite attribute table buffer
+Sprite_Table_End:
+				; no buffer in this version, although in this case the "Ashura"
+				; glitch only occurs with the underwater palette
+
+; $FFFFFA80 starting from here
 		dephase
 		!org 0
 
-Primary_Angle:			equ $FFFFF768
-Secondary_Angle:		equ $FFFFF76A
-
-Collision_addr:			equ $FFFFF796
-
-WindTunnel_flag:		equ $FFFFF7C7
 
 Debug_placement_mode:		equ $FFFFFE08
 
