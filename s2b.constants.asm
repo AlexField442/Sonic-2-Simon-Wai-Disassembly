@@ -120,6 +120,9 @@ S1MusID_Boss =		MusID_FinalBoss
 S1MusID_ActClear =	MusID_Boss
 S1MusID_Emerald =	MusID_BOZ
 
+; Other sizes
+palette_line_size =	$10*2	; 16 word entries
+
 ; ---------------------------------------------------------------------------
 ; I run the main 68k RAM addresses through this function
 ; to let them work in both 16-bit and 32-bit addressing modes.
@@ -522,28 +525,193 @@ ButtonVine_Trigger:		ds.b	$10	; 16 bytes flag array, #subtype byte set when butt
 Anim_Counters:			ds.b	$10	; $FFFFF7F0-$FFFFF7FF
 Misc_Variables_End:
 
-Sprite_Table:			ds.b	$280	; Sprite attribute table buffer
+Sprite_Table:			ds.b	$200	; Sprite attribute table buffer
 Sprite_Table_End:
-				; no buffer in this version, although in this case the "Ashura"
+				; no buffer in this version, in fact there's actually not ENOUGH RAM
+				; allocated to the sprite table, although in this case the "Ashura"
 				; glitch only occurs with the underwater palette
 
-; $FFFFFA80 starting from here
-		dephase
-		!org 0
+; $FFFFFA00
+Underwater_target_palette:		ds.b palette_line_size	; This is used by the screen-fading subroutines.
+Underwater_target_palette_line2:	ds.b palette_line_size	; While Underwater_palette contains the blacked-out palette caused by the fading,
+Underwater_target_palette_line3:	ds.b palette_line_size	; Underwater_target_palette will contain the palette the screen will ultimately fade in to.
+Underwater_target_palette_line4:	ds.b palette_line_size
 
+Underwater_palette:		ds.b palette_line_size	; main palette for underwater parts of the screen
+Underwater_palette_line2:	ds.b palette_line_size
+Underwater_palette_line3:	ds.b palette_line_size
+Underwater_palette_line4:	ds.b palette_line_size
 
-Debug_placement_mode:		equ $FFFFFE08
+				ds.b	$100	; RESERVED FOR OTHER PALETTES! DO NOT REMOVE!!
 
-Current_ZoneAndAct:		equ $FFFFFE10	; 2 bytes
-Current_Zone:			equ $FFFFFE10	; 1 byte
-Current_Act:			equ $FFFFFE11	; 1 byte
+Object_Respawn_Table:		; $FFFFFC00
+Obj_respawn_index:		ds.b	2	; respawn table indices of the next objects when moving left or right for the first player
+Obj_respawn_index_End:
+Obj_respawn_data:		ds.b	$BE	; for stock S2, $80 is enough
+Obj_respawn_data_End:
+				ds.b	$140	; stack; the first $BE bytes are cleared by ObjectsManager_Init, with possibly disastrous consequences. At least $A0 bytes are needed.
+System_Stack:
 
-Demo_mode_flag:			equ $FFFFFFF0	; 1 if a demo is playing (2 bytes)
-Demo_number:			equ $FFFFFFF2	; which demo will play next (2 bytes)
-Ending_demo_number:		equ $FFFFFFF4 ; zone for the ending demos (2 bytes, unused)
-Graphics_Flags:			equ $FFFFFFF8	; misc. bitfield
-Debug_mode_flag:		equ $FFFFFFFA
-Checksum_fourcc:		equ $FFFFFFFC
+CrossResetRAM:	; RAM in this region will not be cleared after a soft reset.
+
+				ds.b	2	; $FFFFFE00-$FFFFFE01 ; seems unused
+Level_Inactive_flag:		ds.w	1	; (2 bytes)
+Timer_frames:			ds.w	1	; (2 bytes)
+Debug_object:			ds.b	1
+				ds.b	1	; $FFFFFE07 ; seems unused
+Debug_placement_mode:		ds.b	1
+				ds.b	1	; the whole word is tested, but the debug mode code uses only the low byte
+Debug_Accel_Timer:		ds.b	1
+Debug_Speed:			ds.b	1
+Vint_runcount:			ds.l	1
+
+Current_ZoneAndAct:				; 2 bytes
+Current_Zone:			ds.b	1	; 1 byte
+Current_Act:			ds.b	1	; 1 byte
+Life_count:			ds.b	1
+				ds.b	1	; $FFFFFE13 ; seems unused
+Current_Air:			ds.b	1
+				ds.b	1	; $FFFFFE15 ; seems unused
+
+Current_Special_Stage:		ds.b	1
+				ds.b	1	; $FFFFFE17 ; seems unused
+Continue_count:			ds.b	1	; only cleared, never used
+				ds.b	1	; $FFFFFE19 ; seems unused
+Time_Over_flag:			ds.b	1
+Extra_life_flags:		ds.b	1
+
+; If set, the respective HUD element will be updated.
+Update_HUD_lives:		ds.b	1
+Update_HUD_rings:		ds.b	1
+Update_HUD_timer:		ds.b	1
+Update_HUD_score:		ds.b	1
+
+Ring_count:			ds.w	1	; 2 bytes
+Timer:						; 4 bytes
+				ds.b	1	; filler
+Timer_minute:			ds.b	1	; 1 byte
+Timer_second:			ds.b	1	; 1 byte
+Timer_frame:			ds.b	1	; 1 byte
+
+Score:				ds.l	1	; 4 bytes
+				ds.b	2	; $FFFFFE2A-$FFFFFE2B ; seems unused
+Shield:				ds.b	1
+Invincibility:			ds.b	1
+Speed_shoes:			ds.b	1
+unk_FE2F:			ds.b	1	; cleared once, never used
+
+Last_star_pole_hit:		ds.b	1	; 1 byte -- max activated starpole ID in this act
+Saved_Last_star_pole_hit:	ds.b	1
+Saved_x_pos:			ds.w	1
+Saved_y_pos:			ds.w	1
+Saved_Ring_count:		ds.w	1
+Saved_Timer:			ds.l	1
+Saved_Dynamic_Resize_Routine:	ds.b	1
+				ds.b	1	; $FFFFFE3D ; seems unused
+Saved_Camera_Max_Y_pos:		ds.w	1
+Saved_Camera_X_pos:		ds.w	1
+Saved_Camera_Y_pos:		ds.w	1
+Saved_Camera_BG_X_pos:		ds.w	1
+Saved_Camera_BG_Y_pos:		ds.w	1
+Saved_Camera_BG2_X_pos:		ds.w	1
+Saved_Camera_BG2_Y_pos:		ds.w	1
+Saved_Camera_BG3_X_pos:		ds.w	1
+Saved_Camera_BG3_Y_pos:		ds.w	1
+Saved_Water_Level:		ds.w	1
+Saved_Water_routine:		ds.b	1
+Saved_Water_move:		ds.b	1
+Saved_Extra_life_flags:		ds.b	1
+				ds.b	2	; $FFFFFE55-$FFFFFE56 ; seems unused
+Emerald_count:			ds.b	1
+Got_Emeralds_array:		ds.b	6	; 8 bytes are cleared
+
+Oscillating_Numbers:
+Oscillation_Control:		ds.w	1
+Oscillating_variables:
+Oscillating_Data:		ds.w	$20
+Oscillating_Numbers_End
+
+				; Fun Fact: when documenting the last of the ROM, I forgot to add this,
+				; causing the rest to be incorrect
+				ds.b	$20	; $FFFFFEA0-$FFFFFEBF ; seems unused
+
+SpecialStage_anim_counter:
+Logspike_anim_counter:		ds.b	1
+SpecialStage_anim_frame:
+Logspike_anim_frame:		ds.b	1
+SpecialStage2_anim_counter:
+Rings_anim_counter:		ds.b	1
+SpecialStage2_anim_frame:
+Rings_anim_frame:		ds.b	1
+SpecialStage3_anim_counter:
+Unknown_anim_counter:		ds.b	1
+SpecialStage3_anim_frame:
+Unknown_anim_frame:		ds.b	1
+SpecialStage4_anim_counter:
+Ring_spill_anim_counter:	ds.b	1	; scattered rings
+SpecialStage4_anim_frame:
+Ring_spill_anim_frame:		ds.b	1
+Ring_spill_anim_accum:		ds.w	1
+				ds.b	6	; $FFFFFEC9-$FFFFFECF ; seems unused
+Oscillating_variables_End
+				ds.b	$20	; $FFFFFED0-$FFFFFEEF ; seems unused
+
+Camera_Min_Y_pos_Debug_Copy:	ds.w	1
+Camera_Max_Y_pos_Debug_Copy:	ds.w	1
+				ds.b	$4C	; $FFFFFEF4-$FFFFFF3F ; seems unused
+
+Perfect_rings_left:		ds.w	1
+				ds.b	$3E	; $FFFFFF42-$FFFFFF7F ; seems unused
+
+LevSel_HoldTimer:		ds.w	1
+Level_select_zone:		ds.w	1
+Sound_test_sound:		ds.w	1
+				ds.b	$3A	; $FFFFFF86-$FFFFFFBF ; seems unused
+Next_Extra_life_score:		ds.l	1
+				ds.b	$C	; $FFFFFFC4-$FFFFFFCF ; seems unused
+
+Level_select_flag:		ds.b	1
+Slow_motion_flag:		ds.b	1
+Debug_options_flag:		ds.b	1	; if set, allows you to enable debug mode and "night mode"
+Hidden_credits_flag:		ds.b	1	; leftover from Sonic 1
+Correct_cheat_entries:		ds.w	1
+Correct_cheat_entries_2:	ds.w	1
+
+Two_player_mode:		ds.w	1	; flag (0 for main game)
+unk_FFDA:			ds.w	1	; cleared once at title screen, never read from
+				ds.b	4	; $FFFFFFDC-$FFFFFFDF ; seems to be unused
+
+; Values in these variables are passed to the sound driver during V-INT.
+; They use a playlist index, not a sound test index.
+SoundQueue STRUCT DOTS
+	Music0:	ds.b	1
+	SFX0:	ds.b	1
+	SFX1:	ds.b	1
+	SFX2:	ds.b	1 ; This one is never used, since nothing ever gets written to it.
+SoundQueue ENDSTRUCT
+
+Sound_Queue:			SoundQueue
+
+				ds.b	$C	; $FFFFFFE4-$FFFFFFEF ; seems unused
+
+Demo_mode_flag:			ds.w	1 ; 1 if a demo is playing (2 bytes)
+Demo_number:			ds.w	1 ; which demo will play next (2 bytes)
+Ending_demo_number:		ds.w	1 ; zone for the ending demos (2 bytes, unused)
+				ds.w	1
+Graphics_Flags:			ds.w	1 ; misc. bitfield
+Debug_mode_flag:		ds.w	1 ; (2 bytes)
+Checksum_fourcc:		ds.l	1 ; (4 bytes)
+
+CrossResetRAM_End:
+
+RAM_End
+
+    if * > 0	; Don't declare more space than the RAM can contain!
+	fatal "The RAM variable declarations are too large by $\{*} bytes."
+    endif
+
+	dephase
+	!org 0
 
 ; ---------------------------------------------------------------------------
 ; VDP addressses
