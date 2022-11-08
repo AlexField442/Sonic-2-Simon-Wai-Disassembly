@@ -16627,7 +16627,7 @@ ObjectsManager_Init:
 		move.l	a0,(Obj_load_addr_left).w
 		move.l	a0,(Obj_load_addr_right_P2).w
 		move.l	a0,(Obj_load_addr_left_P2).w
-		lea	($FFFFFC00).w,a2
+		lea	(Object_Respawn_Table).w,a2
 		move.w	#$0101,(a2)+	; the first two bytes are not used as respawn values
 		; Instead, they are used to keep track of the current respawn indexes
 
