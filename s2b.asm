@@ -471,7 +471,7 @@ loc_BDA:
 		bne.s	loc_C1E
 		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
-		move.l	#$96FD9580,(a5)
+		move.l	#(($9600|((((Normal_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Normal_palette)>>1)&$FF)),(a5)
 		move.w	#$977F,(a5)
 		move.w	#$C000,(a5)
 		move.w	#$80,(DMA_data_thunk).w
@@ -574,7 +574,7 @@ Vint_Level:
 		bne.s	loc_D92
 		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
-		move.l	#$96FD9580,(a5)
+		move.l	#(($9600|((((Normal_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Normal_palette)>>1)&$FF)),(a5)
 		move.w	#$977F,(a5)
 		move.w	#$C000,(a5)
 		move.w	#$80,(DMA_data_thunk).w
@@ -649,7 +649,7 @@ Vint_S1SS:
 		bsr.w	ReadJoypads
 		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
-		move.l	#$96FD9580,(a5)
+		move.l	#(($9600|((((Normal_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Normal_palette)>>1)&$FF)),(a5)
 		move.w	#$977F,(a5)
 		move.w	#$C000,(a5)
 		move.w	#$80,(DMA_data_thunk).w
@@ -687,7 +687,7 @@ Vint_TitleCard:
 		bne.s	loc_F5A
 		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
-		move.l	#$96FD9580,(a5)
+		move.l	#(($9600|((((Normal_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Normal_palette)>>1)&$FF)),(a5)
 		move.w	#$977F,(a5)
 		move.w	#$C000,(a5)
 		move.w	#$80,(DMA_data_thunk).w
@@ -698,7 +698,7 @@ Vint_TitleCard:
 loc_F5A:
 		lea     (VDP_control_port).l,a5
 		move.l  #$94009340,(a5)
-		move.l  #$96FD9540,(a5)
+		move.l	#(($9600|((((Underwater_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Underwater_palette)>>1)&$FF)),(a5)
 		move.w  #$977F,(a5)
 		move.w  #$C000,(a5)
 		move.w  #$80,(DMA_data_thunk).w
@@ -751,7 +751,7 @@ Vint_SSResults:
 		bsr.w	ReadJoypads
 		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
-		move.l	#$96FD9580,(a5)
+		move.l	#(($9600|((((Normal_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Normal_palette)>>1)&$FF)),(a5)
 		move.w	#$977F,(a5)
 		move.w	#$C000,(a5)
 		move.w	#$80,(DMA_data_thunk).w
@@ -789,7 +789,7 @@ Do_ControllerPal:
 		bne.s	loc_1100
 		lea	(VDP_control_port).l,a5
 		move.l	#$94009340,(a5)
-		move.l	#$96FD9580,(a5)
+		move.l	#(($9600|((((Normal_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Normal_palette)>>1)&$FF)),(a5)
 		move.w	#$977F,(a5)
 		move.w	#$C000,(a5)
 		move.w	#$80,(DMA_data_thunk).w
@@ -2620,8 +2620,8 @@ PalCycle_GHz: ; loc_1F54: ; $00 - Green Hill Rotating Palette routine
 		addq.w  #$01, (PalCycle_Frame).w
 		andi.w  #$0003, D0
 		lsl.w   #$03, D0
-		move.l  $00(A0, D0), ($FFFFFB26).w
-		move.l  $04(A0, D0), ($FFFFFB3C).w
+		move.l  $00(A0, D0), (Normal_palette_line2+6).w
+		move.l  $04(A0, D0), (Normal_palette_line2+$1C).w
 loc_1F80:
 		rts  
 PalCycle_Wz: ; loc_1F82: ; $02 - Wood Rotating Palette routine
@@ -2634,7 +2634,7 @@ PalCycle_Wz: ; loc_1F82: ; $02 - Wood Rotating Palette routine
 		bcc.s   loc_1FA4
 		move.w  #$0006, (PalCycle_Frame).w		 
 loc_1FA4:
-		lea     ($FFFFFB66).w, A1
+		lea     (Normal_palette_line4+6).w, A1
 		move.l  $00(A0, D0), (A1)+
 		move.l  $04(A0, D0), (A1)
 loc_1FB0:		
@@ -2650,7 +2650,7 @@ PalCycle_Mz: ; loc_1FB2: ; $04/$05 - Metropolis Rotating Palette routine
 		bcs.s   loc_1FDA
 		move.w  #$0000, (PalCycle_Frame).w
 loc_1FDA:
-		lea     ($FFFFFB4A).w, A1
+		lea     (Normal_palette_line3+$A).w, A1
 		move.w  $00(A0, D0), (A1)
 loc_1FE2:
 		subq.w  #$01, (PalCycle_Timer2).w
@@ -2663,7 +2663,7 @@ loc_1FE2:
 		bcs.s   loc_200A
 		move.w  #$0000, (PalCycle_Frame2).w
 loc_200A:
-		lea     ($FFFFFB42).w, A1
+		lea     (Normal_palette_line3+2).w, A1
 		move.l  $00(A0, D0), (A1)+
 		move.w  $04(A0, D0), (A1)
 loc_2016:
@@ -2677,7 +2677,7 @@ loc_2016:
 		bcs.s   loc_203E
 		move.w  #$0000, (PalCycle_Frame3).w
 loc_203E:
-		lea     ($FFFFFB5E).w, A1
+		lea     (Normal_palette_line3+$1E).w, A1
 		move.w  $00(A0, D0), (A1)
 loc_2046:
 		rts		
@@ -2691,8 +2691,8 @@ PalCycle_HTz: ; loc_2048: ; $07 - Hill Top Rotating Palette routine
 		andi.w  #$000F, D0
 		move.b  Pal_HTzCyc2(PC, D0), (PalCycle_Timer+1).w  ; loc_207C
 		lsl.w   #$03, D0
-		move.l  $00(A0, D0), ($FFFFFB26).w
-		move.l  $04(A0, D0), ($FFFFFB3C).w 
+		move.l  $00(A0, D0), (Normal_palette_line2+6).w
+		move.l  $04(A0, D0), (Normal_palette_line2+$1C).w 
 loc_207A:
 		rts		  
 Pal_HTzCyc2: ; loc_207C:
@@ -2707,7 +2707,7 @@ PalCycle_HPz: ; loc_208C: ; $08 - Hidden Palace Rotating Palette routine
 		bcc.s   loc_20AE
 		move.w  #$0006, (PalCycle_Frame).w
 loc_20AE:
-		lea     ($FFFFFB72).w, A1
+		lea     (Normal_palette_line4+$12).w, A1
 		move.l  $00(A0, D0), (A1)+
 		move.l  $04(A0, D0), (A1)
 		lea     (Pal_HPzCyc2).l, A0       ; loc_2370
@@ -2724,7 +2724,7 @@ PalCycle_OOz: ; loc_20CE: ; $0A - Oil Ocean Rotating Palette routine
 		move.w  (PalCycle_Frame).w, D0
 		addq.w  #$02, (PalCycle_Frame).w
 		andi.w  #$0006, (PalCycle_Frame).w
-		lea     ($FFFFFB54).w, A1
+		lea     (Normal_palette_line3+$14).w, A1
 		move.l  $00(A0, D0), (A1)+
 		move.l  $04(A0, D0), (A1)
 loc_20FA:
@@ -2737,7 +2737,7 @@ PalCycle_DHz: ; loc_20FC: ; $0B - Dust Hill Rotating Palette routine
 		move.w  (PalCycle_Frame).w, D0
 		addq.w  #$02, (PalCycle_Frame).w
 		andi.w  #$0006, (PalCycle_Frame).w
-		move.w  $00(A0, D0), ($FFFFFB36).w
+		move.w  $00(A0, D0), (Normal_palette_line2+$16).w
 loc_2122:
 		rts
 PalCycle_CNz: ; loc_2124: ; $0C - Casino Night Rotating Palette routine
@@ -2752,7 +2752,7 @@ PalCycle_CNz: ; loc_2124: ; $0C - Casino Night Rotating Palette routine
 		move.w  #$0000, (PalCycle_Frame).w
 loc_214E:
 		lea     $00(A0, D0), A0
-		lea     ($FFFFFB00).w, A1
+		lea     (Normal_palette).w, A1
 		_move.w  0(A0), $004A(A1)
 		move.w  $0006(A0), $004C(A1)
 		move.w  $000C(A0), $004E(A1)
@@ -2771,7 +2771,7 @@ loc_214E:
 		bcs.s   loc_21B2
 		move.w  #$0000, (PalCycle_Frame2).w
 loc_21B2:
-		lea     ($FFFFFB72).w, A1
+		lea     (Normal_palette_line4+$12).w, A1
 		move.w  $00(A0, D0), (A1)+
 		move.w  $1C(A0, D0), (A1)+
 		move.w  $38(A0, D0), (A1)+
@@ -2788,7 +2788,7 @@ PalCycle_CPz: ; loc_21C4: ; $0D - Chemical Plant Rotating Palette routine
 		bcs.s   loc_21EC
 		move.w  #$0000, (PalCycle_Frame).w
 loc_21EC:
-		lea     ($FFFFFB78).w, A1
+		lea     (Normal_palette_line4+$18).w, A1
 		move.l  $00(A0, D0), (A1)+
 		move.w  $04(A0, D0), (A1)
 		lea     (Pal_CPzCyc2).l, A0       ; loc_2458
@@ -2798,12 +2798,12 @@ loc_21EC:
 		bcs.s   loc_2214
 		move.w  #$0000, (PalCycle_Frame2).w
 loc_2214:
-		move.w  $00(A0, D0), ($FFFFFB7E).w
+		move.w  $00(A0, D0), (Normal_palette_line4+$1E).w
 		lea     (Pal_CPzCyc3).l, A0       ; loc_2482
 		move.w  (PalCycle_Frame3).w, D0
 		addq.w  #$02, (PalCycle_Frame3).w
 		andi.w  #$001E, (PalCycle_Frame3).w
-		move.w  $00(A0, D0), ($FFFFFB5E).w
+		move.w  $00(A0, D0), (Normal_palette_line3+$1E).w
 loc_2234:
 		rts		
 PalCycle_NGHz: ; loc_2236: ; $0F - Neo Green Hill Rotating Palette routine
@@ -2815,7 +2815,7 @@ PalCycle_NGHz: ; loc_2236: ; $0F - Neo Green Hill Rotating Palette routine
 		addq.w  #$01, (PalCycle_Frame).w
 		andi.w  #$0003, D0
 		lsl.w   #$03, D0
-		lea     ($FFFFFB44).w, A1
+		lea     (Normal_palette_line3+4).w, A1
 		move.l  $00(A0, D0), (A1)+
 		move.l  $04(A0, D0), (A1)
 loc_2262:
@@ -2892,7 +2892,7 @@ loc_24A2:
 		bcs.s   loc_24D2
 		move.b  #$FF, (Super_Sonic_palette).w
 loc_24D2:
-		lea     ($FFFFFB04).w, A1
+		lea     (Normal_palette+4).w, A1
 		move.l  $00(A0, D0), (A1)+
 		move.l  $04(A0, D0), (A1)
 loc_24DE:
@@ -2908,7 +2908,7 @@ loc_24E0:
 		bcs.s   loc_2508
 		move.w  #$0030, (Palette_frame).w
 loc_2508:
-		lea     ($FFFFFB04).w, A1
+		lea     (Normal_palette+4).w, A1
 		move.l  $00(A0, D0), (A1)+
 		move.l  $04(A0, D0), (A1)
 		rts
@@ -2935,7 +2935,7 @@ Pal_FadeFromBlack:
 ; loc_259C: Pal_FadeTo2:
 Pal_FadeFromBlack2:
 		moveq	#0,d0
-		lea	($FFFFFB00).w,a0
+		lea	(Normal_palette).w,a0
 		move.b	(Palette_fade_start).w,d0
 		adda.w	d0,a0
 		moveq	#0,d1
@@ -2963,8 +2963,8 @@ Pal_FadeFromBlack2:
 ; sub_25CE: Pal_FadeIn:
 .UpdateAllColours:
 		moveq   #$00, D0
-		lea     ($FFFFFB00).w, A0
-		lea     ($FFFFFB80).w, A1
+		lea     (Normal_palette).w, A0
+		lea     (Target_palette).w, A1
 		move.b  (Palette_fade_start).w, D0
 		adda.w  D0, A0
 		adda.w  D0, A1
@@ -3022,7 +3022,7 @@ loc_2644:
 		rts
 Pal_FadeOut: ; loc_265A:		
 		moveq   #$00, D0
-		lea     ($FFFFFB00).w, A0
+		lea     (Normal_palette).w, A0
 		move.b  (Palette_fade_start).w, D0
 		adda.w  D0, A0
 		move.b  (Palette_fade_length).w, D0
@@ -3064,7 +3064,7 @@ Pal_NoDec: ; loc_26B4:
 Pal_MakeWhite: ; loc_26B8:               ; Special Stage Blank Screen
 		move.w  #$003F, (Palette_fade_range).w
 		moveq   #$00, D0
-		lea     ($FFFFFB00).w, A0
+		lea     (Normal_palette).w, A0
 		move.b  (Palette_fade_start).w, D0
 		adda.w  D0, A0
 		move.w  #$0EEE, D1
@@ -3082,8 +3082,8 @@ loc_26DC:
 		rts
 Pal_WhiteToBlack: ; loc_26F2:
 		moveq   #$00, D0
-		lea     ($FFFFFB00).w, A0
-		lea     ($FFFFFB80).w, A1
+		lea     (Normal_palette).w, A0
+		lea     (Target_palette).w, A1
 		move.b  (Palette_fade_start).w, D0
 		adda.w  D0, A0
 		adda.w  D0, A1
@@ -3143,7 +3143,7 @@ loc_276C:
 		rts
 Pal_ToWhite: ; loc_2782:
 		moveq   #$00, D0
-		lea     ($FFFFFB00).w, A0
+		lea     (Normal_palette).w, A0
 		move.b  (Palette_fade_start).w, D0
 		adda.w  D0, A0
 		move.b  (Palette_fade_length).w, D0
@@ -3189,7 +3189,7 @@ loc_27EC:
 PalCycle_Sega: ; loc_27F0: ; "Sega" Logo rotating Palette
 		tst.b   (PalCycle_Timer+1).w
 		bne.s   loc_2850
-		lea     ($FFFFFB20).w, A1
+		lea     (Normal_palette_line2).w, A1
 		lea     (Pal_Sega1).l, A0  ; loc_28A6 ; Load "Sega" Logo Palette
 		moveq   #$05, D1
 		move.w  (PalCycle_Frame).w, D0
@@ -3240,11 +3240,11 @@ loc_286E:
 		move.w  D0, (PalCycle_Frame).w
 		lea     (Pal_Sega2).l, A0 ; loc_28B2 ; Load "Sega" Logo Palette
 		lea     $00(A0, D0), A0
-		lea     ($FFFFFB04).w, A1
+		lea     (Normal_palette+4).w, A1
 		move.l  (A0)+, (A1)+
 		move.l  (A0)+, (A1)+
 		move.w  (A0)+, (A1)
-		lea     ($FFFFFB20).w, A1
+		lea     (Normal_palette_line2).w, A1
 		moveq   #$00, D0
 		moveq   #$2C, D1
 loc_288E:		
@@ -3698,9 +3698,9 @@ loc_37A4:
 loc_37B4:
 		move.l	d0,(a1)+
 		dbf	d1,loc_37B4
-		lea	($FFFFFB80).w,a1
+		lea	(Target_palette).w,a1
 		moveq	#0,d0
-		move.w	#$1F,d1
+		move.w	#bytesToLcnt(Target_palette_End-Target_palette),d1
 
 loc_37C4:
 		move.l	d0,(a1)+
@@ -5688,7 +5688,7 @@ loc_55B4:
 		bmi.s   loc_560A
 		lea     (Pal_S1_SS_Cycle1).l, A1  ; loc_56EC
 		adda.w  D0, A1
-		lea     ($FFFFFB4E).w, A2
+		lea     (Normal_palette_line3+$E).w, A2
 		move.l  (A1)+, (A2)+
 		move.l  (A1)+, (A2)+
 		move.l  (A1)+, (A2)+
@@ -5706,17 +5706,17 @@ loc_5616:
 		andi.w  #$007F, D0
 		bclr    #$00, D0
 		beq.s   loc_563A
-		lea     ($FFFFFB6E).w, A2
+		lea     (Normal_palette_line4+$E).w, A2
 		move.l  (A1), (A2)+
 		move.l  $0004(A1), (A2)+
 		move.l  $0008(A1), (A2)+
 loc_563A:		
 		adda.w  #$000C, A1
-		lea     ($FFFFFB5A).w, A2
+		lea     (Normal_palette_line3+$1A).w, A2
 		cmpi.w  #$000A, D0
 		bcs.s   loc_5650
 		subi.w  #$000A, D0
-		lea     ($FFFFFB7A).w, A2
+		lea     (Normal_palette_line4+$1A).w, A2
 loc_5650:      
 		move.w  D0, D1   
 		add.w   D0, D0  
@@ -37186,7 +37186,7 @@ loc_1FBA8:
 		move.w  #$00AC, D0
 		jsr     (PlaySound).l             ; loc_14C6
 loc_1FBD2:
-		lea     ($FFFFFB22).w, A1
+		lea     (Normal_palette_line2+2).w, A1
 		moveq   #$00, D0
 		tst.w   (A1)
 		bne.s   loc_1FBE0
@@ -37981,8 +37981,8 @@ Obj8A_Init:
 		beq.s	Obj8A_Display
 		cmpi.b	#$72,(Ctrl_1_Held).w
 		bne.s	Obj8A_Display
-		move.w	#$EEE,($FFFFFBC0).w
-		move.w	#$880,($FFFFFBC2).w
+		move.w	#$EEE,(Target_palette_line3).w
+		move.w	#$880,(Target_palette_line3+2).w
 		jmp	(DeleteObject).l
 
 ; loc_207C0:
