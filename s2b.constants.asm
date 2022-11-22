@@ -70,6 +70,14 @@ PalID_SpecStg =		id(PalPtr_SpecStg)
 S1PalID_SpecStg =	PalID_CPZ_U	; leftover from Sonic 1 Special Stage
 PalID_CNZ2 =		PalID_BLZ	; loaded in CNZ2; identical to CNZ1 palette
 
+; PLC IDs
+offset :=	ArtLoadCues
+ptrsize :=	2
+idstart :=	0
+
+PLCID_Std1 =		id(PLCptr_Std1)
+PLCID_Std2 =		id(PLCptr_Std2)
+
 ; Music IDs
 offset :=	zMasterPlaylist
 ptrsize :=	1
@@ -142,10 +150,14 @@ Block_Table_End:
 
 TempArray_LayerDef:		ds.b	$200	; used by some layer deformation routines
 Decomp_Buffer:			ds.b	$200
+Decomp_Buffer_End:
 Sprite_Table_Input:		ds.b	$400	; in custom format before being converted and stored in Sprite_Table/Sprite_Table_2
 Sprite_Table_Input_End:
 
+; haven't gotten to documenting this yet, but this is here for clearRAM
+Object_RAM:
 				ds.b	$2000 ; RESERVED FOR OBJECT RAM, DO NOT REMOVE!!!
+Object_RAM_End:
 
 Primary_Collision:		ds.b	$600
 Secondary_Collision:		ds.b	$600
@@ -725,5 +737,47 @@ RAM_End
 
 ; ---------------------------------------------------------------------------
 ; VDP addressses
-VDP_data_port:			equ $C00000 ; (8=r/w, 16=r/w)
-VDP_control_port:		equ $C00004 ; (8=r/w, 16=r/w)
+VDP_data_port =			$C00000 ; (8=r/w, 16=r/w)
+VDP_control_port =		$C00004 ; (8=r/w, 16=r/w)
+PSG_input =			$C00011
+
+; ---------------------------------------------------------------------------
+; Z80 addresses
+Z80_RAM =			$A00000 ; start of Z80 RAM
+Z80_RAM_End =			$A02000 ; end of non-reserved Z80 RAM
+Z80_Bus_Request =		$A11100
+Z80_Reset =			$A11200
+
+Security_Addr =			$A14000
+
+; ---------------------------------------------------------------------------
+; I/O Area 
+HW_Version =			$A10001
+HW_Port_1_Data =		$A10003
+HW_Port_2_Data =		$A10005
+HW_Expansion_Data =		$A10007
+HW_Port_1_Control =		$A10009
+HW_Port_2_Control =		$A1000B
+HW_Expansion_Control =		$A1000D
+HW_Port_1_TxData =		$A1000F
+HW_Port_1_RxData =		$A10011
+HW_Port_1_SCtrl =		$A10013
+HW_Port_2_TxData =		$A10015
+HW_Port_2_RxData =		$A10017
+HW_Port_2_SCtrl =		$A10019
+HW_Expansion_TxData =		$A1001B
+HW_Expansion_RxData =		$A1001D
+HW_Expansion_SCtrl =		$A1001F
+
+; ---------------------------------------------------------------------------
+; VRAM and tile art base addresses.
+; VRAM Reserved regions.
+VRAM_Plane_A_Name_Table                  = $C000	; Extends until $CFFF
+VRAM_Plane_B_Name_Table                  = $E000	; Extends until $EFFF
+VRAM_Plane_A_Name_Table_2P               = $A000	; Extends until $AFFF
+VRAM_Plane_B_Name_Table_2P               = $8000	; Extends until $8FFF
+VRAM_Plane_Table_Size                    = $1000	; 64 cells x 32 cells x 2 bytes per cell
+VRAM_Sprite_Attribute_Table              = $F800	; Extends until $FA7F
+VRAM_Sprite_Attribute_Table_Size         = $0280	; 640 bytes
+VRAM_Horiz_Scroll_Table                  = $FC00	; Extends until $FF7F
+VRAM_Horiz_Scroll_Table_Size             = $0380	; 224 lines * 2 bytes per entry * 2 PNTs

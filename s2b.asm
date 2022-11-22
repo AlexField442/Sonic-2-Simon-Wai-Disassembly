@@ -100,85 +100,171 @@ ErrorTrap:
 ; ===========================================================================
 ; loc_206:
 EntryPoint:
-		tst.l	($A10008).l
+		tst.l	(HW_Port_1_Control-1).l
 		bne.s	PortA_OK
-		tst.w	($A1000C).l
+		tst.w	(HW_Expansion_Control-1).l
 ; loc_214:
 PortA_OK:
-		bne.s   PortC_OK		; loc_292
-		lea     InitValues(PC), A5      ; loc_294
-		movem.w (A5)+, D5-D7 
-		movem.l (A5)+, A0-A4 
-		move.b	-$10FF(A1), D0
-		andi.b  #$0F, D0
-		beq.s   SkipSecurity            ; loc_234
-		move.l  #'SEGA', $2F00(A1) 
-SkipSecurity: ; loc_234:				 
-		move.w  (A4), D0
-		moveq   #$00, D0
-		move.l  D0, A6
-		move    A6, USP
-		moveq   #$17, D1
-VDPInitLoop: ; loc_23E:		
-		move.b  (A5)+, D5
-		move.w  D5, (A4)
-		add.w   D7, D5
-		dbf    D1, VDPInitLoop         ; loc_23E
-		move.l  (A5)+, (A4)
-		move.w  D0, (A3)  
-		move.w  D7, (A1)               
-		move.w  D7, (A2)
-WaitForZ80: ; loc_250:		   
-		btst    D0, (A1)
-		bne.s   WaitForZ80              ; loc_250
-		moveq   #$25, D2
-Z80InitLoop: ; loc_256:		 
-		move.b  (A5)+, (A0)+
-		dbf    D2, Z80InitLoop         ; loc_256
-		move.w  D0, (A2)
-		move.w  D0, (A1)
-		move.w  D7, (A2)
-ClearRAMLoop: ; loc_262:		  
-		move.l  D0, -(A6)
-		dbf    D6, ClearRAMLoop        ; loc_262
-		move.l  (A5)+, (A4)
-		move.l  (A5)+, (A4)
-		moveq   #$1F, D3 
-ClearCRAMLoop: ; loc_26E:		 
-		move.l  D0, (A3)
-		dbf    D3, ClearCRAMLoop       ; loc_26E
-		move.l  (A5)+, (A4)
-		moveq   #$13, D4 
-ClearVSRAMLoop: ; loc_278: 
-		move.l  D0, (A3) 
-		dbf    D4, ClearVSRAMLoop      ; loc_278   
-		moveq   #$03, D5
-PSGInitLoop: ; loc_280:		    
-		move.b  (A5)+, $0011(A3) 
-		dbf    D5, PSGInitLoop         ; loc_280   
-		move.w  D0, (A2)   
-		movem.l (A6), D0-A6
-		move    #$2700, SR 
-PortC_OK: ; loc_292:		
-		bra.s   GameProgram             ; loc_300 
-InitValues: ; loc_294:		 
-		dc.w    $8000, $3FFF, $0100     ; Z80 RAM start	location
-		dc.l    $00A00000               ; Z80 bus request
-		dc.l    $00A11100               ; Z80 reset
-		dc.l    $00A11200               ; VDP data port
-		dc.l    VDP_data_port               ; VDP control port
-		dc.l    VDP_control_port
-		dc.w    $0414, $303C, $076C, $0000, $0000, $FF00, $8137, $0001
-		dc.w    $0100, $00FF, $FF00, $0080, $4000, $0080, $AF01, $D91F
-		dc.w    $1127, $0021, $2600, $F977, $EDB0, $DDE1, $FDE1, $ED47
-		dc.w    $ED4F, $D1E1, $F108, $D9C1, $D1E1, $F1F9, $F3ED, $5636
-		dc.w    $E9E9, $8104, $8F02, $C000, $0000, $4000, $0010, $9FBF
-		dc.w    $DFFF
+		bne.s	PortC_OK		; skip the VDP and Z80 setup code if port A, B or C is ok...?
+		lea	SetupValues(pc),a5	; load setup values array address
+		movem.w	(a5)+,d5-d7
+		movem.l	(a5)+,a0-a4
+		move.b	HW_Version-Z80_Bus_Request(a1),d0	; get hardware version
+		andi.b	#$F,d0
+		beq.s	SkipSecurity		; if the console has no TMSS, skip the security stuff
+		move.l	#'SEGA',Security_Addr-Z80_Bus_Request(a1)	; satisfy the TMSS
+; loc_234:
+SkipSecurity:
+		move.w	(a4),d0	; check if VDP works
+		moveq	#0,d0	; clear d0
+		movea.l	d0,a6	; clear a6
+		move	a6,usp	; set usp to $0
+
+		moveq	#VDPInitValues_End-VDPInitValues-1,d1 ; run the following loop $18 times
+; loc_23E:
+VDPInitLoop:
+		move.b	(a5)+,d5	; add $8000 to value
+		move.w	d5,(a4)	; move value to VDP register
+		add.w	d7,d5	; next register
+		dbf	d1,VDPInitLoop
+
+		move.l	(a5)+,(a4)	; set VRAM write mode
+		move.w	d0,(a3)	; clear the screen
+		move.w	d7,(a1)	; stop the Z80
+		move.w	d7,(a2)	; reset the Z80
+; loc_250:
+WaitForZ80:
+		btst	d0,(a1)	; has the Z80 stopped?
+		bne.s	WaitForZ80	; if not, branch
+
+		moveq	#Z80StartupCodeEnd-Z80StartupCodeBegin-1,d2
+; loc_256:
+Z80InitLoop:
+		move.b	(a5)+,(a0)+
+		dbf	d2,Z80InitLoop
+
+		move.w	d0,(a2)
+		move.w	d0,(a1)	; start the Z80
+		move.w	d7,(a2)	; reset the Z80
+; loc_262:
+ClrRAMLoop:
+		move.l	d0,-(a6)	; clear 4 bytes of RAM
+		dbf	d6,ClrRAMLoop	; repeat until the entire RAM is clear
+		move.l	(a5)+,(a4)	; set VDP display mode and increment mode
+		move.l	(a5)+,(a4)	; set VDP to CRAM write
+
+		moveq	#bytesToLcnt($80),d3	; set repeat times
+; loc_26E:
+ClrCRAMLoop:
+		move.l	d0,(a3)	; clear 2 palettes
+		dbf	d3,ClrCRAMLoop	; repeat until the entire CRAM is clear
+		move.l	(a5)+,(a4)	; set VDP to VSRAM write
+
+		moveq	#bytesToLcnt($50),d4	; set repeat times
+; loc_278: ClrVDPStuff:
+ClrVSRAMLoop:
+		move.l	d0,(a3)	; clear 4 bytes of VSRAM.
+		dbf	d4,ClrVSRAMLoop	; repeat until the entire VSRAM is clear
+		moveq	#PSGInitValues_End-PSGInitValues-1,d5	; set repeat times.
+; loc_280:
+PSGInitLoop:
+		move.b	(a5)+,PSG_input-VDP_data_port(a3) ; reset the PSG
+		dbf	d5,PSGInitLoop	; repeat for other channels
+		move.w	d0,(a2)
+		movem.l	(a6),d0-a6	; clear all registers
+		move	#$2700,sr	; set the sr
+ ; loc_292:
+PortC_OK:
+		bra.s	GameProgram	; Branch to game program.
 ; ===========================================================================
+; byte_294: InitValues:
+SetupValues:
+		dc.w	$8000,bytesToLcnt($10000),$100
+
+		dc.l	Z80_RAM
+		dc.l	Z80_Bus_Request
+		dc.l	Z80_Reset
+		dc.l	VDP_data_port, VDP_control_port
+
+VDPInitValues:	; values for VDP registers
+		dc.b 4			; Command $8004 - HInt off, Enable HV counter read
+		dc.b $14		; Command $8114 - Display off, VInt off, DMA on, PAL off
+		dc.b $30		; Command $8230 - Scroll A Address $C000
+		dc.b $3C		; Command $833C - Window Address $F000
+		dc.b 7			; Command $8407 - Scroll B Address $E000
+		dc.b $6C		; Command $856C - Sprite Table Address $D800
+		dc.b 0			; Command $8600 - Null
+		dc.b 0			; Command $8700 - Background color Pal 0 Color 0
+		dc.b 0			; Command $8800 - Null
+		dc.b 0			; Command $8900 - Null
+		dc.b $FF		; Command $8AFF - Hint timing $FF scanlines
+		dc.b 0			; Command $8B00 - Ext Int off, VScroll full, HScroll full
+		dc.b $81		; Command $8C81 - 40 cell mode, shadow/highlight off, no interlace
+		dc.b $37		; Command $8D37 - HScroll Table Address $DC00
+		dc.b 0			; Command $8E00 - Null
+		dc.b 1			; Command $8F01 - VDP auto increment 1 byte
+		dc.b 1			; Command $9001 - 64x32 cell scroll size
+		dc.b 0			; Command $9100 - Window H left side, Base Point 0
+		dc.b 0			; Command $9200 - Window V upside, Base Point 0
+		dc.b $FF		; Command $93FF - DMA Length Counter $FFFF
+		dc.b $FF		; Command $94FF - See above
+		dc.b 0			; Command $9500 - DMA Source Address $0
+		dc.b 0			; Command $9600 - See above
+		dc.b $80		; Command $9780	- See above + VRAM fill mode
+VDPInitValues_End:
+
+		dc.l	vdpComm($0000,VRAM,DMA) ; value for VRAM write mode
+
+	; Z80 instructions (not the sound driver; that gets loaded later)
+Z80StartupCodeBegin: ; loc_2CA:
+    save
+    CPU Z80 ; start assembling Z80 code
+    phase 0 ; pretend we're at address 0
+		xor	a	; clear a to 0
+		ld	bc,((Z80_RAM_End-Z80_RAM)-zStartupCodeEndLoc)-1 ; prepare to loop this many times
+		ld	de,zStartupCodeEndLoc+1	; initial destination address
+		ld	hl,zStartupCodeEndLoc	; initial source address
+		ld	sp,hl	; set the address the stack starts at
+		ld	(hl),a	; set first byte of the stack to 0
+		ldir		; loop to fill the stack (entire remaining available Z80 RAM) with 0
+		pop	ix	; clear ix
+		pop	iy	; clear iy
+		ld	i,a	; clear i
+		ld	r,a	; clear r
+		pop	de	; clear de
+		pop	hl	; clear hl
+		pop	af	; clear af
+		ex	af,af'	; swap af with af'
+		exx		; swap bc/de/hl with their shadow registers too
+		pop	bc	; clear bc
+		pop	de	; clear de
+		pop	hl	; clear hl
+		pop	af	; clear af
+		ld	sp,hl	; clear sp
+		di		; clear iff1 (for interrupt handler)
+		im	1	; interrupt handling mode = 1
+		ld	(hl),0E9h ; replace the first instruction with a jump to itself
+		jp	(hl)	  ; jump to the first instruction (to stay there forever)
+zStartupCodeEndLoc:
+    dephase ; stop pretending
+	restore
+    padding off ; unfortunately our flags got reset so we have to set them again...
+Z80StartupCodeEnd:
+
+		dc.w	$8104	; value for VDP display mode
+		dc.w	$8F02	; value for VDP increment
+		dc.l	vdpComm($0000,CRAM,WRITE)	; value for CRAM write mode
+		dc.l	vdpComm($0000,VSRAM,WRITE)	; value for VSRAM write mode
+
+PSGInitValues:
+		dc.b	$9F,$BF,$DF,$FF	; values for PSG channel volumes
+PSGInitValues_End:
+; ===========================================================================
+		even
 ; loc_300:
 GameProgram:
 		tst.w	(VDP_control_port).l
-		btst	#6,($A1000D).l
+		btst	#6,(HW_Expansion_Control).l
 		beq.s	ChecksumTest
 		cmpi.l	#'init',(Checksum_fourcc).w
 		beq.w	GameInit
@@ -205,7 +291,7 @@ ChecksumLoop:
 GameClrStack:               
 		move.l	d7,(a6)+
 		dbf	d6,GameClrStack
-		move.b	($A10001).l,d0
+		move.b	(HW_Version).l,d0
 		andi.b	#$C0,d0
 		move.b	d0,(Graphics_Flags).w
 		move.l	#'init',(Checksum_fourcc).w
@@ -253,71 +339,103 @@ Checksum_Red:
 Checksum_Loop:
 		bra.s	Checksum_Loop
 ; ===========================================================================
-BusError: ; loc_3CE:
-		move.b  #$02, (Object_Respawn_Table+$44).w
-		bra.s   ErrorMsg_TwoAddresses   ; loc_432
-AddressError: ; loc_3D6:		
-		move.b  #$04, (Object_Respawn_Table+$44).w
-		bra.s   ErrorMsg_TwoAddresses   ; loc_432
-IllegalInstr: ; loc_3DE:		
-		move.b  #$06, (Object_Respawn_Table+$44).w
-		addq.l  #$02, $0002(A7)
-		bra.s   ErrorMessage            ; loc_45A
-ZeroDivide: ; loc_3EA:		
-		move.b  #$08, (Object_Respawn_Table+$44).w
-		bra.s   ErrorMessage            ; loc_45A
-ChkInstr: ; loc_3F2:		
-		move.b  #$0A, (Object_Respawn_Table+$44).w
-		bra.s   ErrorMessage            ; loc_45A
-TrapvInstr: ; loc_3FA:		
-		move.b  #$0C, (Object_Respawn_Table+$44).w
-		bra.s   ErrorMessage            ; loc_45A             
-PrivilegeViol: ; loc_402:
-		move.b  #$0E, (Object_Respawn_Table+$44).w
-		bra.s   ErrorMessage            ; loc_45A  
-Trace: ; loc_40A:
-		move.b  #$10, (Object_Respawn_Table+$44).w
-		bra.s   ErrorMessage            ; loc_45A 
-Line1010Emu: ; loc_412:
-		move.b  #$12, (Object_Respawn_Table+$44).w
-		addq.l  #$02, $0002(A7)
-		bra.s   ErrorMessage            ; loc_45A		 
-Line1111Emu: ; loc_41E:
-		move.b  #$14, (Object_Respawn_Table+$44).w
-		addq.l  #$02, $0002(A7)
-		bra.s   ErrorMessage            ; loc_45A 
-ErrorExcept: ; loc_42A:
-		move.b  #$00, (Object_Respawn_Table+$44).w
-		bra.s   ErrorMessage            ; loc_45A 
-ErrorMsg_TwoAddresses: ; loc_432: 
-		move    #$2700, SR
-		addq.w  #$02, A7
-		move.l  (A7)+, (Object_Respawn_Table+$40).w
-		addq.w  #$02, A7
-		movem.l D0-A7, (Object_Respawn_Table).w
-		bsr.w     ShowErrorMsg            ; loc_480
-		move.l  $0002(A7), D0
-		bsr.w     ShowErrAddress          ; loc_5B2
-		move.l  (Object_Respawn_Table+$40).w, D0
-		bsr.w     ShowErrAddress          ; loc_5B2
-		bra.s   ErrorMsg_Wait           ; loc_470		  
-ErrorMessage: ; loc_45A:
-		move    #$2700, SR
-		movem.l D0-A7, (Object_Respawn_Table).w
-		bsr.w     ShowErrorMsg            ; loc_480
-		move.l  $0002(A7), D0
-		bsr.w     ShowErrAddress          ; loc_5B2
-ErrorMsg_Wait: ; loc_470:
-		bsr.w     Error_WaitForC          ; loc_5D8 
-		movem.l (Object_Respawn_Table).w, D0-A7  
-		move    #$2300, SR
+; loc_3CE:
+BusError:
+		move.b	#2,(Object_Respawn_Table+$44).w
+		bra.s	ErrorMsg_TwoAddresses
+; ---------------------------------------------------------------------------
+; loc_3D6:
+AddressError:
+		move.b	#4,(Object_Respawn_Table+$44).w
+		bra.s	ErrorMsg_TwoAddresses
+; ---------------------------------------------------------------------------
+; loc_3DE:
+IllegalInstr:
+		move.b	#6,(Object_Respawn_Table+$44).w
+		addq.l	#2,2(sp)
+		bra.s	ErrorMessage
+; ---------------------------------------------------------------------------
+; loc_3EA:
+ZeroDivide:
+		move.b	#8,(Object_Respawn_Table+$44).w
+		bra.s	ErrorMessage
+; ---------------------------------------------------------------------------
+; loc_3F2:
+ChkInstr:
+		move.b	#$A,(Object_Respawn_Table+$44).w
+		bra.s	ErrorMessage
+; ---------------------------------------------------------------------------
+; loc_3FA:
+TrapvInstr:
+		move.b	#$C,(Object_Respawn_Table+$44).w
+		bra.s	ErrorMessage
+; ---------------------------------------------------------------------------
+; loc_402:
+PrivilegeViol:
+		move.b	#$E,(Object_Respawn_Table+$44).w
+		bra.s	ErrorMessage
+; ---------------------------------------------------------------------------
+; loc_40A:
+Trace:
+		move.b	#$10,(Object_Respawn_Table+$44).w
+		bra.s	ErrorMessage
+; ---------------------------------------------------------------------------
+; loc_412:
+Line1010Emu:
+		move.b	#$12,(Object_Respawn_Table+$44).w
+		addq.l	#2,2(sp)
+		bra.s	ErrorMessage
+; ---------------------------------------------------------------------------
+; loc_41E:
+Line1111Emu:
+		move.b	#$14,(Object_Respawn_Table+$44).w
+		addq.l	#2,2(sp)
+		bra.s	ErrorMessage
+; ---------------------------------------------------------------------------
+; loc_42A:
+ErrorExcept:
+		move.b	#0,(Object_Respawn_Table+$44).w
+		bra.s	ErrorMessage
+; ===========================================================================
+; sub_432:
+ErrorMsg_TwoAddresses:
+		move	#$2700,sr
+		addq.w	#2,sp
+		move.l	(sp)+,(Object_Respawn_Table+$40).w
+		addq.w	#2,sp
+		movem.l	d0-a7,(Object_Respawn_Table).w
+		bsr.w	ShowErrorMsg
+		move.l	2(sp),d0
+		bsr.w	ShowErrAddress
+		move.l	(Object_Respawn_Table+$40).w,d0
+		bsr.w	ShowErrAddress
+		bra.s	ErrorMsg_Wait
+; ---------------------------------------------------------------------------
+; loc_45A:		  
+ErrorMessage:
+		move	#$2700,sr
+		movem.l	d0-a7,(Object_Respawn_Table).w
+		bsr.w	ShowErrorMsg
+		move.l	2(sp),d0
+		bsr.w	ShowErrAddress
+; loc_470:
+ErrorMsg_Wait:
+		bsr.w	Error_WaitForC
+		movem.l	(Object_Respawn_Table).w,d0-a7
+		move	#$2300,sr
 		rte
 ; ===========================================================================
-; loc_480:
+; ---------------------------------------------------------------------------
+; Subroutine to load an error message
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_480:
 ShowErrorMsg:
 		lea	(VDP_data_port).l,a6
 		move.l	#$78000003,(VDP_control_port).l
-		lea	(Art_Text).l,a0
+		lea	(ArtUnc_DbgText).l,a0
 		move.w	#$27F,d1
 ; loc_49A;
 Error_LoadGfx:
@@ -363,32 +481,51 @@ ErrTxt_Trace:		dc.b "TRACE              "
 ErrTxt_Line1010Emu:	dc.b "LINE 1010 EMULATOR "
 ErrTxt_Line1111Emu:	dc.b "LINE 1111 EMULATOR "
 		even
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Subroutine to load address of where the error occurred
+; ---------------------------------------------------------------------------
 
-ShowErrAddress: ; loc_5B2:
-		move.w  #$07CA, (A6)
-		moveq   #$07, D2 
-ShowErrAddress_DigitLoop: ; loc_5B8:		
-		rol.l   #$04, D0
-		bsr.s   ShowErrDigit            ; loc_5C2
-		dbf    D2, ShowErrAddress_DigitLoop ; loc_5B8
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_5B2:
+ShowErrAddress:
+		move.w	#$7CA,(a6)
+		moveq	#7,d2
+
+-		rol.l	#4,d0
+		bsr.s	ShowErrDigit
+		dbf	d2,-
 		rts
-ShowErrDigit: ; loc_5C2:   
-		move.w  D0, D1
-		andi.w  #$000F, D1
-		cmpi.w  #$000A, D1
-		bcs.s   ShowErrDigit_NoOverflow ; loc_5D0
-		addq.w  #$07, D1
-ShowErrDigit_NoOverflow: ; loc_5D0:		
-		addi.w  #$07C0, D1 
-		move.w  D1, (A6)
+; ---------------------------------------------------------------------------
+; loc_5C2:
+ShowErrDigit:
+		move.w	d0,d1
+		andi.w	#$F,d1
+		cmpi.w	#$A,d1
+		bcs.s	ShowErrDigit_NoOverflow
+		addq.w	#7,d1
+; loc_5D0:
+ShowErrDigit_NoOverflow:
+		addi.w	#$7C0,d1
+		move.w	d1,(a6)
 		rts
-Error_WaitForC: ; loc_5D8:
-		bsr.w     ReadJoypads             ; loc_132C
-		cmpi.b  #$20, (Ctrl_1_Press).w
-		bne.w     Error_WaitForC          ; loc_5D8
-		rts 
-Art_Text:	BINCLUDE	"data\sprites\art_menu.dat"
+; ---------------------------------------------------------------------------
+; loc_5D8:
+Error_WaitForC:
+		bsr.w	ReadJoypads
+		cmpi.b	#$20,(Ctrl_1_Press).w
+		bne.w	Error_WaitForC
+		rts
+; End of function ShowErrAddress
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Uncompressed art
+; Text for level select and error messages	; ArtUnc_5E8: Art_Text:
+ArtUnc_DbgText:	BINCLUDE	"art/uncompressed/Error message and level select text.bin"
 		even
+
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; vertical and horizontal interrupt handlers
 ; VERTICAL INTERRUPT HANDLER:
@@ -469,24 +606,12 @@ loc_BDA:
 		stopZ80
 		tst.b	(Water_fullscreen_flag).w
 		bne.s	loc_C1E
-		lea	(VDP_control_port).l,a5
-		move.l	#$94009340,(a5)
-		move.l	#(($9600|((((Normal_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Normal_palette)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$C000,(a5)
-		move.w	#$80,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
+		dma68kToVDP Normal_palette,$0000,palette_line_size*4,CRAM
 		bra.s	loc_C42
 ; ---------------------------------------------------------------------------
 
 loc_C1E:
-		lea	(VDP_control_port).l,a5
-		move.l	#$94009340,(a5)
-		move.l	#(($9600|((((Underwater_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Underwater_palette)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$C000,(a5)
-		move.w	#$80,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
+		dma68kToVDP Underwater_palette,$0000,palette_line_size*4,CRAM
 
 loc_C42:
 		move.w	(Hint_counter_reserve).w,(a5)
@@ -513,13 +638,7 @@ loc_C88:
 		move.w	#$8230,(VDP_control_port).l
 		move.l	(Vscroll_Factor_P2).w,(Vscroll_Factor_P2_HInt).w
 		stopZ80
-		lea	(VDP_control_port).l,a5
-		move.l	#$94019340,(a5)
-		move.l	#(($9600|((((Sprite_Table)>>1)&$FF00)>>8))<<16)|($9500|(((Sprite_Table)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7800,(a5)
-		move.w	#$83,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
+		dma68kToVDP Sprite_Table,VRAM_Sprite_Attribute_Table,VRAM_Sprite_Attribute_Table_Size,VRAM
 		jsr	(sndDriverInput).l
 		startZ80
 		bra.w	VintRet
@@ -572,42 +691,18 @@ Vint_Level:
 		bsr.w	ReadJoypads
 		tst.b	(Water_fullscreen_flag).w
 		bne.s	loc_D92
-		lea	(VDP_control_port).l,a5
-		move.l	#$94009340,(a5)
-		move.l	#(($9600|((((Normal_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Normal_palette)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$C000,(a5)
-		move.w	#$80,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
+		dma68kToVDP Normal_palette,$0000,palette_line_size*4,CRAM
 		bra.s	loc_DB6
 ; ---------------------------------------------------------------------------
 
 loc_D92:
-		lea	(VDP_control_port).l,a5
-		move.l	#$94009340,(a5)
-		move.l	#(($9600|((((Underwater_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Underwater_palette)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$C000,(a5)
-		move.w	#$80,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
+		dma68kToVDP Underwater_palette,$0000,palette_line_size*4,CRAM
 
 loc_DB6:
 		move.w	(Hint_counter_reserve).w,(a5)
 		move.w	#$8230,(VDP_control_port).l
-		lea	(VDP_control_port).l,a5
-		move.l	#$940193C0,(a5)
-		move.l	#(($9600|((((Horiz_Scroll_Buf)>>1)&$FF00)>>8))<<16)|($9500|(((Horiz_Scroll_Buf)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7C00,(a5)
-		move.w	#$83,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
-		lea	(VDP_control_port).l,a5
-		move.l	#$94019340,(a5)
-		move.l	#(($9600|((((Sprite_Table)>>1)&$FF00)>>8))<<16)|($9500|(((Sprite_Table)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7800,(a5)
-		move.w	#$83,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
+		dma68kToVDP Horiz_Scroll_Buf,VRAM_Horiz_Scroll_Table,VRAM_Horiz_Scroll_Table_Size,VRAM
+		dma68kToVDP Sprite_Table,VRAM_Sprite_Attribute_Table,VRAM_Sprite_Attribute_Table_Size,VRAM
 		bsr.w	ProcessDMAQueue
 		jsr	(sndDriverInput).l
 		startZ80
@@ -647,27 +742,9 @@ return_E70:
 Vint_S1SS:
 		stopZ80
 		bsr.w	ReadJoypads
-		lea	(VDP_control_port).l,a5
-		move.l	#$94009340,(a5)
-		move.l	#(($9600|((((Normal_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Normal_palette)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$C000,(a5)
-		move.w	#$80,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
-		lea	(VDP_control_port).l,a5
-		move.l	#$94019340,(a5)
-		move.l	#(($9600|((((Sprite_Table)>>1)&$FF00)>>8))<<16)|($9500|(((Sprite_Table)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7800,(a5)
-		move.w	#$83,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
-		lea	(VDP_control_port).l,a5
-		move.l	#$940193C0,(a5)
-		move.l	#(($9600|((((Horiz_Scroll_Buf)>>1)&$FF00)>>8))<<16)|($9500|(((Horiz_Scroll_Buf)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7C00,(a5)
-		move.w	#$83,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
+		dma68kToVDP Normal_palette,$0000,palette_line_size*4,CRAM
+		dma68kToVDP Sprite_Table,VRAM_Sprite_Attribute_Table,VRAM_Sprite_Attribute_Table_Size,VRAM
+		dma68kToVDP Horiz_Scroll_Buf,VRAM_Horiz_Scroll_Table,VRAM_Horiz_Scroll_Table_Size,VRAM
 		bsr.w	ProcessDMAQueue
 		jsr	(sndDriverInput).l
 		startZ80
@@ -685,41 +762,17 @@ Vint_TitleCard:
 		bsr.w	ReadJoypads
 		tst.b	(Water_fullscreen_flag).w
 		bne.s	loc_F5A
-		lea	(VDP_control_port).l,a5
-		move.l	#$94009340,(a5)
-		move.l	#(($9600|((((Normal_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Normal_palette)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$C000,(a5)
-		move.w	#$80,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
+		dma68kToVDP Normal_palette,$0000,palette_line_size*4,CRAM
 		bra.s	loc_F7E
 ; ---------------------------------------------------------------------------
 
 loc_F5A:
-		lea     (VDP_control_port).l,a5
-		move.l  #$94009340,(a5)
-		move.l	#(($9600|((((Underwater_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Underwater_palette)>>1)&$FF)),(a5)
-		move.w  #$977F,(a5)
-		move.w  #$C000,(a5)
-		move.w  #$80,(DMA_data_thunk).w
-		move.w  (DMA_data_thunk).w,(a5)
+		dma68kToVDP Underwater_palette,$0000,palette_line_size*4,CRAM
 
 loc_F7E:
 		move.w	(Hint_counter_reserve).w,(a5)
-		lea	(VDP_control_port).l,a5
-		move.l	#$940193C0,(a5)
-		move.l	#(($9600|((((Horiz_Scroll_Buf)>>1)&$FF00)>>8))<<16)|($9500|(((Horiz_Scroll_Buf)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7C00,(a5)
-		move.w	#$83,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
-		lea	(VDP_control_port).l,a5
-		move.l	#$94019340,(a5)
-		move.l	#(($9600|((((Sprite_Table)>>1)&$FF00)>>8))<<16)|($9500|(((Sprite_Table)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7800,(a5)
-		move.w	#$83,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
+		dma68kToVDP Horiz_Scroll_Buf,VRAM_Horiz_Scroll_Table,VRAM_Horiz_Scroll_Table_Size,VRAM
+		dma68kToVDP Sprite_Table,VRAM_Sprite_Attribute_Table,VRAM_Sprite_Attribute_Table_Size,VRAM
 		bsr.w	ProcessDMAQueue
 		jsr	(sndDriverInput).l
 		startZ80
@@ -749,27 +802,9 @@ Vint_Fade:
 Vint_SSResults:
 		stopZ80
 		bsr.w	ReadJoypads
-		lea	(VDP_control_port).l,a5
-		move.l	#$94009340,(a5)
-		move.l	#(($9600|((((Normal_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Normal_palette)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$C000,(a5)
-		move.w	#$80,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
-		lea	(VDP_control_port).l,a5
-		move.l	#$94019340,(a5)
-		move.l	#(($9600|((((Sprite_Table)>>1)&$FF00)>>8))<<16)|($9500|(((Sprite_Table)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7800,(a5)
-		move.w	#$83,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
-		lea	(VDP_control_port).l,a5
-		move.l	#$940193C0,(a5)
-		move.l	#(($9600|((((Horiz_Scroll_Buf)>>1)&$FF00)>>8))<<16)|($9500|(((Horiz_Scroll_Buf)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7C00,(a5)
-		move.w	#$83,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
+		dma68kToVDP Normal_palette,$0000,palette_line_size*4,CRAM
+		dma68kToVDP Sprite_Table,VRAM_Sprite_Attribute_Table,VRAM_Sprite_Attribute_Table_Size,VRAM
+		dma68kToVDP Horiz_Scroll_Buf,VRAM_Horiz_Scroll_Table,VRAM_Horiz_Scroll_Table_Size,VRAM
 		jsr	(sndDriverInput).l
 		startZ80
 		tst.w	(Demo_Time_left).w
@@ -787,40 +822,16 @@ Do_ControllerPal:
 		bsr.w	ReadJoypads
 		tst.b	(Water_fullscreen_flag).w
 		bne.s	loc_1100
-		lea	(VDP_control_port).l,a5
-		move.l	#$94009340,(a5)
-		move.l	#(($9600|((((Normal_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Normal_palette)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$C000,(a5)
-		move.w	#$80,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
+		dma68kToVDP Normal_palette,$0000,palette_line_size*4,CRAM
 		bra.s	loc_1124
 ; ---------------------------------------------------------------------------
 
 loc_1100:
-		lea	(VDP_control_port).l,a5
-		move.l	#$94009340,(a5)
-		move.l	#(($9600|((((Underwater_palette)>>1)&$FF00)>>8))<<16)|($9500|(((Underwater_palette)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$C000,(a5)
-		move.w	#$80,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
+		dma68kToVDP Underwater_palette,$0000,palette_line_size*4,CRAM
 
 loc_1124:
-		lea	(VDP_control_port).l,a5
-		move.l	#$94019340,(a5)
-		move.l	#(($9600|((((Sprite_Table)>>1)&$FF00)>>8))<<16)|($9500|(((Sprite_Table)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7800,(a5)
-		move.w	#$83,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
-		lea	(VDP_control_port).l,a5
-		move.l	#$940193C0,(a5)
-		move.l	#(($9600|((((Horiz_Scroll_Buf)>>1)&$FF00)>>8))<<16)|($9500|(((Horiz_Scroll_Buf)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7C00,(a5)
-		move.w	#$83,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5)
+		dma68kToVDP Sprite_Table,VRAM_Sprite_Attribute_Table,VRAM_Sprite_Attribute_Table_Size,VRAM
+		dma68kToVDP Horiz_Scroll_Buf,VRAM_Horiz_Scroll_Table,VRAM_Horiz_Scroll_Table_Size,VRAM
 		jsr	(sndDriverInput).l
 		startZ80
 		rts
@@ -848,13 +859,7 @@ loc_1196:
 		move.l	#$40000010,(VDP_control_port).l
 		move.l	(Vscroll_Factor_P2_HInt).w,(VDP_data_port).l
 		stopZ80
-		lea	(VDP_control_port).l,a5
-		move.l	#$94019340,(a5)
-		move.l	#(($9600|((((Sprite_Table_2)>>1)&$FF00)>>8))<<16)|($9500|(((Sprite_Table_2)>>1)&$FF)),(a5)
-		move.w	#$977F,(a5)
-		move.w	#$7800,(a5)
-		move.w	#$83,(DMA_data_thunk).w
-		move.w	(DMA_data_thunk).w,(a5) 
+		dma68kToVDP Sprite_Table_2,VRAM_Sprite_Attribute_Table,VRAM_Sprite_Attribute_Table_Size,VRAM
 		startZ80
 
 loc_1208:
@@ -903,7 +908,7 @@ loc_129A:
 ; loc_12AC:
 sndDriverInput:
 		lea	(Sound_Queue).l,a0
-		lea	($A01B80).l,a1
+		lea	(Z80_RAM+$1B80).l,a1
 
 		cmpi.b	#$80,8(a1)	; is the sound driver still processing a request?
 		bne.s	loc_12E0	; if yes, branch
@@ -947,9 +952,9 @@ loc_12F6:
 JoypadInit: 
 		stopZ80
 		moveq	#$40,d0
-		move.b	d0,($A10009).l	; init port 1 (joypad 1)
-		move.b	d0,($A1000B).l	; init port 2 (joypad 2)
-		move.b	d0,($A1000D).l	; init port 3 (expansion/extra)
+		move.b	d0,(HW_Port_1_Control).l	; init port 1 (joypad 1)
+		move.b	d0,(HW_Port_2_Control).l	; init port 2 (joypad 2)
+		move.b	d0,(HW_Expansion_Control).l	; init port 3 (expansion/extra)
 		startZ80
 		rts
 ; End of function JoypadInit
@@ -963,7 +968,7 @@ JoypadInit:
 ; sub_132C:
 ReadJoypads:
 		lea	(Ctrl_1).w,a0		; address where joypad states are written
-		lea	($A10003).l,a1		; first joypad port
+		lea	(HW_Port_1_Data).l,a1	; first joypad port
 		bsr.s	Joypad_Read		; do the first joypad
 		addq.w	#2,a1			; do the second joypad
 ; loc_133A:
@@ -1034,44 +1039,43 @@ VDPReg_01: ; loc_13F4:
 		dc.w    $8134, $8230, $8328, $8407, $857C, $8600, $8700, $8800
 		dc.w    $8900, $8A00, $8B00, $8C81, $8D3F, $8E00, $8F02, $9001
 		dc.w    $9100, $9200
-ClearScreen: ; loc_1418:
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_1418:
+ClearScreen:
 		stopZ80
-		lea     (VDP_control_port), A5  
-		move.w  #$8F01, (A5)  
-		move.l  #$940F93FF, (A5)
-		move.w  #$9780, (A5)
-		move.l  #$40000083, (A5)
-		move.w  #$0000, (VDP_data_port) 
-ClearScreen_DMAWait: ; loc_144C:		   
-		move.w  (A5), D1  
-		btst    #$01, D1 
-		bne.s   ClearScreen_DMAWait     ; loc_144C 
-		move.w  #$8F02, (A5)  
-		lea     (VDP_control_port), A5    
-		move.w  #$8F01, (A5)  
-		move.l  #$940F93FF, (A5)
-		move.w  #$9780, (A5) 
-		move.l  #$60000083, (A5) 
-		move.w  #$0000, (VDP_data_port)
-ClearScreen_DMA2Wait: ; loc_147A:		  
-		move.w  (A5), D1   
-		btst    #$01, D1 
-		bne.s   ClearScreen_DMA2Wait    ; loc_147A 
-		move.w  #$8F02, (A5)   
+		lea	(VDP_control_port).l,a5
+		move.w	#$8F01,(a5)
+		move.l	#$940F93FF,(a5)
+		move.w	#$9780,(a5)
+		move.l	#$40000083,(a5)
+		move.w	#0,(VDP_data_port).l
+; loc_144C: ClearScreen_DMAWait:
+-		move.w	(a5),d1
+		btst	#1,d1
+		bne.s	-
+		move.w	#$8F02,(a5)
+
+		lea	(VDP_control_port).l,a5
+		move.w	#$8F01,(a5)
+		move.l	#$940F93FF,(a5)
+		move.w	#$9780,(a5)
+		move.l	#$60000083,(a5)
+		move.w	#0,(VDP_data_port).l
+; loc_147A: ClearScreen_DMA2Wait:
+-		move.w	(a5),d1
+		btst	#1,d1
+		bne.s	-
+		move.w	#$8F02,(a5)
+
 		clr.l   (Vscroll_Factor).w
 		clr.l   (unk_F61A).w
-		lea     (Sprite_Table).w, A1   
-		moveq   #$00, D0
-		move.w  #bytesToLcnt(Sprite_Table_End+$80+4-Sprite_Table), D1
-ClearScreen_ClearBuffer1: ; loc_1498:		
-		move.l  D0, (A1)+
-		dbf    D1, ClearScreen_ClearBuffer1 ; loc_1498  
-		lea     (Horiz_Scroll_Buf).w, A1 
-		moveq   #$00, D0
-		move.w	#bytesToLcnt(Horiz_Scroll_Buf_End+4-Horiz_Scroll_Buf),d1
-ClearScreen_ClearBuffer2: ; loc_14A8:		
-		move.l  D0, (A1)+
-		dbf    D1, ClearScreen_ClearBuffer2 ; loc_14A8		 
+
+		; These '+4's shouldn't be here; clearRAM accidentally clears an additional 4 bytes
+		clearRAM Sprite_Table,Sprite_Table_End+$80+4
+		clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End+4
+
 		startZ80
 		rts
 ; ===========================================================================
@@ -1079,6 +1083,9 @@ ClearScreen_ClearBuffer2: ; loc_14A8:
 JmpTo_SoundDriverLoad: ; JmpTo
 		nop
 		jmp	(SoundDriverLoad).l
+		; strange, seemingly leftover Sonic 1 sound driver code isn't here...
+		; I wonder if it was used whenever the code was actually meant for
+		; whenver the sound driver was uncompressed
 
 ; ---------------------------------------------------------------------------
 ; Sound queues; they're used interchangably, however symbol tables in
@@ -3670,41 +3677,11 @@ TitleScreen:
 		clr.b	(Water_fullscreen_flag).w
 		move.w	#$8C81,(a6)
 		bsr.w	ClearScreen
-		lea	(Sprite_Table_Input).w,a1
-		moveq	#0,d0
-		move.w	#bytesToLcnt(Sprite_Table_Input_End-Sprite_Table_Input),d1
-
-loc_3784:
-		move.l	d0,(a1)+
-		dbf	d1,loc_3784
-		lea	($FFFFB000).w,a1
-		moveq	#0,d0
-		move.w	#$7FF,d1
-
-loc_3794:
-		move.l	d0,(a1)+
-		dbf	d1,loc_3794
-		lea	(Misc_Variables).w,a1
-		moveq	#0,d0
-		move.w	#bytesToLcnt(Misc_Variables_End-Misc_Variables),d1
-
-loc_37A4:
-		move.l	d0,(a1)+
-		dbf	d1,loc_37A4
-		lea	(Camera_RAM).w,a1
-		moveq	#0,d0
-		move.w	#bytesToLcnt(Camera_RAM_End-Camera_RAM),d1
-
-loc_37B4:
-		move.l	d0,(a1)+
-		dbf	d1,loc_37B4
-		lea	(Target_palette).w,a1
-		moveq	#0,d0
-		move.w	#bytesToLcnt(Target_palette_End-Target_palette),d1
-
-loc_37C4:
-		move.l	d0,(a1)+
-		dbf	d1,loc_37C4
+		clearRAM Sprite_Table_Input,Sprite_Table_Input_End
+		clearRAM Object_RAM,Object_RAM_End
+		clearRAM Misc_Variables,Misc_Variables_End
+		clearRAM Camera_RAM,Camera_RAM_End
+		clearRAM Target_palette,Target_palette_End
 
 		; Leftover from Sonic 1, which had a "SONIC TEAM PRESENTS"
 		; screen load Sonic's palette for the font
@@ -3721,7 +3698,7 @@ loc_37C4:
 		bsr.w	NemDec
 		lea	(VDP_data_port).l,a6
 		move.l	#$50000003,4(a6)
-		lea	(Art_Text).l,a5
+		lea	(ArtUnc_DbgText).l,a5
 		move.w	#$28F,d1
 
 loc_3818:
@@ -3784,7 +3761,7 @@ loc_38EE:
 		move.b	#1,($FFFFB09A).w
 		jsr	(RunObjects).l
 		jsr	(BuildSprites).l
-		moveq	#0,d0
+		moveq	#PLCID_Std1,d0
 		bsr.w	LoadPLC2
 		move.w	#0,(Correct_cheat_entries).w
 		move.w	#0,(Correct_cheat_entries_2).w
@@ -4392,44 +4369,15 @@ Level:
 		beq.s	+
 		bsr.w	LoadPLC
 +
-		moveq	#1,d0
+		moveq	#PLCID_Std2,d0
 		bsr.w	LoadPLC
 ; loc_41C0:
 Level_ClrRAM:
-		lea     (Sprite_Table_Input).w,a1
-		moveq	#0,d0
-		move.w	#bytesToLcnt(Sprite_Table_Input_End-Sprite_Table_Input),d1
-
--		move.l	d0,(a1)+
-		dbf	d1,-
-
-		lea	($FFFFB000).w,a1
-		moveq	#0,d0
-		move.w	#$7FF,d1
-
--		move.l	d0,(a1)+
-		dbf	d1,-
-
-		lea	(MiscLevelVariables).w,a1
-		moveq	#0,d0
-		move.w	#bytesToLcnt(MiscLevelVariables_End-MiscLevelVariables),d1
-
--		move.l	d0,(a1)+
-		dbf	d1,-
-
-		lea	(Misc_Variables).w,a1
-		moveq	#0,d0
-		move.w	#bytesToLcnt(Misc_Variables_End-Misc_Variables),d1
-
--		move.l	d0,(a1)+
-		dbf	d1,-
-
-		lea	(Oscillating_variables).w,a1
-		moveq	#0,d0
-		move.w	#bytesToLcnt(Oscillating_variables_End-Oscillating_variables),d1
-
--		move.l	d0,(a1)+
-		dbf	d1,-
+		clearRAM Sprite_Table_Input,Sprite_Table_Input_End
+		clearRAM Object_RAM,Object_RAM_End
+		clearRAM MiscLevelVariables,MiscLevelVariables_End
+		clearRAM Misc_Variables,Misc_Variables_End
+		clearRAM Oscillating_variables,Oscillating_variables_End
 
 		cmpi.w	#$D01,(Current_ZoneAndAct).w	; is it CPZ2?
 		beq.s	Level_InitWater			; if yes, branch
@@ -4571,7 +4519,7 @@ loc_43E6:
 		move.b  #$07, ($FFFFB780).w
 loc_43F4:
 		jsr     ObjectsManager         ; loc_E250
-		jsr     Load_Ring_Pos           ; loc_DE34
+		jsr     RingsManager           ; loc_DE34
 		jsr     RunObjects            ; loc_CFD0
 		jsr     BuildSprites           ; loc_D4DA
 		bsr.w     JumpToDynamic_Art_Cues  ; loc_51F8
@@ -4679,7 +4627,7 @@ loc_456A:
 
 loc_456E:
 		bsr.w	UpdateWaterSurface
-		jsr	(Load_Ring_Pos).l
+		jsr	(RingsManager).l
 		bsr.w	JumpToDynamic_Art_Cues
 		bsr.w	PalCycle_Load
 		bsr.w	RunPLC_RAM
@@ -5441,30 +5389,10 @@ loc_5260:
 		bsr.w     SS_Background_Load      ; loc_54CA
 		moveq   #$14, D0
 		bsr.w     RunPLC_ROM              ; loc_18A8
-		lea     (Primary_Collision).w, A1	; this should be Object_RAM
-		moveq   #$00, D0
-		move.w  #$07FF, D1
-loc_5280:		
-		move.l  D0, (A1)+
-		dbf    D1, loc_5280
-		lea     (Misc_Variables).w, A1
-		moveq   #$00, D0
-		move.w  #bytesToLcnt(Misc_Variables_End-Misc_Variables),d1
-loc_5290:		
-		move.l  D0, (A1)+
-		dbf    D1, loc_5290
-		lea     (Oscillating_Data).w, A1
-		moveq   #$00, D0
-		move.w  #bytesToLcnt(Oscillating_Numbers_End-Oscillating_Data), D1
-loc_52A0:		
-		move.l  D0, (A1)+
-		dbf    D1, loc_52A0
-		lea     (Decomp_Buffer).w, A1
-		moveq   #$00, D0
-		move.w  #$007F, D1
-loc_52B0:		
-		move.l  D0, (A1)+
-		dbf    D1, loc_52B0
+		clearRAM Primary_Collision,Primary_Collision+$2000	; this should be Object_RAM; leftover from Sonic 1
+		clearRAM Misc_Variables,Misc_Variables_End
+		clearRAM Oscillating_Data,Oscillating_Numbers_End
+		clearRAM Decomp_Buffer,Decomp_Buffer_End
 		clr.b   (Water_fullscreen_flag).w
 		clr.w   (Level_Inactive_flag).w
 		moveq	#S1PalID_SpecStg,d0		; loads the wrong palette; should be PalID_SpecStg
@@ -5555,7 +5483,7 @@ loc_53F8:
 		move    #$2300, SR
 		moveq	#S1PalID_SpecStg,d0	; same wrong palette
 		bsr.w     PalLoad2		; loc_28FE
-		moveq   #$00, D0
+		moveq   #PLCID_Std1, D0
 		bsr.w     LoadPLC2		; loc_176E
 		moveq   #$1B, D0
 		bsr.w     LoadPLC		 ; loc_173C
@@ -5566,12 +5494,7 @@ loc_53F8:
 		move.w  D0, (Bonus_Countdown_2).w
 		move.w  #S1MusID_ActClear, D0
 		jsr     (PlaySound).l              ; loc_14C6
-		lea     ($FFFFB000).w, A1
-		moveq   #$00, D0
-		move.w  #$07FF, D1
-loc_5474:		
-		move.l  D0, (A1)+
-		dbf    D1, loc_5474
+		clearRAM Object_RAM,Object_RAM_End
 		move.b  #$7E, ($FFFFB5C0).w
 loc_5480:		
 		bsr.w     PauseGame		   ; loc_14D2
@@ -8844,12 +8767,7 @@ loc_7880:
 ; [ Begin ]		         
 ;===============================================================================
 Load_Level_Layout: ; loc_7886: ; Load Level Layout
-		lea     (Level_Layout).w, A3 ; Level Layout
-		move.w  #bytesToLcnt(Level_Layout_End-Level_Layout), D1
-		moveq   #$00, D0 
-loc_7890:
-		move.l  D0, (A3)+
-		dbf    D1, loc_7890
+		clearRAM Level_Layout,Level_Layout_End
 		lea     (Level_Layout).w, A3 ; Foreground
 		moveq   #$00, D1
 		bsr.w     Interleave_Level_Layout ; loc_78A6
@@ -15215,7 +15133,7 @@ BuildSprites:
 		moveq	#0,d4
 		tst.b	(Level_started_flag).w
 		beq.s	loc_D4F4
-		bsr.w	loc_E01C
+		bsr.w	BuildRings
 
 loc_D4F4:
 		lea	(Sprite_Table_Input).w,a4
@@ -16172,139 +16090,161 @@ loc_DDFC:
 loc_DE30:
 		moveq   #$01, D0
 		rts
-;========================= Load Ring List - [ Start ] ==========================		 
-Load_Ring_Pos: ; loc_DE34:
-		moveq   #$00, D0
-		move.b  (Rings_manager_routine).w, D0
-		move.w  loc_DE42(PC, D0), D0
-		jmp     loc_DE42(PC, D0)
-loc_DE42:  
-		dc.w    loc_DE46-loc_DE42
-		dc.w    loc_DE90-loc_DE42
-loc_DE46: 
-		addq.b  #$02, (Rings_manager_routine).w
-		bsr.w     loc_E140
-		lea     (Ring_Positions).w, A1
-		move.w  (Camera_X_pos).w, D4
-		subq.w  #$08, D4
-		bhi.s   loc_DE62
-		moveq   #$01, D4
-		bra.s   loc_DE62
-loc_DE5E:		
-		lea     $0006(A1), A1
-loc_DE62:
-		cmp.w   $0002(A1), D4
-		bhi.s   loc_DE5E
-		move.w  A1, (Ring_start_addr).w
-		move.w  A1, (Ring_start_addr_P2).w
-		addi.w  #$0150, D4
-		bra.s   loc_DE7A
-loc_DE76:		
-		lea     $0006(A1), A1
-loc_DE7A:
-		cmp.w   $0002(A1), D4
-		bhi.s   loc_DE76   
-		move.w  A1, (Ring_end_addr).w
-		move.w  A1, (Ring_end_addr_P2).w
-		move.b  #$01, (Level_started_flag).w
-		rts
-loc_DE90:
-		lea     (Ring_consumption_table).w, A2
-		move.w  (A2)+, D1
-		subq.w  #$01, D1
-		bcs.s   loc_DEC6
-loc_DE9A:		
-		move.w  (A2)+, D0
-		beq.s   loc_DE9A
-		move.w  D0, A1
-		subq.b  #$01, (A1)
-		bne.s   loc_DEC2
-		move.b  #$06, (A1)
-		addq.b  #$01, $0001(A1)
-		cmpi.b  #$08, $0001(A1)
-		bne.s   loc_DEC2
-		move.w  #$FFFF, (A1)
-		move.w  #$0000, -2(A2)
-		subq.w  #$01, (Ring_consumption_table).w
-loc_DEC2:
-		dbf    D1, loc_DE9A
-loc_DEC6:		
-		move.w  (Ring_start_addr).w, A1
-		move.w  (Camera_X_pos).w, D4
-		subq.w  #$08, D4
-		bhi.s   loc_DEDA
-		moveq   #$01, D4
-		bra.s   loc_DEDA
-loc_DED6:		
-		lea     $0006(A1), A1
-loc_DEDA:
-		cmp.w   $0002(A1), D4
-		bhi.s   loc_DED6
-		bra.s   loc_DEE4
-loc_DEE2:		
-		subq.w  #$06, A1
-loc_DEE4:
-		cmp.w   -4(A1), D4
-		bls.s   loc_DEE2
-		move.w  A1, (Ring_start_addr).w
-		move.w  (Ring_end_addr).w, A2
-		addi.w  #$0150, D4
-		bra.s   loc_DEFC
-loc_DEF8:		
-		lea     $0006(A2), A2
-loc_DEFC:
-		cmp.w   $0002(A2), D4
-		bhi.s   loc_DEF8
-		bra.s   loc_DF06
-loc_DF04:		
-		subq.w  #$06, A2
-loc_DF06:
-		cmp.w   -4(A2), D4
-		bls.s   loc_DF04
-		move.w  A2, (Ring_end_addr).w
-		tst.w   (Two_player_mode).w
-		bne.s   loc_DF20
-		move.w  A1, (Ring_start_addr_P2).w
-		move.w  A2, (Ring_end_addr_P2).w
-		rts
-loc_DF20:
-		move.w  (Ring_start_addr_P2).w, A1
-		move.w  (Camera_X_pos_P2).w, D4
-		subq.w  #$08, D4
-		bhi.s   loc_DF34
-		moveq   #$01, D4
-		bra.s   loc_DF34
-loc_DF30:		
-		lea     $0006(A1), A1
-loc_DF34:
-		cmp.w   $0002(A1), D4
-		bhi.s   loc_DF30
-		bra.s   loc_DF3E
-loc_DF3C:		
-		subq.w  #$06, A1 
-loc_DF3E:
-		cmp.w   -4(A1), D4
-		bls.s   loc_DF3C
-		move.w  A1, (Ring_start_addr_P2).w
-		move.w  (Ring_end_addr_P2).w, A2
-		addi.w  #$0150, D4
-		bra.s   loc_DF56
-loc_DF52:
-		lea     $0006(A2), A2
-loc_DF56:
-		cmp.w   $0002(A2), D4
-		bhi.s   loc_DF52
-		bra.s   loc_DF60
-loc_DF5E:
-		subq.w  #$06, A2   
-loc_DF60:
-		cmp.w   -4(A2), D4
-		bls.s   loc_DF5E
-		move.w  A2, (Ring_end_addr_P2).w
-		rts
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Pseudo-object that manages where rings are placed onscreen
+; as you move through the level, and otherwise updates them.
+; ---------------------------------------------------------------------------
+
+; sub_DE34: Load_Ring_Pos:
+RingsManager:
+		moveq	#0,d0
+		move.b	(Rings_manager_routine).w,d0
+		move.w	RingsManager_States(pc,d0.w),d0
+		jmp	RingsManager_States(pc,d0.w)
+; ===========================================================================
+; off_DE42:
+RingsManager_States:	offsetTable
+		offsetTableEntry.w RingsManager_Init
+		offsetTableEntry.w RingsManager_Main
+; ===========================================================================
+; loc_DE46:
+RingsManager_Init:
+		addq.b	#2,(Rings_manager_routine).w
+		bsr.w	loc_E140	; perform initial setup
+		lea	(Ring_Positions).w,a1
+		move.w	(Camera_X_pos).w,d4
+		subq.w	#8,d4
+		bhi.s	+
+		moveq	#1,d4		; no negative values allowed
+		bra.s	+
+
+-		lea	6(a1),a1	; load next ring
++
+		cmp.w	2(a1),d4	; is the X pos of the ring < camera X pos?
+		bhi.s	-		; if it is, check next ring
+		move.w	a1,(Ring_start_addr).w	; set start addresses
+		move.w	a1,(Ring_start_addr_P2).w
+		addi.w	#320+16,d4	; advance by a screen (and a bit more)
+		bra.s	+
 		
-;===============================================================================		
-TouchRings: ; loc_DF6C:
+-		lea	6(a1),a1	; load next ring
++
+		cmp.w	2(a1),d4	; is the X pos of the ring < camera X + 336?
+		bhi.s	-		; if it is, check next ring
+		move.w	a1,(Ring_end_addr).w	; set end addresses
+		move.w	a1,(Ring_end_addr_P2).w
+		move.b	#1,(Level_started_flag).w
+		rts
+; ===========================================================================
+; loc_DE90:
+RingsManager_Main:
+		lea	(Ring_consumption_table).w,a2
+		move.w	(a2)+,d1
+		subq.w	#1,d1	; are any rings currently being consumed?
+		bcs.s	++	; if not, branch
+	
+-		move.w	(a2)+,d0	; is there a ring in this slot?
+		beq.s	-		; if not, branch
+		move.w	d0,a1		; load ring address
+		subq.b	#1,(a1)		; decrement timer
+		bne.s	+		; if it's not 0 yet, branch
+		move.b	#6,(a1)		; reset timer
+		addq.b	#1,1(a1)	; increment frame
+		cmpi.b	#8,1(a1)	; is it destruction time yet?
+		bne.s	+		; if not, branch
+		move.w	#-1,(a1)	; destroy ring
+		move.w	#0,-2(a2)	; clear ring entry
+		subq.w	#1,(Ring_consumption_table).w	; subtract count
++		dbf	d1,-		; repeat for ALL rings in the table
++
+		; update ring start and end addresses
+		move.w	(Ring_start_addr).w,a1
+		move.w	(Camera_X_pos).w,d4
+		subq.w	#8,d4
+		bhi.s	+
+		moveq	#1,d4
+		bra.s	+
+; ---------------------------------------------------------------------------
+-		lea	6(a1),a1
++
+		cmp.w	2(a1),d4
+		bhi.s	-
+		bra.s	+
+; ---------------------------------------------------------------------------
+-		subq.w	#6,a1
++
+		cmp.w	-4(a1),d4
+		bls.s	-
+		move.w	a1,(Ring_start_addr).w	; update start address
+		move.w	(Ring_end_addr).w,a2
+		addi.w	#320+16,d4
+		bra.s	+
+; ---------------------------------------------------------------------------
+-		lea	6(a2),a2
++
+		cmp.w	2(a2),d4
+		bhi.s	-
+		bra.s	+
+; ---------------------------------------------------------------------------
+-		subq.w	#6,a2
++
+		cmp.w	-4(a2),d4
+		bls.s	-
+		move.w	a2,(Ring_end_addr).w	; update end address
+		tst.w	(Two_player_mode).w	; are we in 2P mode?
+		bne.s	+			; if we are, update P2 addresses
+		move.w	a1,(Ring_start_addr_P2).w	; otherwise, copy over 1P addresses
+		move.w	a2,(Ring_end_addr_P2).w
+		rts
+; ---------------------------------------------------------------------------
++
+		; update ring start and end addresses for P2
+		move.w	(Ring_start_addr_P2).w,a1
+		move.w	(Camera_X_pos_P2).w,d4
+		subq.w	#8,d4
+		bhi.s	+
+		moveq	#1,d4
+		bra.s	+
+; ---------------------------------------------------------------------------
+-		lea	6(a1),a1
++
+		cmp.w	2(a1),d4
+		bhi.s	-
+		bra.s	+
+; ---------------------------------------------------------------------------
+-		subq.w  #6,a1
++
+		cmp.w	-4(a1),d4
+		bls.s	-
+		move.w	a1,(Ring_start_addr_P2).w	; update start address
+		move.w	(Ring_end_addr_P2).w,a2
+		addi.w	#320+16,d4
+		bra.s	+
+; ---------------------------------------------------------------------------
+-		lea	6(a2),a2
++
+		cmp.w	2(a2),d4
+		bhi.s	-
+		bra.s	+
+; ---------------------------------------------------------------------------
+-		subq.w	#6,a2
++
+		cmp.w	-4(a2),d4
+		bls.s	-
+		move.w	a2,(Ring_end_addr_P2).w		; update end address
+		rts
+; End of function RingsManager
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Subroutine to handle ring collision
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_DF6C:
+TouchRings:
 		move.w  (Ring_start_addr).w, A1
 		move.w  (Ring_end_addr).w, A2
 		cmpa.w  #$B000, A0
@@ -16371,14 +16311,23 @@ loc_E010:
 		bne.w    loc_DFC4
 loc_E01A:
 		rts				  
-loc_E01C:
-		move.w  (Ring_start_addr).w, A0
-		move.w  (Ring_end_addr).w, A4
-		cmpa.l  A0, A4
-		bne.s   loc_E02A
+
+; ---------------------------------------------------------------------------
+; Subroutine to draw on-screen rings
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_E01C:
+BuildRings:
+		move.w	(Ring_start_addr).w,a0
+		move.w	(Ring_end_addr).w,a4
+		cmpa.l	a0,a4	; are there any rings on-screen?
+		bne.s	+	; if yes, branch
 		rts
-loc_E02A:
-		lea     (Camera_X_pos).w, A3
++
+		lea	(Camera_X_pos).w,a3
+
 loc_E02E:		
 		tst.w   (A0)
 		bmi.w    loc_E08C
@@ -16392,7 +16341,7 @@ loc_E02E:
 		cmpi.w  #$00F0, D2
 		bge.s   loc_E08C
 		addi.w  #$0078, D2
-		lea     (loc_E200).l, A1
+		lea     (MapUnc_Rings).l, A1
 		moveq   #$00, D1
 		move.b  $0001(A0), D1
 		bne.s   loc_E068
@@ -16448,7 +16397,7 @@ loc_E0C4:
 		cmpi.w  #$0170, D2
 		bge.s   loc_E124
 		add.w   D6, D2
-		lea     (loc_E200).l, A1
+		lea     (MapUnc_Rings).l, A1
 		moveq   #$00, D1
 		move.b  $0001(A0), D1
 		bne.s   loc_E0FC
@@ -16479,12 +16428,7 @@ loc_E124:
 loc_E130:
 		dc.b    $00, $00, $01, $01, $04, $04, $05, $05, $08, $08, $09, $09, $0C, $0C, $0D, $0D  
 loc_E140: ; Load Rings routine
-		lea     (Ring_Positions).w, A1
-		moveq   #$00, D0
-		move.w  #bytesToLcnt(Ring_Positions_End-Ring_Positions), D1
-loc_E14A:
-		move.l  D0, (A1)+
-		dbf    D1, loc_E14A
+		clearRAM Ring_Positions,Ring_Positions_End
 		lea     (Ring_consumption_table).w, A1
 		; Coding error, that '-$40' shouldn't be there: only half of 'Ring_consumption_table' is cleared.
 		move.w	#bytesToLcnt(Ring_consumption_table_End-Ring_consumption_table-$40),d1
@@ -16556,15 +16500,27 @@ loc_E1EE:
 		lea     $0006(A1), A1
 		dbf    D3, loc_E1D4
 		rts
-loc_E200:    
-		dc.w    loc_E210-loc_E200
-		dc.w    loc_E218-loc_E200
-		dc.w    loc_E220-loc_E200
-		dc.w    loc_E228-loc_E200
-		dc.w    loc_E230-loc_E200
-		dc.w    loc_E238-loc_E200
-		dc.w    loc_E240-loc_E200
-		dc.w    loc_E248-loc_E200
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+; Custom mappings format, in which the 'sprite pieces per frame' value
+; is hardcoded to 1 (likely to save on CPU). Compare to Obj25_MapUnc_B036.
+
+; This was customised even further in Sonic 3 & Knuckles, which lacks
+; any offset table (with each sprite assumed to be 8 bytes), as well
+; as sign-extended Y-pos and sprite size values
+; off_E200:
+MapUnc_Rings:	offsetTable
+		offsetTableEntry.w loc_E210
+		offsetTableEntry.w loc_E218
+		offsetTableEntry.w loc_E220
+		offsetTableEntry.w loc_E228
+		offsetTableEntry.w loc_E230
+		offsetTableEntry.w loc_E238
+		offsetTableEntry.w loc_E240
+		offsetTableEntry.w loc_E248
+
 loc_E210:
 		dc.l    $F8050000, $0000FFF8
 loc_E218:
@@ -41661,8 +41617,8 @@ LevelArtPointers:
 ; ===========================================================================
 ; off_24420:
 ArtLoadCues:	offsetTable
-		offsetTableEntry.w PlrList_Std1
-		offsetTableEntry.w PlrList_Std2
+PLCptr_Std1:	offsetTableEntry.w PlrList_Std1
+PLCptr_Std2:	offsetTableEntry.w PlrList_Std2
 		offsetTableEntry.w Standard_Sprites_3
 		offsetTableEntry.w Standard_Sprites_4
 		offsetTableEntry.w Green_Hill_Sprites_1
@@ -47486,8 +47442,8 @@ SoundDriverLoad:
 		move	sr,-(sp)
 		movem.l	d0-a6,-(sp)
 		move	#$2700,sr
-		lea	($A11100).l,a3
-		lea	($A11200).l,a2
+		lea	(Z80_Bus_Request).l,a3
+		lea	(Z80_Reset).l,a2
 		moveq	#0,d2
 		move.w	#$100,d1
 		move.w	d1,(a3)	; get Z80 bus
