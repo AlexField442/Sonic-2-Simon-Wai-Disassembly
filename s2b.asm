@@ -3846,13 +3846,9 @@ Title_ChkLevSel:
 		bsr.w	PlayMusic
 		moveq	#PalID_LevelSel,d0
 		bsr.w	PalLoad2
-		lea	(Horiz_Scroll_Buf).w,a1
-		moveq	#0,d0
-		move.w	#$DF,d1
-; loc_3A1C: LevelSelect_ClearScroll:
-Title_ClrScroll:
-		move.l	d0,(a1)+
-		dbf	d1,Title_ClrScroll
+
+		clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End
+
 		move.l	d0,(Vscroll_Factor).w
 		move	#$2700,sr
 		lea	(VDP_data_port).l,a6
@@ -10768,7 +10764,7 @@ loc_913C:
 loc_91A4:
 		cmpi.b  #$0A, (Current_Zone).w
 		bne.s   loc_91CE
-		move.l  #OOz_Collapsing_Platforms_Mappings, $0004(A0) ; loc_9902
+		move.l  #Obj1A_MapUnc_9902, $0004(A0) ; loc_9902
 		move.w  #$639D, $0002(A0)
 		bsr.w     Adjust2PArtPointer     ; loc_DC30
 		move.b  #$40, $0019(A0)
@@ -10858,7 +10854,7 @@ loc_92C6:
 		move.l  A4, $0034(A0)
 		cmpi.b  #$0A, (Current_Zone).w
 		bne.s   loc_92F2
-		move.l  #OOz_Collapsing_Platforms_Mappings, $0004(A0) ; loc_9902
+		move.l  #Obj1A_MapUnc_9902, $0004(A0) ; loc_9902
 		move.w  #$639D, $0002(A0)
 		bsr.w     Adjust2PArtPointer     ; loc_DC30
 		move.b  #$40, $0019(A0)
@@ -11064,16 +11060,7 @@ loc_9828:
 		dc.b    $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10
 		dc.b    $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10		   
 Obj1A_MapUnc_9858:	BINCLUDE	"mappings/sprite/obj1A_HPZ.bin"
-OOz_Collapsing_Platforms_Mappings: ; loc_9902:
-		dc.w    OOz_Collapsing_Platforms_Map_01-OOz_Collapsing_Platforms_Mappings
-		dc.w    OOz_Collapsing_Platforms_Map_01-OOz_Collapsing_Platforms_Mappings
-		dc.w    OOz_Collapsing_Platforms_Map_01-OOz_Collapsing_Platforms_Mappings
-OOz_Collapsing_Platforms_Map_01: ; loc_9908:
-		dc.w    $0007
-		dc.l    $F00F0810, $0808FFC0, $F00F0810, $0808FFE0
-		dc.l    $F00F0810, $08080000, $F00F0800, $08000020
-		dc.l    $100D0820, $0810FFC0, $100D0820, $0810FFE0
-		dc.l    $100D0820, $08100000
+Obj1A_MapUnc_9902:	BINCLUDE	"mappings/sprite/obj1A_OOZ.bin"
 Dhz_Collapsing_Platforms_Mappings: ; loc_9942:
 		dc.w    Dhz_Collapsing_Platforms_Map_01-Dhz_Collapsing_Platforms_Mappings
 		dc.w    Dhz_Collapsing_Platforms_Map_02-Dhz_Collapsing_Platforms_Mappings
@@ -26862,7 +26849,7 @@ loc_1622E
 		dc.b    $20, $00, $18, $01, $20, $02, $40, $03, $30, $04
 loc_16238:
 		addq.b  #$02, $0024(A0)
-		move.l  #Elevator_Mappings, $0004(A0) ; loc_16412
+		move.l  #Obj19_MapUnc_16412, $0004(A0) ; loc_16412
 		move.w  #$63A0, $0002(A0)
 		cmpi.b  #$0A, (Current_Zone).w
 		bne.s   loc_16258
@@ -27028,25 +27015,13 @@ loc_163FE:
 		add.w   $0032(A0), D2
 		move.w  D2, $000C(A0)
 		rts
-Elevator_Mappings:		
-loc_16412:               
-		dc.w    loc_16418-loc_16412
-		dc.w    loc_1642A-loc_16412
-		dc.w    loc_1643C-loc_16412
-loc_16418:
-		dc.w    $0002
-		dc.l    $F00F0000, $0000FFE0, $F00F0800, $08000000
-loc_1642A:
-		dc.w    $0002
-		dc.l    $F00B0000, $0000FFE8, $F00B0800, $08000000
-loc_1643C:
-		dc.w    $0002
-		dc.l    $F00E0000, $0000FFE0, $F00E0800, $08000000    
-;=============================================================================== 
-; Object 0x19 - Oil Ocean - Elevators
-; [ End ]		         
-;===============================================================================  
-		nop		             ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj19_MapUnc_16412:	BINCLUDE	"mappings/sprite/obj19.bin"
+; ===========================================================================
+		nop
+
 J_DisplaySprite_01: ; loc_16450:
 		jmp     DisplaySprite           ; (loc_D3C2)
 J_DeleteObject_0C: ; loc_16456:
@@ -28509,7 +28484,7 @@ loc_17CAE:
 		dc.w    loc_17CF6-loc_17CAE
 loc_17CB2:
 		addq.b  #$02, $0024(A0)
-		move.l  #Touch_Booster_Mappings, $0004(A0) ; loc_17EE2
+		move.l  #Obj33_MapUnc_17EE2, $0004(A0) ; loc_17EE2
 		move.w  #$632C, $0002(A0)
 		bsr.w     J_Adjust2PArtPointer_06 ; loc_17EFE
 		move.b  #$04, $0001(A0)
@@ -28664,17 +28639,13 @@ loc_17EDE:
 		rts
 loc_17EE0:
 		rts
-Touch_Booster_Mappings:		
-loc_17EE2:
-		dc.w    loc_17EE4-loc_17EE2
-loc_17EE4:
-		dc.w    $0002
-		dc.l    $F8090000, $0000FFE8, $F8090800, $08000000
-;=============================================================================== 
-; Object 0x33 - Oil Ocean - Touch to Boost Up 
-; [ End ]		         
-;===============================================================================		   
-		nop		             ; Filler
+
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj33_MapUnc_17EE2:	BINCLUDE	"mappings/sprite/obj33.bin"
+; ===========================================================================
+		nop
 J_MarkObjGone_05: ; loc_17EF8:
 		jmp     MarkObjGone             ; (loc_D2A0)
 J_Adjust2PArtPointer_06: ; loc_17EFE:
@@ -29423,7 +29394,7 @@ loc_18AF0:
 		addq.b  #$02, $0024(A0)
 		move.b  #$0F, $0016(A0)
 		move.b  #$0F, $0017(A0)
-		move.l  #Spring_Ball_Mappings, $0004(A0) ; loc_18CFA
+		move.l  #Obj46_MapUnc_18CFA, $0004(A0) ; loc_18CFA
 		move.w  #$6354, $0002(A0)
 		bsr.w     J_Adjust2PArtPointer_08 ; loc_18D7E
 		move.b  #$04, $0001(A0)
@@ -29572,30 +29543,12 @@ loc_18CE6:
 loc_18CF4:
 		move.b  D0, $001F(A0)
 		bra.s   loc_18CD2 
-Spring_Ball_Mappings: ; loc_18CFA:
-		dc.w    loc_18D02-Spring_Ball_Mappings
-		dc.w    loc_18D24-Spring_Ball_Mappings
-		dc.w    loc_18D46-Spring_Ball_Mappings
-		dc.w    loc_18D58-Spring_Ball_Mappings
-loc_18D02:
-		dc.w    $0004
-		dc.l    $F0050000, $0000FFF0, $F0050004, $00020000
-		dc.l    $00051804, $1802FFF0, $00051004, $10020000
-loc_18D24:
-		dc.w    $0004
-		dc.l    $F0050008, $0004FFF0, $F0050808, $08040000
-		dc.l    $00051008, $1004FFF0, $00051808, $18040000
-loc_18D46:
-		dc.w    $0002
-		dc.l    $F00D000C, $0006FFF0, $000D180C, $1806FFF0
-loc_18D58:
-		dc.w    $0002
-		dc.l    $F00D080C, $0806FFF0, $000D100C, $1006FFF0		 
-;=============================================================================== 
-; Object 0x46 - Oil Ocean - Spring With Ball - Sonic call stay on ball 
-; [ End ]		         
-;===============================================================================            
-		nop		             ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj46_MapUnc_18CFA:	BINCLUDE	"mappings/sprite/obj46.bin"
+; ===========================================================================
+		nop
 J_DeleteObject_11: ; loc_18D6C:
 		jmp     DeleteObject            ; (loc_D3B4)
 J_SingleObjLoad_01: ; loc_18D72:
@@ -41399,17 +41352,17 @@ Debug_OOz: ; loc_240F2:  ; Oil Ocean
 		dc.b    $00, $00, $26, $BC
 		dc.l    ($26<<$18)|Obj26_MapUnc_B6D2           ; loc_B6D2
 		dc.b    $07, $00, $06, $80
-		dc.l    ($33<<$18)|Touch_Booster_Mappings      ; loc_17EE2
+		dc.l    ($33<<$18)|Obj33_MapUnc_17EE2      ; loc_17EE2
 		dc.b    $01, $00, $63, $2C
 		dc.l    ($43<<$18)|Giant_Spikeball_Mappings    ; loc_1808E
 		dc.b    $00, $00, $C3, $0C
-		dc.l    ($19<<$18)|Elevator_Mappings           ; loc_16412
+		dc.l    ($19<<$18)|Obj19_MapUnc_16412           ; loc_16412
 		dc.b    $23, $02, $63, $00
 		dc.l    ($45<<$18)|Spring_Push_Boost_Mappings  ; loc_185C2
 		dc.b    $02, $00, $43, $C5
 		dc.l    ($45<<$18)|Spring_Push_Boost_Mappings  ; loc_185C2
 		dc.b    $12, $0A, $43, $C5
-		dc.l    ($46<<$18)|Spring_Ball_Mappings        ; loc_18CFA
+		dc.l    ($46<<$18)|Obj46_MapUnc_18CFA        ; loc_18CFA
 		dc.b    $00, $01, $63, $54 
 		dc.l    ($47<<$18)|Obj47_MapUnc_18E3E             ; loc_18E3E
 		dc.b    $00, $02, $04, $24
@@ -41425,7 +41378,7 @@ Debug_OOz: ; loc_240F2:  ; Oil Ocean
 		dc.b    $82, $02, $63, $68
 		dc.l    ($48<<$18)|Cannon_Mappings             ; loc_194CA
 		dc.b    $83, $03, $63, $68
-		dc.l    ($1F<<$18)|OOz_Collapsing_Platforms_Mappings ; loc_9902
+		dc.l    ($1F<<$18)|Obj1A_MapUnc_9902 ; loc_9902
 		dc.b    $00, $00, $63, $9D
 		dc.l    ($1C<<$18)|loc_9B6A		              ; Out of Pointers
 		dc.b    $0A, $00, $43, $46
@@ -41487,7 +41440,7 @@ Debug_CPz: ; loc_24228:  ; Chemical Plant
 		dc.b    $00, $00, $E3, $9C
 		dc.l    ($1D<<$18)|Worms_Mappings              ; loc_16702
 		dc.b    $15, $00, $E4, $3C
-		dc.l    ($19<<$18)|Elevator_Mappings           ; loc_16412
+		dc.l    ($19<<$18)|Obj19_MapUnc_16412           ; loc_16412
 		dc.b    $06, $00, $63, $A0
 		dc.l    ($2D<<$18)|Obj2D_MapUnc_9E1E     ; loc_9E1E
 		dc.b    $02, $02, $23, $94
@@ -41876,7 +41829,7 @@ loc_24658:
 		dc.w    (((loc_24684-loc_24658-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
 		dc.l    ArtNem_OOZ     ; loc_9ED58
 		dc.w    $0000
-		dc.l    OOz_Elevator            ; loc_75F70
+		dc.l    ArtNem_OOZElevator            ; loc_75F70
 		dc.w    $6000   
 		dc.l    OOz_Giant_Spikeball     ; loc_76060
 		dc.w    $6180 
@@ -41891,11 +41844,11 @@ loc_24658:
 Oil_Ocean_Sprites_2:    
 loc_24684: 
 		dc.w    (((loc_246C2-loc_24684-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
-		dc.l    OOz_Ball		; loc_76602 
+		dc.l    ArtNem_OOZBall		; loc_76602 
 		dc.w    $6A80 
 		dc.l    OOz_Cannon              ; loc_76722
 		dc.w    $6D00 
-		dc.l    OOz_Collapsing_Platform ; loc_76A12
+		dc.l    ArtNem_OOZPlatform ; loc_76A12
 		dc.w    $73A0  
 		dc.l    OOz_Spring_Push_Boost   ; loc_76CA6
 		dc.w    $78A0       
@@ -47041,14 +46994,24 @@ ArtNem_HPZPlatform:	BINCLUDE	"art/nemesis/Collapsing platform from HPZ.bin"
 ; Nemesis compressed art
 ; Glowing orb from HPZ			; ArtNem_75B8A: Hpz_Orbs_Comp:
 	even
-ArtNem_HPZOrb:	BINCLUDE	"art/nemesis/Pulsing orb from HPZ.bin"
+ArtNem_HPZOrb:		BINCLUDE	"art/nemesis/Pulsing orb from HPZ.bin"
 
 Hpz_Unknow_Platform: ; loc_75DD6: 
 		BINCLUDE  "data\hpz\unkptfm.nem"  
-OOz_Elevator: ; loc_75F70:  
-		BINCLUDE  "data\ooz\elevator.nem" 
+; ---------------------------------------------------------------------
+; Nemesis compressed art
+; Raising platform from OOZ		; ArtNem_75F70: OOz_Elevator:
+	even
+ArtNem_OOZElevator:	BINCLUDE	"art/nemesis/Rising platform from OOZ.bin"
+
 OOz_Giant_Spikeball: ; loc_76060:  
 		BINCLUDE  "data\ooz\gspkball.nem"   
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Green platform over the burners in OOZ	; ArtNem_80274: OOz_Touch_Boost_Up:
+	even
+ArtNem_BurnerLid:	BINCLUDE	"art/nemesis/Burner platform from OOZ.bin"
+
 OOz_Touch_Boost_Up: ; loc_76258:  
 		BINCLUDE  "data\ooz\boost_up.nem"   
 OOz_Break_Boost: ; loc_762EE:  
@@ -47057,12 +47020,20 @@ OOz_Oil: ; loc_7635A:
 		BINCLUDE  "data\ooz\oil.nem" 
 OOz_Tube_Oil: ; loc_764D6:  
 		BINCLUDE  "data\ooz\tube_oil.nem"   
-OOz_Ball: ; loc_76602:  
-		BINCLUDE  "data\ooz\ball.nem"     
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Ball thing from OOZ				; ArtNem_76602: OOz_Ball:
+	even
+ArtNem_OOZBall:		BINCLUDE	"art/nemesis/Ball on spring from OOZ.bin"
+
 OOz_Cannon: ; loc_76722:  
 		BINCLUDE  "data\ooz\cannon.nem"  
-OOz_Collapsing_Platform: ; loc_76A12:  
-		BINCLUDE  "data\ooz\platform.nem"  
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art (40 blocks)
+; Collapsing platform from OOZ			; ArtNem_76A12: OOz_Collapsing_Platform:
+	even
+ArtNem_OOZPlatform:	BINCLUDE	"art/nemesis/OOZ collapsing platform.bin"
+
 OOz_Spring_Push_Boost: ; loc_76CA6:   
 		BINCLUDE  "data\ooz\spngpush.nem"  
 OOz_Swing_Platform: ; loc_76E68:   
