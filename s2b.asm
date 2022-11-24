@@ -3330,41 +3330,25 @@ PalPtr_WZ:	dc.l    Pal_WZ, $FB200017
 PalPtr_SSZ:	dc.l    Pal_GHZ, $FB200017
 PalPtr_MTZ:	dc.l    Pal_MTZ, $FB200017
 PalPtr_MTZ2:	dc.l    Pal_MTZ, $FB200017
-PalPtr_BLZ:	dc.l    Pal_CNz2, $FB200017	; also apparently meant for CNZ2 at one point
+PalPtr_BLZ:	dc.l    Pal_BLZ, $FB200017	; also apparently meant for CNZ2 at one point
 PalPtr_HTZ:	dc.l    Pal_HTZ, $FB200017
 PalPtr_HPZ:	dc.l    Pal_HPZ, $FB200017
 PalPtr_RWZ:	dc.l    Pal_GHZ, $FB200017
 PalPtr_OOZ:	dc.l    Pal_OOZ, $FB200017
-PalPtr_DHZ:	dc.l    Pal_DHz, $FB200017
-PalPtr_CNZ:	dc.l    Pal_CNz1, $FB200017
-PalPtr_CPZ:	dc.l    Pal_CPz, $FB200017
+PalPtr_DHZ:	dc.l    Pal_DHZ, $FB200017
+PalPtr_CNZ:	dc.l    Pal_CNZ, $FB200017
+PalPtr_CPZ:	dc.l    Pal_CPZ, $FB200017
 PalPtr_GCZ:	dc.l    Pal_GHZ, $FB200017
-PalPtr_NGHZ:	dc.l    Pal_NGHz, $FB200017
+PalPtr_NGHZ:	dc.l    Pal_NGHZ, $FB200017
 PalPtr_DEZ:	dc.l    Pal_GHZ, $FB200017
 PalPtr_HPZ_U:	dc.l    Pal_HPZ_U, $FB00001F
-PalPtr_CPZ_U:	dc.l    Pal_CPzWater, $FB00001F
-PalPtr_NGHZ_U:	dc.l    Pal_NGHzWater, $FB00001F
+PalPtr_CPZ_U:	dc.l    Pal_CPZ_U, $FB00001F
+PalPtr_NGHZ_U:	dc.l    Pal_NGHZ_U, $FB00001F
 PalPtr_SpecStg:	dc.l    Pal_SpecialStage, $FB00001F
 
 Pal_SEGA:		BINCLUDE	"art/palettes/Sega screen.bin"
-Pal_Title: ; loc_2A96: ; Title Screen
-		dc.w    $0C00, $0002, $0800, $0026, $0048, $006C, $008E, $00AE
-		dc.w    $04A0, $0040, $0060, $0080, $00A0, $06A4, $0000, $0000
-		dc.w    $0C8C, $0800, $0000, $0A66, $0EA8, $0ECA, $0EEE, $00AE
-		dc.w    $008E, $006C, $08CE, $0EEC, $004A, $0006, $0000, $0000
-		dc.w    $0C00, $0C00, $0E22, $0E44, $0E66, $0E88, $0EEE, $0AAA
-		dc.w    $0888, $0666, $0024, $0248, $08AE, $068C, $0000, $0ECA
-		dc.w    $0C00, $0600, $0C00, $0E44, $0E66, $0E88, $0EEE, $00AE
-		dc.w    $006A, $0026, $00EE, $0EAA, $000C, $0006, $0002, $0000
-Pal_LevelSelect: ; loc_2B16: ; Level Select Menu
-		dc.w    $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000
-		dc.w    $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0EEE
-		dc.w    $0C00, $0024, $0246, $0468, $068A, $08AC, $0ACE, $08AC
-		dc.w    $068A, $0468, $0ACE, $0ACE, $0246, $0024, $0000, $0000
-		dc.w    $0C00, $0024, $0246, $0468, $068A, $08AC, $0ACE, $08AC
-		dc.w    $068A, $0468, $0024, $0246, $08AC, $068A, $0000, $00EE
-		dc.w    $0C00, $0024, $0246, $0468, $068A, $08AC, $0ACE, $08AC
-		dc.w    $068A, $0468, $0ACE, $0ACE, $0468, $0246, $0002, $0000 
+Pal_Title:		BINCLUDE	"art/palettes/Title screen.bin"
+Pal_LevelSelect:	BINCLUDE	"art/palettes/Level select.bin"
 Pal_SonicTails:		BINCLUDE	"art/palettes/Sonic and Tails.bin"
 Pal_GHZ:		BINCLUDE	"art/palettes/GHZ.bin"       
 Pal_WZ:			BINCLUDE	"art/palettes/WZ.bin"
@@ -3373,68 +3357,14 @@ Pal_HTZ:		BINCLUDE	"art/palettes/HTZ.bin"
 Pal_HPZ:		BINCLUDE	"art/palettes/HPZ.bin"
 Pal_HPZ_U:		BINCLUDE	"art/palettes/HPZ underwater.bin"
 Pal_OOZ:		BINCLUDE	"art/palettes/OOZ.bin"
-Pal_DHz: ;loc_2E76: ; Dust Hill
-		dc.w    $0002, $0000, $0E64, $0A68, $0E86, $0044, $0EEE, $0AAA
-		dc.w    $0888, $0444, $0666, $000E, $00EE, $0088, $0EA8, $0ECA
-		dc.w    $0000, $0020, $006C, $004A, $0026, $0200, $0CE6, $06C4
-		dc.w    $0482, $0A60, $0060, $06EE, $04CE, $00AA, $0C8E, $0A6C
-		dc.w    $0000, $008E, $006C, $004A, $0026, $0402, $00C0, $0060
-		dc.w    $0200, $0604, $0826, $0A48, $0EE0, $0A60, $0000, $0000
-Pal_CNz1: ; loc_2ED6: ; Casino Night
-		dc.w    $0002, $0000, $0E64, $0A68, $0E86, $0044, $0EEE, $0AAA
-		dc.w    $0888, $0444, $0666, $0000, $00EE, $0088, $0EA8, $0ECA
-		dc.w    $0000, $0000, $0C42, $0E86, $0EC8, $000C, $004C, $00CC
-		dc.w    $0800, $084E, $0EEE, $00EC, $00C4, $0080, $0C8E, $000E
-		dc.w    $0000, $0000, $0044, $0088, $00EE, $0040, $0060, $0280
-		dc.w    $04C0, $00EC, $00AE, $006E, $0EEE, $0000, $0800, $0000
-Pal_CNz2: ; loc_2F36: ; Level $06 / Casino Night Act 2
-		dc.w    $0002, $0000, $0E64, $0A68, $0E86, $0044, $0EEE, $0AAA
-		dc.w    $0888, $0444, $0666, $0000, $00EE, $0088, $0EA8, $0ECA
-		dc.w    $0000, $0000, $0C42, $0E86, $0EC8, $000C, $004C, $00CC
-		dc.w    $0800, $084E, $0EEE, $00EC, $00C4, $0080, $0C8E, $000E
-		dc.w    $0000, $0000, $0044, $0088, $00EE, $0040, $0060, $0280
-		dc.w    $04C0, $00EC, $00AE, $006E, $0EEE, $0000, $0800, $0000
-Pal_CPz: ; loc_2F96: ; Chemical Plant
-		dc.w    $0002, $0000, $0E64, $0A68, $0E86, $0044, $0EEE, $0AAA
-		dc.w    $0888, $0444, $0666, $0000, $00EE, $0088, $0EA8, $0000
-		dc.w    $0002, $0000, $0006, $0044, $0086, $00AA, $00CC, $00CE
-		dc.w    $008E, $004E, $002C, $002A, $0008, $0004, $0EEE, $000E
-		dc.w    $0002, $0000, $0222, $0444, $0888, $0AAA, $0EEE, $0E40
-		dc.w    $0C00, $0800, $00CE, $028E, $0E40, $0C00, $0C00, $00E0
-Pal_CPzWater: ; loc_2FF6: ; Chemical Plant Underwater  
-		dc.w    $0C42, $0806, $0E08, $0E28, $0E2A, $0E4C, $0ECE, $0E8E
-		dc.w    $0E6E, $0C2A, $0E8E, $0C4E, $080E, $080E, $088E, $086E
-		dc.w    $0A06, $0A06, $0E2C, $0E2C, $0E4E, $0A0A, $0E8E, $0E4E
-		dc.w    $0E2E, $0E0A, $0E0C, $0C08, $0A8E, $0A2E, $0A06, $0A06
-		dc.w    $0802, $0802, $0804, $0802, $0804, $0808, $082A, $082C
-		dc.w    $080C, $080C, $080A, $0808, $0806, $0802, $0C4C, $080C
-		dc.w    $0A06, $0A06, $0C08, $0E0A, $0E2E, $0E4E, $0E8E, $0E4E
-		dc.w    $0E0C, $0C08, $0A6E, $0C2E, $0E06, $0E06, $0E06, $0A86
-Pal_NGHz: ;loc_3076: ; Neo Green Hill
-		dc.w    $0002, $0000, $0E64, $0A68, $0E86, $0044, $0EEE, $0AAA
-		dc.w    $0888, $0444, $0666, $0000, $00EE, $0088, $0EA8, $0ECA
-		dc.w    $0020, $0022, $0A86, $0E86, $0EA8, $0ECA, $06EE, $06CC
-		dc.w    $02AA, $0044, $0066, $00E8, $00C4, $0080, $0040, $0000
-		dc.w    $0020, $0002, $06E2, $02C0, $000E, $0008, $02AE, $008C
-		dc.w    $006A, $0024, $0048, $00E8, $00C4, $0080, $0040, $0800
-Pal_NGHzWater: ; loc_30D6: ; Neo Green Hill Underwater
-		dc.w    $0020, $0000, $0A24, $0C44, $0E46, $0E68, $0ECC, $0CA8
-		dc.w    $0A86, $0642, $0CAE, $086A, $060E, $0408, $068C, $046A
-		dc.w    $0020, $0202, $0242, $0464, $0686, $0442, $0EAA, $0C88
-		dc.w    $0A66, $0622, $0844, $046A, $06CA, $0484, $0EEE, $000E
-		dc.w    $0020, $0022, $0CC8, $0884, $0A84, $0CA6, $0CE8, $0AC8
-		dc.w    $08A4, $0240, $0662, $04E8, $02C4, $0080, $0040, $0060
-		dc.w    $0020, $0002, $06E8, $02C0, $060E, $0408, $086C, $064A
-		dc.w    $0428, $0004, $0206, $04E8, $02C4, $0080, $0040, $0800
-Pal_SpecialStage: ; loc_3156:              
-		dc.w    $0400, $0000, $0822, $0A44, $0C66, $0E88, $0EEE, $0AAA
-		dc.w    $0888, $0444, $08AE, $046A, $000E, $0008, $0004, $00EE
-		dc.w    $0400, $0000, $0024, $0068, $00AC, $02EE, $0EEE, $0AAA
-		dc.w    $0888, $0444, $0AE4, $06A2, $00EE, $0088, $0044, $0000
-		dc.w    $0400, $0000, $0204, $0628, $0A4C, $0C6E, $0ECE, $0800
-		dc.w    $0C42, $0E86, $0ECA, $0EEC, $0000, $0EE0, $0AA0, $0440
-		dc.w    $0400, $0000, $0060, $00A0, $00C6, $00EA, $0AEC, $0EEA
-		dc.w    $0EE0, $0AA0, $0880, $0660, $0440, $0EE0, $0AA0, $0440
+Pal_DHZ:		BINCLUDE	"art/palettes/DHZ.bin"
+Pal_CNZ:		BINCLUDE	"art/palettes/CNZ.bin"
+Pal_BLZ:		BINCLUDE	"art/palettes/BLZ.bin" ; duplicate of CNZ palette
+Pal_CPZ:		BINCLUDE	"art/palettes/CPZ.bin"
+Pal_CPZ_U:		BINCLUDE	"art/palettes/CPZ underwater.bin"
+Pal_NGHZ:		BINCLUDE	"art/palettes/NGHZ.bin"
+Pal_NGHZ_U:		BINCLUDE	"art/palettes/NGHZ underwater.bin"
+Pal_SpecialStage:	BINCLUDE	"art/palettes/Special Stage.bin"
 		nop    
 DelayProgram: ; loc_31D8: 
 		move.w  #$2300, SR
@@ -41833,7 +41763,7 @@ loc_24658:
 		dc.w    $6000   
 		dc.l    OOz_Giant_Spikeball     ; loc_76060
 		dc.w    $6180 
-		dc.l    OOz_Touch_Boost_Up      ; loc_76258
+		dc.l    ArtNem_BurnerLid      ; loc_76258
 		dc.w    $6580  
 		dc.l    OOz_Break_Boost         ; loc_762EE
 		dc.w    $6640 
@@ -47012,8 +46942,6 @@ OOz_Giant_Spikeball: ; loc_76060:
 	even
 ArtNem_BurnerLid:	BINCLUDE	"art/nemesis/Burner platform from OOZ.bin"
 
-OOz_Touch_Boost_Up: ; loc_76258:  
-		BINCLUDE  "data\ooz\boost_up.nem"   
 OOz_Break_Boost: ; loc_762EE:  
 		BINCLUDE  "data\ooz\brkboost.nem"		    
 OOz_Oil: ; loc_7635A:  
