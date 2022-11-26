@@ -1,8 +1,7 @@
 ; Sonic the Hedgehog 2 (Simon Wai prototype) disassembly
 ; Originally created by Esrael L.G. Neto around 2008
-
+;
 ; Alright, time for some info...
-
 ; Internally, the zone order goes like this:
 ; 00 - Green Hill
 ; 01 - Zone 01 (UNUSED)
@@ -23,7 +22,11 @@
 ; 10 - Death Egg (EMPTY)
 ; Going off the concept art, the unused zone IDs would've been for Ocean Wind, Sand Shower,
 ; Blue Lake/Blue Ocean, and Rock World, so they will be referred to as such here
-
+;
+; Death Egg doesn't have its entries defined for any music lists, so, by default, the compiler
+; will put up an error for missing entries; just uncomment the commented-out entries on the
+; list to fix this (it's only not compiled by default for accuracy)
+;
 ; For certain bits of information, search for "NOTE:"
 
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -34,6 +37,10 @@ padToPowerOfTwo = 1
 ;
 zeroOffsetOptimization = 0
 ;	| If 1, makes a handful of zero-offset instructions smaller
+;
+useFullWaterTables = 0
+;	| If 1, zone offset tables for water levels cover all level slots instead of only slots 8-$F
+;	| Set to 1 if you've shifted level IDs around or you want water in levels with a level slot below 8
 ;
 
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1633,7 +1640,7 @@ ProcessDPLC2:
 ; loc_1832:
 ProcessDPLC_Main:
 		lea	(VDP_control_port).l,a4
-		lsl.l	#2,d0
+		lsl.l	#2,d0	; setup target VRAM address
 		lsr.w	#2,d0
 		ori.w	#$4000,d0
 		swap	d0
@@ -2589,7 +2596,16 @@ loc_1F0A:
 loc_1F12:		
 		move.b  (A1)+, (A2)+ 
 		bra.w     ChaDec_BitPos0
-PalCycle_Load: ; loc_1F18: ; Rotating Palette routine
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Subroutine to cycle through selected palette entries
+; ---------------------------------------------------------------------------
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; sub_1F18:
+PalCycle_Load:
 		bsr.w     loc_24A2
 		moveq   #$00, D2
 		moveq   #$00, D0
@@ -2597,27 +2613,35 @@ PalCycle_Load: ; loc_1F18: ; Rotating Palette routine
 		add.w   D0, D0
 		move.w  PalCycle(PC, D0), D0    ; loc_1F30
 		jmp     PalCycle(PC, D0)        ; loc_1F30
+; ---------------------------------------------------------------------------
 		rts
-PalCycle: ; loc_1F30:		
-		dc.w    PalCycle_GHz-PalCycle ; $00 - Green Hill 
-		dc.w    PalCycle_Null-PalCycle ; $01
-		dc.w    PalCycle_Wz-PalCycle ; $02 - Wood
-		dc.w    PalCycle_Null-PalCycle ; $03
-		dc.w    PalCycle_Mz-PalCycle ; $04 - Metropolis
-		dc.w    PalCycle_Mz-PalCycle ; $05 - Metropolis
-		dc.w    PalCycle_Null-PalCycle ; $06
-		dc.w    PalCycle_HTz-PalCycle ; $07 - Hill Top
-		dc.w    PalCycle_HPz-PalCycle ; $08 - Hidden Palace
-		dc.w    PalCycle_Null-PalCycle ; $09
-		dc.w    PalCycle_OOz-PalCycle ; $0A - Oil Ocean
-		dc.w    PalCycle_DHz-PalCycle ; $0B - Dust Hill
-		dc.w    PalCycle_CNz-PalCycle ; $0C - Casino Night
-		dc.w    PalCycle_CPz-PalCycle ; $0D - Chemical Plant
-		dc.w    PalCycle_Null-PalCycle ; $0E - Genocide City
-		dc.w    PalCycle_NGHz-PalCycle ; $0F - Neo Green Hill
-		dc.w    PalCycle_Null-PalCycle ; $10 - Death Egg
-PalCycle_Null: ; loc_1F52:
-		rts		     
+; ===========================================================================
+; off_1F30:
+PalCycle:	zoneOrderedOffsetTable 2,1
+	zoneOffsetTableEntry.w PalCycle_GHz
+	zoneOffsetTableEntry.w PalCycle_Null
+	zoneOffsetTableEntry.w PalCycle_Wz
+	zoneOffsetTableEntry.w PalCycle_Null
+	zoneOffsetTableEntry.w PalCycle_Mz
+	zoneOffsetTableEntry.w PalCycle_Mz
+	zoneOffsetTableEntry.w PalCycle_Null
+	zoneOffsetTableEntry.w PalCycle_HTz
+	zoneOffsetTableEntry.w PalCycle_HPz
+	zoneOffsetTableEntry.w PalCycle_Null
+	zoneOffsetTableEntry.w PalCycle_OOz
+	zoneOffsetTableEntry.w PalCycle_DHz
+	zoneOffsetTableEntry.w PalCycle_CNz
+	zoneOffsetTableEntry.w PalCycle_CPz
+	zoneOffsetTableEntry.w PalCycle_Null
+	zoneOffsetTableEntry.w PalCycle_NGHz
+	zoneOffsetTableEntry.w PalCycle_Null
+    zoneTableEnd
+
+; ===========================================================================
+; return_1F52:
+PalCycle_Null:
+		rts
+; ===========================================================================
 PalCycle_GHz: ; loc_1F54: ; $00 - Green Hill Rotating Palette routine
 		lea     (Pal_GHzCyc).l, A0        ; loc_2284
 		subq.w  #$01, (PalCycle_Timer).w
@@ -3639,7 +3663,7 @@ loc_3818:
 		move.w	#0,(Debug_placement_mode).w
 		move.w	#0,(Demo_mode_flag).w
 		move.w	#0,(unk_FFDA).w
-		move.w	#$F00,(Current_ZoneAndAct).w
+		move.w	#neo_green_hill_zone_act_1,(Current_ZoneAndAct).w
 		move.w	#0,(PalCycle_Timer).w
 		bsr.w	Pal_FadeFrom
 
@@ -3950,8 +3974,20 @@ loc_3BF8:
 		move.l  #$00001388, (Next_Extra_life_score).w
 		rts
 Demo_Mode_Level_Array: ; loc_3C16: ; Demo sequence array
-		dc.w    $0D00, $0000, $0800, $0700, $0500, $0500, $0500, $0500
-		dc.w    $0400, $0400, $0400, $0400
+		dc.w	chemical_plant_zone_act_1
+		dc.w	green_hill_zone_act_1
+		dc.w	hidden_palace_zone_act_1
+		dc.w	hill_top_zone_act_1
+		; These entries are leftovers from the Nick Arcade prototype, in which zone IDs $04 and
+		; $05 were taken up by Hidden Palace and Hill Top Zone respectively
+		dc.w	metropolis_zone_act_3
+		dc.w	metropolis_zone_act_3
+		dc.w	metropolis_zone_act_3
+		dc.w	metropolis_zone_act_3
+		dc.w	metropolis_zone_act_1
+		dc.w	metropolis_zone_act_1
+		dc.w	metropolis_zone_act_1
+		dc.w	metropolis_zone_act_1
 ; ===========================================================================
 ; loc_3C2E:
 LevelSelect_Controls:
@@ -4237,23 +4273,28 @@ Unused_Code4_Loop: ; loc_4122:
 ; Music Playlist
 ; ---------------------------------------------------------------------------
 ; byte_4140:
-MusicList:	dc.b	MusID_GHZ
-		dc.b	MusID_GHZ
-		dc.b	MusID_MTZ
-		dc.b	MusID_SSZ
-		dc.b	MusID_MTZ
-		dc.b	MusID_MTZ
-		dc.b	MusID_BOZ
-		dc.b	MusID_HTZ
-		dc.b	MusID_HPZ
-		dc.b	MusID_RWZ
-		dc.b	MusID_OOZ
-		dc.b	MusID_DHZ
-		dc.b	MusID_CNZ
-		dc.b	MusID_CPZ
-		dc.b	MusID_CPZ
-		dc.b	MusID_NGHZ
-		even
+MusicList:	zoneOrderedTable 1,1
+	zoneTableEntry.b	MusID_GHZ	; GHZ
+	zoneTableEntry.b	MusID_GHZ	; OWZ
+	zoneTableEntry.b	MusID_MTZ	; WZ
+	zoneTableEntry.b	MusID_SSZ	; SSZ
+	zoneTableEntry.b	MusID_MTZ	; MTZ
+	zoneTableEntry.b	MusID_MTZ	; MTZ2
+	zoneTableEntry.b	MusID_BOZ	; BLZ
+	zoneTableEntry.b	MusID_HTZ	; HTZ
+	zoneTableEntry.b	MusID_HPZ	; HPZ
+	zoneTableEntry.b	MusID_RWZ	; RWZ
+	zoneTableEntry.b	MusID_OOZ	; OOZ
+	zoneTableEntry.b	MusID_DHZ	; DHZ
+	zoneTableEntry.b	MusID_CNZ	; CNZ
+	zoneTableEntry.b	MusID_CPZ	; CPZ
+	zoneTableEntry.b	MusID_CPZ	; GCZ
+	zoneTableEntry.b	MusID_NGHZ	; NGHZ
+	; no *proper* entry for DEZ, so it instead uses the alignment to play sound $08
+	;zoneTableEntry.b	MusID_DEZ	; DEZ
+    zoneTableEnd
+	even
+
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Level
@@ -4305,11 +4346,11 @@ Level_ClrRAM:
 		clearRAM Misc_Variables,Misc_Variables_End
 		clearRAM Oscillating_variables,Oscillating_variables_End
 
-		cmpi.w	#$D01,(Current_ZoneAndAct).w	; is it CPZ2?
+		cmpi.w	#chemical_plant_zone_act_2,(Current_ZoneAndAct).w	; is it CPZ2?
 		beq.s	Level_InitWater			; if yes, branch
-		cmpi.b	#$F,(Current_ZoneAndAct).w	; is it ARZ?
+		cmpi.b	#neo_green_hill_zone,(Current_ZoneAndAct).w	; is it NGHZ?
 		beq.s	Level_InitWater			; if yes, branch
-		cmpi.b	#8,(Current_ZoneAndAct).w	; is it HPZ?
+		cmpi.b	#hidden_palace_zone,(Current_ZoneAndAct).w	; is it HPZ?
 		bne.s	+				; if not, branch
 ; loc_4228: Init_Water:
 Level_InitWater:
@@ -4345,7 +4386,9 @@ loc_427C:
 		moveq	#0,d0
 		move.w	(Current_ZoneAndAct).w,d0
 		; this limits the water table to stages after HPZ
-		subi.w	#$800,d0
+	if ~~useFullWaterTables
+		subi.w	#hidden_palace_zone_act_1,d0
+	endif
 		ror.b	#1,d0
 		lsr.w	#6,d0
 		andi.w	#$FFFE,d0
@@ -4368,10 +4411,10 @@ Level_LoadPal:
 		beq.s	Level_GetBgm	; if not, branch
 
 		moveq	#PalID_HPZ_U,d0		; use HPZ underwater palette
-		cmpi.b	#8,(Current_Zone).w	; is this Hidden Palace Zone?
+		cmpi.b	#hidden_palace_zone,(Current_Zone).w	; is this Hidden Palace Zone?
 		beq.s	Level_WaterPal		; if yes, branch
 		moveq	#PalID_CPZ_U,d0		; use CPZ underwater palette
-		cmpi.b	#$D,(Current_Zone).w	; if this Chemical Plant Zone?
+		cmpi.b	#chemical_plant_zone,(Current_Zone).w	; if this Chemical Plant Zone?
 		beq.s	Level_WaterPal		; if yes, branch
 		moveq	#PalID_NGHZ_U,d0	; use NGHZ underwater palette
 ; loc_42F0: LevelInit_UnderwaterPalette:
@@ -4440,7 +4483,7 @@ loc_43BC:
 		move.b  #$04, ($FFFFB7C0).w
 		move.w  #$0120, ($FFFFB7C8).w
 loc_43E6:
-		cmpi.b  #$0A, (Current_Zone).w
+		cmpi.b  #oil_ocean_zone, (Current_Zone).w
 		bne.s   loc_43F4
 		move.b  #$07, ($FFFFB780).w
 loc_43F4:
@@ -4500,10 +4543,10 @@ loc_44D2:
 		tst.b   (Water_flag).w
 		beq.s   loc_44F2
 		moveq   #PalID_HPZ_U, D0
-		cmpi.b  #$08, (Current_Zone).w
+		cmpi.b  #hidden_palace_zone, (Current_Zone).w
 		beq.s   loc_44EE
 		moveq   #PalID_CPZ_U, D0
-		cmpi.b  #$0D, (Current_Zone).w
+		cmpi.b  #chemical_plant_zone, (Current_Zone).w
 		beq.s   loc_44EE
 		moveq   #PalID_NGHZ_U, D0
 loc_44EE:
@@ -4651,7 +4694,7 @@ WaterEffects:
 MoveWater:
 		clr.b	(Water_fullscreen_flag).w
 		moveq	#0,d0
-		cmpi.b	#$F,(Current_Zone).w	; is this NGHZ?
+		cmpi.b	#neo_green_hill_zone,(Current_Zone).w	; is this NGHZ?
 		beq.s	loc_4686		; if yes, branch
 		move.b	(Oscillating_Data).w,d0
 		lsr.w	#1,d0
@@ -4682,21 +4725,45 @@ return_46B6:
 ; The code that handles initializing the water tables effectively makes
 ; it start at $08 instead of $00 to save space
 ; word_46B8: Water_Height_Array:
-WaterHeight:	dc.w	$600, $600	; HPZ
-		dc.w	$600, $600	; Zone 9
-		dc.w	$600, $600	; OOZ
-		dc.w	$600, $600	; MCZ
-		dc.w	$600, $600	; CNZ
-		dc.w	$600, $710	; CPZ
-		dc.w	$600, $600	; GCZ
-		dc.w	$410, $510	; ARZ
-		; no entry for DEZ...
+    if useFullWaterTables
+WaterHeight: zoneOrderedTable 2,2
+	zoneTableEntry.w  $600, $600	; EHZ
+	zoneTableEntry.w  $600, $600	; OWZ
+	zoneTableEntry.w  $600, $600	; WZ
+	zoneTableEntry.w  $600, $600	; SSZ
+	zoneTableEntry.w  $600, $600	; MTZ
+	zoneTableEntry.w  $600, $600	; MTZ
+	zoneTableEntry.w  $600, $600	; WFZ
+	zoneTableEntry.w  $600, $600	; HTZ
+	zoneTableEntry.w  $600, $600	; HPZ
+	zoneTableEntry.w  $600, $600	; RWZ
+	zoneTableEntry.w  $600, $600	; OOZ
+	zoneTableEntry.w  $600, $600	; MCZ
+	zoneTableEntry.w  $600, $600	; CNZ
+	zoneTableEntry.w  $600, $710	; CPZ
+	zoneTableEntry.w  $600, $600	; DEZ
+	zoneTableEntry.w  $410, $510	; ARZ
+	zoneTableEntry.w  $600, $600	; SCZ
+    zoneTableEnd
+    else
+WaterHeight:
+	dc.w  $600, $600	; HPZ
+	dc.w  $600, $600	; Zone 9
+	dc.w  $600, $600	; OOZ
+	dc.w  $600, $600	; MCZ
+	dc.w  $600, $600	; CNZ
+	dc.w  $600, $710	; CPZ
+	dc.w  $600, $600	; DEZ
+	dc.w  $410, $510	; ARZ
+    endif
 ; ===========================================================================
 ; sub_46D8: Dynamic_Water_Height:
 DynamicWater:
 		moveq	#0,d0
 		move.w	(Current_ZoneAndAct).w,d0
-		subi.w	#$800,d0
+	if ~~useFullWaterTables
+		subi.w	#hidden_palace_zone_act_1,d0
+	endif
 		ror.b	#1,d0
 		lsr.w	#6,d0
 		andi.w	#$FFFE,d0
@@ -4720,24 +4787,62 @@ loc_470A:
 ; ===========================================================================
 ; Like with the water height table, the index starts at $08, rather than $00
 ; off_470C:
-DynamicWater_Index:
-		dc.w    DynamicWater_Null-DynamicWater_Index	; HPZ 1
-		dc.w    DynamicWater_Null-DynamicWater_Index	; HPZ 2
-		dc.w    DynamicWater_Null-DynamicWater_Index	; Zone 9-1
-		dc.w    DynamicWater_Null-DynamicWater_Index	; Zone 9-2
-		dc.w    DynamicWater_Null-DynamicWater_Index	; OOZ 1
-		dc.w    DynamicWater_Null-DynamicWater_Index	; OOZ 2
-		dc.w    DynamicWater_Null-DynamicWater_Index	; MCZ 1
-		dc.w    DynamicWater_Null-DynamicWater_Index	; MCZ 2
-		dc.w    DynamicWater_Null-DynamicWater_Index	; CNZ 1
-		dc.w    DynamicWater_Null-DynamicWater_Index	; CNZ 2
-		dc.w    DynamicWater_Null-DynamicWater_Index	; CPZ 1
-		dc.w    DynamicWater_CPZ2-DynamicWater_Index	; CPZ 2
-		dc.w    DynamicWater_Null-DynamicWater_Index	; GCZ 1
-		dc.w    DynamicWater_Null-DynamicWater_Index	; GCZ 2
-		dc.w    DynamicWater_Null-DynamicWater_Index	; NGHZ 1
-		dc.w    DynamicWater_Null-DynamicWater_Index	; NGHZ 2
-		; no entry for DEZ...
+    if useFullWaterTables
+DynamicWater_Index: zoneOrderedOffsetTable 2,2
+	zoneOffsetTableEntry.w DynamicWater_Null ; EHZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; EHZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; OWZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; OWS 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; WZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; WZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; SSZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; SSZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; MTZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; MTZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; MTZ 3
+	zoneOffsetTableEntry.w DynamicWater_Null ; MTZ 4
+	zoneOffsetTableEntry.w DynamicWater_Null ; WFZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; WFZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; HTZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; HTZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; HPZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; HPZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; RWZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; RWZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; OOZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; OOZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; MCZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; MCZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; CNZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; CNZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; CPZ 1
+	zoneOffsetTableEntry.w DynamicWater_CPZ2 ; CPZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; DEZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; DEZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; ARZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; ARZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; SCZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; SCZ 2
+    zoneTableEnd
+    else
+DynamicWater_Index: offsetTable
+	offsetTableEntry.w DynamicWater_Null ; HPZ 1
+	offsetTableEntry.w DynamicWater_Null ; HPZ 2
+	offsetTableEntry.w DynamicWater_Null ; RWZ 1
+	offsetTableEntry.w DynamicWater_Null ; RWZ 2
+	offsetTableEntry.w DynamicWater_Null ; OOZ 1
+	offsetTableEntry.w DynamicWater_Null ; OOZ 2
+	offsetTableEntry.w DynamicWater_Null ; MCZ 1
+	offsetTableEntry.w DynamicWater_Null ; MCZ 2
+	offsetTableEntry.w DynamicWater_Null ; CNZ 1
+	offsetTableEntry.w DynamicWater_Null ; CNZ 2
+	offsetTableEntry.w DynamicWater_Null ; CPZ 1
+	offsetTableEntry.w DynamicWater_CPZ2 ; CPZ 2
+	offsetTableEntry.w DynamicWater_Null ; DEZ 1
+	offsetTableEntry.w DynamicWater_Null ; DEZ 2
+	offsetTableEntry.w DynamicWater_Null ; ARZ 1
+	offsetTableEntry.w DynamicWater_Null ; ARZ 2
+    endif
 ; ===========================================================================
 ; return_472C:
 DynamicWater_Null:
@@ -4899,7 +5004,7 @@ loc_4908:
 		addq.w  #$02, (Demo_button_index).w
 		andi.w  #$03FF, (Demo_button_index).w 
 loc_491C:
-		cmpi.b  #$00, (Current_Zone).w
+		cmpi.b  #green_hill_zone, (Current_Zone).w
 		bne.s   loc_495A
 		lea     ($00FEC000), A1
 		move.w  (Demo_button_index_2P).w, D0
@@ -4949,7 +5054,7 @@ loc_4984:
 		move.b  $0003(A1), (Demo_press_counter).w
 		addq.w  #$02, (Demo_button_index).w
 loc_49B2:
-		cmpi.b  #$00, (Current_Zone).w
+		cmpi.b  #green_hill_zone, (Current_Zone).w
 		bne.s   loc_49EA
 		lea     (Demo_Tails_Ghz).l, A1    ; loc_4DF8
 		move.w  (Demo_button_index_2P).w, D0
@@ -5032,23 +5137,26 @@ levelCollisionLoad:
 ; level. 1 pointer for each level, pointing the primary collision index.
 ; ---------------------------------------------------------------------------
 ; off_4ADC: Primary_Colision_Index:
-Off_ColP:	dc.l	Green_Hill_Colision_1
-		dc.l	Special_Stage_1
-		dc.l	Wood_Colision
-		dc.l	Special_Stage_1
-		dc.l	Metropolis_Colision
-		dc.l	Metropolis_Colision
-		dc.l	Special_Stage_1
-		dc.l	Green_Hill_Colision_1
-		dc.l	Hidden_Palace_Colision_1
-		dc.l	Special_Stage_1
-		dc.l	Oil_Ocean_Colision
-		dc.l	Dust_Hill_Colision
-		dc.l	Casino_Night_Colision_1
-		dc.l	Chemical_Plant_Colision_1
-		dc.l	Special_Stage_1
-		dc.l	Neo_Green_Hill_Colision_1
-		dc.l	Special_Stage_1
+Off_ColP: zoneOrderedTable 4,1
+	zoneTableEntry.l Green_Hill_Colision_1
+	zoneTableEntry.l Special_Stage_1
+	zoneTableEntry.l Wood_Colision
+	zoneTableEntry.l Special_Stage_1
+	zoneTableEntry.l Metropolis_Colision
+	zoneTableEntry.l Metropolis_Colision
+	zoneTableEntry.l Special_Stage_1
+	zoneTableEntry.l Green_Hill_Colision_1
+	zoneTableEntry.l Hidden_Palace_Colision_1
+	zoneTableEntry.l Special_Stage_1
+	zoneTableEntry.l Oil_Ocean_Colision
+	zoneTableEntry.l Dust_Hill_Colision
+	zoneTableEntry.l Casino_Night_Colision_1
+	zoneTableEntry.l Chemical_Plant_Colision_1
+	zoneTableEntry.l Special_Stage_1
+	zoneTableEntry.l Neo_Green_Hill_Colision_1
+	zoneTableEntry.l Special_Stage_1
+    zoneTableEnd
+
 ; ---------------------------------------------------------------------------
 ; Pointers to secondary collision indexes
 
@@ -5057,23 +5165,26 @@ Off_ColP:	dc.l	Green_Hill_Colision_1
 ; index.
 ; ---------------------------------------------------------------------------
 ; off_4B20: Secundary_Colision_Index:
-Off_ColS:	dc.l	Green_Hill_Colision_2
-		dc.l	Special_Stage_1
-		dc.l	Wood_Colision
-		dc.l	Special_Stage_1
-		dc.l	Metropolis_Colision
-		dc.l	Metropolis_Colision
-		dc.l	Special_Stage_1
-		dc.l	Green_Hill_Colision_2
-		dc.l	Hidden_Palace_Colision_2
-		dc.l	Special_Stage_1
-		dc.l	Oil_Ocean_Colision
-		dc.l	Dust_Hill_Colision
-		dc.l	Casino_Night_Colision_2
-		dc.l	Chemical_Plant_Colision_2
-		dc.l	Special_Stage_1
-		dc.l	Neo_Green_Hill_Colision_2
-		dc.l	Special_Stage_1
+Off_ColS: zoneOrderedTable 4,1
+	zoneTableEntry.l Green_Hill_Colision_2
+	zoneTableEntry.l Special_Stage_1
+	zoneTableEntry.l Wood_Colision
+	zoneTableEntry.l Special_Stage_1
+	zoneTableEntry.l Metropolis_Colision
+	zoneTableEntry.l Metropolis_Colision
+	zoneTableEntry.l Special_Stage_1
+	zoneTableEntry.l Green_Hill_Colision_2
+	zoneTableEntry.l Hidden_Palace_Colision_2
+	zoneTableEntry.l Special_Stage_1
+	zoneTableEntry.l Oil_Ocean_Colision
+	zoneTableEntry.l Dust_Hill_Colision
+	zoneTableEntry.l Casino_Night_Colision_2
+	zoneTableEntry.l Chemical_Plant_Colision_2
+	zoneTableEntry.l Special_Stage_1
+	zoneTableEntry.l Neo_Green_Hill_Colision_2
+	zoneTableEntry.l Special_Stage_1
+    zoneTableEnd
+
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Oscillating number subroutine
@@ -5175,7 +5286,7 @@ loc_4CBE:
 End_Level_Art_Load: ; loc_4CC0: ; Test for load end level sprites...
 		tst.w   (Debug_placement_mode).w
 		bne.w     Skip_End_Level_Art_Load ; loc_4CF6
-		cmpi.w  #$0001, (Current_ZoneAndAct).w
+		cmpi.w  #green_hill_zone_act_1, (Current_ZoneAndAct).w
 		beq.s   Skip_End_Level_Art_Load ; loc_4CF6
 		move.w  (Camera_X_pos).w, D0
 		move.w  (Camera_Max_X_pos).w, D1
@@ -5373,7 +5484,7 @@ loc_538A:
 		tst.w   (Demo_mode_flag).w
 		bne.w     loc_54C0
 		move.b  #$0C, (Game_Mode).w
-		cmpi.w  #$0503, (Current_ZoneAndAct).w
+		cmpi.w  #metropolis_zone_act_6, (Current_ZoneAndAct).w
 		bcs.s   loc_53AE
 		clr.w   (Current_ZoneAndAct).w
 loc_53AE:
@@ -5743,24 +5854,26 @@ LevelSizeLoad:
 ; This array defines the screen boundaries for each act in the game.
 ; ---------------------------------------------------------------------------
 ; loc_5986: Level_Size_Array:
-LevelSize:
-		dc.l    $000029A0, $00000320, $00002940, $00000420 ; $00 - Green Hill
-		dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $01
-		dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $02 - Wood
-		dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $03 
-		dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $04 - Metropolis
-		dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $05 - Metropolis
-		dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $06
-		dc.l    $00002800, $00000720, $00002880, $00000720 ; $07 - Hill Top
-		dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $08 - Hidden Palace
-		dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $09
-		dc.l    $00002F80, $00000680, $00002580, $00000680 ; $0A - Oil Ocean
-		dc.l    $00002380, $03C00720, $00002180, $00600720 ; $0B - Dust Hill
-		dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $0C - Casino Night
-		dc.l    $00002780, $00000720, $00002880, $00000720 ; $0D - Chemical Plant
-		dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $0E - Genocide City
-		dc.l    $000028C0, $020003A0, $000026C0, $018005A0 ; $0F - Neo Green Hill
-		dc.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $10 - Death Egg
+LevelSize:	zoneOrderedTable 4,4
+	zoneTableEntry.l    $000029A0, $00000320, $00002940, $00000420 ; $00 - Green Hill
+	zoneTableEntry.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $01
+	zoneTableEntry.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $02 - Wood
+	zoneTableEntry.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $03 
+	zoneTableEntry.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $04 - Metropolis
+	zoneTableEntry.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $05 - Metropolis
+	zoneTableEntry.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $06
+	zoneTableEntry.l    $00002800, $00000720, $00002880, $00000720 ; $07 - Hill Top
+	zoneTableEntry.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $08 - Hidden Palace
+	zoneTableEntry.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $09
+	zoneTableEntry.l    $00002F80, $00000680, $00002580, $00000680 ; $0A - Oil Ocean
+	zoneTableEntry.l    $00002380, $03C00720, $00002180, $00600720 ; $0B - Dust Hill
+	zoneTableEntry.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $0C - Casino Night
+	zoneTableEntry.l    $00002780, $00000720, $00002880, $00000720 ; $0D - Chemical Plant
+	zoneTableEntry.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $0E - Genocide City
+	zoneTableEntry.l    $000028C0, $020003A0, $000026C0, $018005A0 ; $0F - Neo Green Hill
+	zoneTableEntry.l    $00003FFF, $00000720, $00003FFF, $00000720 ; $10 - Death Egg
+    zoneTableEnd
+
 ; ===========================================================================
 ; loc_5A96: Level_Size_Check_Lamp_Post:
 LevelSize_CheckLamp:
@@ -5809,32 +5922,49 @@ loc_5AF4:
 		move.w  D0, (Camera_Y_pos_P2).w
 		bsr.w     Background_Scroll_Speed ; loc_5B8A
 		rts
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; CHARACTER START LOCATION ARRAY
+
+; 2 entries per act, corresponding to the X and Y locations that you want the player to
+; appear at when the level starts.
+; ---------------------------------------------------------------------------
 ; loc_5B02: Player_Start_Position_Array:
-StartLocations:
-		BINCLUDE	"level/startpos/GHZ_1.bin"	; $00 - GHZ
-		BINCLUDE	"level/startpos/GHZ_2.bin"
-		dc.l    $0060028F, $004002AF ; $01
-		BINCLUDE	"level/startpos/WZ_1.bin"	; $02 - WZ
-		BINCLUDE	"level/startpos/WZ_2.bin"
-		dc.l    $0060028F, $004002AF ; $03
-		BINCLUDE	"level/startpos/MTZ_1.bin"	; $04 - MTZ
-		BINCLUDE	"level/startpos/MTZ_2.bin"
-		BINCLUDE	"level/startpos/MTZ_3.bin"	; $05 - MTZ2
-		BINCLUDE	"level/startpos/MTZ_4.bin"
-		dc.l    $0060028F, $004002AF ; $06
-		BINCLUDE	"level/startpos/HTZ_1.bin"	; $07 - HTZ
-		BINCLUDE	"level/startpos/HTZ_2.bin"
-		BINCLUDE	"level/startpos/HPZ_1.bin"	; $08 - HPZ
-		BINCLUDE	"level/startpos/HPZ_2.bin"
-		dc.l    $0060028F, $004002AF ; $09
-		BINCLUDE	"level/startpos/OOZ_1.bin"	; $0A - OOZ
-		BINCLUDE	"level/startpos/OOZ_2.bin"
-		dc.l    $006006AC, $006005AC ; $0B - Dust Hill
-		dc.l    $0060028F, $004002AF ; $0C - Casino Night
-		dc.l    $003001EC, $0030012C ; $0D - Chemical Plant
-		dc.l    $0060028F, $004002AF ; $0E - Genocide City
-		dc.l    $0050037C, $0050037C ; $0F - Neo Green Hill
-		dc.l    $0060028F, $004002AF ; $10 - Death Egg
+StartLocations: zoneOrderedTable 2,4
+	zoneTableBinEntry	2, "level/startpos/GHZ_1.bin"	; $00 - GHZ
+	zoneTableBinEntry	2, "level/startpos/GHZ_2.bin"
+	zoneTableEntry.w	$60, $28F			; $01 - OWZ
+	zoneTableEntry.w	$40, $2AF
+	zoneTableBinEntry	2, "level/startpos/WZ_1.bin"	; $02 - WZ
+	zoneTableBinEntry	2, "level/startpos/WZ_2.bin"
+	zoneTableEntry.w	$60, $28F			; $03 - SSZ
+	zoneTableEntry.w	$40, $2AF
+	zoneTableBinEntry	2, "level/startpos/MTZ_1.bin"	; $04 - MTZ
+	zoneTableBinEntry	2, "level/startpos/MTZ_2.bin"
+	zoneTableBinEntry	2, "level/startpos/MTZ_3.bin"	; $05 - MTZ2
+	zoneTableBinEntry	2, "level/startpos/MTZ_4.bin"
+	zoneTableEntry.w	$60, $28F			; $06 - BLZ
+	zoneTableEntry.w	$40, $2AF
+	zoneTableBinEntry	2, "level/startpos/HTZ_1.bin"	; $07 - HTZ
+	zoneTableBinEntry	2, "level/startpos/HTZ_2.bin"
+	zoneTableBinEntry	2, "level/startpos/HPZ_1.bin"	; $08 - HPZ
+	zoneTableBinEntry	2, "level/startpos/HPZ_2.bin"
+	zoneTableEntry.w	$60, $28F			; $09 - RWZ
+	zoneTableEntry.w	$40, $2AF
+	zoneTableBinEntry	2, "level/startpos/OOZ_1.bin"	; $0A - OOZ
+	zoneTableBinEntry	2, "level/startpos/OOZ_2.bin"
+	zoneTableEntry.w	$60, $6AC			; $0B - DHZ
+	zoneTableEntry.w	$60, $5AC
+	zoneTableEntry.w	$60, $28F			; $0C - CNZ
+	zoneTableEntry.w	$40, $2AF
+	zoneTableEntry.w	$30, $1EC			; $0D - CPZ
+	zoneTableEntry.w	$30, $12C
+	zoneTableEntry.w	$60, $28F			; $0E - GCZ
+	zoneTableEntry.w	$40, $2AF
+	zoneTableEntry.w	$50, $37C			; $0F - NGHZ
+	zoneTableEntry.w	$50, $37C
+	zoneTableEntry.w	$60, $28F			; $10 - DEZ
+	zoneTableEntry.w	$40, $2AF
 Background_Scroll_Speed: ; loc_5B8A: ; Background Position
 		tst.b   (Last_star_pole_hit).w
 		bne.s   loc_5BB8
@@ -5854,24 +5984,27 @@ loc_5BB8:
 		add.w   D2, D2
 		move.w  Bg_Scroll_Speed_Index(PC, D2), D2 ; loc_5BC8
 		jmp     Bg_Scroll_Speed_Index(PC, D2) ; loc_5BC8
-Bg_Scroll_Speed_Index: ; loc_5BC8: 
-		dc.w    Bg_Scroll_Speed_GHz-Bg_Scroll_Speed_Index ; $00 - Green Background Position
-		dc.w    Bg_Scroll_Speed_Null-Bg_Scroll_Speed_Index ; $01 - Null Background Position
-		dc.w    Bg_Scroll_Speed_Wz-Bg_Scroll_Speed_Index ; $02 - Wood Background Position
-		dc.w    Bg_Scroll_Speed_Null-Bg_Scroll_Speed_Index ; $03 - Null Background Position
-		dc.w    Bg_Scroll_Speed_Mz-Bg_Scroll_Speed_Index ; $04 - Metropolis Background Position 
-		dc.w    Bg_Scroll_Speed_Mz-Bg_Scroll_Speed_Index ; $05 - Metropolis Background Position 
-		dc.w    Bg_Scroll_Speed_Null-Bg_Scroll_Speed_Index ; $06 - Null Background Position
-		dc.w    Bg_Scroll_Speed_HTz-Bg_Scroll_Speed_Index ; $07 - Hill Top Background Position 
-		dc.w    Bg_Scroll_Speed_HPz-Bg_Scroll_Speed_Index ; $08 - Hidden Palace Background Position 
-		dc.w    Bg_Scroll_Speed_Null2-Bg_Scroll_Speed_Index ; $09 - Null Background Position
-		dc.w    Bg_Scroll_Speed_OOz-Bg_Scroll_Speed_Index ; $0A - Oil Ocean Background Position 
-		dc.w    Bg_Scroll_Speed_DHz-Bg_Scroll_Speed_Index ; $0B - Dust Hill Background Position 
-		dc.w    Bg_Scroll_Speed_CNz-Bg_Scroll_Speed_Index ; $0C - Casino Night Background Position
-		dc.w    Bg_Scroll_Speed_CPz-Bg_Scroll_Speed_Index ; $0D - Chemical Plant Background Position 
-		dc.w    Bg_Scroll_Speed_Null3-Bg_Scroll_Speed_Index ; $0E - Genocide City Background Position (Null)
-		dc.w    Bg_Scroll_Speed_NGHz-Bg_Scroll_Speed_Index ; $0F - Neo Green Hill Background Position 
-		dc.w    Bg_Scroll_Speed_Null4-Bg_Scroll_Speed_Index ; $10 - Death Egg Background Position (Null)
+; off_5BC8:
+Bg_Scroll_Speed_Index: zoneOrderedOffsetTable 2,1
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_GHz ; $00 - Green Background Position
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_Null ; $01 - Null Background Position
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_Wz ; $02 - Wood Background Position
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_Null ; $03 - Null Background Position
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_Mz ; $04 - Metropolis Background Position 
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_Mz ; $05 - Metropolis Background Position 
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_Null ; $06 - Null Background Position
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_HTz ; $07 - Hill Top Background Position 
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_HPz ; $08 - Hidden Palace Background Position 
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_Null2 ; $09 - Null Background Position
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_OOz ; $0A - Oil Ocean Background Position 
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_DHz ; $0B - Dust Hill Background Position 
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_CNz ; $0C - Casino Night Background Position
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_CPz ; $0D - Chemical Plant Background Position 
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_Null3 ; $0E - Genocide City Background Position (Null)
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_NGHz ; $0F - Neo Green Hill Background Position 
+	zoneOffsetTableEntry.w    Bg_Scroll_Speed_Null4 ; $10 - Death Egg Background Position (Null)
+    zoneTableEnd
+
 Bg_Scroll_Speed_GHz: ; loc_5BEA: ; Green Hill Background Position
 		clr.l   (Camera_BG_X_pos).w
 		clr.l   (Camera_BG_Y_pos).w
@@ -6062,24 +6195,27 @@ loc_5DEA:
 		add.w   D0, D0
 		move.w  Bg_Scroll_Index(PC, D0), D0 ; loc_5E16
 		jmp     Bg_Scroll_Index(PC, D0) ; loc_5E16
-Bg_Scroll_Index: ; loc_5E16:
-		dc.w    Bg_Scroll_GHz-Bg_Scroll_Index; $00 - Green Hill Background Scroll   
-		dc.w    Bg_Scroll_Null-Bg_Scroll_Index; $01 - Null Background Scroll 
-		dc.w    Bg_Scroll_Wz-Bg_Scroll_Index; $02 - Wood Background Scroll  
-		dc.w    Bg_Scroll_Null-Bg_Scroll_Index; $03 - Null Background Scroll  
-		dc.w    Bg_Scroll_Mz-Bg_Scroll_Index; $04 - Metropolis Background Scroll 
-		dc.w    Bg_Scroll_Mz-Bg_Scroll_Index; $05 - Metropolis Background Scroll 
-		dc.w    Bg_Scroll_Null-Bg_Scroll_Index; $06 - Null Background Scroll 
-		dc.w    Bg_Scroll_HTz-Bg_Scroll_Index; $07 - Hill Top Background Scroll 
-		dc.w    Bg_Scroll_HPz-Bg_Scroll_Index; $08 - Hidden Palace Background Scroll 
-		dc.w    Bg_Scroll_Null-Bg_Scroll_Index; $09 - Null Background Scroll 
-		dc.w    Bg_Scroll_OOz-Bg_Scroll_Index; $0A - Oil Ocean Background Scroll 
-		dc.w    Bg_Scroll_DHz-Bg_Scroll_Index; $0B - Dust Hill Background Scroll 
-		dc.w    Bg_Scroll_CNz-Bg_Scroll_Index; $0C - Casino Night Background Scroll 
-		dc.w    Bg_Scroll_CPz-Bg_Scroll_Index; $0D - Chemical Plant Background Scroll               
-		dc.w    Bg_Scroll_Null-Bg_Scroll_Index; $0E - Genocide City (Null) Background Scroll 
-		dc.w    Bg_Scroll_NGHz-Bg_Scroll_Index; $0F - Neo Green Hill Background Scroll 
-		dc.w    Bg_Scroll_Null-Bg_Scroll_Index; $10 - Death Egg (Null) Background Scroll    
+; off_5E16:
+Bg_Scroll_Index: zoneOrderedOffsetTable 2,1
+	zoneOffsetTableEntry.w    Bg_Scroll_GHz; $00 - Green Hill Background Scroll   
+	zoneOffsetTableEntry.w    Bg_Scroll_Null; $01 - Null Background Scroll 
+	zoneOffsetTableEntry.w    Bg_Scroll_Wz; $02 - Wood Background Scroll  
+	zoneOffsetTableEntry.w    Bg_Scroll_Null; $03 - Null Background Scroll  
+	zoneOffsetTableEntry.w    Bg_Scroll_Mz; $04 - Metropolis Background Scroll 
+	zoneOffsetTableEntry.w    Bg_Scroll_Mz; $05 - Metropolis Background Scroll 
+	zoneOffsetTableEntry.w    Bg_Scroll_Null; $06 - Null Background Scroll 
+	zoneOffsetTableEntry.w    Bg_Scroll_HTz; $07 - Hill Top Background Scroll 
+	zoneOffsetTableEntry.w    Bg_Scroll_HPz; $08 - Hidden Palace Background Scroll 
+	zoneOffsetTableEntry.w    Bg_Scroll_Null; $09 - Null Background Scroll 
+	zoneOffsetTableEntry.w    Bg_Scroll_OOz; $0A - Oil Ocean Background Scroll 
+	zoneOffsetTableEntry.w    Bg_Scroll_DHz; $0B - Dust Hill Background Scroll 
+	zoneOffsetTableEntry.w    Bg_Scroll_CNz; $0C - Casino Night Background Scroll 
+	zoneOffsetTableEntry.w    Bg_Scroll_CPz; $0D - Chemical Plant Background Scroll               
+	zoneOffsetTableEntry.w    Bg_Scroll_Null; $0E - Genocide City (Null) Background Scroll 
+	zoneOffsetTableEntry.w    Bg_Scroll_NGHz; $0F - Neo Green Hill Background Scroll 
+	zoneOffsetTableEntry.w    Bg_Scroll_Null; $10 - Death Egg (Null) Background Scroll    
+    zoneTableEnd
+
 loc_5E38: ; Title Screen Background Scroll
 		move.w  (Camera_BG_Y_pos).w, (Vscroll_Factor_BG).w
 		move.w  (Camera_X_pos).w, D0
@@ -7942,7 +8078,7 @@ loc_712A:
 Draw_BG3:
 		tst.b   (A2)
 		beq.w     loc_718C
-		cmpi.b  #$0D, (Current_Zone).w
+		cmpi.b  #chemical_plant_zone, (Current_Zone).w
 		beq.w     loc_71D0
 		bclr    #$00, (A2)
 		beq.s   loc_716C
@@ -8498,7 +8634,7 @@ loc_76DE:
 		move.w  #$6000, D2
 		tst.w   (Two_player_mode).w
 		beq.w     loc_770A
-		cmpi.b  #$0B, (Current_Zone).w
+		cmpi.b  #dust_hill_zone, (Current_Zone).w
 		beq.w     loc_776A
 loc_770A:
 		moveq   #-$10, D4
@@ -8596,7 +8732,7 @@ Main_Level_Load_16_Blocks_Not2p: ; loc_77E8:
 		move.w  D0, (A1)+
 		dbf    D2, Main_Level_Load_16_Blocks_Loop ; loc_77D2    
 loc_77EE:    
-		cmpi.b  #$07, (Current_Zone).w
+		cmpi.b  #hill_top_zone, (Current_Zone).w
 		bne.s   loc_7820
 		lea     (Block_Table+$980).w, A1
 		lea     (BM16_HTZ).l, A0 ; loc_84A50
@@ -8677,7 +8813,7 @@ Load_Level_Palete: ; loc_7870:
 		addq.w  #$04, A2
 		moveq   #$00, D0
 		move.b  (A2), D0
-		cmpi.w  #$0C01, (Current_ZoneAndAct).w
+		cmpi.w  #casino_night_zone_act_2, (Current_ZoneAndAct).w
 		bne.s   loc_7880         
 		moveq   #PalID_CNZ2, D0		
 loc_7880:
@@ -8856,24 +8992,27 @@ loc_7A1A:
 		add.w   D1, (Camera_Max_Y_pos_now).w
 		move.b  #$01, (Camera_Max_Y_Pos_Changing).w
 		rts
-DynResize_Index: ; loc_7A26:
-		dc.w    loc_7A48-DynResize_Index
-		dc.w    loc_7AD8-DynResize_Index
-		dc.w    loc_7ADA-DynResize_Index
-		dc.w    loc_7ADC-DynResize_Index
-		dc.w    loc_7ADE-DynResize_Index
-		dc.w    loc_7AE0-DynResize_Index
-		dc.w    loc_7AE2-DynResize_Index
-		dc.w    loc_7AE4-DynResize_Index
-		dc.w    loc_7FC8-DynResize_Index
-		dc.w    loc_7FCA-DynResize_Index
-		dc.w    loc_7FCC-DynResize_Index
-		dc.w    loc_7FCE-DynResize_Index
-		dc.w    DynResize_CNz-DynResize_Index  ; loc_7FD0
-		dc.w    DynResize_CPz-DynResize_Index  ; loc_7FD2
-		dc.w    DynResize_GCz-DynResize_Index  ; loc_7FD4
-		dc.w    DynResize_NGHz-DynResize_Index ; loc_7FD6
-		dc.w    DynResize_DEz-DynResize_Index  ; loc_7FD8
+; off_7A26:
+DynResize_Index: zoneOrderedOffsetTable 2,1
+	zoneOffsetTableEntry.w    loc_7A48
+	zoneOffsetTableEntry.w    loc_7AD8
+	zoneOffsetTableEntry.w    loc_7ADA
+	zoneOffsetTableEntry.w    loc_7ADC
+	zoneOffsetTableEntry.w    loc_7ADE
+	zoneOffsetTableEntry.w    loc_7AE0
+	zoneOffsetTableEntry.w    loc_7AE2
+	zoneOffsetTableEntry.w    loc_7AE4
+	zoneOffsetTableEntry.w    loc_7FC8
+	zoneOffsetTableEntry.w    loc_7FCA
+	zoneOffsetTableEntry.w    loc_7FCC
+	zoneOffsetTableEntry.w    loc_7FCE
+	zoneOffsetTableEntry.w    DynResize_CNz  ; loc_7FD0
+	zoneOffsetTableEntry.w    DynResize_CPz  ; loc_7FD2
+	zoneOffsetTableEntry.w    DynResize_GCz  ; loc_7FD4
+	zoneOffsetTableEntry.w    DynResize_NGHz ; loc_7FD6
+	zoneOffsetTableEntry.w    DynResize_DEz  ; loc_7FD8
+    zoneTableEnd
+
 loc_7A48:
 		tst.b   (Current_Act).w
 		bne.s   loc_7A50
@@ -9344,7 +9483,7 @@ loc_8004:
 		move.l  #Obj11_MapUnc_85E0, $0004(A0) ; loc_85E0
 		move.w  #$43C6, $0002(A0)
 		move.b  #$03, $0018(A0)
-		cmpi.b  #$08, (Current_Zone).w
+		cmpi.b  #hidden_palace_zone, (Current_Zone).w
 		bne.s   loc_8036
 		addq.b  #$04, $0024(A0)
 		move.l  #Obj11_MapUnc_8598, $0004(A0) ; loc_8598
@@ -9796,14 +9935,14 @@ loc_8626:
 		move.b  #$10, $0016(A0)
 		move.w  $000C(A0), $0038(A0)
 		move.w  $0008(A0), $003A(A0)
-		cmpi.b  #$0B, (Current_Zone).w
+		cmpi.b  #dust_hill_zone, (Current_Zone).w
 		bne.s   loc_867E
 		move.l  #Dhz_Swing_Platforms_Mappings, $0004(A0) ; loc_8B46 
 		move.w  #$0000, $0002(A0)		       
 		move.b  #$18, $0019(A0)
 		move.b  #$08, $0016(A0)
 loc_867E:
-		cmpi.b  #$0F, (Current_Zone).w
+		cmpi.b  #neo_green_hill_zone, (Current_Zone).w
 		bne.s   loc_86A0
 		move.l  #Nghz_Swing_Platforms_Mappings, $0004(A0) ; loc_8B0E
 		move.w  #$0000, $0002(A0)
@@ -10041,7 +10180,7 @@ loc_896A:
 		addq.w  #$04, D0
 		dbf    D1, loc_896A
 		move.b  #$0A, $0024(A1)
-		cmpi.b  #$0F, (Current_Zone).w
+		cmpi.b  #neo_green_hill_zone, (Current_Zone).w
 		bne.s   loc_8988
 		addq.b  #$02, $0024(A1)
 loc_8988:
@@ -10382,7 +10521,7 @@ loc_8D5A:
 		move.b  (A2)+, $001A(A0)
 		move.l  #Obj18_MapUnc_9078, $0004(A0) ; loc_9078
 		move.w  #$4000, $0002(A0)
-		cmpi.b  #$0F, (Current_Zone).w
+		cmpi.b  #neo_green_hill_zone, (Current_Zone).w
 		bne.s   loc_8D9A
 		move.l  #Nghz_Platform_Mappings, $0004(A0) ; loc_90D0
 		move.w  #$4000, $0002(A0)
@@ -10399,7 +10538,7 @@ loc_8D9A:
 		addq.b  #$06, $0024(A0)
 		andi.b  #$0F, $0028(A0)
 		move.b  #$30, $0016(A0)
-		cmpi.b  #$0F, (Current_Zone).w
+		cmpi.b  #neo_green_hill_zone, (Current_Zone).w
 		bne.s   loc_8DE6
 		move.b  #$28, $0016(A0)
 loc_8DE6:
@@ -10682,7 +10821,7 @@ loc_913C:
 		move.b  #$07, $0038(A0)
 		move.b  $0028(A0), $001A(A0)
 		move.l  #loc_9436, $0034(A0)
-		cmpi.b  #$08, (Current_Zone).w
+		cmpi.b  #hidden_palace_zone, (Current_Zone).w
 		bne.s   loc_91A4
 		move.l  #Obj1A_MapUnc_9858, $0004(A0) ; loc_9858
 		move.w  #$434A, $0002(A0)
@@ -10692,7 +10831,7 @@ loc_913C:
 		move.l  #loc_944F, $0034(A0)
 		bra.s   loc_91E8
 loc_91A4:
-		cmpi.b  #$0A, (Current_Zone).w
+		cmpi.b  #oil_ocean_zone, (Current_Zone).w
 		bne.s   loc_91CE
 		move.l  #Obj1A_MapUnc_9902, $0004(A0) ; loc_9902
 		move.w  #$639D, $0002(A0)
@@ -10782,7 +10921,7 @@ loc_9288:
 		lea     (loc_9463).l, A4
 loc_92C6:
 		move.l  A4, $0034(A0)
-		cmpi.b  #$0A, (Current_Zone).w
+		cmpi.b  #oil_ocean_zone, (Current_Zone).w
 		bne.s   loc_92F2
 		move.l  #Obj1A_MapUnc_9902, $0004(A0) ; loc_9902
 		move.w  #$639D, $0002(A0)
@@ -10790,7 +10929,7 @@ loc_92C6:
 		move.b  #$40, $0019(A0)
 		move.l  #loc_946B, $0034(A0)
 loc_92F2:
-		cmpi.b  #$0B, (Current_Zone).w
+		cmpi.b  #dust_hill_zone, (Current_Zone).w
 		bne.s   loc_931A
 		move.l  #Dhz_Collapsing_Platforms_Mappings, $0004(A0) ; loc_9942
 		move.w  #$63F4, $0002(A0)
@@ -11262,12 +11401,12 @@ loc_9CF4:
 		move.l  #Obj2D_MapUnc_9E1E, $0004(A0) ; loc_9E1E
 		move.w  #$2426, $0002(A0)
 		move.b  #$08, $0019(A0)
-		cmpi.b  #$04, (Current_Zone).w
+		cmpi.b  #metropolis_zone, (Current_Zone).w
 		bne.s   loc_9D20
 		move.w  #$6000, $0002(A0)
 		move.b  #$0C, $0019(A0)
 loc_9D20:
-		cmpi.b  #$0D, (Current_Zone).w
+		cmpi.b  #chemical_plant_zone, (Current_Zone).w
 		bne.s   loc_9D34
 		move.w  #$2394, $0002(A0)
 		move.b  #$0C, $0019(A0)
@@ -11681,7 +11820,7 @@ loc_A29C:
 		dc.l    $F00F0040, $0020FFF0
 loc_A2A6:
 		dc.w    $0001
-		dc.l    $F00F0050, $0028FFF0  
+		dc.l    $F00F0050, $0028FFF0 
 ;=============================================================================== 
 ; Object 0x28 - Flickies
 ; [ Begin ]
@@ -11713,10 +11852,27 @@ Flickies_Index: ; loc_A2BE:
 		dc.w    loc_A6C2-Flickies_Index
 		dc.w    loc_A71E-Flickies_Index
 		dc.w    loc_A684-Flickies_Index
-loc_A2E8:
-		dc.b    $00, $05, $02, $03, $06, $03, $04, $05, $04, $01, $00, $01, $00, $05, $02, $03
-		dc.b    $06, $03, $04, $05, $04, $01, $00, $01, $00, $05, $02, $03, $06, $03, $04, $05
-		dc.b    $04, $01, $00, $01
+loc_A2E8: zoneOrderedTable 1,2
+	zoneTableEntry.b $00, $05
+	zoneTableEntry.b $02, $03
+	zoneTableEntry.b $06, $03
+	zoneTableEntry.b $04, $05
+	zoneTableEntry.b $04, $01
+	zoneTableEntry.b $00, $01
+	zoneTableEntry.b $00, $05
+	zoneTableEntry.b $02, $03
+	zoneTableEntry.b $06, $03
+	zoneTableEntry.b $04, $05
+	zoneTableEntry.b $04, $01
+	zoneTableEntry.b $00, $01
+	zoneTableEntry.b $00, $05
+	zoneTableEntry.b $02, $03
+	zoneTableEntry.b $06, $03
+	zoneTableEntry.b $04, $05
+	zoneTableEntry.b $04, $01
+    zoneTableEnd
+	dc.b 0, 1	; entry for non-existant zone $11
+
 loc_A30C:
 		dc.w    $FE00, $FC00
 		dc.l    loc_A816
@@ -13628,7 +13784,7 @@ loc_BF66:
 		add.w   D0, D0
 		add.b   (Current_Act).w, D0
 		add.w   D0, D0
-		move.w  loc_BF9A(PC, D0), D0
+		move.w  word_BF9A(PC, D0), D0
 		move.w  D0, (Current_ZoneAndAct).w
 		clr.b   (Last_star_pole_hit).w
 		tst.b   (Enter_SpecialStage_flag).w
@@ -13640,12 +13796,49 @@ loc_BF8E:
 loc_BF94:
 		rts
 		bra.w     DisplaySprite           ; loc_D3C2
-loc_BF9A:
-		dc.w    $0001, $0200, $0000, $0000, $0201, $0400, $0000, $0000
-		dc.w    $0401, $0700, $0000, $0000, $0000, $0000, $0701, $0000
-		dc.w    $0801, $0A00, $0000, $0000, $0A01, $0B00, $0B01, $0C00
-		dc.w    $0C01, $0D00, $0D01, $0700, $0E01, $0F00, $0F01, $0D00
-		dc.w    $1001, $0000
+; ===========================================================================
+; -------------------------------------------------------------------------------
+; Main game level order
+
+; One value per act. That value is the level/act number of the level to load when
+; that act finishes.
+; -------------------------------------------------------------------------------
+word_BF9A: zoneOrderedTable 2,2
+	zoneTableEntry.w  green_hill_zone_act_2		; GHZ1
+	zoneTableEntry.w  wood_zone_act_1		; GHZ2
+	zoneTableEntry.w  green_hill_zone_act_1		; OWZ1
+	zoneTableEntry.w  green_hill_zone_act_1		; OWZ2
+	zoneTableEntry.w  wood_zone_act_2		; WZ1
+	zoneTableEntry.w  metropolis_zone_act_1		; WZ2
+	zoneTableEntry.w  green_hill_zone_act_1		; SSZ1
+	zoneTableEntry.w  green_hill_zone_act_1		; SSZ2
+	zoneTableEntry.w  metropolis_zone_act_2		; MTZ1
+	zoneTableEntry.w  hill_top_zone_act_1		; MTZ2
+	zoneTableEntry.w  green_hill_zone_act_1		; MTZ3
+	zoneTableEntry.w  green_hill_zone_act_1		; MTZ4
+	zoneTableEntry.w  green_hill_zone_act_1		; BLZ1
+	zoneTableEntry.w  green_hill_zone_act_1		; BLZ2
+	zoneTableEntry.w  hill_top_zone_act_2		; HTZ1
+	zoneTableEntry.w  green_hill_zone_act_1		; HTZ2
+	zoneTableEntry.w  hidden_palace_zone_act_2	; HPZ1
+	zoneTableEntry.w  oil_ocean_zone_act_1		; HPZ2
+	zoneTableEntry.w  green_hill_zone_act_1		; RWZ1
+	zoneTableEntry.w  green_hill_zone_act_1		; RWZ2
+	zoneTableEntry.w  oil_ocean_zone_act_2		; OOZ1
+	zoneTableEntry.w  dust_hill_zone_act_1		; OOZ2
+	zoneTableEntry.w  dust_hill_zone_act_2		; DHZ1
+	zoneTableEntry.w  casino_night_zone_act_1	; DHZ2
+	zoneTableEntry.w  casino_night_zone_act_2	; CNZ1
+	zoneTableEntry.w  chemical_plant_zone_act_1	; CNZ2
+	zoneTableEntry.w  chemical_plant_zone_act_2	; CPZ1
+	zoneTableEntry.w  hill_top_zone_act_1		; CPZ2
+	zoneTableEntry.w  genocide_city_zone_act_2	; GCZ1
+	zoneTableEntry.w  neo_green_hill_zone_act_1	; GCZ2
+	zoneTableEntry.w  neo_green_hill_zone_act_2	; NGHZ1
+	zoneTableEntry.w  chemical_plant_zone_act_1	; NGHZ2
+	zoneTableEntry.w  death_egg_zone_act_2		; DEZ1
+	zoneTableEntry.w  green_hill_zone_act_1		; DEZ2
+    zoneTableEnd
 loc_BFDE:
 		moveq   #$20, D1
 		move.w  $0032(A0), D0
@@ -18730,23 +18923,28 @@ Obj01_Modes:	offsetTable
 		offsetTableEntry.w Obj01_MdJump		; 6 - jumping
 ; ===========================================================================
 ; byte_FD66:
-Sonic_MusicList:dc.b	MusID_GHZ
-		dc.b	MusID_GHZ
-		dc.b	MusID_MTZ
-		dc.b	MusID_SSZ
-		dc.b	MusID_MTZ
-		dc.b	MusID_MTZ
-		dc.b	MusID_BOZ
-		dc.b	MusID_HTZ
-		dc.b	MusID_HPZ
-		dc.b	MusID_RWZ
-		dc.b	MusID_OOZ
-		dc.b	MusID_DHZ
-		dc.b	MusID_CNZ
-		dc.b	MusID_CPZ
-		dc.b	MusID_CPZ
-		dc.b	MusID_NGHZ
-		even
+Sonic_MusicList:	zoneOrderedTable 1,1
+	zoneTableEntry.b	MusID_GHZ	; GHZ
+	zoneTableEntry.b	MusID_GHZ	; OWZ
+	zoneTableEntry.b	MusID_MTZ	; WZ
+	zoneTableEntry.b	MusID_SSZ	; SSZ
+	zoneTableEntry.b	MusID_MTZ	; MTZ
+	zoneTableEntry.b	MusID_MTZ	; MTZ2
+	zoneTableEntry.b	MusID_BOZ	; BLZ
+	zoneTableEntry.b	MusID_HTZ	; HTZ
+	zoneTableEntry.b	MusID_HPZ	; HPZ
+	zoneTableEntry.b	MusID_RWZ	; RWZ
+	zoneTableEntry.b	MusID_OOZ	; OOZ
+	zoneTableEntry.b	MusID_DHZ	; DHZ
+	zoneTableEntry.b	MusID_CNZ	; CNZ
+	zoneTableEntry.b	MusID_CPZ	; CPZ
+	zoneTableEntry.b	MusID_CPZ	; GCZ
+	zoneTableEntry.b	MusID_NGHZ	; NGHZ
+	; no *proper* entry for DEZ, so it instead uses the alignment to play sound $08
+	;zoneTableEntry.b	MusID_DEZ	; DEZ
+    zoneTableEnd
+	even
+
 ; ===========================================================================
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
@@ -19515,13 +19713,13 @@ Sonic_Boundary_Bottom:
 ; ---------------------------------------------------------------------------
 ; Leftover from Sonic 1, which would transport the player to SBZ3/LZ4 upon
 ; reaching a certain position; its ID is different, for whatever reason
-		cmpi.w	#$1001,(Current_ZoneAndAct).w	; is it DEZ2?
+		cmpi.w	#death_egg_zone_act_2,(Current_ZoneAndAct).w	; is it DEZ2?
 		bne.w	JmpTo_KillSonic			; if not, branch
 		cmpi.w	#$2000,($FFFFB008).w		; is Sonic beyond x position $2000?
 		bcs.w	JmpTo_KillSonic			; if not, branch
 		clr.b	(Last_star_pole_hit).w
 		move.w	#1,(Level_Inactive_flag).w
-		move.w	#$103,(Current_ZoneAndAct).w	; restart in OWZ4
+		move.w	#labyrinth_zone_act_4,(Current_ZoneAndAct).w	; restart in OWZ4
 		rts
 ; ===========================================================================
 ; loc_103F8:
@@ -20652,22 +20850,28 @@ Tails_Modes: ; loc_10EFA:
 		dc.w    Tails_MdRoll-Tails_Modes    ; loc_110C2
 		dc.w    Tails_MdJump2-Tails_Modes   ; loc_110E2
 ; byte_10F02:
-Tails_MusicList:dc.b	MusID_GHZ
-		dc.b	MusID_GHZ
-		dc.b	MusID_MTZ
-		dc.b	MusID_SSZ
-		dc.b	MusID_MTZ
-		dc.b	MusID_MTZ
-		dc.b	MusID_BOZ
-		dc.b	MusID_HTZ
-		dc.b	MusID_HPZ
-		dc.b	MusID_RWZ
-		dc.b	MusID_OOZ
-		dc.b	MusID_DHZ
-		dc.b	MusID_CNZ
-		dc.b	MusID_CPZ
-		dc.b	MusID_CPZ
-		dc.b	MusID_NGHZ
+Tails_MusicList:	zoneOrderedTable 1,1
+	zoneTableEntry.b	MusID_GHZ	; GHZ
+	zoneTableEntry.b	MusID_GHZ	; OWZ
+	zoneTableEntry.b	MusID_MTZ	; WZ
+	zoneTableEntry.b	MusID_SSZ	; SSZ
+	zoneTableEntry.b	MusID_MTZ	; MTZ
+	zoneTableEntry.b	MusID_MTZ	; MTZ2
+	zoneTableEntry.b	MusID_BOZ	; BLZ
+	zoneTableEntry.b	MusID_HTZ	; HTZ
+	zoneTableEntry.b	MusID_HPZ	; HPZ
+	zoneTableEntry.b	MusID_RWZ	; RWZ
+	zoneTableEntry.b	MusID_OOZ	; OOZ
+	zoneTableEntry.b	MusID_DHZ	; DHZ
+	zoneTableEntry.b	MusID_CNZ	; CNZ
+	zoneTableEntry.b	MusID_CPZ	; CPZ
+	zoneTableEntry.b	MusID_CPZ	; GCZ
+	zoneTableEntry.b	MusID_NGHZ	; NGHZ
+	; no *proper* entry for DEZ, so it instead uses the alignment to play sound $08
+	;zoneTableEntry.b	MusID_DEZ	; DEZ
+    zoneTableEnd
+	even
+
 
 ;=============================================================================== 
 ; Sub Routine Tails_Display
@@ -21302,13 +21506,13 @@ loc_11530:
 		rts
 loc_11540:
 		bra.w     KillTails               ; loc_12074
-		cmpi.w  #$0501, (Current_ZoneAndAct).w
+		cmpi.w  #scrap_brain_zone_act_2, (Current_ZoneAndAct).w
 		bne.w    KillTails               ; loc_12074
 		cmpi.w  #$2000, $0008(A0)
 		bcs.w    KillTails               ; loc_12074
 		clr.b   (Last_star_pole_hit).w
 		move.w  #$0001, (Level_Inactive_flag).w
-		move.w  #$0103, (Current_ZoneAndAct).w
+		move.w  #labyrinth_zone_act_4, (Current_ZoneAndAct).w
 		rts
 loc_1156A:
 		move.w  D0, $0008(A0)
@@ -25720,7 +25924,7 @@ Obj04_Init:
 		move.b	#4,1(a0)
 		move.b	#$80,$19(a0)
 		move.w	8(a0),$30(a0)
-		cmpi.b	#$F,(Current_Zone).w
+		cmpi.b	#neo_green_hill_zone,(Current_Zone).w
 		bne.s	Obj04_Action
 		addq.b	#2,$24(a0)	; => Obj04_Action2
 		move.l	#Obj04_MapUnc_152B2,4(a0)
@@ -26781,7 +26985,7 @@ loc_16238:
 		addq.b  #$02, $0024(A0)
 		move.l  #Obj19_MapUnc_16412, $0004(A0) ; loc_16412
 		move.w  #$63A0, $0002(A0)
-		cmpi.b  #$0A, (Current_Zone).w
+		cmpi.b  #oil_ocean_zone, (Current_Zone).w
 		bne.s   loc_16258
 		move.w  #$6300, $0002(A0)
 loc_16258:
@@ -28114,7 +28318,7 @@ loc_1769E:
 		move.w  #$43B2, $0002(A0)
 		move.b  #$18, $0019(A0)
 		move.l  #loc_177F0, $003C(A0)
-		cmpi.b  #$0D, (Current_Zone).w
+		cmpi.b  #chemical_plant_zone, (Current_Zone).w
 		bne.s   loc_176E2
 		move.l  #Tunel_Obstacule_Mappings, $0004(A0) ; loc_179F6
 		move.w  #$6430, $0002(A0)
@@ -32522,7 +32726,7 @@ loc_1BA44:
 		move.b  #$0C, $0016(A0)
 		move.l  #loc_1BC5C, $002C(A0)
 		move.b  #$01, $001A(A0)
-		cmpi.b  #$0B, (Current_Zone).w
+		cmpi.b  #dust_hill_zone, (Current_Zone).w
 		bne.w    loc_1BB44
 		addq.b  #$02, $0024(A0)
 		move.l  #Rotating_Boxes_Mappings, $0004(A0) ; loc_1BCB0
@@ -32702,7 +32906,7 @@ loc_1BD06:
 		addq.b  #$02, $0024(A0)
 		move.l  #Obj65_MapUnc_1AE2C, $0004(A0) ; loc_1AE2C
 		move.w  #$6000, $0002(A0)
-		cmpi.b  #$0D, (Current_Zone).w
+		cmpi.b  #chemical_plant_zone, (Current_Zone).w
 		bne.s   loc_1BD2E
 		move.l  #Block_Mappings, $0004(A0)       ; loc_1BF4A
 		move.w  #$6418, $0002(A0)
@@ -39714,47 +39918,77 @@ Dynamic_Art_Cues: ; loc_223EC: ; Dynamic reload sprites routine
 		move.b  (Current_Zone).w, D0
 		add.w   D0, D0
 		add.w   D0, D0
-		move.w  loc_2240A(PC, D0), D1
-		lea     loc_22408(PC, D1), A2
-		move.w  loc_22408(PC, D0), D0
-		jmp     loc_22408(PC, D0)
+		move.w  off_22408+2(PC, D0), D1
+		lea     off_22408(PC, D1), A2
+		move.w  off_22408(PC, D0), D0
+		jmp     off_22408(PC, D0)
 		rts 
-loc_22408:        ; Dynamic_Normal => loc_22630
-		dc.w    Dynamic_Normal-loc_22408 ; Green Hill               
-loc_2240A:
-		dc.w    loc_22698-loc_22408 ; Green Hill		
-		dc.w    loc_2244C-loc_22408 ; Null
-		dc.w    loc_22866-loc_22408 ; Null
-		dc.w    loc_2244C-loc_22408 ; Wood (Null)
-		dc.w    loc_22866-loc_22408 ; Wood (Null)
-		dc.w    loc_2244C-loc_22408 ; Null
-		dc.w    loc_22866-loc_22408 ; Null
-		dc.w    Dynamic_Normal-loc_22408 ; Metropolis
-		dc.w    loc_226FC-loc_22408 ; Metropolis
-		dc.w    Dynamic_Normal-loc_22408 ; Metropolis
-		dc.w    loc_226FC-loc_22408 ; Metropolis
-		dc.w    loc_2244C-loc_22408 ; Null
-		dc.w    loc_22866-loc_22408 ; Null
-		dc.w    loc_2244E-loc_22408 ; Hill Top 
-		dc.w    loc_22754-loc_22408 ; Hill Top 
-		dc.w    Dynamic_Normal-loc_22408 ; Hidden Palace
-		dc.w    loc_227B8-loc_22408 ; Hidden Palace
-		dc.w    loc_2244C-loc_22408 ; Null
-		dc.w    loc_22866-loc_22408 ; Null
-		dc.w    Dynamic_Normal-loc_22408 ; Oil Ocean
-		dc.w    loc_227E4-loc_22408 ; Oil Ocean
-		dc.w    loc_2244C-loc_22408 ; Dust Hill
-		dc.w    loc_22866-loc_22408 ; Dust Hill
-		dc.w    loc_2244C-loc_22408 ; Casino Night
-		dc.w    loc_22866-loc_22408 ; Casino Night
-		dc.w    Dynamic_Normal-loc_22408 ; Chemical Plant
-		dc.w    CPz_Animate-loc_22408 ; Chemical Plant ; loc_2282A
-		dc.w    loc_2244C-loc_22408 ; Genocide City (Null)
-		dc.w    loc_22866-loc_22408 ; Genocide City (Null)
-		dc.w    Dynamic_Normal-loc_22408 ; Neo Green Hill
-		dc.w    loc_2283C-loc_22408 ; Neo Green Hill
-		dc.w    loc_2244C-loc_22408 ; Death Egg (Null)
-		dc.w    loc_22866-loc_22408 ; Death Egg (Null)
+; ---------------------------------------------------------------------------
+; ZONE ANIMATION PROCEDURES AND SCRIPTS
+;
+; Each zone gets two entries in this jump table. The first entry points to the
+; zone's animation procedure (usually Dynamic_Normal, but some zones have special
+; procedures for complicated animations). The second points to the zone's animation
+; script.
+;
+; Note that Animated_Null is not a valid animation script, so don't pair it up
+; with anything except Dynamic_Null, or bad things will happen (for example, a bus error exception).
+; ---------------------------------------------------------------------------
+
+off_22408: zoneOrderedOffsetTable 2,2
+	zoneOffsetTableEntry.w Dynamic_Normal
+	zoneOffsetTableEntry.w loc_22698
+
+	zoneOffsetTableEntry.w loc_2244C
+	zoneOffsetTableEntry.w loc_22866
+
+	zoneOffsetTableEntry.w loc_2244C
+	zoneOffsetTableEntry.w loc_22866
+
+	zoneOffsetTableEntry.w loc_2244C
+	zoneOffsetTableEntry.w loc_22866
+
+	zoneOffsetTableEntry.w Dynamic_Normal
+	zoneOffsetTableEntry.w loc_226FC
+
+	zoneOffsetTableEntry.w Dynamic_Normal
+	zoneOffsetTableEntry.w loc_226FC
+
+	zoneOffsetTableEntry.w loc_2244C
+	zoneOffsetTableEntry.w loc_22866
+
+	zoneOffsetTableEntry.w loc_2244E
+	zoneOffsetTableEntry.w loc_22754
+
+	zoneOffsetTableEntry.w Dynamic_Normal
+	zoneOffsetTableEntry.w loc_227B8
+
+	zoneOffsetTableEntry.w loc_2244C
+	zoneOffsetTableEntry.w loc_22866
+
+	zoneOffsetTableEntry.w Dynamic_Normal
+	zoneOffsetTableEntry.w loc_227E4
+
+	zoneOffsetTableEntry.w loc_2244C
+	zoneOffsetTableEntry.w loc_22866
+
+	zoneOffsetTableEntry.w loc_2244C
+	zoneOffsetTableEntry.w loc_22866
+
+	zoneOffsetTableEntry.w Dynamic_Normal
+	zoneOffsetTableEntry.w CPz_Animate
+
+	zoneOffsetTableEntry.w loc_2244C
+	zoneOffsetTableEntry.w loc_22866
+
+	zoneOffsetTableEntry.w Dynamic_Normal
+	zoneOffsetTableEntry.w loc_2283C
+
+	zoneOffsetTableEntry.w loc_2244C
+	zoneOffsetTableEntry.w loc_22866
+    zoneTableEnd
+; ===========================================================================
+
 loc_2244C:
 		rts       
 loc_2244E:
@@ -40048,7 +40282,7 @@ loc_2283C: ; Neo Green Hill Dynamic Reload Sprites
 		dc.w    $0204		   ; Frames/Tiles 
 		dc.w    $0004		   ; Frame Load/Frame Time               
 loc_22866:
-		cmpi.b  #$0D, (Current_Zone).w
+		cmpi.b  #chemical_plant_zone, (Current_Zone).w
 		beq.s   loc_22870
 loc_2286E:
 		rts
@@ -40108,13 +40342,13 @@ loc_228A4:
 		dbf    D1, loc_228A4
 		rts    
 Load_16x16_Mappings_For_Dyn_Sprites: ; loc_2293A: ; Load 16x16 mappings used by dynamic reload sprites...
-		cmpi.b  #$07, (Current_Zone).w
+		cmpi.b  #hill_top_zone, (Current_Zone).w
 		bne.s   loc_22952
 		bsr.w     loc_22D62
 		move.b  #$FF, (Anim_Counters+1).w
 		move.w  #$FFFF, (TempArray_LayerDef+$20).w
 loc_22952:
-		cmpi.b  #$0D, (Current_Zone).w
+		cmpi.b  #chemical_plant_zone, (Current_Zone).w
 		bne.s   loc_22960
 		move.b  #$FF, (Anim_Counters+1).w
 loc_22960:
@@ -40145,24 +40379,26 @@ loc_2298A:
 		move.w  D0, (A1)+
 		dbf    D1, loc_2298A
 		rts
-Map16Delta_Index: ; loc_229A2:		    
-		dc.w    Map16Delta_GHz-Map16Delta_Index  ; loc_229C4 - Green Hill 16x16 mappings
-		dc.w    Map16Delta_Null-Map16Delta_Index ; loc_22D60 - Null
-		dc.w    Map16Delta_Null-Map16Delta_Index ; loc_22D60 - Wood (Null)
-		dc.w    Map16Delta_Null-Map16Delta_Index ; loc_22D60 - Null
-		dc.w    Map16Delta_Mz-Map16Delta_Index   ; loc_22A40 - Metropolis 16x16 mappings
-		dc.w    Map16Delta_Mz-Map16Delta_Index   ; loc_22A40 - Metropolis 16x16 mappings
-		dc.w    Map16Delta_Null-Map16Delta_Index ; loc_22D60 - Null
-		dc.w    Map16Delta_GHz-Map16Delta_Index  ; loc_229C4 - Hill Top 16x16 mappings
-		dc.w    Map16Delta_HPz-Map16Delta_Index  ; loc_22B14 - Hidden Palace 16x16 mappings
-		dc.w    Map16Delta_Null-Map16Delta_Index ; loc_22D60 - Null
-		dc.w    Map16Delta_OOz-Map16Delta_Index  ; loc_22C08 - Oil Ocean 16x16 mappings
-		dc.w    Map16Delta_Null-Map16Delta_Index ; loc_22D60 - Dust Hill (Null)
-		dc.w    Map16Delta_CNz-Map16Delta_Index  ; loc_22C6C - Casino Night 16x16 mappings
-		dc.w    Map16Delta_CPz-Map16Delta_Index  ; loc_22D10 - Chemical Plant 16x16 mappings
-		dc.w    Map16Delta_Null-Map16Delta_Index ; loc_22D60 - Genocide City (Null)
-		dc.w    Map16Delta_NGHz-Map16Delta_Index ; loc_22D1C - Neo Green Hill 16x16 mappings
-		dc.w    Map16Delta_Null-Map16Delta_Index ; loc_22D60 - Death Egg (Null)		  
+; off_229A2:
+Map16Delta_Index: zoneOrderedOffsetTable 2,1    
+	zoneOffsetTableEntry.w Map16Delta_GHz  ; loc_229C4 - Green Hill 16x16 mappings
+	zoneOffsetTableEntry.w Map16Delta_Null ; loc_22D60 - Null
+	zoneOffsetTableEntry.w Map16Delta_Null ; loc_22D60 - Wood (Null)
+	zoneOffsetTableEntry.w Map16Delta_Null ; loc_22D60 - Null
+	zoneOffsetTableEntry.w Map16Delta_Mz   ; loc_22A40 - Metropolis 16x16 mappings
+	zoneOffsetTableEntry.w Map16Delta_Mz   ; loc_22A40 - Metropolis 16x16 mappings
+	zoneOffsetTableEntry.w Map16Delta_Null ; loc_22D60 - Null
+	zoneOffsetTableEntry.w Map16Delta_GHz  ; loc_229C4 - Hill Top 16x16 mappings
+	zoneOffsetTableEntry.w Map16Delta_HPz  ; loc_22B14 - Hidden Palace 16x16 mappings
+	zoneOffsetTableEntry.w Map16Delta_Null ; loc_22D60 - Null
+	zoneOffsetTableEntry.w Map16Delta_OOz  ; loc_22C08 - Oil Ocean 16x16 mappings
+	zoneOffsetTableEntry.w Map16Delta_Null ; loc_22D60 - Dust Hill (Null)
+	zoneOffsetTableEntry.w Map16Delta_CNz  ; loc_22C6C - Casino Night 16x16 mappings
+	zoneOffsetTableEntry.w Map16Delta_CPz  ; loc_22D10 - Chemical Plant 16x16 mappings
+	zoneOffsetTableEntry.w Map16Delta_Null ; loc_22D60 - Genocide City (Null)
+	zoneOffsetTableEntry.w Map16Delta_NGHz ; loc_22D1C - Neo Green Hill 16x16 mappings
+	zoneOffsetTableEntry.w Map16Delta_Null ; loc_22D60 - Death Egg (Null)	
+    zoneTableEnd	  
 ;===============================================================================
 ; Green Hill Mappings 16x16 Delta  
 ; [ Begin ]
@@ -41054,24 +41290,27 @@ loc_23D9E:
 		move.b  $05(A2, D0), $001A(A0)
 		bsr.w     J_Adjust2PArtPointer_28 ; loc_2434C
 		rts
-Debug_Index: ; loc_23DBE:		  
-		dc.w    Debug_GHz-Debug_Index   ; Green Hill
-		dc.w    Debug_Null-Debug_Index  ; Null
-		dc.w    Debug_Null-Debug_Index  ; Wood
-		dc.w    Debug_Null-Debug_Index  ; Null
-		dc.w    Debug_Mz-Debug_Index    ; Metropolis
-		dc.w    Debug_Mz-Debug_Index    ; Metropolis
-		dc.w    Debug_Null-Debug_Index  ; Null
-		dc.w    Debug_HTz-Debug_Index   ; Hill Top
-		dc.w    Debug_HPz-Debug_Index   ; Hidden Palace
-		dc.w    Debug_Null-Debug_Index  ; Null
-		dc.w    Debug_OOz-Debug_Index   ; Oil Ocean
-		dc.w    Debug_DHz-Debug_Index   ; Dust Hill
-		dc.w    Debug_CNz-Debug_Index   ; Casino Night
-		dc.w    Debug_CPz-Debug_Index   ; Chemical Plant
-		dc.w    Debug_Null-Debug_Index  ; Genocide City
-		dc.w    Debug_NGHz-Debug_Index  ; Neo Green Hill
-		dc.w    Debug_Null-Debug_Index  ; Death Egg
+; off_23DBE:
+Debug_Index: zoneOrderedOffsetTable 2,1
+	zoneOffsetTableEntry.w Debug_GHz   ; Green Hill
+	zoneOffsetTableEntry.w Debug_Null  ; Null
+	zoneOffsetTableEntry.w Debug_Null  ; Wood
+	zoneOffsetTableEntry.w Debug_Null  ; Null
+	zoneOffsetTableEntry.w Debug_Mz    ; Metropolis
+	zoneOffsetTableEntry.w Debug_Mz    ; Metropolis
+	zoneOffsetTableEntry.w Debug_Null  ; Null
+	zoneOffsetTableEntry.w Debug_HTz   ; Hill Top
+	zoneOffsetTableEntry.w Debug_HPz   ; Hidden Palace
+	zoneOffsetTableEntry.w Debug_Null  ; Null
+	zoneOffsetTableEntry.w Debug_OOz   ; Oil Ocean
+	zoneOffsetTableEntry.w Debug_DHz   ; Dust Hill
+	zoneOffsetTableEntry.w Debug_CNz   ; Casino Night
+	zoneOffsetTableEntry.w Debug_CPz   ; Chemical Plant
+	zoneOffsetTableEntry.w Debug_Null  ; Genocide City
+	zoneOffsetTableEntry.w Debug_NGHz  ; Neo Green Hill
+	zoneOffsetTableEntry.w Debug_Null  ; Death Egg
+    zoneTableEnd
+
 Debug_Null: ; loc_23DE0:  ; Null
 		dc.w    $0002
 		dc.l    ($25<<$18)|Obj25_MapUnc_B036              ; loc_B036
@@ -41469,7 +41708,7 @@ cur_zone_str := "0"
 
 ; macro for declaring a "main level load block" (MLLB)
 levartptrs macro plc1,plc2,palette,art,map16x16,map128x128
-;	!org LevelArtPointers+zone_id_{cur_zone_str}*12
+	!org LevelArtPointers+zone_id_{cur_zone_str}*12
 	dc.l (plc1<<24)|art
 	dc.l (plc2<<24)|map16x16
 	dc.l (palette<<24)|map128x128
@@ -41496,6 +41735,11 @@ LevelArtPointers:
 	levartptrs $20,		$21, PalID_GCZ,  ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   E ; GCZ  ; GENOCIDE CITY ZONE (BLANK, LATER REPLACED WITH DEATH EGG)
 	levartptrs $22,		$23, PalID_NGHZ, ArtNem_NGHZ,BM16_NGHZ,BM128_NGHZ	;   F ; NGHZ ; NEO GREEN HILL ZONE
 	levartptrs $24,		$25, PalID_DEZ,  ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;  10 ; DEZ  ; DEATH EGG ZONE (BLANK, LATER REPLACED WITH SKY CHASE)
+
+    if (cur_zone_id<>no_of_zones)&&(MOMPASS=1)
+	message "Warning: Table LevelArtPointers has \{cur_zone_id/1.0} entries, but it should have \{no_of_zones/1.0} entries"
+    endif
+	!org LevelArtPointers+cur_zone_id*12
 
 ; ===========================================================================
 ; off_24420:
@@ -43149,41 +43393,78 @@ Special_Stage_6: ; loc_3305C:
 ; Level Layout
 ; [ Begin ]
 ;===============================================================================		  
-Off_Level: ; loc_3334E:		       
-		dc.w    Ghz_1_Foreground-Off_Level,Ghz_Background-Off_Level ; $0000
-		dc.w    Ghz_2_Foreground-Off_Level,Ghz_Background-Off_Level ; $0001		
-		dc.w    Null_Layout_1-Off_Level,Null_Layout_1-Off_Level ; $0100
-		dc.w    Null_Layout_1-Off_Level,Null_Layout_1-Off_Level ; $0101		
-		dc.w    Wz_1_Foreground-Off_Level,Wz_1_Background-Off_Level ; $0200
-		dc.w    Wz_2_Foreground-Off_Level,Wz_2_Background-Off_Level ; $0201
-		dc.w    Null_Layout_2-Off_Level,Null_Layout_2-Off_Level ; $0300
-		dc.w    Null_Layout_2-Off_Level,Null_Layout_2-Off_Level ; $0301
-		dc.w    Mz_1_Foreground-Off_Level,Mz_Background-Off_Level ; $0400
-		dc.w    Mz_2_Foreground-Off_Level,Mz_Background-Off_Level ; $0401
-		dc.w    Mz_3_Foreground-Off_Level,Mz_Background-Off_Level ; $0500
-		dc.w    Mz_3_Foreground-Off_Level,Mz_Background-Off_Level ; $0501		  
-		dc.w    Null_Layout_3-Off_Level,Null_Layout_3-Off_Level ; $0600
-		dc.w    Null_Layout_3-Off_Level,Null_Layout_3-Off_Level ; $0601
-		dc.w    Htz_1_Foreground-Off_Level,Htz_1_Background-Off_Level ; $0700
-		dc.w    Htz_2_Foreground-Off_Level,Htz_2_Background-Off_Level ; $0701
-		dc.w    Hpz_Foreground-Off_Level,Hpz_Background-Off_Level ; $0800
-		dc.w    Hpz_Foreground-Off_Level,Hpz_Background-Off_Level ; $0801
-		dc.w    Null_Layout_4-Off_Level,Null_Layout_4-Off_Level ; $0900
-		dc.w    Null_Layout_4-Off_Level,Null_Layout_4-Off_Level ; $0901
-		dc.w    OOz_1_Foreground-Off_Level,OOz_Background-Off_Level ; $0A00
-		dc.w    OOz_2_Foreground-Off_Level,OOz_Background-Off_Level ; $0A01
-		dc.w    Dhz_1_Foreground-Off_Level,Dhz_Background-Off_Level ; $0B00
-		dc.w    Dhz_2_Foreground-Off_Level,Dhz_Background-Off_Level ; $0B01
-		dc.w    Cnz_1_Foreground-Off_Level,Cnz_1_Background-Off_Level ; $0C00
-		dc.w    Cnz_2_Foreground-Off_Level,Cnz_2_Background-Off_Level ; $0C01
-		dc.w    Cpz_1_Foreground-Off_Level,Cpz_Background-Off_Level ; $0D00
-		dc.w    Cpz_2_Foreground-Off_Level,Cpz_Background-Off_Level ; $0D01
-		dc.w    Null_Layout_5-Off_Level,Null_Layout_5-Off_Level ; $0E00
-		dc.w    Null_Layout_5-Off_Level,Null_Layout_5-Off_Level ; $0E01
-		dc.w    Nghz_1_Foreground-Off_Level,Nghz_1_Background-Off_Level ; $0F00
-		dc.w    Nghz_2_Foreground-Off_Level,Nghz_2_Background-Off_Level ; $0F01
-		dc.w    Null_Layout_6-Off_Level,Null_Layout_6-Off_Level ; $1000
-		dc.w    Null_Layout_6-Off_Level,Null_Layout_6-Off_Level ; $1001		     
+; off_3334E;
+Off_Level: zoneOrderedOffsetTable 2,4
+	zoneOffsetTableEntry.w Ghz_1_Foreground
+	zoneOffsetTableEntry.w Ghz_Background ; $0000
+	zoneOffsetTableEntry.w Ghz_2_Foreground
+	zoneOffsetTableEntry.w Ghz_Background ; $0001		
+	zoneOffsetTableEntry.w Null_Layout_1
+	zoneOffsetTableEntry.w Null_Layout_1 ; $0100
+	zoneOffsetTableEntry.w Null_Layout_1
+	zoneOffsetTableEntry.w Null_Layout_1 ; $0101		
+	zoneOffsetTableEntry.w Wz_1_Foreground
+	zoneOffsetTableEntry.w Wz_1_Background ; $0200
+	zoneOffsetTableEntry.w Wz_2_Foreground
+	zoneOffsetTableEntry.w Wz_2_Background ; $0201
+	zoneOffsetTableEntry.w Null_Layout_2
+	zoneOffsetTableEntry.w Null_Layout_2 ; $0300
+	zoneOffsetTableEntry.w Null_Layout_2
+	zoneOffsetTableEntry.w Null_Layout_2 ; $0301
+	zoneOffsetTableEntry.w Mz_1_Foreground
+	zoneOffsetTableEntry.w Mz_Background ; $0400
+	zoneOffsetTableEntry.w Mz_2_Foreground
+	zoneOffsetTableEntry.w Mz_Background ; $0401
+	zoneOffsetTableEntry.w Mz_3_Foreground
+	zoneOffsetTableEntry.w Mz_Background ; $0500
+	zoneOffsetTableEntry.w Mz_3_Foreground
+	zoneOffsetTableEntry.w Mz_Background ; $0501		  
+	zoneOffsetTableEntry.w Null_Layout_3
+	zoneOffsetTableEntry.w Null_Layout_3 ; $0600
+	zoneOffsetTableEntry.w Null_Layout_3
+	zoneOffsetTableEntry.w Null_Layout_3 ; $0601
+	zoneOffsetTableEntry.w Htz_1_Foreground
+	zoneOffsetTableEntry.w Htz_1_Background ; $0700
+	zoneOffsetTableEntry.w Htz_2_Foreground
+	zoneOffsetTableEntry.w Htz_2_Background ; $0701
+	zoneOffsetTableEntry.w Hpz_Foreground
+	zoneOffsetTableEntry.w Hpz_Background ; $0800
+	zoneOffsetTableEntry.w Hpz_Foreground
+	zoneOffsetTableEntry.w Hpz_Background ; $0801
+	zoneOffsetTableEntry.w Null_Layout_4
+	zoneOffsetTableEntry.w Null_Layout_4 ; $0900
+	zoneOffsetTableEntry.w Null_Layout_4
+	zoneOffsetTableEntry.w Null_Layout_4 ; $0901
+	zoneOffsetTableEntry.w OOz_1_Foreground
+	zoneOffsetTableEntry.w OOz_Background ; $0A00
+	zoneOffsetTableEntry.w OOz_2_Foreground
+	zoneOffsetTableEntry.w OOz_Background ; $0A01
+	zoneOffsetTableEntry.w Dhz_1_Foreground
+	zoneOffsetTableEntry.w Dhz_Background ; $0B00
+	zoneOffsetTableEntry.w Dhz_2_Foreground
+	zoneOffsetTableEntry.w Dhz_Background ; $0B01
+	zoneOffsetTableEntry.w Cnz_1_Foreground
+	zoneOffsetTableEntry.w Cnz_1_Background ; $0C00
+	zoneOffsetTableEntry.w Cnz_2_Foreground
+	zoneOffsetTableEntry.w Cnz_2_Background ; $0C01
+	zoneOffsetTableEntry.w Cpz_1_Foreground
+	zoneOffsetTableEntry.w Cpz_Background ; $0D00
+	zoneOffsetTableEntry.w Cpz_2_Foreground
+	zoneOffsetTableEntry.w Cpz_Background ; $0D01
+	zoneOffsetTableEntry.w Null_Layout_5
+	zoneOffsetTableEntry.w Null_Layout_5 ; $0E00
+	zoneOffsetTableEntry.w Null_Layout_5
+	zoneOffsetTableEntry.w Null_Layout_5 ; $0E01
+	zoneOffsetTableEntry.w Nghz_1_Foreground
+	zoneOffsetTableEntry.w Nghz_1_Background ; $0F00
+	zoneOffsetTableEntry.w Nghz_2_Foreground
+	zoneOffsetTableEntry.w Nghz_2_Background ; $0F01
+	zoneOffsetTableEntry.w Null_Layout_6
+	zoneOffsetTableEntry.w Null_Layout_6 ; $1000
+	zoneOffsetTableEntry.w Null_Layout_6
+	zoneOffsetTableEntry.w Null_Layout_6 ; $1001
+    zoneTableEnd
+
 Ghz_1_Foreground:  ; loc_333D6:               
 		BINCLUDE	"level/layout/GHZ_1.bin"
 Ghz_2_Foreground:  ; loc_33BD8:		
@@ -43431,42 +43712,43 @@ ObjectLayoutBoundary macro
 	dc.w	$FFFF, $0000, $0000
     endm
 
-
-Objects_Layout: ; loc_44000:  
-		dc.w    Ghz_1_Objects_Layout-Objects_Layout
-		dc.w    Ghz_2_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    Mz_1_Objects_Layout-Objects_Layout
-		dc.w    Mz_2_Objects_Layout-Objects_Layout
-		dc.w    Mz_3_Objects_Layout-Objects_Layout
-		dc.w    Mz_3_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    Htz_1_Objects_Layout-Objects_Layout
-		dc.w    Htz_2_Objects_Layout-Objects_Layout
-		dc.w    Hpz_1_Objects_Layout-Objects_Layout
-		dc.w    Hpz_2_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    OOz_1_Objects_Layout-Objects_Layout
-		dc.w    OOz_2_Objects_Layout-Objects_Layout
-		dc.w    Dhz_1_Objects_Layout-Objects_Layout
-		dc.w    Dhz_2_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    Cpz_1_Objects_Layout-Objects_Layout
-		dc.w    Cpz_2_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    Nghz_1_Objects_Layout-Objects_Layout
-		dc.w    Nghz_2_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
-		dc.w    Null_Objects_Layout-Objects_Layout
+; off_44000:
+Objects_Layout: zoneOrderedOffsetTable 2,2
+	zoneOffsetTableEntry.w  Ghz_1_Objects_Layout
+	zoneOffsetTableEntry.w  Ghz_2_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  Mz_1_Objects_Layout
+	zoneOffsetTableEntry.w  Mz_2_Objects_Layout
+	zoneOffsetTableEntry.w  Mz_3_Objects_Layout
+	zoneOffsetTableEntry.w  Mz_3_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  Htz_1_Objects_Layout
+	zoneOffsetTableEntry.w  Htz_2_Objects_Layout
+	zoneOffsetTableEntry.w  Hpz_1_Objects_Layout
+	zoneOffsetTableEntry.w  Hpz_2_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  OOz_1_Objects_Layout
+	zoneOffsetTableEntry.w  OOz_2_Objects_Layout
+	zoneOffsetTableEntry.w  Dhz_1_Objects_Layout
+	zoneOffsetTableEntry.w  Dhz_2_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  Cpz_1_Objects_Layout
+	zoneOffsetTableEntry.w  Cpz_2_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  Nghz_1_Objects_Layout
+	zoneOffsetTableEntry.w  Nghz_2_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+	zoneOffsetTableEntry.w  Null_Objects_Layout
+    zoneTableEnd
 
 	; These things act as boundaries for the object layout parser, so it doesn't read past the end/beginning of the file
 	ObjectLayoutBoundary
@@ -43979,25 +44261,45 @@ loc_4760C:
 ;=============================================================================== 
 ; Level Rings Layout
 ; [ Begin ]
-;===============================================================================		          
-Rings_Layout: ; loc_48000:               
-		dc.w    Ghz_1_Rings_Layout-Rings_Layout, Ghz_2_Rings_Layout-Rings_Layout 
-		dc.w    Id_0100_Rings_Layout-Rings_Layout, Id_0101_Rings_Layout-Rings_Layout    
-		dc.w    Wz_1_Rings_Layout-Rings_Layout, Wz_2_Rings_Layout-Rings_Layout 
-		dc.w    Id_0300_Rings_Layout-Rings_Layout, Id_0301_Rings_Layout-Rings_Layout  
-		dc.w    Mz_1_Rings_Layout-Rings_Layout, Mz_2_Rings_Layout-Rings_Layout    
-		dc.w    Mz_3_Rings_Layout-Rings_Layout, Mz_4_Rings_Layout-Rings_Layout    
-		dc.w    Id_0600_Rings_Layout-Rings_Layout, Id_0601_Rings_Layout-Rings_Layout 
-		dc.w    Htz_1_Rings_Layout-Rings_Layout, Htz_2_Rings_Layout-Rings_Layout 
-		dc.w    Hpz_1_Rings_Layout-Rings_Layout, Hpz_2_Rings_Layout-Rings_Layout 
-		dc.w    Id_0900_Rings_Layout-Rings_Layout, Id_0901_Rings_Layout-Rings_Layout 
-		dc.w    OOz_1_Rings_Layout-Rings_Layout, OOz_2_Rings_Layout-Rings_Layout 
-		dc.w    DHz_1_Rings_Layout-Rings_Layout, DHz_2_Rings_Layout-Rings_Layout 
-		dc.w    CNz_1_Rings_Layout-Rings_Layout, CNz_2_Rings_Layout-Rings_Layout
-		dc.w    CPz_1_Rings_Layout-Rings_Layout, CPz_2_Rings_Layout-Rings_Layout 
-		dc.w    GCz_1_Rings_Layout-Rings_Layout, GCz_2_Rings_Layout-Rings_Layout
-		dc.w    NGHz_1_Rings_Layout-Rings_Layout, NGHz_2_Rings_Layout-Rings_Layout 
-		dc.w    DEz_1_Rings_Layout-Rings_Layout, DEz_2_Rings_Layout-Rings_Layout
+;===============================================================================
+; off_48000:		          
+Rings_Layout: zoneOrderedOffsetTable 2,2
+	zoneOffsetTableEntry.w  Ghz_1_Rings_Layout
+	zoneOffsetTableEntry.w  Ghz_2_Rings_Layout 
+	zoneOffsetTableEntry.w  Id_0100_Rings_Layout
+	zoneOffsetTableEntry.w  Id_0101_Rings_Layout    
+	zoneOffsetTableEntry.w  Wz_1_Rings_Layout
+	zoneOffsetTableEntry.w  Wz_2_Rings_Layout 
+	zoneOffsetTableEntry.w  Id_0300_Rings_Layout
+	zoneOffsetTableEntry.w  Id_0301_Rings_Layout  
+	zoneOffsetTableEntry.w  Mz_1_Rings_Layout
+	zoneOffsetTableEntry.w  Mz_2_Rings_Layout    
+	zoneOffsetTableEntry.w  Mz_3_Rings_Layout
+	zoneOffsetTableEntry.w  Mz_4_Rings_Layout    
+	zoneOffsetTableEntry.w  Id_0600_Rings_Layout
+	zoneOffsetTableEntry.w  Id_0601_Rings_Layout 
+	zoneOffsetTableEntry.w  Htz_1_Rings_Layout
+	zoneOffsetTableEntry.w  Htz_2_Rings_Layout 
+	zoneOffsetTableEntry.w  Hpz_1_Rings_Layout
+	zoneOffsetTableEntry.w  Hpz_2_Rings_Layout 
+	zoneOffsetTableEntry.w  Id_0900_Rings_Layout
+	zoneOffsetTableEntry.w  Id_0901_Rings_Layout 
+	zoneOffsetTableEntry.w  OOz_1_Rings_Layout
+	zoneOffsetTableEntry.w  OOz_2_Rings_Layout 
+	zoneOffsetTableEntry.w  DHz_1_Rings_Layout
+	zoneOffsetTableEntry.w  DHz_2_Rings_Layout 
+	zoneOffsetTableEntry.w  CNz_1_Rings_Layout
+	zoneOffsetTableEntry.w  CNz_2_Rings_Layout
+	zoneOffsetTableEntry.w  CPz_1_Rings_Layout
+	zoneOffsetTableEntry.w  CPz_2_Rings_Layout 
+	zoneOffsetTableEntry.w  GCz_1_Rings_Layout
+	zoneOffsetTableEntry.w  GCz_2_Rings_Layout
+	zoneOffsetTableEntry.w  NGHz_1_Rings_Layout
+	zoneOffsetTableEntry.w  NGHz_2_Rings_Layout 
+	zoneOffsetTableEntry.w  DEz_1_Rings_Layout
+	zoneOffsetTableEntry.w  DEz_2_Rings_Layout
+    zoneTableEnd
+
 Ghz_1_Rings_Layout:	BINCLUDE	"level/rings/GHZ_1.bin"
 Ghz_2_Rings_Layout:	BINCLUDE	"level/rings/GHZ_2.bin"
 Id_0100_Rings_Layout: ; loc_483DC:				   
@@ -47315,14 +47617,14 @@ Nghz_Init_Sprites_Dyn_Reload_3: ; loc_E57E6: ; Waterfalls  ; Left over
 
 ; ===========================================================================
 ; Unused duplicate Sega sound
-Snd_SegaDup:	BINCLUDE	"data\all\sega.snd"
+Sega_SndDup:	BINCLUDE	"sound/Unused Sega PCM.bin"
 
 ; ===========================================================================
 ; Moving the music and sound effects would cause them to break due to using
 ; hardcoded pointers; I have already have converted the music to ASM, but
 ; the sound effects are still data
 ;
-; $E8000 => Duplicate Sega PCM (same as used version)
+; $E8000 => Duplicate Sega PCM (shorter than used version)
 ; $ED000 => DAC samples
 ; $F0000 => Music $98 to $9F
 ; $F1E8C => Sega PCM
@@ -47384,9 +47686,9 @@ DecompressSoundDriver:
 movewz80CompSize:
 		move.w	#Snd_Driver_End-Snd_Driver,d7 ; patched (by fixpointer.exe) after compression since the exact size can't be known beforehand
 		moveq	#0,d6		; the decompressor knows it's run out of descriptor bits when it starts reading 0's in bit 8
-		lea	($A00000).l,a5
+		lea	(Z80_RAM).l,a5
 		moveq	#0,d5
-		lea	($A00000).l,a4
+		lea	(Z80_RAM).l,a4
 ; loc_EC054:
 SaxDec_Loop:		
 		lsr.w	#1,d6		; next descriptor bit

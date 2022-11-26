@@ -9,6 +9,89 @@ Size_of_SEGA_sound =		$6174
 Size_of_Snd_driver_guess =	$DF3 ; approximate post-compressed size of the Z80 sound driver
 
 ; ---------------------------------------------------------------------------
+; Constants that can be used instead of hard-coded IDs for various things.
+; The "id" function allows to remove elements from an array/table without having
+; to change the IDs everywhere in the code.
+
+cur_zone_id := 0 ; the zone ID currently being declared
+cur_zone_str := "0" ; string representation of the above
+
+; macro to declare a zone ID
+; this macro also declares constants of the form zone_id_X, where X is the ID of the zone in stock Sonic 2
+; in order to allow level offset tables to be made dynamic
+zoneID macro zoneID,{INTLABEL}
+__LABEL__ = zoneID
+zone_id_{cur_zone_str} = zoneID
+cur_zone_id := cur_zone_id+1
+cur_zone_str := "\{cur_zone_id}"
+    endm
+
+; Zone IDs. These MUST be declared in the order in which their IDs are in-game, otherwise zone offset tables will screw up
+green_hill_zone zoneID		$00
+ocean_wind_zone zoneID		$01	; UNUSED
+wood_zone zoneID		$02
+sand_shower_zone zoneID		$03	; UNUSED
+metropolis_zone zoneID		$04
+metropolis_zone_2 zoneID	$05
+blue_lake_zone zoneID		$06	; UNUSED
+hill_top_zone zoneID		$07
+hidden_palace_zone zoneID	$08
+rock_world_zone zoneID		$09	; UNUSED
+oil_ocean_zone zoneID		$0A
+dust_hill_zone zoneID		$0B
+casino_night_zone zoneID	$0C
+chemical_plant_zone zoneID	$0D
+genocide_city_zone zoneID	$0E	; EMPTY
+neo_green_hill_zone zoneID	$0F
+death_egg_zone zoneID		$10	; EMPTY, NOT DEFINED IN CERTAIN TABLES
+
+; NOTE: If you want to shift IDs around, set useFullWaterTables to 1 in the assembly options
+
+; set the number of zones
+no_of_zones = cur_zone_id
+
+; Zone and act IDs
+green_hill_zone_act_1 =		(green_hill_zone<<8)|$00
+green_hill_zone_act_2 =		(green_hill_zone<<8)|$01
+ocean_wind_zone_act_1 =		(ocean_wind_zone<<8)|$00
+ocean_wind_zone_act_2 =		(ocean_wind_zone<<8)|$01
+wood_zone_act_1 =		(wood_zone<<8)|$00
+wood_zone_act_2 =		(wood_zone<<8)|$01
+sand_shower_zone_act_1 =	(sand_shower_zone<<8)|$00
+sand_shower_zone_act_2 =	(sand_shower_zone<<8)|$01
+metropolis_zone_act_1 =		(metropolis_zone<<8)|$00
+metropolis_zone_act_2 =		(metropolis_zone<<8)|$01
+metropolis_zone_act_3 =		(metropolis_zone_2<<8)|$00
+metropolis_zone_act_4 =		(metropolis_zone_2<<8)|$01
+blue_lake_zone_act_1 =		(blue_lake_zone<<8)|$00
+blue_lake_zone_act_2 =		(blue_lake_zone<<8)|$01
+hill_top_zone_act_1 =		(hill_top_zone<<8)|$00
+hill_top_zone_act_2 =		(hill_top_zone<<8)|$01
+hidden_palace_zone_act_1 =	(hidden_palace_zone<<8)|$00
+hidden_palace_zone_act_2 =	(hidden_palace_zone<<8)|$01
+rock_world_zone_act_1 =		(rock_world_zone<<8)|$00
+rock_world_zone_act_2 =		(rock_world_zone<<8)|$01
+oil_ocean_zone_act_1 =		(oil_ocean_zone<<8)|$00
+oil_ocean_zone_act_2 =		(oil_ocean_zone<<8)|$01
+dust_hill_zone_act_1 =		(dust_hill_zone<<8)|$00
+dust_hill_zone_act_2 =		(dust_hill_zone<<8)|$01
+casino_night_zone_act_1 =	(casino_night_zone<<8)|$00
+casino_night_zone_act_2 =	(casino_night_zone<<8)|$01
+chemical_plant_zone_act_1 =	(chemical_plant_zone<<8)|$00
+chemical_plant_zone_act_2 =	(chemical_plant_zone<<8)|$01
+genocide_city_zone_act_1 =	(genocide_city_zone<<8)|$00
+genocide_city_zone_act_2 =	(genocide_city_zone<<8)|$01
+neo_green_hill_zone_act_1 =	(neo_green_hill_zone<<8)|$00
+neo_green_hill_zone_act_2 =	(neo_green_hill_zone<<8)|$01
+death_egg_zone_act_1 =		(death_egg_zone<<8)|$00
+death_egg_zone_act_2 =		(death_egg_zone<<8)|$01
+
+; Non-existant/Sonic 1 IDs called
+labyrinth_zone_act_4 =		(ocean_wind_zone<<8)|$03	; leftover from Sonic 1
+scrap_brain_zone_act_2 =	(metropolis_zone_2<<8)|$01	; leftover from Sonic 1
+metropolis_zone_act_6 =		(metropolis_zone_2<<8)|$03	; ??? ; S1 Special Stage code calls this...
+
+; ---------------------------------------------------------------------------
 ; some variables and functions to help define those constants (redefined before a new set of IDs)
 offset :=	0		; this is the start of the pointer table
 ptrsize :=	1		; this is the size of a pointer (should be 1 if the ID is a multiple of the actual size)

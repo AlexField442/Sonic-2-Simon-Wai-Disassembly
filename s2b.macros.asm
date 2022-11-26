@@ -95,6 +95,71 @@ offsetTableEntry macro ptr
 	dc.ATTRIBUTE ptr-current_offset_table
     endm
 
+; macro to declare a zone-ordered table
+; entryLen is the length of each table entry, and zoneEntries is the number of entries per zone
+zoneOrderedTable macro entryLen,zoneEntries,{INTLABEL}
+__LABEL__ label *
+; set some global variables
+zone_table_name := "__LABEL__"
+zone_table_addr := *
+zone_entry_len := entryLen
+zone_entries := zoneEntries
+zone_entries_left := 0
+cur_zone_id := 0
+cur_zone_str := "0"
+    endm
+
+zoneOrderedOffsetTable macro entryLen,zoneEntries,{INTLABEL}
+current_offset_table := __LABEL__
+__LABEL__ zoneOrderedTable entryLen,zoneEntries
+    endm
+
+; macro to declare one or more entries in a zone-ordered table
+zoneTableEntry macro value
+	if "value"<>""
+	    if zone_entries_left
+		dc.ATTRIBUTE value
+zone_entries_left := zone_entries_left-1
+	    else
+		!org zone_table_addr+zone_id_{cur_zone_str}*zone_entry_len*zone_entries
+		dc.ATTRIBUTE value
+zone_entries_left := zone_entries-1
+cur_zone_id := cur_zone_id+1
+cur_zone_str := "\{cur_zone_id}"
+	    endif
+	    shift
+	    zoneTableEntry.ATTRIBUTE ALLARGS
+	endif
+    endm
+
+; macro to declare one or more BINCLUDE entries in a zone-ordered table
+zoneTableBinEntry macro numEntries,path
+	if zone_entries_left
+	    BINCLUDE path
+zone_entries_left := zone_entries_left-numEntries
+	else
+	    !org zone_table_addr+zone_id_{cur_zone_str}*zone_entry_len*zone_entries
+	    BINCLUDE path
+zone_entries_left := zone_entries-numEntries
+cur_zone_id := cur_zone_id+1
+cur_zone_str := "\{cur_zone_id}"
+	endif
+    endm
+
+; macro to declare one entry in a zone-ordered offset table
+zoneOffsetTableEntry macro value
+	zoneTableEntry.ATTRIBUTE value-current_offset_table
+    endm
+
+; macro which sets the PC to the correct value at the end of a zone offset table and checks if the correct
+; number of entries were declared
+zoneTableEnd macro
+	if (cur_zone_id<>no_of_zones)&&(MOMPASS=1)
+	    message "Warning: Table \{zone_table_name} has \{cur_zone_id/1.0} entries, but it should have \{(no_of_zones)/1.0} entries"
+	endif
+	!org zone_table_addr+cur_zone_id*zone_entry_len*zone_entries
+    endm
+
 ; macros to convert from tile index to art tiles, block mapping or VRAM address.
 make_art_tile function addr,pal,pri,((pri&1)<<15)|((pal&3)<<13)|(addr&tile_mask)
 make_art_tile_2p function addr,pal,pri,((pri&1)<<15)|((pal&3)<<13)|((addr&tile_mask)>>1)
