@@ -5953,10 +5953,10 @@ StartLocations: zoneOrderedTable 2,4
 	zoneTableEntry.w	$40, $2AF
 	zoneTableBinEntry	2, "level/startpos/OOZ_1.bin"	; $0A - OOZ
 	zoneTableBinEntry	2, "level/startpos/OOZ_2.bin"
-	zoneTableEntry.w	$60, $6AC			; $0B - DHZ
-	zoneTableEntry.w	$60, $5AC
-	zoneTableEntry.w	$60, $28F			; $0C - CNZ
-	zoneTableEntry.w	$40, $2AF
+	zoneTableBinEntry	2, "level/startpos/DHZ_1.bin"	; $0B - DHZ
+	zoneTableBinEntry	2, "level/startpos/DHZ_2.bin"
+	zoneTableBinEntry	2, "level/startpos/CNZ_1.bin"	; $0C - CNZ
+	zoneTableBinEntry	2, "level/startpos/CNZ_2.bin"
 	zoneTableEntry.w	$30, $1EC			; $0D - CPZ
 	zoneTableEntry.w	$30, $12C
 	zoneTableEntry.w	$60, $28F			; $0E - GCZ
@@ -43352,11 +43352,11 @@ Hidden_Palace_Colision_2:  ; loc_301EA:
 Oil_Ocean_Colision:        ; loc_304EA:		
 		BINCLUDE	"level/collision/OOZ 16x16 collision index.bin"
 Dust_Hill_Colision:        ; loc_307EA:		
-		BINCLUDE  "data\dhz\dhz_col.dat"  
+		BINCLUDE	"level/collision/DHZ 16x16 collision index.bin"
 Casino_Night_Colision_1:   ; loc_30AEA:		
-		BINCLUDE  "data\cnz\cnz_col1.dat"  
+		BINCLUDE	"level/collision/CNZ primary 16x16 collision index.bin"
 Casino_Night_Colision_2:   ; loc_30DEA:		
-		BINCLUDE  "data\cnz\cnz_col2.dat"  
+		BINCLUDE	"level/collision/CNZ secondary 16x16 collision index.bin"
 Chemical_Plant_Colision_1: ; loc_310EA:		
 		BINCLUDE  "data\cpz\cpz_col1.dat" 
 Chemical_Plant_Colision_2: ; loc_313EA:		
@@ -43515,21 +43515,19 @@ OOz_2_Foreground:  ; loc_3AC7E:
 OOz_Background:    ; loc_3B480:             
 		BINCLUDE	"level/layout/OOZ_BG.bin"
 Dhz_1_Foreground:  ; loc_3B49A:  
-		BINCLUDE  "data\dhz\foreact1.dat"		
+		BINCLUDE	"level/layout/DHZ_1.bin"
 Dhz_2_Foreground:  ; loc_3BC9C:               
-		BINCLUDE  "data\dhz\foreact2.dat"		
+		BINCLUDE	"level/layout/DHZ_2.bin"
 Dhz_Background:    ; loc_3C49E:              
-		dc.b    $03, $03 ; x / y
-		dc.b    $58, $5C, $63, $64, $65, $66, $6E, $6F, $73, $80, $86, $A3, $B0, $E7, $E8, $E9   
+		BINCLUDE	"level/layout/DHZ_BG.bin"
 Cnz_1_Foreground:  ; loc_3C4B0:  
-		BINCLUDE  "data\cnz\foreact1.dat" 
+		BINCLUDE	"level/layout/CNZ_1.bin"
 Cnz_2_Foreground:  ; loc_3CCB2:          
-		BINCLUDE  "data\cnz\foreact2.dat"
+		BINCLUDE	"level/layout/CNZ_2.bin"
 Cnz_1_Background:  ; loc_3D4B4:
-		BINCLUDE  "data\cnz\backact1.dat" 
+		BINCLUDE	"level/layout/CNZ_1_BG.bin"
 Cnz_2_Background:  ; loc_3DCB6: 
-		dc.b    $03, $01 ; x / y
-		dc.b    $8B, $8C, $8D, $8E, $8F, $90, $91, $92
+		BINCLUDE	"level/layout/CNZ_2_BG.bin"
 Cpz_1_Foreground:  ; loc_3DCC0:  
 		BINCLUDE  "data\cpz\foreact1.dat"		
 Cpz_2_Foreground:  ; loc_3E4C2: 
@@ -43775,10 +43773,10 @@ OOz_1_Objects_Layout:	BINCLUDE	"level/objects/OOZ_1.bin"
 	ObjectLayoutBoundary
 OOz_2_Objects_Layout:	BINCLUDE	"level/objects/OOZ_2.bin"
 	ObjectLayoutBoundary
-Dhz_1_Objects_Layout:  ; loc_459AC:
-		BINCLUDE  "data\dhz\obj_act1.dat"
-Dhz_2_Objects_Layout:  ; loc_45A24:
-		dc.w    $FFFF, $0000, $0000 
+Dhz_1_Objects_Layout:	BINCLUDE	"level/objects/DHZ_1.bin"
+	ObjectLayoutBoundary
+Dhz_2_Objects_Layout:
+	ObjectLayoutBoundary
 Cpz_1_Objects_Layout:  ; loc_45A2A:
 		BINCLUDE  "data\cpz\obj_act1.dat"
 Cpz_2_Objects_Layout:  ; loc_45CC4:
@@ -44330,14 +44328,10 @@ Id_0901_Rings_Layout: ; loc_487CA:
 		dc.w    $FFFF				            
 OOz_1_Rings_Layout:	BINCLUDE	"level/rings/OOZ_1.bin"
 OOz_2_Rings_Layout:	BINCLUDE	"level/rings/OOZ_2.bin"
-DHz_1_Rings_Layout:   ; loc_48968:               
-		dc.w    $FFFF     
-DHz_2_Rings_Layout:   ; loc_4896A:               
-		dc.w    $FFFF 
-CNz_1_Rings_Layout:   ; loc_4896C:		
-		dc.w    $FFFF    
-CNz_2_Rings_Layout:   ; loc_4896E:		
-		dc.w    $FFFF		
+DHz_1_Rings_Layout:	BINCLUDE	"level/rings/DHZ_1.bin"
+DHz_2_Rings_Layout:	BINCLUDE	"level/rings/DHZ_2.bin"
+CNz_1_Rings_Layout:	BINCLUDE	"level/rings/CNZ_1.bin"
+CNz_2_Rings_Layout:	BINCLUDE	"level/rings/CNZ_2.bin"
 CPz_1_Rings_Layout:   ; loc_48970:               
 		BINCLUDE  "data\cpz\rng_act1.dat"				               
 CPz_2_Rings_Layout:   ; loc_48A3E:		
@@ -47550,23 +47544,34 @@ OOz_Init_Sprites_Dyn_Reload: ; loc_A186A: ;  red ball, oil ...
 ; OOZ 128x128 block mappings (Kosinski compression)
 ; LevChunk_A1A58: Oil_Ocean_128x128_Map:
 BM128_OOZ:	BINCLUDE	"mappings/128x128/OOZ.bin"
+;-----------------------------------------------------------------------------------
+; DHZ 16x16 block mappings (uncompressed)
+; LevBlock_A3F88: Dust_Hill_16x16_Map:
+BM16_DHZ:	BINCLUDE	"mappings/16x16/DHZ.bin"
+; ----------------------------------------------------------------------------------
+; OOZ main level patterns (Nemesis compression)
+; ArtNem_A5248: Dust_Hill_8x8_Tiles:
+ArtNem_DHZ:	BINCLUDE	"art/nemesis/DHZ primary.bin"
+; ----------------------------------------------------------------------------------
+; DHZ 128x128 block mappings (Kosinski compression)
+; LevChunk_A8B6A: Dust_Hill_128x128_Map:
+BM128_DHZ:	BINCLUDE	"mappings/128x128/DHZ.bin"
+;-----------------------------------------------------------------------------------
+; CNZ 16x16 block mappings (uncompressed)
+; LevBlock_AB5CA: Casino_Night_16x16_Map:
+BM16_CNZ:	BINCLUDE	"mappings/16x16/CNZ.bin"
+; ----------------------------------------------------------------------------------
+; CNZ main level patterns (Nemesis compression)
+; ArtNem_ABF2A: Casino_Night_8x8_Tiles:
+ArtNem_CNZ:	BINCLUDE	"art/nemesis/CNZ primary.bin"
 
-BM16_DHZ: ; loc_A3F88:
-		BINCLUDE  "data\dhz\dhz_16.dat" 
-ArtNem_DHZ: ; loc_A5248:  
-		BINCLUDE  "data\dhz\dhz_8.nem"
-BM128_DHZ: ; loc_A8B6A:               
-		BINCLUDE  "data\dhz\dhz_128.kos"		
-		dc.w    $0000, $0000, $0000, $0000, $0000 ; Filler    
-BM16_CNZ: ; loc_AB5CA:
-		BINCLUDE  "data\cnz\cnz_16.dat"  
-ArtNem_CNZ: ; loc_ABF2A: 
-		BINCLUDE  "data\cnz\cnz_8.nem"    
 Cnz_Cards: ; loc_AEF3C:               
 		BINCLUDE  "data\cnz\cards.nem"
-BM128_CNZ: ; loc_AF026:		
-		BINCLUDE  "data\cnz\cnz_128.kos"		
-		dc.w    $0000, $0000, $0000, $0000, $0000, $0000, $0000 ; Filler    
+; ----------------------------------------------------------------------------------
+; CNZ 128x128 block mappings (Kosinski compression)
+; LevChunk_AF026: Casino_Night_128x128_Map:
+BM128_CNZ:	BINCLUDE	"mappings/128x128/CNZ.bin"
+
 BM16_CPZ: ; loc_B0F26:  
 		BINCLUDE  "data\cpz\cpz_16.dat"  
 ArtNem_CPZ: ; loc_B2506: 
