@@ -4727,34 +4727,35 @@ return_46B6:
 ; word_46B8: Water_Height_Array:
     if useFullWaterTables
 WaterHeight: zoneOrderedTable 2,2
-	zoneTableEntry.w  $600, $600	; EHZ
+	zoneTableEntry.w  $600, $600	; GHZ
 	zoneTableEntry.w  $600, $600	; OWZ
 	zoneTableEntry.w  $600, $600	; WZ
 	zoneTableEntry.w  $600, $600	; SSZ
 	zoneTableEntry.w  $600, $600	; MTZ
 	zoneTableEntry.w  $600, $600	; MTZ
-	zoneTableEntry.w  $600, $600	; WFZ
+	zoneTableEntry.w  $600, $600	; BLZ
 	zoneTableEntry.w  $600, $600	; HTZ
 	zoneTableEntry.w  $600, $600	; HPZ
 	zoneTableEntry.w  $600, $600	; RWZ
 	zoneTableEntry.w  $600, $600	; OOZ
-	zoneTableEntry.w  $600, $600	; MCZ
+	zoneTableEntry.w  $600, $600	; DHZ
 	zoneTableEntry.w  $600, $600	; CNZ
 	zoneTableEntry.w  $600, $710	; CPZ
+	zoneTableEntry.w  $600, $600	; GCZ
+	zoneTableEntry.w  $410, $510	; NGHZ
 	zoneTableEntry.w  $600, $600	; DEZ
-	zoneTableEntry.w  $410, $510	; ARZ
-	zoneTableEntry.w  $600, $600	; SCZ
     zoneTableEnd
     else
 WaterHeight:
 	dc.w  $600, $600	; HPZ
-	dc.w  $600, $600	; Zone 9
+	dc.w  $600, $600	; RWZ
 	dc.w  $600, $600	; OOZ
-	dc.w  $600, $600	; MCZ
+	dc.w  $600, $600	; DHZ
 	dc.w  $600, $600	; CNZ
 	dc.w  $600, $710	; CPZ
-	dc.w  $600, $600	; DEZ
-	dc.w  $410, $510	; ARZ
+	dc.w  $600, $600	; GCZ
+	dc.w  $410, $510	; NGHZ
+	; no entry for DEZ...
     endif
 ; ===========================================================================
 ; sub_46D8: Dynamic_Water_Height:
@@ -4789,10 +4790,10 @@ loc_470A:
 ; off_470C:
     if useFullWaterTables
 DynamicWater_Index: zoneOrderedOffsetTable 2,2
-	zoneOffsetTableEntry.w DynamicWater_Null ; EHZ 1
-	zoneOffsetTableEntry.w DynamicWater_Null ; EHZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; GHZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; GHZ 2
 	zoneOffsetTableEntry.w DynamicWater_Null ; OWZ 1
-	zoneOffsetTableEntry.w DynamicWater_Null ; OWS 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; OWZ 2
 	zoneOffsetTableEntry.w DynamicWater_Null ; WZ 1
 	zoneOffsetTableEntry.w DynamicWater_Null ; WZ 2
 	zoneOffsetTableEntry.w DynamicWater_Null ; SSZ 1
@@ -4801,8 +4802,8 @@ DynamicWater_Index: zoneOrderedOffsetTable 2,2
 	zoneOffsetTableEntry.w DynamicWater_Null ; MTZ 2
 	zoneOffsetTableEntry.w DynamicWater_Null ; MTZ 3
 	zoneOffsetTableEntry.w DynamicWater_Null ; MTZ 4
-	zoneOffsetTableEntry.w DynamicWater_Null ; WFZ 1
-	zoneOffsetTableEntry.w DynamicWater_Null ; WFZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; BLZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; BLZ 2
 	zoneOffsetTableEntry.w DynamicWater_Null ; HTZ 1
 	zoneOffsetTableEntry.w DynamicWater_Null ; HTZ 2
 	zoneOffsetTableEntry.w DynamicWater_Null ; HPZ 1
@@ -4811,18 +4812,18 @@ DynamicWater_Index: zoneOrderedOffsetTable 2,2
 	zoneOffsetTableEntry.w DynamicWater_Null ; RWZ 2
 	zoneOffsetTableEntry.w DynamicWater_Null ; OOZ 1
 	zoneOffsetTableEntry.w DynamicWater_Null ; OOZ 2
-	zoneOffsetTableEntry.w DynamicWater_Null ; MCZ 1
-	zoneOffsetTableEntry.w DynamicWater_Null ; MCZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; DHZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; DHZ 2
 	zoneOffsetTableEntry.w DynamicWater_Null ; CNZ 1
 	zoneOffsetTableEntry.w DynamicWater_Null ; CNZ 2
 	zoneOffsetTableEntry.w DynamicWater_Null ; CPZ 1
 	zoneOffsetTableEntry.w DynamicWater_CPZ2 ; CPZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; GCZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; GCZ 2
+	zoneOffsetTableEntry.w DynamicWater_Null ; NGHZ 1
+	zoneOffsetTableEntry.w DynamicWater_Null ; NGHZ 2
 	zoneOffsetTableEntry.w DynamicWater_Null ; DEZ 1
 	zoneOffsetTableEntry.w DynamicWater_Null ; DEZ 2
-	zoneOffsetTableEntry.w DynamicWater_Null ; ARZ 1
-	zoneOffsetTableEntry.w DynamicWater_Null ; ARZ 2
-	zoneOffsetTableEntry.w DynamicWater_Null ; SCZ 1
-	zoneOffsetTableEntry.w DynamicWater_Null ; SCZ 2
     zoneTableEnd
     else
 DynamicWater_Index: offsetTable
@@ -4832,16 +4833,16 @@ DynamicWater_Index: offsetTable
 	offsetTableEntry.w DynamicWater_Null ; RWZ 2
 	offsetTableEntry.w DynamicWater_Null ; OOZ 1
 	offsetTableEntry.w DynamicWater_Null ; OOZ 2
-	offsetTableEntry.w DynamicWater_Null ; MCZ 1
-	offsetTableEntry.w DynamicWater_Null ; MCZ 2
+	offsetTableEntry.w DynamicWater_Null ; DHZ 1
+	offsetTableEntry.w DynamicWater_Null ; DHZ 2
 	offsetTableEntry.w DynamicWater_Null ; CNZ 1
 	offsetTableEntry.w DynamicWater_Null ; CNZ 2
 	offsetTableEntry.w DynamicWater_Null ; CPZ 1
 	offsetTableEntry.w DynamicWater_CPZ2 ; CPZ 2
-	offsetTableEntry.w DynamicWater_Null ; DEZ 1
-	offsetTableEntry.w DynamicWater_Null ; DEZ 2
-	offsetTableEntry.w DynamicWater_Null ; ARZ 1
-	offsetTableEntry.w DynamicWater_Null ; ARZ 2
+	offsetTableEntry.w DynamicWater_Null ; GCZ 1
+	offsetTableEntry.w DynamicWater_Null ; GCZ 2
+	offsetTableEntry.w DynamicWater_Null ; NGHZ 1
+	offsetTableEntry.w DynamicWater_Null ; NGHZ 2
     endif
 ; ===========================================================================
 ; return_472C:
