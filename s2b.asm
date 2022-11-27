@@ -317,7 +317,7 @@ GameClrRAM:
 		bsr.w	JoypadInit
 		; Strangely, this loads the title screen, and not the Sega screen,
 		; and the August 21st prototype suggests this was NOT done by the pirates...
-		move.b	#4,(Game_Mode).w
+		move.b	#GameModeID_TitleScreen,(Game_Mode).w
 ; loc_38E:
 MainGameLoop:
 		move.b	(Game_Mode).w,d0
@@ -327,11 +327,11 @@ MainGameLoop:
 ; ===========================================================================
 ; loc_39C:
 GameModesArray:
-		bra.w	SegaScreen
-		bra.w	TitleScreen
-		bra.w	Level
-		bra.w	Level
-		bra.w	SpecialStage
+GameMode_SegaScreen:	bra.w	SegaScreen
+GameMode_TitleScreen:	bra.w	TitleScreen
+GameMode_Demo:		bra.w	Level
+GameMode_Level:		bra.w	Level
+GameMode_SpecialStage:	bra.w	SpecialStage
 ; ===========================================================================
 ; Leftover from Sonic 1, turned the screen red if the checksum ever failed
 ChecksumError:
@@ -586,11 +586,11 @@ Vint_TitleCardDup_ptr:	offsetTableEntry.w Vint_TitleCard
 ; ===========================================================================
 ; loc_B82: VintSub00:
 Vint_Lag:
-		cmpi.b	#$8C,(Game_Mode).w
+		cmpi.b	#GameModeID_TitleCard|GameModeID_Level,(Game_Mode).w
 		beq.s	loc_BBC
-		cmpi.b	#8,(Game_Mode).w
+		cmpi.b	#GameModeID_Demo,(Game_Mode).w
 		beq.s	loc_BBC
-		cmpi.b	#$C,(Game_Mode).w
+		cmpi.b	#GameModeID_Level,(Game_Mode).w
 		beq.s	loc_BBC
 		stopZ80
 		jsr	(sndDriverInput).l
@@ -690,7 +690,7 @@ Vint_Unused6:
 ; ===========================================================================
 ; loc_D46: VintSub10:
 Vint_Pause:
-		cmpi.b	#$10,(Game_Mode).w	; is this the Special Stage?
+		cmpi.b	#GameModeID_SpecialStage,(Game_Mode).w	; is this the Special Stage?
 		beq.w	Vint_S1SS		; if yes, branch
 ; loc_D50: VintSub8:
 Vint_Level:
@@ -1151,7 +1151,7 @@ Pause_Loop:
 		beq.s	Pause_ChkStart
 		btst	#6,(Ctrl_1_Press).w
 		beq.s	Pause_ChkBC
-		move.b	#4,(Game_Mode).w
+		move.b	#GameModeID_TitleScreen,(Game_Mode).w
 		nop
 		bra.s	Pause_Resume
 ; ===========================================================================
@@ -1523,7 +1523,7 @@ loc_175C:
 loc_1760:
 		move.l	(a1)+,(a2)+
 		move.w	(a1)+,(a2)+
-		dbf	D0, loc_1760
+		dbf	d0,loc_1760
 
 loc_1768:
 		movem.l (sp)+,a1/a2
@@ -3602,7 +3602,7 @@ Sega_WaitEnd: ; loc_3718:
 		andi.b  #$80, (Ctrl_1_Press).w
 		beq.s   Sega_WaitEnd            ; loc_3718   
 Sega_GoToTitleScreen: ; loc_3730:		
-		move.b  #$04, (Game_Mode).w
+		move.b  #GameModeID_TitleScreen, (Game_Mode).w
 		rts
 ;===============================================================================
 ; Sega Logo
@@ -3852,7 +3852,7 @@ LevelSelect_PressStart:
 		bne.s	LevelSelect_StartZone
 
 ; LevelSelect_SpecialStage:
-		move.b	#$10,(Game_Mode).w
+		move.b	#GameModeID_SpecialStage,(Game_Mode).w
 		clr.w	(Current_ZoneAndAct).w
 		move.b	#3,(Life_count).w
 		moveq	#0,d0
@@ -3864,18 +3864,18 @@ LevelSelect_PressStart:
 ; ===========================================================================
 ; word_A3D4: Level_Select_Array:
 LevelSelect_Order:
-		dc.w	0, 1			; GHZ
-		dc.w	$200, $201		; WZ
-		dc.w	$400, $401, $500	; MTZ
-		dc.w	$700, $701		; HTZ
-		dc.w	$800, $801		; HPZ
-		dc.w	$A00, $A01		; OOZ
-		dc.w	$B00, $B01		; DHZ
-		dc.w	$C00, $C01		; CNZ
-		dc.w	$D00, $D01		; CPZ
-		dc.w	$E00, $E01		; GCZ
-		dc.w	$F00, $F01		; NGHZ
-		dc.w	$1000, $1001		; DEZ
+		dc.w	green_hill_zone_act_1, green_hill_zone_act_2
+		dc.w	wood_zone_act_1, wood_zone_act_2
+		dc.w	metropolis_zone_act_1, metropolis_zone_act_2, metropolis_zone_act_3
+		dc.w	hill_top_zone_act_1, hill_top_zone_act_2
+		dc.w	hidden_palace_zone_act_1, hidden_palace_zone_act_2
+		dc.w	oil_ocean_zone_act_1, oil_ocean_zone_act_2
+		dc.w	dust_hill_zone_act_1, dust_hill_zone_act_2
+		dc.w	casino_night_zone_act_1, casino_night_zone_act_2
+		dc.w	chemical_plant_zone_act_1, chemical_plant_zone_act_2
+		dc.w	genocide_city_zone_act_1, genocide_city_zone_act_2
+		dc.w	neo_green_hill_zone_act_1, neo_green_hill_zone_act_2
+		dc.w	death_egg_zone_act_1, death_egg_zone_act_2
 		dc.w	$7FFF+1			; SS
 		dc.w	0			; Sound Test
 ; ===========================================================================
@@ -3885,7 +3885,7 @@ LevelSelect_StartZone:
 		move.w	d0,(Current_ZoneAndAct).w
 ; loc_3B12:
 PlayLevel:
-		move.b	#$C,(Game_Mode).w
+		move.b	#GameModeID_Level,(Game_Mode).w
 		move.b	#3,(Life_count).w
 		moveq	#0,d0
 		move.w	d0,(Ring_count).w
@@ -3935,7 +3935,7 @@ loc_3B68:
 		move.w  D0, ($FFFFB008).w
 		cmpi.w  #$1C00, D0
 		bcs.s   Run_Demo_Mode           ; loc_3B8E
-		move.b  #$00, (Game_Mode).w
+		move.b  #GameModeID_SegaScreen, (Game_Mode).w
 		rts
 Run_Demo_Mode: ; loc_3B8E:
 		andi.b  #$80, (Ctrl_1_Press).w 
@@ -3955,14 +3955,14 @@ Run_Demo_Mode: ; loc_3B8E:
 		move.w  #$0000, (Demo_number).w
 loc_3BCC:
 		move.w  #$0001, (Demo_mode_flag).w
-		move.b  #$08, (Game_Mode).w
+		move.b  #GameModeID_Demo, (Game_Mode).w
 		cmpi.w  #$0000, D0
 		bne.s   loc_3BE4
 		move.w  #$0001, (Two_player_mode).w
 loc_3BE4:
 		cmpi.w  #$0600, D0
 		bne.s   loc_3BF8
-		move.b  #$10, (Game_Mode).w
+		move.b  #GameModeID_SpecialStage, (Game_Mode).w
 		clr.w   (Current_ZoneAndAct).w
 		clr.b   (Current_Special_Stage).w
 loc_3BF8:
@@ -4302,7 +4302,7 @@ MusicList:	zoneOrderedTable 1,1
 ; ---------------------------------------------------------------------------
 ; loc_4150:
 Level:
-		bset	#7,(Game_Mode).w	; add $80 to screen mode (for pre level sequence)
+		bset	#GameModeFlag_TitleCard,(Game_Mode).w	; add $80 to screen mode (for pre level sequence)
 		tst.w	(Demo_mode_flag).w	; test the old flag for the credits demos (now unused)
 		bmi.s	+
 		move.b	#$F9,d0
@@ -4570,7 +4570,7 @@ Level_ClrTitleCard: ; loc_4526:
 		moveq   #$02, D0
 		jsr     (LoadPLC).l		 ; loc_173C
 loc_452E:		
-		bclr    #$07, (Game_Mode).w
+		bclr    #GameModeFlag_TitleCard, (Game_Mode).w
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Main level loop (when all title card and loading sequences are finished)
@@ -4605,9 +4605,9 @@ loc_456E:
 		bsr.w	End_Level_Art_Load
 		jsr	(BuildSprites).l
 		jsr	(ObjectsManager).l
-		cmpi.b	#8,(Game_Mode).w
+		cmpi.b	#GameModeID_Demo,(Game_Mode).w
 		beq.s	loc_45B0
-		cmpi.b	#$C,(Game_Mode).w
+		cmpi.b	#GameModeID_Level,(Game_Mode).w
 		beq.w	Level_MainLoop
 		rts
 ; ---------------------------------------------------------------------------
@@ -4617,17 +4617,17 @@ loc_45B0:
 		bne.s   loc_45CE
 		tst.w   (Demo_Time_left).w
 		beq.s   loc_45CE
-		cmpi.b  #$08, (Game_Mode).w
+		cmpi.b  #GameModeID_Demo, (Game_Mode).w
 		beq.w    Level_MainLoop         ; loc_4534
-		move.b  #$00, (Game_Mode).w
+		move.b  #GameModeID_SegaScreen, (Game_Mode).w
 		rts
 loc_45CE:
-		cmpi.b  #$08, (Game_Mode).w
+		cmpi.b  #GameModeID_Demo, (Game_Mode).w
 		bne.s   loc_45E8
-		move.b  #$00, (Game_Mode).w
+		move.b  #GameModeID_SegaScreen, (Game_Mode).w
 		tst.w   (Demo_mode_flag).w
 		bpl.s   loc_45E8
-		move.b  #$1C, (Game_Mode).w
+		move.b  #S1GameModeID_Credits, (Game_Mode).w
 loc_45E8:
 		move.w  #$003C, (Demo_Time_left).w
 		move.w  #$003F, (Palette_fade_range).w
@@ -5028,12 +5028,12 @@ Move_Demo_On: ; loc_495C:
 		bpl.s   loc_496E
 		tst.w   (Demo_mode_flag).w
 		bmi.s   loc_496E
-		move.b  #$04, (Game_Mode).w
+		move.b  #GameModeID_TitleScreen, (Game_Mode).w
 loc_496E:
 		lea     (Demo_Index).l, A1        ; loc_49F2
 		moveq   #$00, D0
 		move.b  (Current_Zone).w, D0
-		cmpi.b  #$10, (Game_Mode).w
+		cmpi.b  #GameModeID_SpecialStage, (Game_Mode).w
 		bne.s   loc_4984
 		moveq   #$06, D0
 loc_4984:
@@ -5479,11 +5479,11 @@ loc_534E:
 		tst.w   (Demo_Time_left).w
 		beq.w    loc_54B8
 loc_538A:
-		cmpi.b  #$10, (Game_Mode).w
+		cmpi.b  #GameModeID_SpecialStage, (Game_Mode).w
 		beq.w     loc_534E
 		tst.w   (Demo_mode_flag).w
 		bne.w     loc_54C0
-		move.b  #$0C, (Game_Mode).w
+		move.b  #GameModeID_Level, (Game_Mode).w
 		cmpi.w  #metropolis_zone_act_6, (Current_ZoneAndAct).w
 		bcs.s   loc_53AE
 		clr.w   (Current_ZoneAndAct).w
@@ -5549,10 +5549,10 @@ loc_5480:
 		bsr.w     Pal_MakeFlash           ; loc_2762
 		rts
 loc_54B8:
-		move.b  #$00, (Game_Mode).w
+		move.b  #GameModeID_SegaScreen, (Game_Mode).w
 		rts
 loc_54C0:
-		cmpi.b  #$0C, (Game_Mode).w
+		cmpi.b  #GameModeID_Level, (Game_Mode).w
 		beq.s   loc_54B8
 		rts
 SS_Background_Load: ; loc_54CA:
@@ -5957,8 +5957,8 @@ StartLocations: zoneOrderedTable 2,4
 	zoneTableBinEntry	2, "level/startpos/DHZ_2.bin"
 	zoneTableBinEntry	2, "level/startpos/CNZ_1.bin"	; $0C - CNZ
 	zoneTableBinEntry	2, "level/startpos/CNZ_2.bin"
-	zoneTableEntry.w	$30, $1EC			; $0D - CPZ
-	zoneTableEntry.w	$30, $12C
+	zoneTableBinEntry	2, "level/startpos/CPZ_1.bin"	; $0D - CPZ
+	zoneTableBinEntry	2, "level/startpos/CPZ_2.bin"
 	zoneTableEntry.w	$60, $28F			; $0E - GCZ
 	zoneTableEntry.w	$40, $2AF
 	zoneTableEntry.w	$50, $37C			; $0F - NGHZ
@@ -9057,7 +9057,7 @@ loc_7AC6:
 loc_7AC8:
 		tst.b   (Boss_defeated_flag).w
 		beq.s   loc_7AD4
-		move.b  #$00, (Game_Mode).w
+		move.b  #GameModeID_SegaScreen, (Game_Mode).w
 loc_7AD4:
 		rts
 		rts
@@ -13660,10 +13660,10 @@ loc_BDF0:
 loc_BE10:
 		tst.b   (Time_Over_flag).w
 		bne.s   loc_BE2A
-		move.b  #$14, (Game_Mode).w
+		move.b  #S1GameModeID_ContinueScreen, (Game_Mode).w
 		tst.b   (Continue_count).w
 		bne.s   loc_BE34
-		move.b  #$00, (Game_Mode).w
+		move.b  #GameModeID_SegaScreen, (Game_Mode).w
 		bra.s   loc_BE34
 loc_BE2A:
 		clr.l   (Saved_Timer).w
@@ -13789,7 +13789,7 @@ loc_BF66:
 		clr.b   (Last_star_pole_hit).w
 		tst.b   (Enter_SpecialStage_flag).w
 		beq.s   loc_BF8E
-		move.b  #$10, (Game_Mode).w
+		move.b  #GameModeID_SpecialStage, (Game_Mode).w
 		bra.s   loc_BF94
 loc_BF8E:
 		move.w  #$0001, (Level_Inactive_flag).w
@@ -18837,8 +18837,8 @@ Obj01_Index:	offsetTable
 		offsetTableEntry.w Obj01_Init
 		offsetTableEntry.w Obj01_Control
 		offsetTableEntry.w Obj01_Hurt
-		offsetTableEntry.w Sonic_Death
-		offsetTableEntry.w Sonic_ResetLevel
+		offsetTableEntry.w Obj01_Dead
+		offsetTableEntry.w Obj01_Gone
 ; ===========================================================================
 ; loc_FC6C: Sonic_Main:
 Obj01_Init:
@@ -20357,7 +20357,7 @@ loc_10950:
 ; loc_1096A: Sonic_Hurt:
 Obj01_Hurt:
 		tst.b	$25(a0)
-		bmi.w	loc_109E2
+		bmi.w	Sonic_HurtInstantRecover
 		jsr	(SpeedToPos).l
 		addi.w	#$30,$12(a0)
 		btst	#6,$22(a0)
@@ -20373,94 +20373,114 @@ loc_1098C:
 		jmp	(DisplaySprite).l
 ; ===========================================================================
 ; loc_109A6:
-Sonic_HurtStop: ; loc_109A6:
-		move.w  (Camera_Max_Y_pos_now).w, D0
-		addi.w  #$00E0, D0
-		cmp.w   $000C(A0), D0
-		bcs.w    JmpTo_KillSonic          ; loc_10E30
-		bsr.w     Sonic_DoLevelCollision             ; loc_10700
-		btst    #$01, $0022(A0)
-		bne.s   loc_109E0
-		moveq   #$00, D0
-		move.w  D0, $0012(A0)
-		move.w  D0, $0010(A0)
-		move.w  D0, $0014(A0)
-		move.b  #$00, $001C(A0)
-		subq.b  #$02, $0024(A0)
-		move.w  #$0078, $0030(A0)
-loc_109E0:
+Sonic_HurtStop:
+		move.w	(Camera_Max_Y_pos_now).w,d0
+		addi.w	#$E0,d0
+		cmp.w	$C(a0),d0
+		bcs.w	JmpTo_KillSonic
+		bsr.w	Sonic_DoLevelCollision
+		btst	#1,$22(a0)
+		bne.s	+	; rts
+		moveq	#0,d0
+		move.w	d0,$12(a0)
+		move.w	d0,$10(a0)
+		move.w	d0,$14(a0)
+		move.b	#0,$1C(a0)
+		subq.b	#2,$24(a0)
+		move.w	#$78,$30(a0)
++
 		rts
-;=============================================================================== 
-; Sub Routine Sonic_HurtStop
-; [ End ]		         
-;===============================================================================  
-		
-loc_109E2:
-		subq.b  #$02, $0024(A0)
-		move.b  #$00, $0025(A0)
-		bsr.w     Sonic_RecordPos  ; loc_FDFA
-		bsr.w     Sonic_Animate           ; loc_10AB2
-		bsr.w     LoadSonicDynPLC  ; loc_10DDC
-		jmp     DisplaySprite           ; loc_D3C2
-Sonic_Death: ; loc_109FE:		
-		bsr.w     Sonic_GameOver          ; loc_10A1A
-		jsr     ObjectFall              ; loc_D24E
-		bsr.w     Sonic_RecordPos  ; loc_FDFA
-		bsr.w     Sonic_Animate           ; loc_10AB2
-		bsr.w     LoadSonicDynPLC  ; loc_10DDC
-		jmp     DisplaySprite           ; loc_D3C2
-		
-;=============================================================================== 
-; Sub Routine Sonic_GameOver
-; [ Begin ]		         
-;===============================================================================		   
-Sonic_GameOver: ; loc_10A1A:
-		move.w  (Camera_Max_Y_pos_now).w, D0
-		addi.w  #$0100, D0
-		cmp.w   $000C(A0), D0
-		bcc.w    loc_10A9C
-		move.w  #$FFC8, $0012(A0)
-		addq.b  #$02, $0024(A0)
-		clr.b   (Update_HUD_timer).w
-		addq.b  #$01, (Update_HUD_lives).w
-		subq.b  #$01, (Life_count).w
-		bne.s   loc_10A70
-		move.w  #$0000, $003A(A0)
-		move.b  #$39, ($FFFFB080).w
-		move.b  #$39, ($FFFFB0C0).w		 
-		move.b  #$01, ($FFFFB0DA).w
-		clr.b   (Time_Over_flag).w
-loc_10A5E:		
-		move.w  #MusID_GameOver, D0
-		jsr     (PlayMusic).l            ; loc_14C0
-		moveq   #$03, D0
-		jmp     (LoadPLC).l		 ; loc_173C   
-loc_10A70:
-		move.w  #$003C, $003A(A0)
-		tst.b   (Time_Over_flag).w
-		beq.s   loc_10A9C
-		move.w  #$0000, $003A(A0)
-		move.b  #$39, ($FFFFB080).w
-		move.b  #$39, ($FFFFB0C0).w
-		move.b  #$02, ($FFFFB09A).w
-		move.b  #$03, ($FFFFB0DA).w
-		bra.s   loc_10A5E
-loc_10A9C:
+; End of function Obj01_Hurt
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Subroutine to make Sonic recover control after getting hit but before landing
+; ---------------------------------------------------------------------------
+; loc_109E2:
+Sonic_HurtInstantRecover:
+		subq.b	#2,$24(a0)
+		move.b	#0,$25(a0)
+		bsr.w	Sonic_RecordPos
+		bsr.w	Sonic_Animate
+		bsr.w	LoadSonicDynPLC
+		jmp	(DisplaySprite).l
+; End of function Sonic_HurtInstantRecover
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Sonic when he dies
+; ---------------------------------------------------------------------------
+; loc_109FE: Sonic_Death:
+Obj01_Dead:
+		bsr.w	CheckGameOver
+		jsr	(ObjectFall).l
+		bsr.w	Sonic_RecordPos
+		bsr.w	Sonic_Animate
+		bsr.w	LoadSonicDynPLC
+		jmp	(DisplaySprite).l
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; loc_10A1A: Sonic_GameOver:
+CheckGameOver:
+		move.w	(Camera_Max_Y_pos_now).w,d0
+		addi.w	#$100,d0
+		cmp.w	$C(a0),d0
+		bcc.w	return_10A9C
+		move.w	#-$38,$12(a0)
+		addq.b	#2,$24(a0)
+		clr.b	(Update_HUD_timer).w
+		addq.b	#1,(Update_HUD_lives).w
+		subq.b	#1,(Life_count).w
+		bne.s	Obj01_ResetLevel
+		move.w	#0,$3A(a0)
+		move.b	#$39,($FFFFB080).w
+		move.b	#$39,($FFFFB0C0).w		 
+		move.b	#1,($FFFFB0DA).w
+		clr.b	(Time_Over_flag).w
+; loc_10A5E:
+Obj01_Finished:
+		move.w	#MusID_GameOver,d0
+		jsr	(PlayMusic).l
+		moveq	#3,d0
+		jmp	(LoadPLC).l
+; End of function CheckGameOver
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Sonic when the level is restarted
+; ---------------------------------------------------------------------------
+; loc_10A70:
+Obj01_ResetLevel:
+		move.w	#$3C,$3A(a0)
+		tst.b	(Time_Over_flag).w
+		beq.s	return_10A9C
+		move.w	#0,$3A(a0)
+		move.b	#$39,($FFFFB080).w
+		move.b	#$39,($FFFFB0C0).w
+		move.b	#2,($FFFFB09A).w
+		move.b	#3,($FFFFB0DA).w
+		bra.s	Obj01_Finished
+
+return_10A9C:
 		rts
-;=============================================================================== 
-; Sub Routine Sonic_GameOver
-; [ End ]		         
-;===============================================================================		 
-		
-Sonic_ResetLevel: ; loc_10A9E:
-		tst.w   $003A(A0)
-		beq.s   loc_10AB0
-		subq.w  #$01, $003A(A0)
-		bne.s   loc_10AB0
-		move.w  #$0001, (Level_Inactive_flag).w
-loc_10AB0:
+; End of function Obj01_ResetLevel
+
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; Sonic when he's offscreen and waiting for the level to restart
+; ---------------------------------------------------------------------------
+; loc_10A9E: Sonic_ResetLevel:
+Obj01_Gone:
+		tst.w	$3A(a0)
+		beq.s	+
+		subq.w	#1,$3A(a0)
+		bne.s	+
+		move.w	#1,(Level_Inactive_flag).w
++
 		rts
-		
+; End of function Obj01_Gone
+
 ;=============================================================================== 
 ; Sub Routine Sonic_Animate
 ; [ Begin ]		         
@@ -38015,7 +38035,7 @@ Obj8A_Init:
 		move.b	d0,$1A(a0)
 		move.b	#0,1(a0)
 		move.b	#0,$18(a0)
-		cmpi.b	#4,(Game_Mode).w
+		cmpi.b	#GameModeID_TitleScreen,(Game_Mode).w
 		bne.s	Obj8A_Display
 		move.w	#$300,2(a0)
 		bsr.w	J_Adjust2PArtPointer_24
@@ -39509,7 +39529,7 @@ loc_21FA0:
 		addi.w  #$0040, (SpecialStage_speed).w
 		cmpi.w  #$1800, (SpecialStage_speed).w
 		bne.s   loc_21FB4
-		move.b  #$0C, (Game_Mode).w
+		move.b  #GameModeID_Level, (Game_Mode).w
 loc_21FB4:
 		cmpi.w  #$3000, (SpecialStage_speed).w
 		blt.s   loc_21FD2
@@ -39528,7 +39548,7 @@ loc_21FD2:
 loc_21FF4:
 		subq.w  #$01, $0038(A0)
 		bne.s   loc_22000
-		move.b  #$0C, (Game_Mode).w
+		move.b  #GameModeID_Level, (Game_Mode).w
 loc_22000:
 		jsr     Sonic_Animate           ; (loc_10AB2)
 		jsr     LoadSonicDynPLC  ; (loc_10DDC)
@@ -41128,7 +41148,7 @@ loc_23B82:
 		andi.w  #$07FF, (Camera_BG_Y_pos).w
 		move.b  #$00, $001A(A0)
 		move.b  #$00, $001C(A0)
-		cmpi.b  #$10, (Game_Mode).w
+		cmpi.b  #GameModeID_SpecialStage, (Game_Mode).w
 		bne.s   loc_23BBC
 		moveq   #$06, D0
 		bra.s   loc_23BC2
@@ -41149,7 +41169,7 @@ loc_23BDC:
 		move.b  #$01, (Debug_Speed).w
 loc_23BEC:
 		moveq   #$06, D0
-		cmpi.b  #$10, (Game_Mode).w
+		cmpi.b  #GameModeID_SpecialStage, (Game_Mode).w
 		beq.s   loc_23BFC
 		moveq   #$00, D0
 		move.b  (Current_Zone).w, D0
@@ -41274,7 +41294,7 @@ loc_23D5E:
 		move.w  $000C(A0), ($FFFFB04C).w
 		move.w  (Camera_Min_Y_pos_Debug_Copy).w, (Camera_Min_Y_pos).w
 		move.w  (Camera_Max_Y_pos_Debug_Copy).w, (Camera_Max_Y_pos).w
-		cmpi.b  #$10, (Game_Mode).w
+		cmpi.b  #GameModeID_SpecialStage, (Game_Mode).w
 		bne.s   loc_23D9C
 		move.b  #$02, ($FFFFB01C).w
 		bset    #$02, ($FFFFB022).w
@@ -43358,9 +43378,9 @@ Casino_Night_Colision_1:   ; loc_30AEA:
 Casino_Night_Colision_2:   ; loc_30DEA:		
 		BINCLUDE	"level/collision/CNZ secondary 16x16 collision index.bin"
 Chemical_Plant_Colision_1: ; loc_310EA:		
-		BINCLUDE  "data\cpz\cpz_col1.dat" 
+		BINCLUDE	"level/collision/CPZ primary 16x16 collision index.bin"
 Chemical_Plant_Colision_2: ; loc_313EA:		
-		BINCLUDE  "data\cpz\cpz_col2.dat" 
+		BINCLUDE	"level/collision/CPZ secondary 16x16 collision index.bin"
 Neo_Green_Hill_Colision_1: ; loc_316EA:		
 		BINCLUDE  "data\nghz\nghzcol1.dat"
 Neo_Green_Hill_Colision_2: ; loc_319EA:		
@@ -43529,14 +43549,11 @@ Cnz_1_Background:  ; loc_3D4B4:
 Cnz_2_Background:  ; loc_3DCB6: 
 		BINCLUDE	"level/layout/CNZ_2_BG.bin"
 Cpz_1_Foreground:  ; loc_3DCC0:  
-		BINCLUDE  "data\cpz\foreact1.dat"		
+		BINCLUDE	"level/layout/CPZ_1.bin"
 Cpz_2_Foreground:  ; loc_3E4C2: 
-		BINCLUDE  "data\cpz\foreact2.dat"		
+		BINCLUDE	"level/layout/CPZ_2.bin"
 Cpz_Background:    ; loc_3ECC4: 
-		dc.b    $05, $06 ; x / y
-		dc.b    $A0, $A1, $A2, $00, $A4, $A5, $B0, $B1, $B2, $B3, $B4, $B5, $C0, $C1, $C2, $C3
-		dc.b    $C4, $C5, $D0, $D1, $D2, $D3, $D4, $D5, $E0, $E1, $E2, $E3, $E4, $E5, $E0, $E3
-		dc.b    $E2, $E3, $E4, $E5, $E0, $E4, $E2, $E1, $E4, $E5
+		BINCLUDE	"level/layout/CPZ_BG.bin"
 Null_Layout_5:     ; loc_3ECF0:            
 		dc.b    $00, $00, $00, $00      
 Nghz_1_Foreground: ; loc_3ECF4:    
@@ -43777,16 +43794,16 @@ Dhz_1_Objects_Layout:	BINCLUDE	"level/objects/DHZ_1.bin"
 	ObjectLayoutBoundary
 Dhz_2_Objects_Layout:
 	ObjectLayoutBoundary
-Cpz_1_Objects_Layout:  ; loc_45A2A:
-		BINCLUDE  "data\cpz\obj_act1.dat"
-Cpz_2_Objects_Layout:  ; loc_45CC4:
-		BINCLUDE  "data\cpz\obj_act2.dat"
+Cpz_1_Objects_Layout:	BINCLUDE	"level/objects/CPZ_1.bin"
+	ObjectLayoutBoundary
+Cpz_2_Objects_Layout:	BINCLUDE	"level/objects/CPZ_2.bin"
+	ObjectLayoutBoundary
 Nghz_1_Objects_Layout: ; loc_4605A:
 		BINCLUDE  "data\nghz\obj_act1.dat"
 Nghz_2_Objects_Layout: ; loc_46216:
 		BINCLUDE  "data\nghz\obj_act2.dat"
-Null_Objects_Layout:   ; loc_46348:
-		dc.w    $FFFF, $0000, $0000 
+Null_Objects_Layout:
+	ObjectLayoutBoundary
 ;=============================================================================== 
 ; Level Object Layout
 ; [ End ]
@@ -44332,10 +44349,8 @@ DHz_1_Rings_Layout:	BINCLUDE	"level/rings/DHZ_1.bin"
 DHz_2_Rings_Layout:	BINCLUDE	"level/rings/DHZ_2.bin"
 CNz_1_Rings_Layout:	BINCLUDE	"level/rings/CNZ_1.bin"
 CNz_2_Rings_Layout:	BINCLUDE	"level/rings/CNZ_2.bin"
-CPz_1_Rings_Layout:   ; loc_48970:               
-		BINCLUDE  "data\cpz\rng_act1.dat"				               
-CPz_2_Rings_Layout:   ; loc_48A3E:		
-		BINCLUDE  "data\cpz\rng_act2.dat"             
+CPz_1_Rings_Layout:	BINCLUDE	"level/rings/CPZ_1.bin"
+CPz_2_Rings_Layout:	BINCLUDE	"level/rings/CPZ_2.bin"
 GCz_1_Rings_Layout:   ; loc_48B94:		
 		dc.w    $FFFF    
 GCz_2_Rings_Layout:   ; loc_48B96:		
@@ -47571,16 +47586,23 @@ Cnz_Cards: ; loc_AEF3C:
 ; CNZ 128x128 block mappings (Kosinski compression)
 ; LevChunk_AF026: Casino_Night_128x128_Map:
 BM128_CNZ:	BINCLUDE	"mappings/128x128/CNZ.bin"
+;-----------------------------------------------------------------------------------
+; CPZ 16x16 block mappings (uncompressed)
+; LevBlock_B0F26: Chemical_Plant_16x16_Map:
+BM16_CPZ:	BINCLUDE	"mappings/16x16/CPZ.bin"
+; ----------------------------------------------------------------------------------
+; CPZ main level patterns (Nemesis compression)
+; ArtNem_B2506: Chemical_Plant_8x8_Tiles:
+ArtNem_CPZ:	BINCLUDE	"art/nemesis/CPZ primary.bin"
 
-BM16_CPZ: ; loc_B0F26:  
-		BINCLUDE  "data\cpz\cpz_16.dat"  
-ArtNem_CPZ: ; loc_B2506: 
-		BINCLUDE  "data\cpz\cpz_8.nem"
 Cpz_Init_Sprites_Dyn_Reload: ; loc_B602E:  
-		BINCLUDE  "data\cpz\init_spr.nem" 
-BM128_CPZ: ; loc_B6058:		 
-		BINCLUDE  "data\cpz\cpz_128.kos"		
-		dc.w    $0000, $0000, $0000 ; Filler  
+		BINCLUDE  "data\cpz\init_spr.nem"
+
+; ----------------------------------------------------------------------------------
+; CPZ 128x128 block mappings (Kosinski compression)
+; LevChunk_B6058: Chemical_Plant_128x128_Map:
+BM128_CPZ:	BINCLUDE	"mappings/128x128/CPZ.bin"
+
 BM16_NGHZ: ; loc_B8558:
 		BINCLUDE  "data\nghz\nghz_16.dat"   
 ArtNem_NGHZ: ; loc_B9E58:

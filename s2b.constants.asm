@@ -119,6 +119,22 @@ VintID_PCM =		id(Vint_PCM_ptr)
 VintID_SSResults =	id(Vint_SSResults_ptr)
 VintID_TitleCardDup =	id(Vint_TitleCardDup_ptr)
 
+; Game modes
+offset :=	GameModesArray
+ptrsize :=	1
+idstart :=	0
+
+GameModeID_SegaScreen =		id(GameMode_SegaScreen)
+GameModeID_TitleScreen =	id(GameMode_TitleScreen)
+GameModeID_Demo =		id(GameMode_Demo)
+GameModeID_Level =		id(GameMode_Level)
+GameModeID_SpecialStage =	id(GameMode_SpecialStage)
+GameModeFlag_TitleCard =	7 ; flag bit
+GameModeID_TitleCard =		1<<GameModeFlag_TitleCard ; flag mask
+
+S1GameModeID_ContinueScreen =	$14
+S1GameModeID_Credits =		$1C
+
 ; palette IDs
 offset :=	PalPointers
 ptrsize :=	8
