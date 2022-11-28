@@ -5962,8 +5962,8 @@ StartLocations: zoneOrderedTable 2,4
 	zoneTableBinEntry	2, "level/startpos/CPZ_2.bin"
 	zoneTableEntry.w	$60, $28F			; $0E - GCZ
 	zoneTableEntry.w	$40, $2AF
-	zoneTableEntry.w	$50, $37C			; $0F - NGHZ
-	zoneTableEntry.w	$50, $37C
+	zoneTableBinEntry	2, "level/startpos/NGHZ_1.bin"	; $0F - NGHZ
+	zoneTableBinEntry	2, "level/startpos/NGHZ_2.bin"
 	zoneTableEntry.w	$60, $28F			; $10 - DEZ
 	zoneTableEntry.w	$40, $2AF
 Background_Scroll_Speed: ; loc_5B8A: ; Background Position
@@ -43383,9 +43383,9 @@ Chemical_Plant_Colision_1: ; loc_310EA:
 Chemical_Plant_Colision_2: ; loc_313EA:		
 		BINCLUDE	"level/collision/CPZ secondary 16x16 collision index.bin"
 Neo_Green_Hill_Colision_1: ; loc_316EA:		
-		BINCLUDE  "data\nghz\nghzcol1.dat"
+		BINCLUDE	"level/collision/NGHZ primary 16x16 collision index.bin"
 Neo_Green_Hill_Colision_2: ; loc_319EA:		
-		BINCLUDE  "data\nghz\nghzcol2.dat"																				              
+		BINCLUDE	"level/collision/NGHZ secondary 16x16 collision index.bin"
 ;=============================================================================== 
 ; 16x16 Colision Index
 ; [ End ]
@@ -43558,13 +43558,13 @@ Cpz_Background:    ; loc_3ECC4:
 Null_Layout_5:     ; loc_3ECF0:            
 		dc.b    $00, $00, $00, $00      
 Nghz_1_Foreground: ; loc_3ECF4:    
-		BINCLUDE  "data\nghz\foreact1.dat"		
+		BINCLUDE	"level/layout/NGHZ_1.bin"
 Nghz_2_Foreground: ; loc_3F4F6: 
-		BINCLUDE  "data\nghz\foreact2.dat"		 
+		BINCLUDE	"level/layout/NGHZ_2.bin"
 Nghz_1_Background: ; loc_3ECF8:  
-		BINCLUDE  "data\nghz\backact1.dat"		 
+		BINCLUDE	"level/layout/NGHZ_1_BG.bin"
 Nghz_2_Background: ; loc_404FA:  
-		BINCLUDE  "data\nghz\backact2.dat"		            
+		BINCLUDE	"level/layout/NGHZ_2_BG.bin"
 Null_Layout_6:     ; loc_40CFC:             
 		dc.b    $00, $00, $00, $00    
 ;=============================================================================== 
@@ -43799,10 +43799,10 @@ Cpz_1_Objects_Layout:	BINCLUDE	"level/objects/CPZ_1.bin"
 	ObjectLayoutBoundary
 Cpz_2_Objects_Layout:	BINCLUDE	"level/objects/CPZ_2.bin"
 	ObjectLayoutBoundary
-Nghz_1_Objects_Layout: ; loc_4605A:
-		BINCLUDE  "data\nghz\obj_act1.dat"
-Nghz_2_Objects_Layout: ; loc_46216:
-		BINCLUDE  "data\nghz\obj_act2.dat"
+Nghz_1_Objects_Layout:	BINCLUDE	"level/objects/NGHZ_1.bin"
+	ObjectLayoutBoundary
+Nghz_2_Objects_Layout:	BINCLUDE	"level/objects/NGHZ_2.bin"
+	ObjectLayoutBoundary
 Null_Objects_Layout:
 	ObjectLayoutBoundary
 ;=============================================================================== 
@@ -44356,10 +44356,8 @@ GCz_1_Rings_Layout:   ; loc_48B94:
 		dc.w    $FFFF    
 GCz_2_Rings_Layout:   ; loc_48B96:		
 		dc.w    $FFFF               
-NGHz_1_Rings_Layout:  ; loc_48B98:		
-		BINCLUDE  "data\nghz\rng_act1.dat"				               
-NGHz_2_Rings_Layout:  ; loc_48C76:		
-		BINCLUDE  "data\nghz\rng_act2.dat"  
+NGHz_1_Rings_Layout:	BINCLUDE	"level/rings/NGHZ_1.bin"
+NGHz_2_Rings_Layout:	BINCLUDE	"level/rings/NGHZ_2.bin"
 DEz_1_Rings_Layout:   ; loc_48DB0:              
 		dc.w    $FFFF    
 DEz_2_Rings_Layout:   ; loc_48DB2:               
@@ -47603,17 +47601,27 @@ Cpz_Init_Sprites_Dyn_Reload: ; loc_B602E:
 ; CPZ 128x128 block mappings (Kosinski compression)
 ; LevChunk_B6058: Chemical_Plant_128x128_Map:
 BM128_CPZ:	BINCLUDE	"mappings/128x128/CPZ.bin"
+;-----------------------------------------------------------------------------------
+; NGHZ 16x16 block mappings (uncompressed)
+; LevBlock_B8558: Neo_Green_Hill_16x16_Map:
+BM16_NGHZ:	BINCLUDE	"mappings/16x16/NGHZ.bin"
+; ----------------------------------------------------------------------------------
+; NGHZ main level patterns (Nemesis compression)
+; ArtNem_B9E58: Neo_Green_Hill_8x8_Tiles:
+ArtNem_NGHZ:	BINCLUDE	"art/nemesis/NGHZ primary.bin"
 
-BM16_NGHZ: ; loc_B8558:
-		BINCLUDE  "data\nghz\nghz_16.dat"   
-ArtNem_NGHZ: ; loc_B9E58:
-		BINCLUDE  "data\nghz\nghz_8.nem"				
 Nghz_Init_Sprites_Dyn_Reload: ; loc_BF408:  Waterfalls
 		BINCLUDE  "data\nghz\init_spr.nem"  
-BM128_NGHZ: ; loc_BF568:		  
-		BINCLUDE  "data\nghz\nghz_128.kos"		 
-loc_C2138: ; Leftover end of compressed Nghz 128x128 mappings...
-		dc.w    $C00B, $F8C4, $C00B, $5200, $F8C0, $F80E, $00F0, $0000  
+
+; ----------------------------------------------------------------------------------
+; NGHZ 128x128 block mappings (Kosinski compression)
+; LevChunk_BF568: Neo_Green_Hill_128x128_Map:
+BM128_NGHZ:	BINCLUDE	"mappings/128x128/NGHZ.bin"
+
+; For whatever reason, the assembler compiled the end of the NGHZ chunk data twice...
+; word_C2138:
+		dc.w	$C00B, $F8C4, $C00B, $5200, $F8C0, $F80E, $F0, 0
+
 Unknow_Uncompressed_12x128_Map: ; loc_C2148:				            
 		BINCLUDE  "data\all\unk_128.dat" 
 BM16_CPZ_Previous_Builder: ; loc_C943C:				            
