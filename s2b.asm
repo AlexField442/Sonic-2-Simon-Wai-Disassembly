@@ -9945,7 +9945,7 @@ loc_8626:
 loc_867E:
 		cmpi.b  #neo_green_hill_zone, (Current_Zone).w
 		bne.s   loc_86A0
-		move.l  #Nghz_Swing_Platforms_Mappings, $0004(A0) ; loc_8B0E
+		move.l  #Obj15_MapUnc_8B0E, $0004(A0) ; loc_8B0E
 		move.w  #$0000, $0002(A0)
 		move.b  #$20, $0019(A0)
 		move.b  #$08, $0016(A0)
@@ -10285,6 +10285,9 @@ loc_8AC0:
 		move.w  (A7)+, D4
 		bsr.w     loc_FA28
 		bra.w     MarkObjGone             ; loc_D2A0
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
 Swing_Platforms_Mappings: ; loc_8AD8:
 		dc.w    Swing_Platforms_Map_01-Swing_Platforms_Mappings
 		dc.w    Swing_Platforms_Map_02-Swing_Platforms_Mappings
@@ -10299,22 +10302,8 @@ Swing_Platforms_Map_02: ; loc_8B02:
 		dc.l    $F8050000, $0000FFF8
 Swing_Platforms_Map_Null: ; loc_8B0C:
 		dc.w    $0000
-Nghz_Swing_Platforms_Mappings: ; loc_8B0E:
-		dc.w    Nghz_Swing_Platforms_Map_01-Nghz_Swing_Platforms_Mappings
-		dc.w    Nghz_Swing_Platforms_Map_02-Nghz_Swing_Platforms_Mappings
-		dc.w    Nghz_Swing_Platforms_Map_03-Nghz_Swing_Platforms_Mappings
-		dc.w    Nghz_Swing_Platforms_Map_Null-Nghz_Swing_Platforms_Mappings
-Nghz_Swing_Platforms_Map_01: ; loc_8B16:
-		dc.w    $0002
-		dc.l    $F80D6055, $602AFFE0, $F80D6055, $602A0000
-Nghz_Swing_Platforms_Map_02: ; loc_8B28:
-		dc.w    $0001
-		dc.l    $F8052051, $2028FFF8
-Nghz_Swing_Platforms_Map_03: ; loc_8B32:
-		dc.w    $0002
-		dc.l    $F00E4045, $4022FFF0, $F8052051, $2028FFF8
-Nghz_Swing_Platforms_Map_Null: ; loc_8B44:
-		dc.w    $0000 
+Obj15_MapUnc_8B0E:	BINCLUDE	"mappings/sprite/obj15_NGHZ.bin"
+
 Dhz_Swing_Platforms_Mappings: ; loc_8B46:
 		dc.w    Dhz_Swing_Platforms_Map_01-Dhz_Swing_Platforms_Mappings
 		dc.w    Dhz_Swing_Platforms_Map_02-Dhz_Swing_Platforms_Mappings
@@ -10524,7 +10513,7 @@ loc_8D5A:
 		move.w  #$4000, $0002(A0)
 		cmpi.b  #neo_green_hill_zone, (Current_Zone).w
 		bne.s   loc_8D9A
-		move.l  #Nghz_Platform_Mappings, $0004(A0) ; loc_90D0
+		move.l  #Obj18_MapUnc_90D0, $0004(A0) ; loc_90D0
 		move.w  #$4000, $0002(A0)
 loc_8D9A:
 		bsr.w     Adjust2PArtPointer     ; loc_DC30
@@ -10781,24 +10770,9 @@ loc_9070:
 ; Sprite mappings
 ; ---------------------------------------------------------------------------
 Obj18_MapUnc_9078:	BINCLUDE	"mappings/sprite/obj18_GHZ.bin"
+Obj18_MapUnc_90D0:	BINCLUDE	"mappings/sprite/obj18_NGHZ.bin"
+; ===========================================================================
 
-Nghz_Platform_Mappings: ; loc_90D0:
-		dc.w    Nghz_Platform_Map_01-Nghz_Platform_Mappings
-		dc.w    Nghz_Platform_Map_02-Nghz_Platform_Mappings
-Nghz_Platform_Map_01: ; loc_90D4:
-		dc.w    $0004
-		dc.l    $F00E0001, $0000FFE0, $F00E0801, $08000000
-		dc.l    $080E002D, $0016FFE0, $080E0039, $001C0000
-Nghz_Platform_Map_02: ; loc_90F6:
-		dc.w    $0006
-		dc.l    $D00E0001, $0000FFE0, $D00E0801, $08000000
-		dc.l    $E80F000D, $0006FFE0, $E80F001D, $000E0000
-		dc.l    $080F000D, $0006FFE0, $080F001D, $000E0000		        
-;=============================================================================== 
-; Object 0x18 - Platforms 
-; [ End ]
-;===============================================================================   
- 
 ;=============================================================================== 
 ; Object 0x1A - Collapsing Platforms - Hidden Palace / Oil Ocean ...
 ; [ Begin ]
@@ -30312,7 +30286,7 @@ loc_1966E:
 		dc.w    loc_19780-loc_1966E
 loc_19678:
 		addq.b  #$02, $0024(A0)
-		move.l  #Arrow_Shooter_Mappings, $0004(A0) ; loc_197C6
+		move.l  #Obj22_MapUnc_197C6, $0004(A0) ; loc_197C6
 		move.w  #$0417, $0002(A0)
 		bsr.w     J_Adjust2PArtPointer_0C ; loc_19844
 		ori.b   #$04, $0001(A0)
@@ -30408,34 +30382,13 @@ loc_197B9:
 		dc.b    $03, $01, $02, $FF
 loc_197BD:
 		dc.b    $07, $03, $04, $FC, $04, $03, $01, $FD, $00
-Arrow_Shooter_Mappings:		
-loc_197C6:
-		dc.w    loc_197D0-loc_197C6
-		dc.w    loc_197DA-loc_197C6
-		dc.w    loc_197EC-loc_197C6
-		dc.w    loc_19806-loc_197C6
-		dc.w    loc_19818-loc_197C6
-loc_197D0:
-		dc.w    $0001
-		dc.l    $FC0C2000, $2000FFF0
-loc_197DA:
-		dc.w    $0002
-		dc.l    $F8092004, $2002FFF0, $F801200B, $20050008
-loc_197EC:
-		dc.w    $0003
-		dc.l    $FC00000A, $0005FFFC, $F8092004, $2002FFF0
-		dc.l    $F801200B, $20050008
-loc_19806:
-		dc.w    $0002
-		dc.l    $F8092004, $2002FFF0, $F801200D, $20060008
-loc_19818:
-		dc.w    $0002
-		dc.l    $F8092004, $2002FFF0, $F801200F, $20070008
-;=============================================================================== 
-; Object 0x22 - Arrow Shooter - Neo Green Hill 
-; [ End ]		         
-;===============================================================================		  
-		nop		             ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj22_MapUnc_197C6:	BINCLUDE	"mappings/sprite/obj22.bin"
+; ===========================================================================
+		nop
+
 J_DeleteObject_13: ; loc_1982C:
 		jmp     DeleteObject            ; (loc_D3B4)
 J_SingleObjLoad_02: ; loc_19832:
@@ -31067,7 +31020,7 @@ loc_1A322:
 		dc.w    $FC00, $F600, $F800
 loc_1A328:
 		addq.b  #$02, $0024(A0)
-		move.l  #Diagonal_Spring_Mappings, $0004(A0) ; loc_1A58A
+		move.l  #Obj40_MapUnc_1A58A, $0004(A0) ; loc_1A58A
 		move.w  #$0440, $0002(A0)
 		bsr.w     J_Adjust2PArtPointer_0E ; loc_1A5C0
 		ori.b   #$04, $0001(A0)
@@ -31215,21 +31168,13 @@ loc_1A582:
 		dc.b    $0F, $00, $FF
 loc_1A585:
 		dc.b    $03, $01, $00, $FD, $00 
-Diagonal_Spring_Mappings:						         
-loc_1A58A:
-		dc.w    loc_1A58E-loc_1A58A
-		dc.w    loc_1A5A0-loc_1A58A   
-loc_1A58E:
-		dc.w    $0002
-		dc.l    $E8090000, $0000FFE4, $E80D0006, $0003FFFC
-loc_1A5A0:
-		dc.w    $0002
-		dc.l    $E809000E, $0007FFE4, $E80D0014, $000AFFFC		
-;=============================================================================== 
-; Object 0x40 - Chemical Plant / Neo Green Hill - Springs 
-; [ End ]		         
-;===============================================================================  
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj40_MapUnc_1A58A:	BINCLUDE	"mappings/sprite/obj40.bin"
+; ===========================================================================
 		nop
+
 J_MarkObjGone_0C: ; loc_1A5B4:
 		jmp     MarkObjGone             ; (loc_D2A0)
 J_AnimateSprite_02: ; loc_1A5BA:
@@ -41602,7 +41547,7 @@ Debug_DHz: ; loc_24194:  ; Dust Hill
 		dc.b    $81, $00, $04, $5C
 		dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
 		dc.b    $90, $03, $04, $70
-		dc.l    ($40<<$18)|Diagonal_Spring_Mappings    ; loc_1A58A
+		dc.l    ($40<<$18)|Obj40_MapUnc_1A58A    ; loc_1A58A
 		dc.b    $01, $00, $04, $40
 		dc.l    ($74<<$18)|Invisible_Block_Mappings    ; loc_156B2
 		dc.b    $11, $00, $86, $80
@@ -41656,7 +41601,7 @@ Debug_CPz: ; loc_24228:  ; Chemical Plant
 		dc.b    $90, $03, $04, $70				  
 		dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70
 		dc.b    $A0, $06, $04, $5C       
-		dc.l    ($40<<$18)|Diagonal_Spring_Mappings    ; loc_1A58A
+		dc.l    ($40<<$18)|Obj40_MapUnc_1A58A    ; loc_1A58A
 		dc.b    $01, $00, $04, $40
 Debug_NGHz: ; loc_242C2:  ; Neo Green Hill
 		dc.w    $0011
@@ -41664,13 +41609,13 @@ Debug_NGHz: ; loc_242C2:  ; Neo Green Hill
 		dc.b    $00, $00, $26, $BC
 		dc.l    ($26<<$18)|Obj26_MapUnc_B6D2           ; loc_B6D2
 		dc.b    $00, $00, $06, $80
-		dc.l    ($15<<$18)|Nghz_Swing_Platforms_Mappings ; loc_8B0E
+		dc.l    ($15<<$18)|Obj15_MapUnc_8B0E ; loc_8B0E
 		dc.b    $88, $02, $00, $00
-		dc.l    ($18<<$18)|Nghz_Platform_Mappings      ; loc_90D0
+		dc.l    ($18<<$18)|Obj18_MapUnc_90D0      ; loc_90D0
 		dc.b    $01, $00, $40, $00
-		dc.l    ($18<<$18)|Nghz_Platform_Mappings      ; loc_90D0
+		dc.l    ($18<<$18)|Obj18_MapUnc_90D0      ; loc_90D0
 		dc.b    $9A, $01, $40, $00
-		dc.l    ($22<<$18)|Arrow_Shooter_Mappings     ; loc_197C6
+		dc.l    ($22<<$18)|Obj22_MapUnc_197C6     ; loc_197C6
 		dc.b    $00, $01, $04, $17
 		dc.l    ($23<<$18)|Pillar_Mappings             ; loc_199AA
 		dc.b    $00, $00, $20, $00
@@ -41682,7 +41627,7 @@ Debug_NGHz: ; loc_242C2:  ; Neo Green Hill
 		dc.b    $01, $01, $86, $80
 		dc.l    ($2C<<$18)|Lava_Attributes_Mappings    ; loc_15612
 		dc.b    $02, $02, $86, $80
-		dc.l    ($40<<$18)|Diagonal_Spring_Mappings    ; loc_1A58A
+		dc.l    ($40<<$18)|Obj40_MapUnc_1A58A    ; loc_1A58A
 		dc.b    $01, $00, $04, $40		  
 		dc.l    ($41<<$18)|Spring_Mappings             ; loc_EF70		  
 		dc.b    $81, $00, $04, $5C		  
@@ -42081,7 +42026,7 @@ loc_246E2:
 		dc.w    $8680   
 		dc.l    Dhz_Bridge              ; loc_77614
 		dc.w    $8780  
-		dc.l    Diagonal_Spring_1       ; loc_798F4
+		dc.l    ArtNem_LeverSpring       ; loc_798F4
 		dc.w    $8800  
 		dc.l    ArtNem_VrtclSprng         ; loc_78658
 		dc.w    $8B80   
@@ -42137,7 +42082,7 @@ loc_2476E:
 		dc.w    $8680  
 		dc.l    Cpz_Worms               ; loc_779AA
 		dc.w    $8780  
-		dc.l    Diagonal_Spring_1       ; loc_798F4
+		dc.l    ArtNem_LeverSpring       ; loc_798F4
 		dc.w    $8800  
 		dc.l    ArtNem_VrtclSprng         ; loc_78658
 		dc.w    $8B80   
@@ -42152,7 +42097,7 @@ loc_24794:
 		dc.w    $8000   
 		dc.l    Nghz_Leaves             ; loc_78356
 		dc.w    $8200    
-		dc.l    Nghz_Arrow_Shooter      ; loc_783E2
+		dc.l    ArtNem_ArrowAndShooter      ; loc_783E2
 		dc.w    $82E0  
 		dc.l    Nghz_Water_Splash       ; loc_78540
 		dc.w    $8500  
@@ -42163,7 +42108,7 @@ loc_247B4:
 		dc.w    $A000 
 		dc.l    ArtNem_Spikes		  ; loc_7914E
 		dc.w    $8680   
-		dc.l    Diagonal_Spring_1       ; loc_798F4
+		dc.l    ArtNem_LeverSpring       ; loc_798F4
 		dc.w    $8800   
 		dc.l    ArtNem_VrtclSprng         ; loc_78658
 		dc.w    $8B80   
@@ -42206,7 +42151,7 @@ loc_24804: ; Not all sprites are loaded in to VRam
 		dc.w    $9D00
 		dc.l    Ghz_Boss_Blades         ; loc_7E910
 		dc.w    $AD00		 
-		dc.w    (Diagonal_Spring_1&$FFFF) ; loc_798F4 ; Left over from previous build
+		dc.w    (ArtNem_LeverSpring&$FFFF) ; loc_798F4 ; Left over from previous build
 		dc.w    $8800		   
 		dc.l    ArtNem_VrtclSprng         ; loc_78658
 		dc.w    $8B80   
@@ -42254,7 +42199,7 @@ loc_24868:
 		dc.w    $AD00
 		dc.l    Dhz_Bridge              ; loc_77614
 		dc.w    $8780
-		dc.l    (Diagonal_Spring_1-$0188) ; loc_7976C ; Left over from previous build
+		dc.l    (ArtNem_LeverSpring-$0188) ; loc_7976C ; Left over from previous build
 		dc.w    $8800  
 		dc.l    ArtNem_VrtclSprng         ; loc_78658
 		dc.w    $8B80 
@@ -42308,7 +42253,7 @@ loc_2491A:
 		dc.w    $8680  
 		dc.l    Cpz_Worms               ; loc_779AA
 		dc.w    $8780		         
-		dc.l    (Diagonal_Spring_1-$0188) ; loc_7976C 
+		dc.l    (ArtNem_LeverSpring-$0188) ; loc_7976C 
 		dc.w    $8800  
 		dc.l    ArtNem_VrtclSprng         ; loc_78658
 		dc.w    $8B80   
@@ -42323,7 +42268,7 @@ loc_2493A:
 		dc.w    $8000   
 		dc.l    Nghz_Leaves             ; loc_78356
 		dc.w    $8200    
-		dc.l    Nghz_Arrow_Shooter      ; loc_783E2
+		dc.l    ArtNem_ArrowAndShooter      ; loc_783E2
 		dc.w    $82E0  
 		dc.l    Nghz_Water_Splash       ; loc_78540
 		dc.w    $8500  
@@ -42332,7 +42277,7 @@ loc_2495A:
 		dc.w    (((loc_24974-loc_2495A-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
 		dc.l    ArtNem_Spikes		  ; loc_7914E
 		dc.w    $8680   
-		dc.l    (Diagonal_Spring_1-$0188) ; loc_7976C 
+		dc.l    (ArtNem_LeverSpring-$0188) ; loc_7976C 
 		dc.w    $8800   
 		dc.l    ArtNem_VrtclSprng         ; loc_78658
 		dc.w    $8B80   
@@ -42375,7 +42320,7 @@ loc_249A4:
 		dc.l    Ghz_Boss_Blades-$07E2   ; loc_7E12E
 		dc.w    $AD00   
 		dc.w    $8680               
-		dc.l    (Diagonal_Spring_1-$0188) ; loc_7976C 
+		dc.l    (ArtNem_LeverSpring-$0188) ; loc_7976C 
 		dc.w    $8800  
 		dc.l    ArtNem_VrtclSprng         ; loc_78658
 		dc.w    $8B80 
@@ -47310,13 +47255,17 @@ Nghz_Water_Surface: ; loc_78270:
 		BINCLUDE  "data\nghz\watrsurf.nem"   
 Nghz_Leaves: ; loc_78356:     
 		BINCLUDE  "data\nghz\leaves.nem"						 
-Nghz_Arrow_Shooter: ; loc_783E2:				  
-		BINCLUDE  "data\nghz\arrow_s.nem" 
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Arrow shooter and arrow from ARZ	; ArtNem_783e2: Nghz_Arrow_Shooter:
+	even
+ArtNem_ArrowAndShooter:	BINCLUDE	"art/nemesis/Arrow shooter and arrow from NGHZ.bin"
+
 Nghz_Water_Splash: ; loc_78540:				  
 		BINCLUDE  "data\nghz\w_splash.nem"						             
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Button				ArtNem_78580: Switch:
+; Button				; ArtNem_78580: Switch:
 	even
 ArtNem_Button:	BINCLUDE	"art/nemesis/Button.bin"
 ;---------------------------------------------------------------------------------------
@@ -47364,12 +47313,14 @@ Enemy_Points_Spr: ; loc_7919E:
 ArtNem_Checkpoint:	BINCLUDE	"art/nemesis/Checkpoint.bin"	
 ; --------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Singpost				; ArtNem_7931E: Signpost
+; Singpost				; ArtNem_7931E: Signpost:
 	even
 ArtNem_Signpost:	BINCLUDE	"art/nemesis/Signpost.bin"
-
-Diagonal_Spring_1: ; loc_798F4:		
-		BINCLUDE  "data\sprites\dspring1.nem"		 
+;---------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Lever spring				; ArtNem_798F4: Diagonal_Spring_1:
+	even
+ArtNem_LeverSpring:	BINCLUDE	"art/nemesis/Lever spring.bin"
 ;---------------------------------------------------------------------------------------
 ; Nemesis compressed art
 ; Long horizontal spike			; ArtNem_79A44: Dhz_Horizontal_Spikes:
