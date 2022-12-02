@@ -27176,7 +27176,7 @@ loc_1647A:
 		dc.w    $1000, $0A00
 loc_1647E:
 		addq.b  #$02, $0024(A0)
-		move.l  #Speed_Booster_Mappings, $0004(A0) ; loc_1658A
+		move.l  #Obj1B_MapUnc_1658A, $0004(A0) ; loc_1658A
 		move.w  #$E39C, $0002(A0)
 		bsr.w     J_Adjust2PArtPointer_03 ; loc_165AA
 		ori.b   #$04, $0001(A0)
@@ -27245,20 +27245,11 @@ loc_16562:
 		bclr    #$05, $0022(A1)
 		move.w  #$00CC, D0
 		jmp     (PlaySound).l             ; loc_14C6
-Speed_Booster_Mappings:		
-loc_1658A:
-		dc.w    loc_16590-loc_1658A
-		dc.w    loc_16590-loc_1658A
-		dc.w    loc_165A2-loc_1658A
-loc_16590:
-		dc.w    $0002
-		dc.l    $F8050000, $0000FFE8, $F8050000, $00000008
-loc_165A2:
-		dc.w    $0000
-;=============================================================================== 
-; Object 0x1B - Chemical Plant - Speed Booster
-; [ End ]		         
-;===============================================================================  
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj1B_MapUnc_1658A:	BINCLUDE	"mappings/sprite/obj1B.bin"
+; ===========================================================================
 J_MarkObjGone_01: ; loc_165A4:
 		jmp     MarkObjGone             ; (loc_D2A0)
 J_Adjust2PArtPointer_03: ; loc_165AA:
@@ -27304,7 +27295,7 @@ loc_16600:
 		move.b  D5, $0024(A1)
 		move.w  $0008(A0), $0008(A1)
 		move.w  $000C(A0), $000C(A1)
-		move.l  #Worms_Mappings, $0004(A1) ; loc_16702
+		move.l  #Obj1D_MapUnc_16702, $0004(A1) ; loc_16702
 		move.w  #$643C, $0002(A1)
 		bsr.w     J_Adjust2PArtPointer2_00 ; loc_16716
 		move.b  #$04, $0001(A1)
@@ -27367,17 +27358,13 @@ loc_166E8:
 		move.w  $0038(A0), $0008(A0)
 loc_166FE:
 		bra.w     J_MarkObjGone_02        ; loc_16710
-Worms_Mappings:		
-loc_16702:
-		dc.w    loc_16704-loc_16702
-loc_16704:
-		dc.w    $0001
-		dc.l    $F8050000, $0000FFF8  
-;=============================================================================== 
-; Object 0x1D - Chemical Plant - Worms
-; [ End ]		         
-;===============================================================================               
-		nop		             ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj1D_MapUnc_16702:	BINCLUDE	"mappings/sprite/obj1D.bin"
+; ===========================================================================
+		nop
+
 J_MarkObjGone_02: ; loc_16710:
 		jmp     MarkObjGone             ; (loc_D2A0)
 J_Adjust2PArtPointer2_00: ; loc_16716:
@@ -28315,7 +28302,7 @@ loc_1769E:
 		move.l  #loc_177F0, $003C(A0)
 		cmpi.b  #chemical_plant_zone, (Current_Zone).w
 		bne.s   loc_176E2
-		move.l  #Tunel_Obstacule_Mappings, $0004(A0) ; loc_179F6
+		move.l  #Obj32_MapUnc_179F6, $0004(A0) ; loc_179F6
 		move.w  #$6430, $0002(A0)
 		move.b  #$10, $0019(A0)
 		move.l  #loc_17808, $003C(A0)
@@ -28439,14 +28426,10 @@ Obj2F_MapUnc_1786A:	BINCLUDE	"mappings/sprite/obj2F.bin"
 ; Sprite mappings - Obj32
 ; ---------------------------------------------------------------------------
 Obj32_MapUnc_179C2:	BINCLUDE	"mappings/sprite/obj32_HTZ.bin"	; HTZ rock
-Tunel_Obstacule_Mappings:		  
-loc_179F6:
-		dc.w    loc_179F8-loc_179F6
-loc_179F8:
-		dc.w    $0004
-		dc.l    $F0050000, $0000FFF0, $F0050800, $08000000
-		dc.l    $00050000, $0000FFF0, $00050800, $08000000
-		nop		             ; Filler               
+Obj32_MapUnc_179F6:	BINCLUDE	"mappings/sprite/obj32_CPZ.bin" ; CPZ tube cover
+; ===========================================================================
+		nop
+
 J_DisplaySprite_02: ; loc_17A1C:
 		jmp     DisplaySprite           ; (loc_D3C2)
 J_DeleteObject_0E: ; loc_17A22:
@@ -32874,7 +32857,7 @@ loc_1BD06:
 		move.w  #$6000, $0002(A0)
 		cmpi.b  #chemical_plant_zone, (Current_Zone).w
 		bne.s   loc_1BD2E
-		move.l  #Block_Mappings, $0004(A0)       ; loc_1BF4A
+		move.l  #Obj6B_MapUnc_1BF4A, $0004(A0)       ; loc_1BF4A
 		move.w  #$6418, $0002(A0)
 loc_1BD2E:
 		bsr.w     J_Adjust2PArtPointer_16 ; loc_1BF58
@@ -33074,17 +33057,13 @@ loc_1BF34:
 		add.w   $0034(A0), D1
 		move.w  D1, $0008(A0)
 		rts 
-Block_Mappings:		
-loc_1BF4A:
-		dc.w    loc_1BF4C-loc_1BF4A
-loc_1BF4C:
-		dc.w    $0001
-		dc.l    $F00F0000, $0000FFF0		           
-;=============================================================================== 
-; Object 0x6B - Metropolis Platforms / Chemical Plant - Block
-; [ End ]		         
-;===============================================================================  
-		nop		             ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj6B_MapUnc_1BF4A:	BINCLUDE	"mappings/sprite/obj6B.bin"
+; ===========================================================================
+		nop
+
 J_Adjust2PArtPointer_16: ; loc_1BF58:
 		jmp     Adjust2PArtPointer     ; (loc_DC30)
 J_SolidObject_0B: ; loc_1BF5E:
@@ -34423,7 +34402,7 @@ loc_1D3FA:
 		move.b  #$04, $0024(A1)
 loc_1D408:
 		_move.b  0(A0), 0(A1)
-		move.l  #Block_Mappings, $0004(A1) ; loc_1BF4A
+		move.l  #Obj6B_MapUnc_1BF4A, $0004(A1) ; loc_1BF4A
 		move.w  #$6418, $0002(A1)
 		bsr.w     J_Adjust2PArtPointer2_02 ; loc_1D582
 		move.b  #$04, $0001(A1)
@@ -34601,7 +34580,7 @@ loc_1D5D8:
 		move.w  $0008(A0), $0008(A1)
 		move.w  $000C(A0), $000C(A1)
 loc_1D5F6:
-		move.l  #Platform_Horizontal_Mappings, $0004(A1) ; loc_1D72C
+		move.l  #Obj7A_MapUnc_1D72C, $0004(A1) ; loc_1D72C
 		move.w  $0002(A0), $0002(A1)
 		move.b  #$04, $0001(A1)
 		move.b  #$04, $0018(A1)
@@ -34699,15 +34678,12 @@ loc_1D706:
 		eori.b  #$01, $0036(A1)
 loc_1D72A:
 		rts
-Platform_Horizontal_Mappings: ; loc_1D72C:
-		dc.w    loc_1D72E-Platform_Horizontal_Mappings
-loc_1D72E:
-		dc.w    $0001
-		dc.l    $F80D0010, $0008FFF0            
-;=============================================================================== 
-; Object 0x7A - Chemical Plant - Platforms - Move horizontally
-; [ End ]		         
-;===============================================================================  
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj7A_MapUnc_1D72C:	BINCLUDE	"mappings/sprite/obj7A.bin"
+; ===========================================================================
+
 J_SingleObjLoad2_0A: ; loc_1D738:
 		jmp     SingleObjLoad2      ; (loc_E788)
 J_Adjust2PArtPointer_1E: ; loc_1D73E:
@@ -34741,7 +34717,7 @@ loc_1D780:
 		dc.w    $F000, $F600
 loc_1D784:
 		addq.b  #$02, $0024(A0)
-		move.l  #Spring_Tubes_Mappings, $0004(A0) ; loc_1D920
+		move.l  #Obj7B_MapUnc_1D920, $0004(A0) ; loc_1D920
 		move.w  #$03E0, $0002(A0)
 		ori.b   #$04, $0001(A0)
 		move.b  #$10, $0019(A0)
@@ -34859,30 +34835,13 @@ loc_1D913:
 		dc.b    $00, $03, $FD, $00
 loc_1D917:
 		dc.b    $05, $01, $02, $02, $02, $04, $FD, $00, $00  
-Spring_Tubes_Mappings:
-loc_1D920:
-		dc.w    loc_1D92A-loc_1D920
-		dc.w    loc_1D934-loc_1D920
-		dc.w    loc_1D946-loc_1D920
-		dc.w    loc_1D958-loc_1D920
-		dc.w    loc_1D934-loc_1D920
-loc_1D92A:
-		dc.w    $0001
-		dc.l    $F00D0000, $0000FFF0
-loc_1D934:
-		dc.w    $0002
-		dc.l    $E0070008, $0004FFF0, $E0070808, $08040000
-loc_1D946:
-		dc.w    $0002
-		dc.l    $E0070010, $0008FFF0, $E0070810, $08080000
-loc_1D958:
-		dc.w    $0001
-		dc.l    $F00D0018, $000CFFF0				
-;=============================================================================== 
-; Object 0x7B - 
-; [ End ]		         
-;===============================================================================  
-		nop		             ; Filler 
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj7B_MapUnc_1D920:	BINCLUDE	"mappings/sprite/obj7B.bin"
+; ===========================================================================
+		nop
+
 J_DisplaySprite_0D: ; loc_1D964:				
 		jmp     DisplaySprite           ; (loc_D3C2)
 J_DeleteObject_21: ; loc_1D96A:
@@ -41571,23 +41530,23 @@ Debug_CPz: ; loc_24228:  ; Chemical Plant
 		dc.b    $07, $00, $06, $80
 		dc.l    ($0B<<$18)|Obj0B_MapUnc_14996 ; loc_14996
 		dc.b    $70, $00, $E3, $B0
-		dc.l    ($1B<<$18)|Speed_Booster_Mappings      ; loc_1658A
+		dc.l    ($1B<<$18)|Obj1B_MapUnc_1658A      ; loc_1658A
 		dc.b    $00, $00, $E3, $9C
-		dc.l    ($1D<<$18)|Worms_Mappings              ; loc_16702
+		dc.l    ($1D<<$18)|Obj1D_MapUnc_16702              ; loc_16702
 		dc.b    $15, $00, $E4, $3C
 		dc.l    ($19<<$18)|Obj19_MapUnc_16412           ; loc_16412
 		dc.b    $06, $00, $63, $A0
 		dc.l    ($2D<<$18)|Obj2D_MapUnc_9E1E     ; loc_9E1E
 		dc.b    $02, $02, $23, $94
-		dc.l    ($32<<$18)|Tunel_Obstacule_Mappings    ; loc_179F6
+		dc.l    ($32<<$18)|Obj32_MapUnc_179F6    ; loc_179F6
 		dc.b    $00, $00, $64, $30
-		dc.l    ($6B<<$18)|Block_Mappings              ; loc_1BF4A
+		dc.l    ($6B<<$18)|Obj6B_MapUnc_1BF4A              ; loc_1BF4A
 		dc.b    $10, $00, $64, $18
-		dc.l    ($78<<$18)|Block_Mappings              ; loc_1BF4A
+		dc.l    ($78<<$18)|Obj6B_MapUnc_1BF4A              ; loc_1BF4A
 		dc.b    $00, $00, $64, $18        
-		dc.l    ($7A<<$18)|Platform_Horizontal_Mappings ; loc_1D72C
+		dc.l    ($7A<<$18)|Obj7A_MapUnc_1D72C ; loc_1D72C
 		dc.b    $00, $00, $E4, $18
-		dc.l    ($7B<<$18)|Spring_Tubes_Mappings       ; loc_1D920
+		dc.l    ($7B<<$18)|Obj7B_MapUnc_1D920       ; loc_1D920
 		dc.b    $02, $00, $03, $E0
 		dc.l    ($03<<$18)|Obj03_MapUnc_147D0       ; loc_147D0
 		dc.b    $09, $01, $26, $BC
@@ -42057,21 +42016,21 @@ loc_24730:
 		dc.w    $0000 
 		dc.l    Cpz_Metal_Structure     ; loc_77A1C  
 		dc.w    $6E60
-		dc.l    Cpz_Automatic_Door      ; loc_77C66
+		dc.l    ArtNem_ConstructionStripes      ; loc_77C66
 		dc.w    $7280 
-		dc.l    Cpz_Speed_Booster       ; loc_77942
+		dc.l    ArtNem_CPZBooster       ; loc_77942
 		dc.w    $7380
-		dc.l    Cpz_Elevator            ; loc_77684
+		dc.l    ArtNem_CPZElevator            ; loc_77684
 		dc.w    $7400  
-		dc.l    Cpz_Open_Close_Platform ; loc_77CD2 
+		dc.l    ArtNem_CPZAnimatedBits ; loc_77CD2 
 		dc.w    $7600  
-		dc.l    Cpz_Spring_Tubes        ; loc_78074
+		dc.l    ArtNem_CPZTubeSpring        ; loc_78074
 		dc.w    $7C00   
 		dc.l    Water_Surface           ; loc_777D2  
 		dc.w    $8000
-		dc.l    Cpz_Platforms           ; loc_77EB4
+		dc.l    ArtNem_CPZStairBlock           ; loc_77EB4
 		dc.w    $8300 
-		dc.l    loc_77C26
+		dc.l    ArtNem_CPZMetalBlock
 		dc.w    $8600 
 Chemical_Plant_Sprites_2:      
 loc_2476E:
@@ -42080,7 +42039,7 @@ loc_2476E:
 		dc.w    $A000 
 		dc.l    ArtNem_Spikes		  ; loc_7914E
 		dc.w    $8680  
-		dc.l    Cpz_Worms               ; loc_779AA
+		dc.l    ArtNem_CPZDroplet               ; loc_779AA
 		dc.w    $8780  
 		dc.l    ArtNem_LeverSpring       ; loc_798F4
 		dc.w    $8800  
@@ -42230,28 +42189,28 @@ loc_248DC:
 		dc.w    $0000 
 		dc.l    Cpz_Metal_Structure     ; loc_77A1C  
 		dc.w    $6E60
-		dc.l    Cpz_Automatic_Door      ; loc_77C66
+		dc.l    ArtNem_ConstructionStripes      ; loc_77C66
 		dc.w    $7280 
-		dc.l    Cpz_Speed_Booster       ; loc_77942
+		dc.l    ArtNem_CPZBooster       ; loc_77942
 		dc.w    $7380
-		dc.l    Cpz_Elevator            ; loc_77684
+		dc.l    ArtNem_CPZElevator            ; loc_77684
 		dc.w    $7400  
-		dc.l    Cpz_Open_Close_Platform ; loc_77CD2 
+		dc.l    ArtNem_CPZAnimatedBits ; loc_77CD2 
 		dc.w    $7600  
-		dc.l    Cpz_Spring_Tubes        ; loc_78074
+		dc.l    ArtNem_CPZTubeSpring        ; loc_78074
 		dc.w    $7C00   
 		dc.l    Water_Surface           ; loc_777D2  
 		dc.w    $8000
-		dc.l    Cpz_Platforms           ; loc_77EB4
+		dc.l    ArtNem_CPZStairBlock           ; loc_77EB4
 		dc.w    $8300 
-		dc.l    loc_77C26
+		dc.l    ArtNem_CPZMetalBlock
 		dc.w    $8600 
 Chemical_Plant_Sprites_Previous_Build_2:				   
 loc_2491A: 
 		dc.w    (((loc_2493A-loc_2491A-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
 		dc.l    ArtNem_Spikes		  ; loc_7914E
 		dc.w    $8680  
-		dc.l    Cpz_Worms               ; loc_779AA
+		dc.l    ArtNem_CPZDroplet               ; loc_779AA
 		dc.w    $8780		         
 		dc.l    (ArtNem_LeverSpring-$0188) ; loc_7976C 
 		dc.w    $8800  
@@ -47231,33 +47190,60 @@ Dhz_Vines_1: ; loc_7756A:
 		BINCLUDE  "data\dhz\vines_1.nem"  
 Dhz_Bridge: ; loc_77614:   
 		BINCLUDE  "data\dhz\bridge.nem" 
-Cpz_Elevator: ; loc_77684:      
-		BINCLUDE  "data\cpz\elevator.nem"																												      
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art 
+; Large moving platform from CPZ	; ArtNem_77684: Cpz_Elevator:
+	even
+ArtNem_CPZElevator:	BINCLUDE	"art/nemesis/Large moving platform from CNZ.bin"
+
 Water_Surface: ; loc_777D2: 
 		BINCLUDE  "data\sprites\watrsurf.nem"  
-Cpz_Speed_Booster: ; loc_77942:      
-		BINCLUDE  "data\cpz\speedbst.nem" 
-Cpz_Worms: ; loc_779AA:      
-		BINCLUDE  "data\cpz\worms.nem"				 
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Booster things in CPZ			; ArtNem_77942: Cpz_Speed_Booster:
+	even
+ArtNem_CPZBooster:	BINCLUDE	"art/nemesis/Speed booster from CPZ.bin"
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; CPZ droplet chain enemy		; ArtNem_779AA: Cpz_Worms:
+	even
+ArtNem_CPZDroplet:	BINCLUDE	"art/nemesis/CPZ worm enemy.bin"
+
 Cpz_Metal_Structure: ; loc_77A1C:      
 		BINCLUDE  "data\cpz\metal_st.nem" 
-loc_77C26:      
-		BINCLUDE  "data\cpz\0x077C26.nem"		
-Cpz_Automatic_Door: ; loc_77C66:      
-		BINCLUDE  "data\cpz\autodoor.nem" 
-Cpz_Open_Close_Platform: ; loc_77CD2:      
-		BINCLUDE  "data\cpz\oc_ptfrm.nem"   
-Cpz_Platforms: ; loc_77EB4:      
-		BINCLUDE  "data\cpz\platform.nem"		   
-Cpz_Spring_Tubes: ; loc_78074:      
-		BINCLUDE  "data\cpz\spgtubes.nem" 
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; CPZ metal block			; ArtNem_77C26:
+	even
+ArtNem_CPZMetalBlock:	BINCLUDE	"art/nemesis/CPZ large moving platform blocks.bin"
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Yellow and black stripy tiles from DEZ	; ArtNem_77C66: Cpz_Automatic_Door:
+	even
+ArtNem_ConstructionStripes:	BINCLUDE	"art/nemesis/Stripy blocks from CPZ.bin"
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Yellow flipping platforms and stuff CPZ	; ArtNem_77CD2: Cpz_Open_Close_Platform:
+	even
+ArtNem_CPZAnimatedBits:	BINCLUDE	"art/nemesis/Small yellow moving platform from CPZ.bin"
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Moving block from CPZ			; ArtNem_77EB4: Cpz_Platforms:
+	even
+ArtNem_CPZStairBlock:	BINCLUDE	"art/nemesis/Moving block from CPZ.bin"	   
+;--------------------------------------------------------------------------------------
+; Nemesis compressed art
+; Spring that covers tube in CPZ	; ArtNem_78074: Cpz_Spring_Tubes:
+	even
+ArtNem_CPZTubeSpring:	BINCLUDE	"art/nemesis/CPZ spintube exit cover.bin"
+
 Nghz_Water_Surface: ; loc_78270:      
 		BINCLUDE  "data\nghz\watrsurf.nem"   
 Nghz_Leaves: ; loc_78356:     
 		BINCLUDE  "data\nghz\leaves.nem"						 
 ;--------------------------------------------------------------------------------------
 ; Nemesis compressed art
-; Arrow shooter and arrow from ARZ	; ArtNem_783e2: Nghz_Arrow_Shooter:
+; Arrow shooter and arrow from ARZ	; ArtNem_783E2: Nghz_Arrow_Shooter:
 	even
 ArtNem_ArrowAndShooter:	BINCLUDE	"art/nemesis/Arrow shooter and arrow from NGHZ.bin"
 
