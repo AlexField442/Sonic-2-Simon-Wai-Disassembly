@@ -10906,7 +10906,7 @@ loc_92C6:
 loc_92F2:
 		cmpi.b  #dust_hill_zone, (Current_Zone).w
 		bne.s   loc_931A
-		move.l  #Dhz_Collapsing_Platforms_Mappings, $0004(A0) ; loc_9942
+		move.l  #Obj1A_MapUnc_9942, $0004(A0) ; loc_9942
 		move.w  #$63F4, $0002(A0)
 		bsr.w     Adjust2PArtPointer     ; loc_DC30
 		move.b  #$20, $0019(A0)
@@ -11105,18 +11105,7 @@ loc_9828:
 		dc.b    $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10, $10		   
 Obj1A_MapUnc_9858:	BINCLUDE	"mappings/sprite/obj1A_HPZ.bin"
 Obj1A_MapUnc_9902:	BINCLUDE	"mappings/sprite/obj1A_OOZ.bin"
-Dhz_Collapsing_Platforms_Mappings: ; loc_9942:
-		dc.w    Dhz_Collapsing_Platforms_Map_01-Dhz_Collapsing_Platforms_Mappings
-		dc.w    Dhz_Collapsing_Platforms_Map_02-Dhz_Collapsing_Platforms_Mappings
-Dhz_Collapsing_Platforms_Map_01: ; loc_9946:
-		dc.w    $0004
-		dc.l    $F00D0000, $0000FFE0, $F00D0800, $08000000
-		dc.l    $00090008, $0004FFF0, $000B000E, $00070008
-Dhz_Collapsing_Platforms_Map_02: ; loc_9968:
-		dc.w    $0006
-		dc.l    $F0050000, $0000FFE0, $F0050004, $0002FFF0
-		dc.l    $F0050804, $08020000, $F0050800, $08000010
-		dc.l    $00090008, $0004FFF0, $000B000E, $00070008		            
+Obj1A_MapUnc_9942:	BINCLUDE	"mappings/sprite/obj1F_DHZ.bin"
 ;=============================================================================== 
 ; Object 0x1F - Collapsing Platforms - Dust Hill / Oil Ocean ...
 ; [ End ]
@@ -11311,7 +11300,7 @@ loc_9C1A:
 		dc.w    loc_9C58-loc_9C1A
 loc_9C1E:
 		addq.b  #$02, $0024(A0)
-		move.l  #Up_Down_Pillar_Mappings, $0004(A0) ; loc_9CAE
+		move.l  #Obj2A_MapUnc_9CAE, $0004(A0) ; loc_9CAE
 		move.w  #$4000, $0002(A0)
 		bsr.w     Adjust2PArtPointer     ; loc_DC30
 		ori.b   #$04, $0001(A0)
@@ -11346,18 +11335,11 @@ loc_9C84:
 		move.w  $0008(A0), D4
 		bsr.w     SolidObject             ; loc_F4A0
 		bra.w     MarkObjGone             ; loc_D2A0
-Up_Down_Pillar_Mappings:		
-loc_9CAE:
-		dc.w    loc_9CB0-loc_9CAE
-loc_9CB0:
-		dc.w    $0006
-		dc.l    $B009001A, $000DFFF0, $C00F0020, $0010FFF0
-		dc.l    $E00F0030, $0018FFF0, $000F1030, $1018FFF0
-		dc.l    $200F1020, $1010FFF0, $4009101A, $100DFFF0		
-;=============================================================================== 
-; Object 0x2A - Dust Hill - Up and Down Pillar
-; [ End ]
-;===============================================================================		   
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj2A_MapUnc_9CAE:	BINCLUDE	"mappings/sprite/obj2A.bin"
+; ===========================================================================
 
 ;=============================================================================== 
 ; Object 0x2D - Hill Top / Chemical Plant - Automatic Door. 
@@ -26131,7 +26113,7 @@ loc_15628:
 		dc.w    loc_15668-loc_15628
 loc_1562C:
 		addq.b  #$02, $0024(A0)
-		move.l  #Invisible_Block_Mappings, $0004(A0) ; loc_156B2
+		move.l  #Obj74_MapUnc_156B2, $0004(A0) ; loc_156B2
 		move.w  #$8680, $0002(A0)
 		bsr.w     Adjust2PArtPointer     ; loc_DC30
 		ori.b   #$04, $0001(A0)
@@ -26171,29 +26153,13 @@ loc_156A4:
 		jmp     DisplaySprite           ; (loc_D3C2)
 loc_156B0:
 		rts
-Invisible_Block_Mappings:
-loc_156B2:
-		dc.w    loc_156B8-loc_156B2
-		dc.w    loc_156DA-loc_156B2
-		dc.w    loc_156FC-loc_156B2
-loc_156B8:
-		dc.w    $0004
-		dc.l    $F005001C, $000EFFF0, $F005001C, $000E0000
-		dc.l    $0005001C, $000EFFF0, $0005001C, $000E0000
-loc_156DA:
-		dc.w    $0004
-		dc.l    $E005001C, $000EFFC0, $E005001C, $000E0030
-		dc.l    $1005001C, $000EFFC0, $1005001C, $000E0030
-loc_156FC:
-		dc.w    $0004
-		dc.l    $E005001C, $000EFF80, $E005001C, $000E0070
-		dc.l    $1005001C, $000EFF80, $1005001C, $000E0070		
-;=============================================================================== 
-; Object 0x74 - Hill Top / Metropolis / Dust Hill... - Invisible Block 
-; [ End ]		         
-;===============================================================================   
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj74_MapUnc_156B2:	BINCLUDE	"mappings/sprite/obj74.bin"
+; ===========================================================================
+		nop
 
-		nop		             ; Filler 
 J_DisplaySprite_00: ; loc_15720:
 		jmp     DisplaySprite           ; loc_D3C2
 J_DeleteObject_09: ; loc_15726:
@@ -32678,7 +32644,7 @@ loc_1BA44:
 		cmpi.b  #dust_hill_zone, (Current_Zone).w
 		bne.w    loc_1BB44
 		addq.b  #$02, $0024(A0)
-		move.l  #Rotating_Boxes_Mappings, $0004(A0) ; loc_1BCB0
+		move.l  #Obj6A_MapUnc_1BCB0, $0004(A0) ; loc_1BCB0
 		move.w  #$63D4, $0002(A0)
 		move.b  #$20, $0019(A0)
 		move.b  #$20, $0016(A0)
@@ -32818,17 +32784,11 @@ loc_1BC74:
 loc_1BC92:
 		dc.w    $0000, $0100, $0040, $0100, $0000, $0080, $0000, $FF00
 		dc.w    $0040, $FF00, $0000, $0080, $FF00, $0000, $0040
-Rotating_Boxes_Mappings:		   
-loc_1BCB0:
-		dc.w    loc_1BCB2-loc_1BCB0
-loc_1BCB2:
-		dc.w    $0004
-		dc.l    $E00F0000, $0000FFE0, $E00F0010, $00080000
-		dc.l    $000F1810, $1808FFE0, $000F1800, $18000000								      
-;=============================================================================== 
-; Object 0x6A - Dust Hill - Three Rotating Boxes
-; [ End ]		         
-;===============================================================================		   
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj6A_MapUnc_1BCB0:	BINCLUDE	"mappings/sprite/obj77.bin"
+; ===========================================================================
 J_SingleObjLoad2_06: ; loc_1BCD4:
 		jmp     SingleObjLoad2      ; (loc_E788)
 J_Adjust2PArtPointer_15: ; loc_1BCDA:
@@ -33978,7 +33938,7 @@ loc_1CE68:
 		dc.w    loc_1CFEC-loc_1CE68
 loc_1CE6E:
 		addq.b  #$02, $0024(A0)
-		move.l  #Spikeball_Chain_Mappings, $0004(A0) ; loc_1D00A
+		move.l  #Obj75_MapUnc_1D00A, $0004(A0) ; loc_1D00A
 		move.w  #$2000, $0002(A0)
 		bsr.w     J_Adjust2PArtPointer_1B ; loc_1D064
 		move.b  #$04, $0001(A0)
@@ -34095,25 +34055,13 @@ loc_1CFEC:
 		move.w  $0008(A0), D4
 		bsr.w     J_SolidObject_0F        ; loc_1D070
 		bra.w     J_MarkObjGone_11        ; loc_1D052   
-Spikeball_Chain_Mappings:
-loc_1D00A:
-		dc.w    loc_1D010-loc_1D00A
-		dc.w    loc_1D022-loc_1D00A
-		dc.w    loc_1D02C-loc_1D00A
-loc_1D010:
-		dc.w    $0002
-		dc.l    $F00D007A, $003DFFF0, $000D187A, $183DFFF0
-loc_1D022:
-		dc.w    $0001
-		dc.l    $F8054066, $4033FFF8
-loc_1D02C:
-		dc.w    $0002
-		dc.l    $F0074040, $4020FFF0, $F0074840, $48200000		             
-;=============================================================================== 
-; Object 0x75 - Dust Hill - Spikeball with chain
-; [ End ]		         
-;===============================================================================  
-		nop		             ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj75_MapUnc_1D00A:	BINCLUDE	"mappings/sprite/obj75.bin"
+; ============================================================================
+		nop
+
 J_DisplaySprite_Param_00: ; loc_1D040:		               
 		jmp     DisplaySprite_Param     ; (loc_D3FE)
 J_DisplaySprite_0C: ; loc_1D046:
@@ -34150,7 +34098,7 @@ loc_1D08A:
 		dc.b    $40, $10, $00, $00
 loc_1D08E:
 		addq.b  #$02, $0024(A0)
-		move.l  #Platform_Spikes_Mappings, $0004(A0) ; loc_1D1BA
+		move.l  #Obj76_MapUnc_1D1BA, $0004(A0) ; loc_1D1BA
 		move.w  #$0000, $0002(A0)
 		bsr.w     J_Adjust2PArtPointer_1C ; loc_1D1F6
 		ori.b   #$04, $0001(A0)
@@ -34242,19 +34190,13 @@ loc_1D1B4:
 		add.w   D0, $0008(A0)
 loc_1D1B8:
 		rts
-Platform_Spikes_Mappings:
-loc_1D1BA:
-		dc.w    loc_1D1BC-loc_1D1BA
-loc_1D1BC:
-		dc.w    $0006
-		dc.l    $F005242C, $2216FFC0, $0005242C, $2216FFC0
-		dc.l    $F0076040, $6020FFD0, $F00F6048, $6024FFE0
-		dc.l    $F00F6048, $60240000, $F00F6048, $60240020		
-;=============================================================================== 
-; Object 0x76 - Dust Hill - Platform with spikes on sides 
-; [ End ]		         
-;===============================================================================		   
-		nop		             ; Filler
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj76_MapUnc_1D1BA:	BINCLUDE	"mappings/sprite/obj76.bin"
+; ===========================================================================
+		nop
+
 loc_1D1F0:
 		jmp     Touch_Spikes            ; (loc_CAD0)
 J_Adjust2PArtPointer_1C: ; loc_1D1F6:
@@ -34277,7 +34219,7 @@ loc_1D216:
 		dc.w    loc_1D23C-loc_1D216
 loc_1D21A:
 		addq.b  #$02, $0024(A0)
-		move.l  #Dhz_Bridge_Mappings, $0004(A0) ; loc_1D2E0
+		move.l  #Obj77_MapUnc_1D2E0, $0004(A0) ; loc_1D2E0
 		move.w  #$643C, $0002(A0)
 		bsr.w     J_Adjust2PArtPointer_1D ; loc_1D3B2
 		ori.b   #$04, $0001(A0)
@@ -34334,33 +34276,12 @@ loc_1D2D4:
 		dc.b    $03, $02, $01, $00, $FE, $01
 loc_1D2DA:
 		dc.b    $03, $00, $01, $02, $FE, $01
-Dhz_Bridge_Mappings:		
-loc_1D2E0:
-		dc.w    loc_1D2E6-loc_1D2E0
-		dc.w    loc_1D328-loc_1D2E0
-		dc.w    loc_1D36A-loc_1D2E0		
-loc_1D2E6:
-		dc.w    $0008
-		dc.l    $F8050000, $0000FFC0, $F8050000, $0000FFD0
-		dc.l    $F8050000, $0000FFE0, $F8050000, $0000FFF0
-		dc.l    $F8050000, $00000000, $F8050000, $00000010
-		dc.l    $F8050000, $00000020, $F8050000, $00000030
-loc_1D328:
-		dc.w    $0008
-		dc.l    $F8050000, $0000FFC0, $04050000, $0000FFCC
-		dc.l    $10050000, $0000FFD8, $1C050000, $0000FFE4
-		dc.l    $1C050000, $0000000C, $10050000, $00000018
-		dc.l    $04050000, $00000024, $F8050000, $00000030
-loc_1D36A:
-		dc.w    $0008
-		dc.l    $F8050000, $0000FFC0, $08050000, $0000FFC0
-		dc.l    $18050000, $0000FFC0, $28050000, $0000FFC0
-		dc.l    $F8050000, $00000030, $08050000, $00000030
-		dc.l    $18050000, $00000030, $28050000, $00000030		            
-;=============================================================================== 
-; Object 0x77 - Dust Hill - Bridge 
-; [ End ]		         
-;===============================================================================  
+; ---------------------------------------------------------------------------
+; Sprite mappings
+; ---------------------------------------------------------------------------
+Obj77_MapUnc_1D2E0:	BINCLUDE	"mappings/sprite/obj77.bin"
+; ===========================================================================
+
 J_MarkObjGone_12: ; loc_1D3AC:
 		jmp     MarkObjGone             ; (loc_D2A0)
 J_Adjust2PArtPointer_1D: ; loc_1D3B2:
@@ -41490,13 +41411,13 @@ Debug_DHz: ; loc_24194:  ; Dust Hill
 		dc.b    $00, $00, $06, $80
 		dc.l    ($15<<$18)|Dhz_Swing_Platforms_Mappings ; loc_8B46
 		dc.b    $48, $02, $00, $00
-		dc.l    ($1F<<$18)|Dhz_Collapsing_Platforms_Mappings ; loc_9942
+		dc.l    ($1F<<$18)|Obj1A_MapUnc_9942 ; loc_9942
 		dc.b    $00, $00, $63, $F4
 		dc.l    ($73<<$18)|MapUnc_Obj73_1CE1C     ; loc_1CE1C
 		dc.b    $F5, $00, $26, $BC
-		dc.l    ($6A<<$18)|Rotating_Boxes_Mappings     ; loc_1BCB0
+		dc.l    ($6A<<$18)|Obj6A_MapUnc_1BCB0     ; loc_1BCB0
 		dc.b    $18, $00, $63, $D4
-		dc.l    ($2A<<$18)|Up_Down_Pillar_Mappings     ; loc_9CAE
+		dc.l    ($2A<<$18)|Obj2A_MapUnc_9CAE     ; loc_9CAE
 		dc.b    $00, $00, $40, $00
 		dc.l    ($36<<$18)|Obj36_MapUnc_CAB0              ; loc_CBA0
 		dc.b    $00, $00, $24, $34
@@ -41508,13 +41429,13 @@ Debug_DHz: ; loc_24194:  ; Dust Hill
 		dc.b    $90, $03, $04, $70
 		dc.l    ($40<<$18)|Obj40_MapUnc_1A58A    ; loc_1A58A
 		dc.b    $01, $00, $04, $40
-		dc.l    ($74<<$18)|Invisible_Block_Mappings    ; loc_156B2
+		dc.l    ($74<<$18)|Obj74_MapUnc_156B2    ; loc_156B2
 		dc.b    $11, $00, $86, $80
-		dc.l    ($75<<$18)|Spikeball_Chain_Mappings    ; loc_1D00A
+		dc.l    ($75<<$18)|Obj75_MapUnc_1D00A    ; loc_1D00A
 		dc.b    $18, $02, $20, $00
-		dc.l    ($76<<$18)|Platform_Spikes_Mappings    ; loc_1D1BA
+		dc.l    ($76<<$18)|Obj76_MapUnc_1D1BA    ; loc_1D1BA
 		dc.b    $00, $00, $00, $00
-		dc.l    ($77<<$18)|Dhz_Bridge_Mappings         ; loc_1D2E0
+		dc.l    ($77<<$18)|Obj77_MapUnc_1D2E0         ; loc_1D2E0
 		dc.b    $01, $00, $64, $3C
 Debug_CNz: ; loc_24216:  ; Casino Night
 		dc.w    $0002
@@ -41968,9 +41889,9 @@ loc_246C2:
 		dc.w    (((loc_246E2-loc_246C2-$02)/$06)-$01) ; Auto Detect Number of Sprites Esrael L. G. Neto
 		dc.l    ArtNem_DHZ     ; loc_A5248
 		dc.w    $0000 
-		dc.l    Dhz_Box		 ; loc_7708A
+		dc.l    ArtNem_Crate		 ; loc_7708A
 		dc.w    $7A80  
-		dc.l    Dhz_Collapsing_Platform ; loc_772C8
+		dc.l    ArtNem_DHZCollapsePlat ; loc_772C8
 		dc.w    $7E80     
 		dc.l    Dhz_Vines               ; loc_77472
 		dc.w    $81C0   
@@ -41983,7 +41904,7 @@ loc_246E2:
 		dc.w    $8580 
 		dc.l    ArtNem_Spikes		  ; loc_7914E
 		dc.w    $8680   
-		dc.l    Dhz_Bridge              ; loc_77614
+		dc.l    ArtNem_DHZGateLog              ; loc_77614
 		dc.w    $8780  
 		dc.l    ArtNem_LeverSpring       ; loc_798F4
 		dc.w    $8800  
@@ -42156,7 +42077,7 @@ loc_24868:
 		dc.w    $9D00
 		dc.l    Ghz_Boss_Blades         ; loc_7E910
 		dc.w    $AD00
-		dc.l    Dhz_Bridge              ; loc_77614
+		dc.l    ArtNem_DHZGateLog              ; loc_77614
 		dc.w    $8780
 		dc.l    (ArtNem_LeverSpring-$0188) ; loc_7976C ; Left over from previous build
 		dc.w    $8800  
@@ -47171,7 +47092,7 @@ ArtNem_OOZBall:		BINCLUDE	"art/nemesis/Ball on spring from OOZ.bin"
 OOz_Cannon: ; loc_76722:  
 		BINCLUDE  "data\ooz\cannon.nem"  
 ;--------------------------------------------------------------------------------------
-; Nemesis compressed art (40 blocks)
+; Nemesis compressed art
 ; Collapsing platform from OOZ			; ArtNem_76A12: OOz_Collapsing_Platform:
 	even
 ArtNem_OOZPlatform:	BINCLUDE	"art/nemesis/OOZ collapsing platform.bin"
@@ -47180,16 +47101,26 @@ OOz_Spring_Push_Boost: ; loc_76CA6:
 		BINCLUDE  "data\ooz\spngpush.nem"  
 OOz_Swing_Platform: ; loc_76E68:   
 		BINCLUDE  "data\ooz\swngptfm.nem" 
-Dhz_Box: ; loc_7708A:   
-		BINCLUDE  "data\dhz\box.nem" 
-Dhz_Collapsing_Platform: ; loc_772C8:   
-		BINCLUDE  "data\dhz\clp_ptfm.nem" 
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Large wooden box from DHZ			; ArtNem_7708A: Dhz_Box:
+	even
+ArtNem_Crate:	BINCLUDE	"art/nemesis/Large wooden box from DHZ.bin"
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Collapsing platform from DHZ			; ArtNem_772C8: Dhz_Collapsing_Platform:
+	even
+ArtNem_DHZCollapsePlat:	BINCLUDE	"art/nemesis/Collapsing platform from DHZ.bin"
+
 Dhz_Vines: ; loc_77472:   
 		BINCLUDE  "data\dhz\vines.nem" 
 Dhz_Vines_1: ; loc_7756A:   
 		BINCLUDE  "data\dhz\vines_1.nem"  
-Dhz_Bridge: ; loc_77614:   
-		BINCLUDE  "data\dhz\bridge.nem" 
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Log viewed from the end for folding gates in DHZ	; ArtNem_77614: Dhz_Bridge:
+	even
+ArtNem_DHZGateLog:	BINCLUDE	"art/nemesis/Drawbridge logs from DHZ.bin"
 ;--------------------------------------------------------------------------------------
 ; Nemesis compressed art 
 ; Large moving platform from CPZ	; ArtNem_77684: Cpz_Elevator:
