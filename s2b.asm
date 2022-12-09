@@ -2606,7 +2606,7 @@ loc_1F12:
 
 ; sub_1F18:
 PalCycle_Load:
-		bsr.w	loc_24A2
+		bsr.w	PalCycle_SuperSonic
 		moveq	#0,d2
 		moveq	#0,d0
 		move.b	(Current_Zone).w,d0
@@ -2918,40 +2918,49 @@ Pal_CPzCyc2: ; loc_2458: ; $0D - Chemical Plant Rotating Palette
 Pal_CPzCyc3: ; loc_2482: ; $0D - Chemical Plant Rotating Palette   
 		dc.w    $000E, $000C, $000A, $0008, $0006, $0004, $0002, $0004
 		dc.w    $0006, $0008, $000A, $000C, $000E, $002E, $004E, $002E     
-loc_24A2:
-		tst.b   (Super_Sonic_palette).w
-		beq.s   loc_24DE
-		bmi.s   loc_24E0
-		subq.b  #$01, (Palette_timer).w 
-		bpl.s   loc_24DE
-		move.b  #$03, (Palette_timer).w
-		lea     (loc_2516).l, A0
-		move.w  (Palette_frame).w, D0
-		addq.w  #$08, (Palette_frame).w
-		cmpi.w  #$0030, (Palette_frame).w
-		bcs.s   loc_24D2
-		move.b  #$FF, (Super_Sonic_palette).w
+; ===========================================================================
+; loc_24A2:
+PalCycle_SuperSonic:
+		tst.b	(Super_Sonic_palette).w
+		beq.s	return_24DE
+		bmi.s	loc_24E0
+		subq.b	#1,(Palette_timer).w 
+		bpl.s	return_24DE
+		move.b	#3,(Palette_timer).w
+		lea	(loc_2516).l,a0
+		move.w	(Palette_frame).w,d0
+		addq.w	#8,(Palette_frame).w
+		cmpi.w	#$30,(Palette_frame).w
+		bcs.s	loc_24D2
+		move.b	#$FF,(Super_Sonic_palette).w
+
 loc_24D2:
-		lea     (Normal_palette+4).w, A1
-		move.l  $00(A0, D0), (A1)+
-		move.l  $04(A0, D0), (A1)
-loc_24DE:
+		lea	(Normal_palette+4).w,a1
+		move.l	(a0,d0.w),(a1)+
+		move.l	4(a0,d0.w),(a1)
+
+return_24DE:
 		rts
+; ===========================================================================
+
 loc_24E0:
-		subq.b  #$01, (Palette_timer).w
-		bpl.s   loc_24DE
-		move.b  #$07, (Palette_timer).w
-		lea     (loc_2516).l, A0
-		move.w  (Palette_frame).w, D0
-		addq.w  #$08, (Palette_frame).w
-		cmpi.w  #$0078, (Palette_frame).w
-		bcs.s   loc_2508
-		move.w  #$0030, (Palette_frame).w
+		subq.b	#1,(Palette_timer).w
+		bpl.s	return_24DE
+		move.b	#7,(Palette_timer).w
+		lea	(loc_2516).l,a0
+		move.w	(Palette_frame).w,d0
+		addq.w	#8,(Palette_frame).w
+		cmpi.w	#$78,(Palette_frame).w
+		bcs.s	loc_2508
+		move.w	#$30,(Palette_frame).w
+
 loc_2508:
-		lea     (Normal_palette+4).w, A1
-		move.l  $00(A0, D0), (A1)+
-		move.l  $04(A0, D0), (A1)
+		lea	(Normal_palette+4).w,a1
+		move.l	(a0,d0.w),(a1)+
+		move.l	4(a0,d0.w),(a1)
 		rts
+; ===========================================================================
+
 loc_2516:              
 		dc.w    $0A22, $0C42, $0E44, $0E66, $0844, $0A64, $0E66, $0E88
 		dc.w    $0666, $0A86, $0E88, $0EAA, $0488, $0AA8, $0EAA, $0ECC
@@ -3797,7 +3806,7 @@ Title_CountC:
 TitleScreen_SkipC:
 		tst.w	(Demo_Time_left).w
 		beq.w	Demo_Mode
-		andi.b	#$80, (Ctrl_1_Press).w
+		andi.b	#$80,(Ctrl_1_Press).w
 		beq.w	TitleScreen_Loop
 ; loc_39F2:
 Title_ChkLevSel:
@@ -4193,9 +4202,16 @@ Level_Select_Text: ; loc_3D7C: ; Level Select Menu Text
 		dc.b    _S,_O,_U,_N,_D,__,_S,_E,_L,_E,_C,_T,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__
 
 		dc.b    $00 ; Filler
+; ===========================================================================
+; ---------------------------------------------------------------------------
+; These subroutines seem to overwrite data in the ROM, likely similar
+; to ConvertCollisionArray (but need special read/write carts to work)
+; ---------------------------------------------------------------------------
+
 Unused_Code1: ; loc_4056:		 
 		lea     (Chunk_Table), A1
 		move.w  #$02EB, D2
+
 Unused_Code1_Loop: ; loc_4060:		
 		move.w  (A1), D0
 		move.w  D0, D1
@@ -4444,7 +4460,7 @@ Level_GetBgm:
 		move.b	#$34,($FFFFB080).w
 ; loc_431E: LevelInit_TitleCard:
 Level_TtlCard:
-		move.b	#VintID_TitleCard, (Vint_routine).w
+		move.b	#VintID_TitleCard,(Vint_routine).w
 		bsr.w	DelayProgram
 		jsr	(RunObjects).l
 		jsr	(BuildSprites).l
@@ -4457,21 +4473,22 @@ Level_TtlCard:
 		jsr	(Head_Up_Display_Base).l
 
 loc_434E:
-		moveq   #PalID_SonicTails, D0
-		bsr.w     PalLoad1		; loc_28E2
-		bsr.w     LevelSizeLoad         ; loc_5904
-		bsr.w     Background_Scroll_Layer ; loc_5D5C
-		bset    #$02, (Scroll_flags).w
-		bsr.w     Main_Level_Load_16_128_Blocks ; loc_779A
-		jsr     Load_16x16_Mappings_For_Dyn_Sprites ; loc_2293A
-		bsr.w     Load_Tiles_From_Start   ; loc_76BE
-		jsr     loc_135DA
-		bsr.w     LoadCollisionIndexes     ; loc_4AAA
-		bsr.w     WaterEffects           ; loc_465A
-		move.b  #$01, ($FFFFB000).w  ; Load Sonic Object
-		tst.w   (Demo_mode_flag).w
-		bmi.s   Skip_Head_Up_Display ; loc_4390		 
-		move.b  #$21, ($FFFFB380).w  ; Load HUD Object
+		moveq	#PalID_SonicTails,d0
+		bsr.w	PalLoad1
+		bsr.w	LevelSizeLoad
+		bsr.w	Background_Scroll_Layer
+		bset	#2,(Scroll_flags).w
+		bsr.w	Main_Level_Load_16_128_Blocks
+		jsr	(Load_16x16_Mappings_For_Dyn_Sprites).l
+		bsr.w	Load_Tiles_From_Start
+		jsr	(ConvertCollisionArray).l
+		bsr.w	LoadCollisionIndexes
+		bsr.w	WaterEffects
+		move.b	#1,($FFFFB000).w	; load Sonic object
+		tst.w	(Demo_mode_flag).w	; is ending demo flag set? (leftover from Sonic 1)
+		bmi.s	Skip_Head_Up_Display	; if not, branch
+		move.b	#$21,($FFFFB380).w	; load HUD object
+
 Skip_Head_Up_Display: ; loc_4390:		
 		move.b  #$02, ($FFFFB040).w  ; Load Tails Object
 		move.w  ($FFFFB008).w, ($FFFFB048).w
@@ -23995,15 +24012,37 @@ loc_135CA:
 ; Sub Routine FindWall2
 ; [ End ]		         
 ;===============================================================================  
-		
-loc_135DA:
-		rts 
-;===============================================================================		
+
+; ---------------------------------------------------------------------------
+; This subroutine takes 'raw' bitmap-like collision block data as input and
+; converts it into the proper collision arrays (ColArray and ColArray2).
+; Pointers to said raw data are dummied out.
+;
+; Since this would require a special read/write cartridge, it will NOT
+; function normally; the same code exists in Sonic 1 and Sonic CD (with it
+; working in the latter due to the Sega CD storing code in RAM), as well
+; as the Nick Arcade prototype, where it converts GHZ's collision format
+; to S2's standard
+; ---------------------------------------------------------------------------
+
+RawColBlocks		= Colision_Array_1
+ConvRowColBlocks	= Colision_Array_1
+
+; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
+
+; return_135DA: FloorLog_Unk:
+ConvertCollisionArray:
+		rts
+; ---------------------------------------------------------------------------
 ; loc_135DC:
-		lea     (Colision_Array_1).l, A1  ; loc_2D2EA
-		lea     (Colision_Array_1).l, A2  ; loc_2D2EA
-		move.w  #$00FF, D3
-loc_135EC:		
+		; The raw format stores the collision data column by column for the normal collision array.
+		; This makes a copy of the data, but stored row by row, for the rotated collision array.
+		lea	(RawColBlocks).l,a1
+		lea	(ConvRowColBlocks).l,a2
+
+		move.w	#$100-1,d3	; number of blocks in collision data
+
+loc_135EC:
 		moveq   #$10, D5
 		move.w  #$000F, D2
 loc_135F2:		
@@ -24020,10 +24059,10 @@ loc_135F8:
 		dbf    D2, loc_135F2
 		adda.w  #$0020, A1
 		dbf    D3, loc_135EC
-		lea     (Colision_Array_1).l, A1  ; loc_2D2EA
+		lea     (ConvRowColBlocks).l, A1  ; loc_2D2EA
 		lea     (Colision_Array_2).l, A2  ; loc_2E2EA
 		bsr.s   loc_13630
-		lea     (Colision_Array_1).l, A1  ; loc_2D2EA
+		lea     (RawColBlocks).l, A1  ; loc_2D2EA
 		lea     (Colision_Array_1).l, A2  ; loc_2D2EA
 loc_13630:				
 		move.w  #$0FFF, D3
@@ -39774,11 +39813,11 @@ loc_226FC: ; Metropolis Dynamic Reload Sprites
 		dc.w    $6C40		   ; VRam
 		dc.w    $0406		   ; Frames/Tiles
 		dc.w    $0C13, $0607, $0013, $0607 ; Frame Load/Frame Time
-		dc.l    ($05<<$18)|Mz_Drills    ; loc_2A86A:
+		dc.l    ($05<<$18)|ArtUnc_Drills    ; loc_2A86A:
 		dc.w    $6D00		   ; VRam
 		dc.w    $0408		   ; Frames/Tiles
 		dc.w    $0008, $1018            ; Frame Load/Frame Time
-		dc.l    ($05<<$18)|Mz_Drills    ; loc_2A86A:
+		dc.l    ($05<<$18)|ArtUnc_Drills    ; loc_2A86A:
 		dc.w    $6E00		   ; VRam
 		dc.w    $0408		   ; Frames/Tiles
 		dc.w    $0008, $1018            ; Frame Load/Frame Time
@@ -41483,7 +41522,7 @@ loc_24532:
 		dc.w    $7F20  
 		dc.l    ArtNem_BoltEnd_Rope
 		dc.w    $7FA0
-		dc.l    Mz_Steam		; loc_74BEA  
+		dc.l    ArtNem_MtzSteam		; loc_74BEA  
 		dc.w    $80A0
 		dc.l    ArtNem_MtzSpikeBlock		; loc_74B1C  
 		dc.w    $8280
@@ -42870,9 +42909,11 @@ ArtUnc_Lava:	BINCLUDE	"art/uncompressed/Lava.bin"
 ; Uncompressed art
 ; Animated section of MTZ background		; ArtUnc_2A06A: Mz_Pistons:
 ArtUnc_MTZAnimBack:	BINCLUDE	"art/uncompressed/Animated section of MTZ background.bin"
+; --------------------------------------------------------------------------------------
+; Uncompressed art
+; Unused spinning drills in MTZ			; ArtUnc_2A86A: Mz_Drills:
+ArtUnc_Drills:	BINCLUDE	"art/uncompressed/Spinning drills (MTZ).bin"
 
-Mz_Drills:               ; loc_2A86A:
-		BINCLUDE  "data\mz\drills.dat"				               
 HPz_Dyn_Background:      ; loc_2B06A: Unused - Left over from previous build
 		BINCLUDE  "data\hpz\backgnd.dat" 
 ;---------------------------------------------------------------------------------------
@@ -42957,17 +42998,17 @@ Neo_Green_Hill_Colision_2: ; loc_319EA:
 ; [ Begin ]
 ;===============================================================================        
 Special_Stage_1: ; loc_31CEA:
-		BINCLUDE  ".\data\ss\stage_1.eni"  
+		BINCLUDE	"misc/Special Stage 1 layout.bin"
 Special_Stage_2: ; loc_31F64:
-		BINCLUDE  ".\data\ss\stage_2.eni"  
+		BINCLUDE	"misc/Special Stage 2 layout.bin"
 Special_Stage_3: ; loc_32376:        
-		BINCLUDE  ".\data\ss\stage_3.eni"  
+		BINCLUDE	"misc/Special Stage 3 layout.bin"
 Special_Stage_4: ; loc_326D2:
-		BINCLUDE  ".\data\ss\stage_4.eni"  
+		BINCLUDE	"misc/Special Stage 4 layout.bin"
 Special_Stage_5: ; loc_32BAC:
-		BINCLUDE  ".\data\ss\stage_5.eni"  
+		BINCLUDE	"misc/Special Stage 5 layout.bin"
 Special_Stage_6: ; loc_3305C:
-		BINCLUDE  ".\data\ss\stage_6.eni"						               
+		BINCLUDE	"misc/Special Stage 6 layout.bin"
 ;=============================================================================== 
 ; Special Stage Layout
 ; [ End ]
@@ -46734,9 +46775,11 @@ ArtNem_MtzWheelIndent:	BINCLUDE	"art/nemesis/Large spinning wheel from MTZ - ind
 ; Spike block from MTZ			; ArtNem_74B1C: Mz_Block:
 	even
 ArtNem_MtzSpikeBlock:	BINCLUDE	"art/nemesis/MTZ spike block.bin"
-
-Mz_Steam: ; loc_74BEA:  
-		BINCLUDE  "data\mz\steam.nem"		 
+; --------------------------------------------------------------------
+; Nemesis compressed art
+; Steam from MTZ			; ArtNem_74BEA: Mz_Steam:
+	even
+ArtNem_MtzSteam:	BINCLUDE	"art/nemesis/Steam from MTZ.bin"
 ; --------------------------------------------------------------------
 ; Nemesis compressed art
 ; Spike from MTZ			; ArtNem_74CF4: Mz_Harpoon:
@@ -47153,11 +47196,10 @@ BM16_MTZ:	BINCLUDE	"mappings/16x16/MTZ.bin"
 ; MTZ main level patterns (Nemesis compression)
 ; ArtNem_91160: Metropolis_8x8_Tiles:
 ArtNem_MTZ:	BINCLUDE	"art/nemesis/MTZ primary.bin"
-
-
-
-Mz_Init_Sprites_Dyn_Reload: ; loc_94994:  
-		BINCLUDE  "data\mz\init_spr.nem"		  
+; ----------------------------------------------------------------------------------
+; Initial animated tiles for MTZ (Nemesis compression)
+; ArtNem_94994: Mz_Init_Sprites_Dyn_Reload:
+ArtNem_MTZAnim:	BINCLUDE	"art/nemesis/Initial animated tiles for MTZ.bin"
 ; ----------------------------------------------------------------------------------
 ; MTZ 128x128 block mappings (Kosinski compression)
 ; LevChunk_94C56: Metropolis_128x128_Map:
@@ -47264,34 +47306,34 @@ BM128_NGHZ:	BINCLUDE	"mappings/128x128/NGHZ.bin"
 ; closely resembles the Nick Arcade prototype, in addition to all chunk data
 ; being uncompressed rather than Kosinski-compressed
 ; LevChunk_C2148:
-		BINCLUDE	"leftovers/Incomplete chunk data for earlier CNZ.bin"
+		BINCLUDE	"misc/leftovers/Incomplete chunk data for earlier CNZ.bin"
 ; LevBlock_C943C:
-		BINCLUDE	"leftovers/Block data for earlier CPZ.bin"
+		BINCLUDE	"misc/leftovers/Block data for earlier CPZ.bin"
 ; ArtNem_CAA1C:
-		BINCLUDE	"leftovers/Art data for earlier CPZ.bin"
+		BINCLUDE	"misc/leftovers/Art data for earlier CPZ.bin"
 ; ArtNem_CDFC6:
-		BINCLUDE	"leftovers/Initial animated tiles for earlier CPZ.bin"
+		BINCLUDE	"misc/leftovers/Initial animated tiles for earlier CPZ.bin"
 ; LevChunk_CE03A:
-		BINCLUDE	"leftovers/Chunk data for earlier CPZ.bin"
+		BINCLUDE	"misc/leftovers/Chunk data for earlier CPZ.bin"
 ; LevBlock_D603A:
-		BINCLUDE	"leftovers/Block data for earlier NGHZ.bin"
+		BINCLUDE	"misc/leftovers/Block data for earlier NGHZ.bin"
 ; ArtNem_D793A:
-		BINCLUDE	"leftovers/Art data for earlier NGHZ.bin"
+		BINCLUDE	"misc/leftovers/Art data for earlier NGHZ.bin"
 ; ArtNem_DCEEA:
-		BINCLUDE	"leftovers/Initial animated tiles for earlier NGHZ.bin"
+		BINCLUDE	"misc/leftovers/Initial animated tiles for earlier NGHZ.bin"
 ; LevChunk_DD04A:
-		BINCLUDE	"leftovers/Chunk data for earlier NGHZ.bin"
+		BINCLUDE	"misc/leftovers/Chunk data for earlier NGHZ.bin"
 
 ; ===========================================================================
 ; A second set of leftover build data, this time for NGHZ exclusively; oddly,
 ; the chunk data here is created through manually writing bytes, and can be
 ; viewed in a text editor (although the Japanese may not appear correctly)
 ; ArtNem_E504A:
-		BINCLUDE	"leftovers/Art data for earlier earlier NGHZ.bin"
+		BINCLUDE	"misc/leftovers/Art data for earlier earlier NGHZ.bin"
 ; ArtNem_E57E6:
-		BINCLUDE	"leftovers/Initial animated tiles for earlier NGHZ.bin"
+		BINCLUDE	"misc/leftovers/Initial animated tiles for earlier NGHZ.bin"
 ; LevChunk_E5946:
-		BINCLUDE	"leftovers/Uncompiled chunk data for NGHZ.bin"
+		BINCLUDE	"misc/leftovers/Uncompiled chunk data for NGHZ.bin"
 
 ; ===========================================================================
 ; Unused duplicate Sega sound
