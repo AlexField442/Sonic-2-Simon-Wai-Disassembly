@@ -5313,7 +5313,7 @@ loc_4CBE:
 End_Level_Art_Load: ; loc_4CC0: ; Test for load end level sprites...
 		tst.w   (Debug_placement_mode).w
 		bne.w     Skip_End_Level_Art_Load ; loc_4CF6
-		cmpi.w  #green_hill_zone_act_1, (Current_ZoneAndAct).w
+		cmpi.w  #green_hill_zone_act_2, (Current_ZoneAndAct).w
 		beq.s   Skip_End_Level_Art_Load ; loc_4CF6
 		move.w  (Camera_X_pos).w, D0
 		move.w  (Camera_Max_X_pos).w, D1
