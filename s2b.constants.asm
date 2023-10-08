@@ -8,6 +8,7 @@ Size_of_DAC_samples =		$2723
 Size_of_SEGA_sound =		$6174
 Size_of_Snd_driver_guess =	$DF3 ; approximate post-compressed size of the Z80 sound driver
 
+object_size = $40
 ; ---------------------------------------------------------------------------
 ; Constants that can be used instead of hard-coded IDs for various things.
 ; The "id" function allows to remove elements from an array/table without having
@@ -176,6 +177,48 @@ idstart :=	0
 
 PLCID_Std1 =		id(PLCptr_Std1)
 PLCID_Std2 =		id(PLCptr_Std2)
+PLCID_StdExp =		id(PLCptr_StdExp)
+PLCID_GameOver =	id(PLCptr_GameOver)
+PLCID_Ghz1 =		id(PLCptr_Ghz1)
+PLCID_Ghz2 =		id(PLCptr_Ghz2)
+PLCID_Owz1 =		id(PLCptr_Owz1)
+PLCID_Owz2 =		id(PLCptr_Owz2)
+PLCID_Wz1 =		id(PLCptr_Wz1)
+PLCID_Wz2 =		id(PLCptr_Wz2)
+PLCID_Ssz1 =		id(PLCptr_Ssz1)
+PLCID_Ssz2 =		id(PLCptr_Ssz2)
+PLCID_Mtz1 =		id(PLCptr_Mtz1)
+PLCID_Mtz2 =		id(PLCptr_Mtz2)
+PLCID_Mtz3 =		id(PLCptr_Mtz3)
+PLCID_Mtz4 =		id(PLCptr_Mtz4)
+PLCID_Blz1 =		id(PLCptr_Blz1)
+PLCID_Blz2 =		id(PLCptr_Blz2)
+PLCID_Htz1 =		id(PLCptr_Htz1)
+PLCID_Htz2 =		id(PLCptr_Htz2)
+PLCID_Hpz1 =		id(PLCptr_Hpz1)
+PLCID_Hpz2 =		id(PLCptr_Hpz2)
+PLCID_Rwz1 =		id(PLCptr_Rwz1)
+PLCID_Rwz2 =		id(PLCptr_Rwz2)
+PLCID_Ooz1 =		id(PLCptr_Ooz1)
+PLCID_Ooz2 =		id(PLCptr_Ooz2)
+PLCID_Dhz1 =		id(PLCptr_Dhz1)
+PLCID_Dhz2 =		id(PLCptr_Dhz2)
+PLCID_Cnz1 =		id(PLCptr_Cnz1)
+PLCID_Cnz2 =		id(PLCptr_Cnz2)
+PLCID_Cpz1 =		id(PLCptr_Cpz1)
+PLCID_Cpz2 =		id(PLCptr_Cpz2)
+PLCID_Gcz1 =		id(PLCptr_Gcz1)
+PLCID_Gcz2 =		id(PLCptr_Gcz2)
+PLCID_Nghz1 =		id(PLCptr_Nghz1)
+PLCID_Nghz2 =		id(PLCptr_Nghz2)
+PLCID_Dez1 =		id(PLCptr_Dez1)
+PLCID_Dez2 =		id(PLCptr_Dez2)
+PLCID_Results =		id(PLCptr_Results)
+PLCID_Signpost =	id(PLCptr_Signpost)
+PLCID_GhzBoss =		id(PLCptr_GhzBoss)
+
+S1PLCID_SpecStg = PLCID_Hpz1
+S1PLCID_SpecRes = PLCID_Dhz2
 
 ; Music IDs
 offset :=	zMasterPlaylist
@@ -254,8 +297,46 @@ Sprite_Table_Input:		ds.b	$400	; in custom format before being converted and sto
 Sprite_Table_Input_End:
 
 ; haven't gotten to documenting this yet, but this is here for clearRAM
-Object_RAM:
-				ds.b	$2000 ; RESERVED FOR OBJECT RAM, DO NOT REMOVE!!!
+Object_RAM:			; The various objects in the game are loaded in this area.
+				; Each game mode uses different objects, so some slots are reused.
+				; The section below declares labels for all objects, since there's really only three screens at this point
+Reserved_Object_RAM:
+MainCharacter:			; first object (usually Sonic)
+				ds.b	object_size
+Sidekick:			; second object (usually Tails)
+TitleScreen_Sonic:		; Sonic from the title screen
+				ds.b	object_size
+TitleCard:
+TitleCard_ZoneName:		; level title card: zone name
+TitleScreen_Tails:		; Tails from the title screen
+GameOver_GameText:		; "GAME" from GAME OVER
+TimeOver_TimeText:		; "TIME" from TIME OVER
+				ds.b	object_size
+TitleCard_Zone:			; level title card: "ZONE"
+GameOver_OverText:		; "OVER" from GAME OVER
+TimeOver_OverText:		; "OVER" from TIME OVER
+				ds.b	object_size
+TitleCard_ActNumber:		; level title card: act number
+				ds.b	object_size
+TitleCard_Background:		; level title card: background
+				ds.b	object_size
+Shield:
+				ds.b	object_size
+Tails_Tails:			; address of the Tail's Tails object
+				ds.b	object_size
+InvincibilityStars:
+				ds.b	object_size
+				; Reserved object RAM: free slots
+				ds.b	object_size
+				ds.b	object_size
+				ds.b	object_size
+WaterSplash:			; Sonic's water splash
+				ds.b	object_size
+BreathingBubbles:		; Sonic's breathing bubbles
+				ds.b	object_size
+HeadsUpDisplay:			; HUD (still uses Sonic 1's HUD system at this point)
+				ds.b	object_size
+				ds.b	$1C40 ; RESERVED FOR OBJECT RAM, DO NOT REMOVE!!!
 Object_RAM_End:
 
 Primary_Collision:		ds.b	$600
@@ -716,8 +797,8 @@ Timer_frame:			ds.b	1	; 1 byte
 
 Score:				ds.l	1	; 4 bytes
 				ds.b	2	; $FFFFFE2A-$FFFFFE2B ; seems unused
-Shield:				ds.b	1
-Invincibility:			ds.b	1
+Shield_flag:			ds.b	1
+Invincibility_flag:		ds.b	1
 Speed_shoes:			ds.b	1
 unk_FE2F:			ds.b	1	; cleared once, never used
 
