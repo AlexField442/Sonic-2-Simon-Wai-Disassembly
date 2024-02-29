@@ -45851,7 +45851,8 @@ Fire_In_Bowl: ; loc_4E86C:
 ; ---------------------------------------------------------------------------
 ; Filler (free space)
 ; ---------------------------------------------------------------------------
-		align $200
+		BINCLUDE	"misc/4EC6C.bin"
+
 Unknow_Data_0x04EE00: ; loc_4EE00:
 		dc.b    $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 		dc.b    $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
@@ -46072,7 +46073,11 @@ Unknow_Data_0x04EE00: ; loc_4EE00:
 		dc.b    $08, $08, $08, $08, $08, $08, $08, $08, $08, $00, $00, $00, $00, $00, $00, $00
 		dc.b    $00, $00, $00, $00, $00, $00, $00, $00		
 
-		align $8000
+; ---------------------------------------------------------------------------
+; Filler (free space)
+; ---------------------------------------------------------------------------
+		BINCLUDE	"misc/4FB98.bin"
+
 ;---------------------------------------------------------------------------------------
 ; Uncompressed art
 ; Patterns for Sonic  ; ArtUnc_50000:
@@ -48066,6 +48071,7 @@ Sega_Snd_End:
 MusicPoint2:	startBank
 MusPtr_OOZ:		rom_ptr_z80	Mus_OOZ		; $81
 MusPtr_GHZ:		rom_ptr_z80	Mus_GHZ		; $82
+			; music data is non-bit perfect from here on
 MusPtr_MTZ:		rom_ptr_z80	Mus_MTZ		; $83
 MusPtr_CNZ:		rom_ptr_z80	Mus_CNZ		; $84
 MusPtr_DHZ:		rom_ptr_z80	Mus_DHZ		; $85
@@ -48089,7 +48095,7 @@ MusPtr_HTZ:		rom_ptr_z80	Mus_HTZ		; $96 and $97
 ; loc_F802A:
 Mus_OOZ:	include		"sound/music/OOZ.asm"		; CNZ 2-player theme in final
 Mus_GHZ:	include		"sound/music/GHZ.asm"
-Mus_MTZ:	include		"sound/music/MTZ.asm"
+Mus_MTZ:	include		"sound/music/MTZ.asm"		; TO MAKE BIT-PERFECT EVENTUALLY ($F8D00)
 Mus_CNZ:	include		"sound/music/CNZ.asm"
 Mus_DHZ:	include		"sound/music/DHZ.asm"
 Mus_HPZ:	include		"sound/music/HPZ.asm"		; DHZ/MCZ 2-player theme in final
