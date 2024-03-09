@@ -31,7 +31,7 @@
 
 
 
-; AniArt_Load, Tails_RollSpeed, Obj_0x65
+; AniArt_Load, Tails_RollSpeed, Obj_0x4C
 
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; ASSEMBLY OPTIONS:
@@ -32006,7 +32006,7 @@ loc_1AA9A:
 		addq.b  #$02, $0024(A0)
 		move.l  #Obj65_MapUnc_1AE2C, $0004(A0) ; loc_1AE2C
 		move.w  #$6000, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_11 ; loc_1AEB0
+		bsr.w     JmpTo18_Adjust2PArtPointer
 		ori.b   #$04, $0001(A0)
 		move.b  #$04, $0018(A0)
 		moveq   #$00, D0
@@ -32044,7 +32044,7 @@ loc_1AB02:
 		bne.s   loc_1AB38
 		move.w  $003C(A0), $003A(A0)
 loc_1AB38:
-		bsr.w     J_SingleObjLoad2_04  ; loc_1AEAA
+		bsr.w     JmpTo5_SingleObjLoad2
 		bne.s   loc_1AB98
 		_move.b  0(A0), 0(A1)
 		addq.b  #$04, $0024(A1)
@@ -32086,7 +32086,7 @@ loc_1ABB0:
 		move.b  $0016(A0), D2
 		move.w  D2, D3
 		addq.w  #$01, D3
-		bsr.w     J_SolidObject_07        ; loc_1AEB6
+		bsr.w     JmpTo8_SolidObject
 		move.w  $0034(A0), D0
 		andi.w  #$FF80, D0
 		sub.w   (Camera_X_pos_coarse).w, D0
@@ -32097,10 +32097,11 @@ loc_1ABF6:
 		lea     (Object_Respawn_Table).w, A2
 		moveq   #$00, D0
 		move.b  $0023(A0), D0
-		beq.s   J_DeleteObject_18       ; loc_1AC08
+		beq.s   JmpTo25_DeleteObject
 		bclr    #$07, $02(A2, D0)
-J_DeleteObject_18: ; loc_1AC08:
-		jmp     DeleteObject            ; (loc_D3B4)
+; loc_1AC08:
+JmpTo25_DeleteObject:
+		jmp	(DeleteObject).l
 loc_1AC0E:
 		dc.w    loc_1AC1E-loc_1AC0E
 		dc.w    loc_1AC34-loc_1AC0E
@@ -32290,7 +32291,7 @@ loc_1AE08:
 loc_1AE10:		
 		andi.w  #$0007, D0
 		move.b  loc_1AE1E(PC, D0), $001A(A0)
-		bra.w     J_MarkObjGone_0E        ; loc_1AEA4    
+		bra.w     JmpTo15_MarkObjGone
 loc_1AE1E:
 		dc.b    $00, $00, $02, $02, $02, $01, $01, $01
 loc_1AE26:
@@ -32306,14 +32307,19 @@ Obj65_MapUnc_1AE68:	BINCLUDE	"mappings/sprite/obj65_b.bin"
 ; Object 0x65 - Metropolis - Platform Over Gears
 ; [ End ]		         
 ;===============================================================================		  
-J_MarkObjGone_0E: ; loc_1AEA4:
-		jmp     MarkObjGone             ; (loc_D2A0)
-J_SingleObjLoad2_04: ; loc_1AEAA:
-		jmp     SingleObjLoad2      ; (loc_E788)
-J_Adjust2PArtPointer_11: ; loc_1AEB0:
-		jmp     Adjust2PArtPointer     ; (loc_DC30)
-J_SolidObject_07: ; loc_1AEB6:
-		jmp     SolidObject             ; (loc_F4A0)     
+; loc_1AEA4:
+JmpTo15_MarkObjGone:
+		jmp	(MarkObjGone).l
+; loc_1AEAA:
+JmpTo5_SingleObjLoad2:
+		jmp	(SingleObjLoad2).l
+; loc_1AEB0:
+JmpTo18_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
+; loc_1AEB6:
+JmpTo8_SolidObject:
+		jmp	(SolidObject).l
+
 ;=============================================================================== 
 ; Object 0x66 - Metropolis - Springs on Walls
 ; [ Begin ]		         
@@ -32330,7 +32336,7 @@ loc_1AECE:
 		addq.b  #$02, $0024(A0)
 		move.l  #Obj66_MapUnc_1B084, $0004(A0) ; loc_1B084
 		move.w  #$8680, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_12 ; loc_1B0B8
+		bsr.w     JmpTo19_Adjust2PArtPointer
 		ori.b   #$04, $0001(A0)
 		move.b  #$08, $0019(A0)
 		move.b  #$04, $0018(A0)
@@ -32388,10 +32394,10 @@ loc_1AF90:
 		andi.w  #$FF80, D0
 		sub.w   (Camera_X_pos_coarse).w, D0
 		cmpi.w  #$0280, D0
-		bhi.w    J_DeleteObject_19       ; loc_1B0B2
+		bhi.w    JmpTo26_DeleteObject
 		tst.w   (Debug_placement_mode).w
 		beq.s   loc_1AFAE
-		bsr.w     J_DisplaySprite_08      ; loc_1B0AC
+		bsr.w     JmpTo9_DisplaySprite
 loc_1AFAE:
 		rts
 loc_1AFB0:
@@ -32455,12 +32461,15 @@ Obj66_MapUnc_1B084:	BINCLUDE	"mappings/sprite/obj66.bin"
 ; Object 0x66 - Metropolis - Springs on Walls
 ; [ End ]		         
 ;===============================================================================  
-J_DisplaySprite_08: ; loc_1B0AC:
-		jmp     DisplaySprite           ; (loc_D3C2)
-J_DeleteObject_19: ; loc_1B0B2:
-		jmp     DeleteObject            ; (loc_D3B4)
-J_Adjust2PArtPointer_12: ; loc_1B0B8:
-		jmp     Adjust2PArtPointer     ; (loc_DC30)
+; loc_1B0AC:
+JmpTo9_DisplaySprite:
+		jmp	(DisplaySprite).l
+; loc_1B0B2:
+JmpTo26_DeleteObject:
+		jmp	(DeleteObject).l
+; loc_1B0B8:
+JmpTo19_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
 ; loc_1B0BE:
 JmpTo3_SolidObject_Always_SingleCharacter:
 		jmp	(SolidObject_Always_SingleCharacter).l
@@ -32478,8 +32487,8 @@ Obj_0x67_Teleport_Attributes: ; loc_1B0C4:
 		add.b   $0036(A0), D0
 		beq.w    JmpTo4_MarkObjGone3
 		lea     (loc_1B4BA).l, A1
-		bsr.w     J_AnimateSprite_03      ; loc_1B512
-		bra.w     J_DisplaySprite_09      ; loc_1B50C
+		bsr.w     JmpTo4_AnimateSprite
+		bra.w     JmpTo10_DisplaySprite
 loc_1B0EC:
 		dc.w    loc_1B0F0-loc_1B0EC
 		dc.w    loc_1B114-loc_1B0EC
@@ -32791,10 +32800,12 @@ loc_1B4DA:
 ; Object 0x67 - Metropolis - Teleport Attributes
 ; [ End ]		         
 ;===============================================================================               
-J_DisplaySprite_09: ; loc_1B50C:
-		jmp     DisplaySprite           ; (loc_D3C2)
-J_AnimateSprite_03: ; loc_1B512:
-		jmp     AnimateSprite           ; (loc_D412)
+; loc_1B50C:
+JmpTo10_DisplaySprite:
+		jmp	(DisplaySprite).l
+; loc_1B512:
+JmpTo4_AnimateSprite:
+		jmp	(AnimateSprite).l
 ; loc_1B518:
 JmpTo4_MarkObjGone3:
 		jmp	(MarkObjGone3).l
@@ -32817,11 +32828,11 @@ loc_1B534:
 		addq.b  #$02, $0024(A0)
 		move.l  #Obj68_MapUnc_1B6DC, $0004(A0) ; loc_1B6DC
 		move.w  #$6414, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_13 ; loc_1B7FC
+		bsr.w     JmpTo20_Adjust2PArtPointer
 		move.b  #$04, $0001(A0)
 		move.b  #$10, $0019(A0)
 		move.b  #$04, $0018(A0)
-		bsr.w     J_SingleObjLoad2_05  ; loc_1B7F6
+		bsr.w     JmpTo6_SingleObjLoad2
 		bne.s   loc_1B5D0
 		_move.b  0(A0), 0(A1)
 		addq.b  #$04, $0024(A1)
@@ -32853,8 +32864,8 @@ loc_1B5D6:
 		move.w  #$0010, D2
 		move.w  #$0011, D3
 		move.w  $0008(A0), D4
-		bsr.w     J_SolidObject_08        ; loc_1B802
-		bra.w     J_MarkObjGone_0F        ; loc_1B7F0
+		bsr.w     JmpTo9_SolidObject
+		bra.w     JmpTo16_MarkObjGone
 loc_1B5EE:
 		bsr.w     loc_1B656
 		moveq   #$00, D0
@@ -32957,7 +32968,7 @@ loc_1B732:
 		addq.b  #$02, $0024(A0)
 		move.l  #Obj68_MapUnc_1B6DC, $0004(A0) ; loc_1B6DC
 		move.w  #$241C, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_13 ; loc_1B7FC
+		bsr.w     JmpTo20_Adjust2PArtPointer
 		ori.b   #$04, $0001(A0)
 		move.b  #$04, $0019(A0)
 		move.b  #$04, $0018(A0)
@@ -33008,15 +33019,17 @@ loc_1B7EE:
 ; Object 0x6D - Metropolis - Floor Harpoon
 ; [ End ]		         
 ;===============================================================================  
-
-J_MarkObjGone_0F: ; loc_1B7F0:
-		jmp     MarkObjGone             ; (loc_D2A0)
-J_SingleObjLoad2_05: ; loc_1B7F6:
-		jmp     SingleObjLoad2      ; (loc_E788)
-J_Adjust2PArtPointer_13: ; loc_1B7FC:
-		jmp     Adjust2PArtPointer     ; (loc_DC30)
-J_SolidObject_08: ; loc_1B802:
-		jmp     SolidObject             ; (loc_F4A0)
+JmpTo16_MarkObjGone:
+		jmp	(MarkObjGone).l
+; loc_1B7F6:
+JmpTo6_SingleObjLoad2:
+		jmp	(SingleObjLoad2).l
+; loc_1B7FC:
+JmpTo20_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
+; loc_1B802:
+JmpTo9_SolidObject:
+		jmp	(SolidObject).l
 ; loc_1B808:
 JmpTo2_MarkObjGone2:
 		jmp	(MarkObjGone2).l
@@ -33041,7 +33054,7 @@ loc_1B826:
 		addq.b  #$02, $0024(A0)
 		move.l  #Obj69_MapUnc_1B9A6, $0004(A0) ; loc_1B9A6
 		move.w  #$2500, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_14 ; loc_1BA16
+		bsr.w     JmpTo21_Adjust2PArtPointer
 		move.b  #$04, $0001(A0)
 		move.b  #$20, $0019(A0)
 		move.b  #$0B, $0016(A0)
@@ -33065,8 +33078,8 @@ loc_1B880:
 		move.w  #$000C, D2
 		move.w  #$000D, D3
 		move.w  $0008(A0), D4
-		bsr.w     J_SolidObject_09        ; loc_1BA1C
-		bra.w     J_MarkObjGone_10        ; loc_1BA10
+		bsr.w     JmpTo10_SolidObject
+		bra.w     JmpTo17_MarkObjGone
 loc_1B898:
 		btst    D6, $0022(A0)
 		bne.s   loc_1B8A0
@@ -33152,9 +33165,9 @@ loc_1B95A:
 		move.w  D1, $000C(A0)
 		rts
 loc_1B982:
-		bsr.w     J_ObjectMove_09         ; loc_1BA22
+		bsr.w     JmpTo10_ObjectMove
 		addi.w  #$0038, $0012(A0)
-		bsr.w     J_ObjHitFloor_00        ; loc_1BA28
+		bsr.w     JmpTo_ObjHitFloor
 		tst.w   D1
 		bpl.w    loc_1B9A2
 		add.w   D1, $000C(A0)
@@ -33168,18 +33181,24 @@ loc_1B9A2:
 Obj69_MapUnc_1B9A6:	BINCLUDE	"mappings/sprite/obj69.bin"
 ; ===========================================================================
 		nop
+; loc_1BA10:
+JmpTo17_MarkObjGone:
+		jmp	(MarkObjGone).l
+; loc_1BA16:
+JmpTo21_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
+; loc_1BA1C:
+JmpTo10_SolidObject:
+		jmp	(SolidObject).l
+; loc_1BA2:
+JmpTo10_ObjectMove:
+		jmp	(ObjectMove).l
+; loc_1BA28:
+JmpTo_ObjHitFloor:
+		jmp	(ObjHitFloor).l
 
-J_MarkObjGone_10: ; loc_1BA10:
-		jmp     MarkObjGone             ; (loc_D2A0)
-J_Adjust2PArtPointer_14: ; loc_1BA16:
-		jmp     Adjust2PArtPointer     ; (loc_DC30)
-J_SolidObject_09: ; loc_1BA1C:
-		jmp     SolidObject             ; (loc_F4A0)
-J_ObjectMove_09: ; loc_1BA22:
-		jmp     ObjectMove              ; (loc_D27A)
-J_ObjHitFloor_00: ; loc_1BA28:
-		jmp     ObjHitFloor             ; (loc_13898)
-		dc.w    $0000		   ; Filler		     
+		align 4
+
 ;=============================================================================== 
 ; Object 0x6A - Dust Hill - Three Rotating Boxes
 ; [ Begin ]		         
@@ -33218,7 +33237,7 @@ loc_1BABC:
 		move.b  #$00, $001A(A0)
 		cmpi.b  #$18, $0028(A0)
 		bne.w    loc_1BB50
-		bsr.w     J_SingleObjLoad2_06  ; loc_1BCD4
+		bsr.w     JmpTo7_SingleObjLoad2
 		bne.s   loc_1BB1C
 		bsr.s   loc_1BB1E
 		addi.w  #$0040, $0008(A1)
@@ -33228,7 +33247,7 @@ loc_1BABC:
 		beq.s   loc_1BAF4
 		move.b  #$0C, $0028(A1)
 loc_1BAF4:
-		bsr.w     J_SingleObjLoad2_06  ; loc_1BCD4
+		bsr.w     JmpTo7_SingleObjLoad2
 		bne.s   loc_1BB1C
 		bsr.s   loc_1BB1E
 		subi.w  #$0040, $0008(A1)
@@ -33251,7 +33270,7 @@ loc_1BB44:
 		move.w  $0008(A0), $0032(A0)
 		move.w  $000C(A0), $0030(A0)
 loc_1BB50:
-		bsr.w     J_Adjust2PArtPointer_15 ; loc_1BCDA
+		bsr.w     JmpTo22_Adjust2PArtPointer
 		move.b  $0028(A0), $0038(A0)
 		bra.w     loc_1BC22
 loc_1BB5E:
@@ -33296,7 +33315,7 @@ loc_1BBBE:
 		move.b  $0016(A0), D2
 		move.w  D2, D3
 		addq.w  #$01, D3
-		bsr.w     J_SolidObject_0A        ; loc_1BCE0
+		bsr.w     JmpTo11_SolidObject
 loc_1BBDE:
 		move.w  $0032(A0), D0
 		bra.w     JmpTo3_MarkObjGone2
@@ -33317,7 +33336,7 @@ loc_1BBFA:
 		move.b  $0016(A0), D2
 		move.w  D2, D3
 		addq.w  #$01, D3
-		bsr.w     J_SolidObject_0A        ; loc_1BCE0
+		bsr.w     JmpTo11_SolidObject
 loc_1BC1A:
 		move.w  $0032(A0), D0
 		bra.w     JmpTo3_MarkObjGone2
@@ -33351,12 +33370,15 @@ loc_1BC92:
 ; ---------------------------------------------------------------------------
 Obj6A_MapUnc_1BCB0:	BINCLUDE	"mappings/sprite/obj6A.bin"
 ; ===========================================================================
-J_SingleObjLoad2_06: ; loc_1BCD4:
-		jmp     SingleObjLoad2      ; (loc_E788)
-J_Adjust2PArtPointer_15: ; loc_1BCDA:
-		jmp     Adjust2PArtPointer     ; (loc_DC30)
-J_SolidObject_0A: ; loc_1BCE0:
-		jmp     SolidObject             ; (loc_F4A0)
+; loc_1BCD4:
+JmpTo7_SingleObjLoad2:
+		jmp	(SingleObjLoad2).l
+; loc_1BCDA:
+JmpTo22_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
+; loc_1BCE0:
+JmpTo11_SolidObject:
+		jmp	(SolidObject).l
 ; loc_1BCE6:
 JmpTo3_MarkObjGone2:
 		jmp	(MarkObjGone2).l
@@ -33384,7 +33406,7 @@ loc_1BD06:
 		move.l  #Obj6B_MapUnc_1BF4A, $0004(A0)       ; loc_1BF4A
 		move.w  #$6418, $0002(A0)
 loc_1BD2E:
-		bsr.w     J_Adjust2PArtPointer_16 ; loc_1BF58
+		bsr.w     JmpTo23_Adjust2PArtPointer
 		move.b  #$04, $0001(A0)
 		move.b  #$03, $0018(A0)
 		moveq   #$00, D0
@@ -33426,7 +33448,7 @@ loc_1BD88:
 		move.b  $0016(A0), D2
 		move.w  D2, D3
 		addq.w  #$01, D3
-		bsr.w     J_SolidObject_0B        ; loc_1BF5E
+		bsr.w     JmpTo12_SolidObject
 loc_1BDC0:
 		move.w  $0034(A0), D0
 		bra.w     JmpTo4_MarkObjGone2
@@ -33587,11 +33609,12 @@ loc_1BF34:
 Obj6B_MapUnc_1BF4A:	BINCLUDE	"mappings/sprite/obj6B.bin"
 ; ===========================================================================
 		nop
-
-J_Adjust2PArtPointer_16: ; loc_1BF58:
-		jmp     Adjust2PArtPointer     ; (loc_DC30)
-J_SolidObject_0B: ; loc_1BF5E:
-		jmp     SolidObject             ; (loc_F4A0)
+; loc_1BF58:
+JmpTo23_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
+; loc_1BF5E:
+JmpTo12_SolidObject:
+		jmp	(SolidObject).l
 ; loc_1BF64:
 JmpTo4_MarkObjGone2:
 		jmp     (MarkObjGone2).l
@@ -33611,9 +33634,9 @@ Obj_0x6C_Mz_Moving_Platforms: ; loc_1BF6C:
 		sub.w   (Camera_X_pos_coarse).w, D0
 		cmpi.w  #$0280, D0
 		bhi.s   loc_1BF90
-		bra.w     J_DisplaySprite_0A      ; loc_1C2C0
+		bra.w     JmpTo11_DisplaySprite
 loc_1BF90:
-		bra.w     J_DeleteObject_1A       ; loc_1C2C6
+		bra.w     JmpTo27_DeleteObject
 loc_1BF94:
 		dc.w    loc_1BF98-loc_1BF94
 		dc.w    loc_1C0A0-loc_1BF94
@@ -33626,7 +33649,7 @@ loc_1BF98:
 		ori.b   #$04, $0001(A0)
 		move.b  #$10, $0019(A0)
 		move.b  #$04, $0018(A0)
-		bsr.w     J_Adjust2PArtPointer_17 ; loc_1C2D2
+		bsr.w     JmpTo24_Adjust2PArtPointer
 		move.b  #$00, $001A(A0)
 		moveq   #$00, D0
 		move.b  $0028(A0), D0
@@ -33677,7 +33700,7 @@ loc_1C04A:
 		move.w  $000C(A0), D3
 		bra.s   loc_1C06E
 loc_1C068:		
-		bsr.w     J_SingleObjLoad_05   ; loc_1C2CC
+		bsr.w     JmpTo6_SingleObjLoad
 		bne.s   loc_1C098
 loc_1C06E:
 		_move.b  #$6C, 0(A1)
@@ -33733,7 +33756,7 @@ loc_1C0E8:
 		move.w  D0, $0036(A0)
 		bsr.w     loc_1C112
 loc_1C10C:
-		bsr.w     J_ObjectMove_0A         ; loc_1C2DE
+		bsr.w     JmpTo11_ObjectMove
 		rts
 loc_1C112:
 		moveq   #$00, D0
@@ -33827,20 +33850,25 @@ loc_1C278:
 Obj6C_MapUnc_1C2AA:	BINCLUDE	"mappings/sprite/obj6C.bin"
 ; ===========================================================================
 		nop
-
-J_DisplaySprite_0A: ; loc_1C2C0:
-		jmp     DisplaySprite           ; (loc_D3C2)
-J_DeleteObject_1A: ; loc_1C2C6:
-		jmp     DeleteObject            ; (loc_D3B4)
-J_SingleObjLoad_05: ; loc_1C2CC:
-		jmp     SingleObjLoad        ; (loc_E772)
-J_Adjust2PArtPointer_17: ; loc_1C2D2:
-		jmp     Adjust2PArtPointer     ; (loc_DC30)
+; loc_1C2C0:
+JmpTo11_DisplaySprite:
+		jmp	(DisplaySprite).l
+; loc_1C2C6:
+JmpTo27_DeleteObject:
+		jmp	(DeleteObject).l
+; loc_1C2CC:
+JmpTo6_SingleObjLoad:
+		jmp	(SingleObjLoad).l
+; loc_1C2D2:
+JmpTo24_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
 ; loc_1C2D8:
 JmpTo_PlatformObject:
 		jmp	(PlatformObject).l
-J_ObjectMove_0A: ; loc_1C2DE:
-		jmp     ObjectMove              ; (loc_D27A)    
+; loc_1C2DE:
+JmpTo11_ObjectMove:
+		jmp	(ObjectMove).l
+
 ;=============================================================================== 
 ; Object 0x6E - Metropolis - Machine
 ; [ Begin ]		         
@@ -33860,7 +33888,7 @@ loc_1C300:
 		addq.b  #$02, $0024(A0)
 		move.l  #Obj6E_MapUnc_1C464, $0004(A0) ; loc_1C464
 		move.w  #$6000, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_18 ; loc_1C4EC
+		bsr.w     JmpTo25_Adjust2PArtPointer
 loc_1C316:
 		ori.b   #$04, $0001(A0)
 		move.b  #$04, $0018(A0)
@@ -33879,7 +33907,7 @@ loc_1C316:
 		bne.s   loc_1C36A
 		addq.b  #$02, $0024(A0)
 		move.w  #$63F0, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_18 ; loc_1C4EC
+		bsr.w     JmpTo25_Adjust2PArtPointer
 		move.b  #$05, $0018(A0)
 		bra.w     loc_1C3F4
 loc_1C36A:
@@ -33912,7 +33940,7 @@ loc_1C39A:
 		move.b  $0016(A0), D2
 		move.w  D2, D3
 		addq.w  #$01, D3
-		bsr.w     J_SolidObject_0C        ; loc_1C4F2
+		bsr.w     JmpTo13_SolidObject
 		move.w  $0034(A0), D0
 		andi.w  #$FF80, D0
 		sub.w   (Camera_X_pos_coarse).w, D0
@@ -33923,10 +33951,10 @@ loc_1C3DC:
 		lea     (Object_Respawn_Table).w, A2
 		moveq   #$00, D0
 		move.b  $0023(A0), D0
-		beq.s   J_DeleteObject_1B       ; loc_1C3EE
+		beq.s   JmpTo28_DeleteObject
 		bclr    #$07, $02(A2, D0)
-J_DeleteObject_1B: ; loc_1C3EE:
-		jmp     DeleteObject            ; (loc_D3B4)
+JmpTo28_DeleteObject:
+		jmp	(DeleteObject).l
 loc_1C3F4:
 		move.b  (Oscillating_Data+$20).w, D1
 		lsr.b   #$01, D1
@@ -33960,10 +33988,11 @@ loc_1C44C:
 		lea     (Object_Respawn_Table).w, A2
 		moveq   #$00, D0
 		move.b  $0023(A0), D0
-		beq.s   J_DeleteObject_1C       ; loc_1C45E
+		beq.s   JmpTo29_DeleteObject
 		bclr    #$07, $02(A2, D0)
-J_DeleteObject_1C: ; loc_1C45E:
-		jmp     DeleteObject            ; (loc_D3B4)   
+; loc_1C45E:
+JmpTo29_DeleteObject:
+		jmp	(DeleteObject).l
 ; ---------------------------------------------------------------------------
 ; Sprite mappings
 ; ---------------------------------------------------------------------------
@@ -33973,10 +34002,13 @@ Obj6E_MapUnc_1C464:	BINCLUDE	"mappings/sprite/obj6E.bin"
 ; Object 0x6E - Metropolis - Machine
 ; [ End ]		         
 ;===============================================================================		   
-J_Adjust2PArtPointer_18: ; loc_1C4EC:
-		jmp     Adjust2PArtPointer     ; (loc_DC30)
-J_SolidObject_0C: ; loc_1C4F2:
-		jmp     SolidObject             ; (loc_F4A0)   
+; loc_1C4EC:
+JmpTo25_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
+; loc_1C4F2:
+JmpTo13_SolidObject:
+		jmp	(SolidObject).l
+
 ;=============================================================================== 
 ; Object 0x6F - Metropolis - Parallelogram Elevators
 ; [ Begin ]		         
@@ -33993,7 +34025,7 @@ loc_1C50A:
 		addq.b  #$02, $0024(A0)
 		move.l  #Obj6F_MapUnc_1C7BE, $0004(A0) ; loc_1C7BE
 		move.w  #$653F, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_19 ; loc_1C844
+		bsr.w     JmpTo26_Adjust2PArtPointer
 		ori.b   #$04, $0001(A0)
 		move.b  #$04, $0018(A0)
 		move.b  #$80, $0019(A0)
@@ -34039,10 +34071,11 @@ loc_1C5C2:
 		lea     (Object_Respawn_Table).w, A2
 		moveq   #$00, D0
 		move.b  $0023(A0), D0
-		beq.s   J_DeleteObject_1D       ; loc_1C5D4
+		beq.s   JmpTo30_DeleteObject
 		bclr    #$07, $02(A2, D0)
-J_DeleteObject_1D: ; loc_1C5D4:
-		jmp     DeleteObject            ; (loc_D3B4)
+JmpTo30_DeleteObject:
+		jmp	(DeleteObject).l
+
 loc_1C5DA:
 		dc.w    loc_1C5E0-loc_1C5DA
 		dc.w    loc_1C5E2-loc_1C5DA
@@ -34126,9 +34159,9 @@ loc_1C6BE:
 Obj6F_MapUnc_1C7BE:	BINCLUDE	"mappings/sprite/obj6F.bin"
 ; ===========================================================================
 		nop
-
-J_Adjust2PArtPointer_19: ; loc_1C844:
-		jmp     Adjust2PArtPointer     ; (loc_DC30)
+; loc_1C844:
+JmpTo26_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
 ; loc_1C84A:
 JmpTo_DoubleSlopedSolid:
 		jmp	(DoubleSlopedSolid).l
@@ -34155,14 +34188,14 @@ loc_1C862:
 		bset    #$07, $0022(A0)
 		bra.s   loc_1C884
 loc_1C87E:		
-		bsr.w     J_SingleObjLoad2_07  ; loc_1CBB8
+		bsr.w     JmpTo8_SingleObjLoad2
 		bne.s   loc_1C8DE
 loc_1C884:
 		_move.b  0(A0), 0(A1)
 		addq.b  #$02, $0024(A1)
 		move.l  #Obj70_MapUnc_1CA16, $0004(A1) ; loc_1CA16
 		move.w  #$6378, $0002(A1)
-		bsr.w     J_Adjust2PArtPointer2_01 ; loc_1CBBE
+		bsr.w     JmpTo2_Adjust2PArtPointer2
 		move.b  #$04, $0001(A1)
 		move.b  #$04, $0018(A1)
 		move.b  #$10, $0019(A1)
@@ -34230,15 +34263,16 @@ loc_1C95A:
 		move.b  loc_1C997(PC, D0), D2
 		move.w  D2, D3
 		move.w  (A7)+, D4
-		bsr.w     J_SolidObject_0D        ; loc_1CBC4
+		bsr.w     JmpTo14_SolidObject
 		move.w  $0032(A0), D0
 		andi.w  #$FF80, D0
 		sub.w   (Camera_X_pos_coarse).w, D0
 		cmpi.w  #$0280, D0
-		bhi.s   J_DeleteObject_1E       ; loc_1C990
+		bhi.s   JmpTo31_DeleteObject
 		jmp     DisplaySprite           ; (loc_D3C2)
-J_DeleteObject_1E: ; loc_1C990:
-		jmp     DeleteObject            ; (loc_D3B4)   
+; loc_1C990:
+JmpTo31_DeleteObject:
+		jmp	(DeleteObject).l
 
 loc_1C996:		  
 		dc.b    $10
@@ -34258,14 +34292,18 @@ loc_1C9B6:
 Obj70_MapUnc_1CA16:	BINCLUDE	"mappings/sprite/obj70.bin"
 ; ===========================================================================
 		nop
+; loc_1CBB8:
+JmpTo8_SingleObjLoad2:
+		jmp	(SingleObjLoad2).l
+; loc_1CBBE:
+JmpTo2_Adjust2PArtPointer2:
+		jmp	(Adjust2PArtPointer2).l
+; loc_1CBC4:
+JmpTo14_SolidObject:
+		jmp	(SolidObject).l
 
-J_SingleObjLoad2_07: ; loc_1CBB8:
-		jmp     SingleObjLoad2      ; (loc_E788)
-J_Adjust2PArtPointer2_01: ; loc_1CBBE:
-		jmp     Adjust2PArtPointer2   ; (loc_DC4C)
-J_SolidObject_0D: ; loc_1CBC4:
-		jmp     SolidObject             ; (loc_F4A0)  
-		dc.w    $0000		   ; Filler
+		align 4
+
 ;=============================================================================== 
 ; Object 0x72 - Metropolis - Conveyor Belt Attributes
 ; [ Begin ]		         
@@ -34643,7 +34681,7 @@ loc_1CFEC:
 		move.w  #$0011, D3
 		move.w  $0008(A0), D4
 		bsr.w     JmpTo16_SolidObject
-		bra.w     JmpTo17_MarkObjGone
+		bra.w     JmpTo18_MarkObjGone
 ; ---------------------------------------------------------------------------
 ; Sprite mappings
 ; ---------------------------------------------------------------------------
@@ -34660,7 +34698,7 @@ JmpTo13_DisplaySprite:
 JmpTo32_DeleteObject:
 		jmp	(DeleteObject).l
 ; loc_1D052:
-JmpTo17_MarkObjGone:
+JmpTo18_MarkObjGone:
 		jmp	(MarkObjGone).l
 ; loc_1D058:
 JmpTo2_DeleteObject2:
@@ -34679,6 +34717,7 @@ JmpTo16_SolidObject:
 		jmp	(SolidObject).l
 
 		align 4
+
 ;=============================================================================== 
 ; Object 0x76 - Dust Hill - Platform with spikes on sides 
 ; [ Begin ]		         
@@ -34697,7 +34736,7 @@ loc_1D08E:
 		addq.b  #$02, $0024(A0)
 		move.l  #Obj76_MapUnc_1D1BA, $0004(A0) ; loc_1D1BA
 		move.w  #$0000, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_1C ; loc_1D1F6
+		bsr.w     JmpTo29_Adjust2PArtPointer
 		ori.b   #$04, $0001(A0)
 		move.b  #$04, $0018(A0)
 		moveq   #$00, D0
@@ -34727,7 +34766,7 @@ loc_1D0DE:
 		move.b  $0016(A0), D2
 		move.w  D2, D3
 		addq.w  #$01, D3
-		bsr.w     J_SolidObject_10        ; loc_1D1FC
+		bsr.w     JmpTo17_SolidObject
 		swap  D6
 		andi.w  #$0003, D6
 		beq.s   loc_1D142
@@ -34796,10 +34835,12 @@ Obj76_MapUnc_1D1BA:	BINCLUDE	"mappings/sprite/obj76.bin"
 ; loc_1D1F0:
 JmpTo_Touch_ChkHurt2:
 		jmp	(Touch_ChkHurt2).l
-J_Adjust2PArtPointer_1C: ; loc_1D1F6:
-		jmp     Adjust2PArtPointer     ; (loc_DC30)
-J_SolidObject_10: ; loc_1D1FC:
-		jmp     SolidObject             ; (loc_F4A0)
+; loc_1D1F6:
+JmpTo29_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
+; loc_1D1FC:
+JmpTo17_SolidObject:
+		jmp	(SolidObject).l
 ; loc_1D202:
 JmpTo5_MarkObjGone2:
 		jmp	(MarkObjGone2).l
@@ -34820,7 +34861,7 @@ loc_1D21A:
 		addq.b  #$02, $0024(A0)
 		move.l  #Obj77_MapUnc_1D2E0, $0004(A0) ; loc_1D2E0
 		move.w  #$643C, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_1D ; loc_1D3B2
+		bsr.w     JmpTo30_Adjust2PArtPointer
 		ori.b   #$04, $0001(A0)
 		move.b  #$80, $0019(A0)
 loc_1D23C:
@@ -34847,8 +34888,8 @@ loc_1D270:
 		move.w  D2, D3
 		addq.w  #$01, D3
 		move.w  $0008(A0), D4
-		bsr.w     J_SolidObject_11        ; loc_1D3B8
-		bra.w     J_MarkObjGone_12        ; loc_1D3AC
+		bsr.w     JmpTo18_SolidObject
+		bra.w     JmpTo19_MarkObjGone
 loc_1D29A:
 		move.b  $0022(A0), D0
 		andi.b  #$18, D0
@@ -34866,7 +34907,7 @@ loc_1D2B6:
 loc_1D2C6:
 		andi.b  #$E7, $0022(A0)
 loc_1D2CC:
-		bra.w     J_MarkObjGone_12        ; loc_1D3AC  
+		bra.w     JmpTo19_MarkObjGone
 
 loc_1D2D0:               
 		dc.w    loc_1D2D4-loc_1D2D0
@@ -34880,14 +34921,18 @@ loc_1D2DA:
 ; ---------------------------------------------------------------------------
 Obj77_MapUnc_1D2E0:	BINCLUDE	"mappings/sprite/obj77.bin"
 ; ===========================================================================
+; loc_1D3AC:
+JmpTo19_MarkObjGone:
+		jmp	(MarkObjGone).l
+; loc_1D3B2:
+JmpTo30_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
+; loc_1D3B8:
+JmpTo18_SolidObject:
+		jmp	(SolidObject).l
 
-J_MarkObjGone_12: ; loc_1D3AC:
-		jmp     MarkObjGone             ; (loc_D2A0)
-J_Adjust2PArtPointer_1D: ; loc_1D3B2:
-		jmp     Adjust2PArtPointer     ; (loc_DC30)
-J_SolidObject_11: ; loc_1D3B8:
-		jmp     SolidObject             ; (loc_F4A0)
-		dc.w    $0000		   ; Filler
+		align 4
+
 ;=============================================================================== 
 ; Object 0x78 - Chemical Plant - Rotanting Platforms / Down when Touch Platform 
 ; [ Begin ]		         
@@ -34917,14 +34962,14 @@ loc_1D3F0:
 		moveq   #$03, D1
 		bra.s   loc_1D408
 loc_1D3FA:		
-		bsr.w     J_SingleObjLoad2_09 ; loc_1D57C
+		bsr.w     JmpTo10_SingleObjLoad2
 		bne.w    loc_1D460
 		move.b  #$04, $0024(A1)
 loc_1D408:
 		_move.b  0(A0), 0(A1)
 		move.l  #Obj6B_MapUnc_1BF4A, $0004(A1) ; loc_1BF4A
 		move.w  #$6418, $0002(A1)
-		bsr.w     J_Adjust2PArtPointer2_02 ; loc_1D582
+		bsr.w     JmpTo3_Adjust2PArtPointer2
 		move.b  #$04, $0001(A1)
 		move.b  #$03, $0018(A1)
 		move.b  #$10, $0019(A1)
@@ -34958,7 +35003,7 @@ loc_1D474:
 		move.w  #$0010, D2
 		move.w  #$0011, D3
 		move.w  $0008(A0), D4
-		bsr.w     J_SolidObject_12        ; loc_1D588
+		bsr.w     JmpTo19_SolidObject
 		swap  D6
 		or.b    D6, $002E(A2)
 		rts
@@ -35058,12 +35103,15 @@ loc_1D57A:
 ; Object 0x78 - Chemical Plant - Rotanting Platforms / Down when Touch Platform 
 ; [ End ]		         
 ;===============================================================================		   
-J_SingleObjLoad2_09: ; loc_1D57C:
-		jmp     SingleObjLoad2      ; (loc_E788)
-J_Adjust2PArtPointer2_02: ; loc_1D582:
-		jmp     Adjust2PArtPointer2   ; (loc_DC4C)
-J_SolidObject_12: ; loc_1D588:
-		jmp     SolidObject             ; (loc_F4A0)
+; loc_1D57C:
+JmpTo10_SingleObjLoad2:
+		jmp	(SingleObjLoad2).l
+; loc_1D582:
+JmpTo3_Adjust2PArtPointer2:
+		jmp	(Adjust2PArtPointer2).l
+; loc_1D588:
+JmpTo19_SolidObject:
+		jmp	(SolidObject).l
 ; loc_1D58E:
 JmpTo6_MarkObjGone2:
 		jmp	(MarkObjGone2).l
@@ -35087,7 +35135,7 @@ loc_1D5A8:
 loc_1D5BA:
 		addq.b  #$02, $0024(A0)
 		move.w  #$E418, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_1E ; loc_1D73E
+		bsr.w     JmpTo31_Adjust2PArtPointer
 		moveq   #$00, D1
 		move.b  $0028(A0), D1
 		lea     loc_1D5A8(PC, D1), A2
@@ -35095,7 +35143,7 @@ loc_1D5BA:
 		move.l  A0, A1
 		bra.s   loc_1D5F6
 loc_1D5D8:		
-		bsr.w     J_SingleObjLoad2_0A  ; loc_1D738
+		bsr.w     JmpTo11_SingleObjLoad2
 		bne.s   loc_1D61C
 		_move.b  0(A0), 0(A1)
 		move.b  #$04, $0024(A1)
@@ -35205,16 +35253,18 @@ loc_1D72A:
 ; ---------------------------------------------------------------------------
 Obj7A_MapUnc_1D72C:	BINCLUDE	"mappings/sprite/obj7A.bin"
 ; ===========================================================================
-
-J_SingleObjLoad2_0A: ; loc_1D738:
-		jmp     SingleObjLoad2      ; (loc_E788)
-J_Adjust2PArtPointer_1E: ; loc_1D73E:
-		jmp     Adjust2PArtPointer     ; (loc_DC30)
+; loc_1D738:
+JmpTo11_SingleObjLoad2:
+		jmp	(SingleObjLoad2).l
+; loc_1D73E:
+JmpTo31_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
 ; loc_1D744:
 JmpTo2_PlatformObject:
 		jmp	(PlatformObject).l
 
 		align 4
+
 ;=============================================================================== 
 ; Object 0x7B - Chemical Plant - Spring Over Tubes 
 ; [ Begin ]		         
@@ -35226,14 +35276,14 @@ Obj_0x7B_Spring_Tubes: ; loc_1D74C:
 		jsr     loc_1D77C(PC, D1)
 		tst.w   (Two_player_mode).w
 		beq.s   loc_1D764
-		bra.w     J_DisplaySprite_0D      ; loc_1D964
+		bra.w     JmpTo14_DisplaySprite
 loc_1D764:
 		move.w  $0008(A0), D0
 		andi.w  #$FF80, D0
 		sub.w   (Camera_X_pos_coarse).w, D0
 		cmpi.w  #$0280, D0
-		bhi.w    J_DeleteObject_21       ; loc_1D96A
-		bra.w     J_DisplaySprite_0D      ; loc_1D964
+		bhi.w    JmpTo34_DeleteObject
+		bra.w     JmpTo14_DisplaySprite
 loc_1D77C:
 		dc.w    loc_1D784-loc_1D77C
 		dc.w    loc_1D7BA-loc_1D77C
@@ -35249,7 +35299,7 @@ loc_1D784:
 		move.b  $0028(A0), D0
 		andi.w  #$0002, D0
 		move.w  loc_1D780(PC, D0), $0030(A0)
-		bsr.w     J_Adjust2PArtPointer_1F ; loc_1D976
+		bsr.w     JmpTo32_Adjust2PArtPointer
 loc_1D7BA:
 		cmpi.b  #$01, $001A(A0)
 		beq.s   loc_1D802
@@ -35305,7 +35355,7 @@ loc_1D838:
 		move.b  #$03, $001C(A0)
 loc_1D856:
 		lea     (loc_1D908).l, A1
-		bra.w     J_AnimateSprite_04      ; loc_1D970
+		bra.w     JmpTo5_AnimateSprite
 		rts
 loc_1D862:
 		move.w  #$0100, $001C(A0)
@@ -35365,15 +35415,18 @@ loc_1D917:
 Obj7B_MapUnc_1D920:	BINCLUDE	"mappings/sprite/obj7B.bin"
 ; ===========================================================================
 		nop
-
-J_DisplaySprite_0D: ; loc_1D964:				
-		jmp     DisplaySprite           ; (loc_D3C2)
-J_DeleteObject_21: ; loc_1D96A:
-		jmp     DeleteObject            ; (loc_D3B4)
-J_AnimateSprite_04: ; loc_1D970:
-		jmp     AnimateSprite           ; (loc_D412)
-J_Adjust2PArtPointer_1F: ; loc_1D976:
-		jmp     Adjust2PArtPointer     ; (loc_DC30)
+; loc_1D964:
+JmpTo14_DisplaySprite:
+		jmp	(DisplaySprite).l
+; loc_1D96A:
+JmpTo34_DeleteObject:
+		jmp	(DeleteObject).l
+; loc_1D970:
+JmpTo5_AnimateSprite:
+		jmp	(AnimateSprite).l
+; loc_1D976:
+JmpTo32_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
 ; loc_1D97C:
 JmpTo4_SolidObject_Always_SingleCharacter:
 		jmp	(SolidObject_Always_SingleCharacter).l
@@ -35401,7 +35454,7 @@ loc_1D996:
 		move.b  #$18, $0019(A0)
 		move.b  #$10, $0016(A0)
 		move.b  #$18, $0017(A0)
-		bsr.w     J_ObjectMoveAndFall_01         ; loc_1DC4C
+		bsr.w     JmpTo2_ObjectMoveAndFall
 		jsr     ObjHitFloor             ; (loc_13898)
 		tst.w   D1
 		bpl.s   loc_1D9E4
@@ -35416,8 +35469,8 @@ loc_1D9E6:
 		move.w  loc_1DA02(PC, D0), D1
 		jsr     loc_1DA02(PC, D1)
 		lea     (loc_1DAD2).l, A1
-		bsr.w     J_AnimateSprite_05      ; loc_1DC46
-		bra.w     J_MarkObjGone_13        ; loc_1DC40
+		bsr.w     JmpTo6_AnimateSprite
+		bra.w     JmpTo20_MarkObjGone
 loc_1DA02:
 		dc.w    loc_1DA06-loc_1DA02
 		dc.w    loc_1DA2A-loc_1DA02
@@ -35434,7 +35487,7 @@ loc_1DA28:
 		rts
 loc_1DA2A:
 		bsr.w     loc_1DA74
-		bsr.w     J_ObjectMoveAndFall_01         ; loc_1DC4C
+		bsr.w     JmpTo2_ObjectMoveAndFall
 		jsr     ObjHitFloor             ; (loc_13898)
 		cmpi.w  #$FFF8, D1
 		blt.s   loc_1DA50
@@ -35545,14 +35598,18 @@ loc_1DC1C:
 ; [ End ]		         
 ;===============================================================================  
 		align 4
-J_MarkObjGone_13: ; loc_1DC40:
-		jmp     MarkObjGone             ; (loc_D2A0)
-J_AnimateSprite_05: ; loc_1DC46:
-		jmp     AnimateSprite           ; (loc_D412)
-J_ObjectMoveAndFall_01: ; loc_1DC4C:
-		jmp     ObjectMoveAndFall              ; (loc_D24E)  
+; loc_1DC40:
+JmpTo20_MarkObjGone:
+		jmp	(MarkObjGone).l
+; loc_1DC46:
+JmpTo6_AnimateSprite:
+		jmp	(AnimateSprite).l
+; loc_1DC4C:
+JmpTo2_ObjectMoveAndFall:
+		jmp	(ObjectMoveAndFall).l
 
 		align 4
+
 ;=============================================================================== 
 ; Object 0x52 - Piranha 
 ; [ Begin ]		         
@@ -35608,22 +35665,22 @@ loc_1DCEC:
 		move.w  $003C(A0), $003A(A0)
 loc_1DD0E:
 		lea     (loc_1DE4E).l, A1
-		bsr.w     J_AnimateSprite_06      ; loc_1DE9E
-		bsr.w     J_ObjectMove_0B         ; loc_1DEA4
+		bsr.w     JmpTo7_AnimateSprite
+		bsr.w     JmpTo12_ObjectMove
 		tst.w   $003A(A0)
-		bgt.w    J_MarkObjGone_14        ; loc_1DE98
+		bgt.w    JmpTo21_MarkObjGone
 		cmpi.w  #$FFFF, $003A(A0)
-		beq.w    J_MarkObjGone_14        ; loc_1DE98
+		beq.w    JmpTo21_MarkObjGone
 		move.l  #$FFFB8000, $0036(A0)
 		addq.b  #$02, $0024(A0)
 		move.w  #$FFFF, $003A(A0)
 		move.b  #$02, $001C(A0)
 		move.w  #$0001, $003E(A0)
-		bra.w     J_MarkObjGone_14        ; loc_1DE98
+		bra.w     JmpTo21_MarkObjGone
 loc_1DD50:
 		move.w  #$0390, (Water_Level_1).w
 		lea     (loc_1DE4E).l, A1
-		bsr.w     J_AnimateSprite_06      ; loc_1DE9E
+		bsr.w     JmpTo7_AnimateSprite
 		move.w  $003E(A0), D0
 		sub.w   D0, $0030(A0)
 		bsr.w     loc_1DE00
@@ -35631,23 +35688,23 @@ loc_1DD50:
 		bpl.s   loc_1DDA8
 		move.w  $000C(A0), D0
 		cmp.w   (Water_Level_1).w, D0
-		bgt.w    J_MarkObjGone_14        ; loc_1DE98
+		bgt.w    JmpTo21_MarkObjGone
 		move.b  #$03, $001C(A0)
 		bclr    #$06, $0022(A0)
 		tst.b   $002A(A0)
-		bne.w    J_MarkObjGone_14        ; loc_1DE98
+		bne.w    JmpTo21_MarkObjGone
 		move.w  $0010(A0), D0
 		asl.w   #$01, D0
 		move.w  D0, $0010(A0)
 		addq.w  #$01, $003E(A0)
 		st      $002A(A0)
-		bra.w     J_MarkObjGone_14        ; loc_1DE98
+		bra.w     JmpTo21_MarkObjGone
 loc_1DDA8:
 		move.w  $000C(A0), D0
 		cmp.w   (Water_Level_1).w, D0
 		bgt.s   loc_1DDBC
 		move.b  #$01, $001C(A0)
-		bra.w     J_MarkObjGone_14        ; loc_1DE98
+		bra.w     JmpTo21_MarkObjGone
 loc_1DDBC:
 		move.b  #$00, $001C(A0)
 		bset    #$06, $0022(A0)
@@ -35659,15 +35716,15 @@ loc_1DDBC:
 loc_1DDD6:
 		move.w  $0034(A0), D0
 		cmp.w   $000C(A0), D0
-		bgt.w    J_MarkObjGone_14        ; loc_1DE98
+		bgt.w    JmpTo21_MarkObjGone
 		subq.b  #$02, $0024(A0)
 		tst.b   $002A(A0)
-		beq.w    J_MarkObjGone_14        ; loc_1DE98
+		beq.w    JmpTo21_MarkObjGone
 		move.w  $0010(A0), D0
 		asr.w   #$01, D0
 		move.w  D0, $0010(A0)
 		sf      $002A(A0)
-		bra.w     J_MarkObjGone_14        ; loc_1DE98
+		bra.w     JmpTo21_MarkObjGone
 loc_1DE00:
 		move.l  $0008(A0), D2
 		move.l  $000C(A0), D3
@@ -35724,12 +35781,15 @@ loc_1DE8C:
 ; [ End ]		         
 ;===============================================================================   
 		align 4
-J_MarkObjGone_14: ; loc_1DE98:
-		jmp     MarkObjGone             ; (loc_D2A0)
-J_AnimateSprite_06: ; loc_1DE9E:
-		jmp     AnimateSprite           ; (loc_D412)
-J_ObjectMove_0B: ; loc_1DEA4:
-		jmp     ObjectMove              ; (loc_D27A)						    
+; loc_1DE98:
+JmpTo21_MarkObjGone:
+		jmp	(MarkObjGone).l
+; loc_1DE9E:
+JmpTo7_AnimateSprite:
+		jmp	(AnimateSprite).l
+; loc_1DEA4:
+JmpTo12_ObjectMove:
+		jmp	(ObjectMove).l
 
 		align 4
 
@@ -35755,7 +35815,7 @@ loc_1DEC0:
 		move.b  #$10, $0016(A0)
 		move.b  #$06, $0017(A0)
 		move.b  #$0C, $0020(A0)
-		bsr.w     J_ObjectMoveAndFall_02         ; loc_1E002
+		bsr.w     JmpTo3_ObjectMoveAndFall
 		jsr     ObjHitFloor             ; loc_13898
 		tst.w   D1
 		bpl.s   loc_1DF14
@@ -35771,13 +35831,13 @@ loc_1DF16:
 		move.w  loc_1DF5C(PC, D0), D1
 		jsr     loc_1DF5C(PC, D1)
 		lea     (loc_1DFBC).l, A1
-		bsr.w     J_AnimateSprite_07      ; loc_1DFFC
+		bsr.w     JmpTo8_AnimateSprite
 		move.w  $0008(A0), D0
 		andi.w  #$FF80, D0
 		sub.w   (Camera_X_pos_coarse).w, D0
 		cmpi.w  #$0280, D0
 		bhi.w    loc_1DF46
-		bra.w     J_DisplaySprite_0E      ; loc_1DFF0
+		bra.w     JmpTo15_DisplaySprite
 loc_1DF46:
 		lea     (Object_Respawn_Table).w, A2
 		moveq   #$00, D0
@@ -35785,7 +35845,7 @@ loc_1DF46:
 		beq.s   loc_1DF58
 		bclr    #$07, $02(A2, D0)
 loc_1DF58:
-		bra.w     J_DeleteObject_22       ; loc_1DFF6
+		bra.w     JmpTo35_DeleteObject
 loc_1DF5C:               
 		ori.b   #$28, D4
 		subq.w  #$01, $0030(A0)
@@ -35798,7 +35858,7 @@ loc_1DF5C:
 		neg.w   $0010(A0)
 loc_1DF82:
 		rts
-		bsr.w     J_ObjectMove_0C         ; loc_1E008
+		bsr.w     JmpTo13_ObjectMove
 		jsr     ObjHitFloor             ; loc_13898
 		cmpi.w  #$FFF8, D1
 		blt.s   loc_1DFA0
@@ -35813,7 +35873,7 @@ loc_1DFA0:
 		move.b  #$00, $001C(A0)
 		rts
 loc_1DFB8:
-		bra.w     J_DeleteObject_22       ; loc_1DFF6  
+		bra.w     JmpTo35_DeleteObject
 loc_1DFBC:
 		dc.w    loc_1DFC0-loc_1DFBC
 		dc.w    loc_1DFC3-loc_1DFBC
@@ -35828,17 +35888,21 @@ Obj4F_MapUnc_1DFCA:	BINCLUDE	"mappings/sprite/obj4F.bin"
 
 ; ===========================================================================
 		align 4
-
-J_DisplaySprite_0E: ; loc_1DFF0:
-		jmp     DisplaySprite           ; loc_D3C2
-J_DeleteObject_22: ; loc_1DFF6:
-		jmp     DeleteObject            ; loc_D3B4
-J_AnimateSprite_07: ; loc_1DFFC:
-		jmp     AnimateSprite           ; loc_D412
-J_ObjectMoveAndFall_02: ; loc_1E002:
-		jmp     ObjectMoveAndFall              ; loc_D24E  
-J_ObjectMove_0C: ; loc_1E008:
-		jmp     ObjectMove              ; loc_D27A  
+; loc_1DFF0:
+JmpTo15_DisplaySprite:
+		jmp	(DisplaySprite).l
+; loc_1DFF6:
+JmpTo35_DeleteObject:
+		jmp	(DeleteObject).l
+; loc_1DFFC:
+JmpTo8_AnimateSprite:
+		jmp	(AnimateSprite).l
+; loc_1E002:
+JmpTo3_ObjectMoveAndFall:
+		jmp	(ObjectMoveAndFall).l
+; loc_1E008:
+JmpTo13_ObjectMove:
+		jmp	(ObjectMove).l
 
 		align 4
 
@@ -35879,7 +35943,7 @@ loc_1E02A:
 		move.w  D0, $0032(A0)
 		move.w  D0, $0034(A0)
 		move.w  $000C(A0), $002A(A0)
-		bsr.w     J_SingleObjLoad_07   ; loc_1E87C
+		bsr.w     JmpTo8_SingleObjLoad
 		bne.s   loc_1E0E2
 		_move.b  #$50, 0(A1)
 		move.b  #$04, $0024(A1)
@@ -35898,14 +35962,14 @@ loc_1E02A:
 		bset    #$06, $0022(A0)
 loc_1E0E2:
 		lea     (loc_1E4A8).l, A1
-		bsr.w     J_AnimateSprite_08      ; loc_1E888
+		bsr.w     JmpTo9_AnimateSprite
 		move.w  #$039C, (Water_Level_1).w
 		moveq   #$00, D0
 		move.b  $0025(A0), D0
 		move.w  loc_1E108(PC, D0), D1
 		jsr     loc_1E108(PC, D1)
 		bsr.w     loc_1E2E0
-		bra.w     J_MarkObjGone_15        ; loc_1E882
+		bra.w     JmpTo22_MarkObjGone
 loc_1E108:
 		dc.w    loc_1E14E-loc_1E108
 		dc.w    loc_1E160-loc_1E108
@@ -35913,33 +35977,33 @@ loc_1E108:
 loc_1E10E:
 		move.l  $0036(A0), A1
 		tst.b   (A1)
-		beq.w    J_DeleteObject_23       ; loc_1E876
+		beq.w    JmpTo36_DeleteObject
 		cmpi.b  #$50, (A1)
-		bne.w    J_DeleteObject_23       ; loc_1E876
+		bne.w    JmpTo36_DeleteObject
 		btst    #$07, $0022(A1)
-		bne.w    J_DeleteObject_23       ; loc_1E876
+		bne.w    JmpTo36_DeleteObject
 		lea     (loc_1E4A8).l, A1
-		bsr.w     J_AnimateSprite_08      ; loc_1E888
-		bra.w     J_DisplaySprite_0F      ; loc_1E870
+		bsr.w     JmpTo9_AnimateSprite
+		bra.w     JmpTo16_DisplaySprite
 loc_1E138:
 		bsr.w     loc_1E404
-		bsr.w     J_ObjectMove_0D         ; loc_1E894
+		bsr.w     JmpTo14_ObjectMove
 		lea     (loc_1E4A8).l, A1
-		bsr.w     J_AnimateSprite_08      ; loc_1E888
-		bra.w     J_MarkObjGone_15        ; loc_1E882
+		bsr.w     JmpTo9_AnimateSprite
+		bra.w     JmpTo22_MarkObjGone
 loc_1E14E:
-		bsr.w     J_ObjectMove_0D         ; loc_1E894
+		bsr.w     JmpTo14_ObjectMove
 		bsr.w     loc_1E3E6
 		bsr.w     loc_1E28C
 		bsr.w     loc_1E224
 		rts
 loc_1E160:
-		bsr.w     J_ObjectMove_0D         ; loc_1E894
+		bsr.w     JmpTo14_ObjectMove
 		bsr.w     loc_1E3E6
 		bsr.w     loc_1E2AE
 		rts
 loc_1E16E:
-		bsr.w     J_ObjectMoveAndFall_03         ; loc_1E88E
+		bsr.w     JmpTo4_ObjectMoveAndFall
 		bsr.w     loc_1E3E6
 		bsr.w     loc_1E180
 		bsr.w     loc_1E1FC
@@ -35953,7 +36017,7 @@ loc_1E18C:
 		rts
 loc_1E18E:
 		st      $002D(A0)
-		bsr.w     J_SingleObjLoad_07   ; loc_1E87C
+		bsr.w     JmpTo8_SingleObjLoad
 		bne.s   loc_1E1FA
 		_move.b  #$50, 0(A1)
 		move.b  #$06, $0024(A1)
@@ -36072,11 +36136,11 @@ loc_1E310:
 		add.w   D1, $000C(A1)
 		rts
 loc_1E31A:
-		bsr.w     J_ObjectMoveAndFall_03         ; loc_1E88E
+		bsr.w     JmpTo4_ObjectMoveAndFall
 		bsr.w     loc_1E330
 		lea     (loc_1E4A8).l, A1
-		bsr.w     J_AnimateSprite_08      ; loc_1E888
-		bra.w     J_MarkObjGone_15        ; loc_1E882
+		bsr.w     JmpTo9_AnimateSprite
+		bra.w     JmpTo22_MarkObjGone
 loc_1E330:
 		jsr     ObjHitFloor             ; (loc_13898)
 		tst.w   D1
@@ -36088,14 +36152,14 @@ loc_1E330:
 		move.w  D0, $0012(A0)
 loc_1E34A:
 		subi.b  #$01, $0021(A0)
-		beq.w    J_DeleteObject_23       ; loc_1E876
+		beq.w    JmpTo36_DeleteObject
 		rts
 loc_1E356:
 		bsr.w     loc_1E3A6
 		tst.b   $0025(A0)
 		beq.s   loc_1E396
 		subi.w  #$0001, $002C(A0)
-		beq.w    J_DeleteObject_23       ; loc_1E876
+		beq.w    JmpTo36_DeleteObject
 		move.w  (MainCharacter+8).w, $0008(A0)
 		move.w  (MainCharacter+$C).w, $000C(A0)
 		addi.w  #$000C, $000C(A0)
@@ -36108,8 +36172,8 @@ loc_1E396:
 		rts
 loc_1E398:
 		lea     (loc_1E4A8).l, A1
-		bsr.w     J_AnimateSprite_08      ; loc_1E888
-		bra.w     J_DisplaySprite_0F      ; loc_1E870
+		bsr.w     JmpTo9_AnimateSprite
+		bra.w     JmpTo16_DisplaySprite
 loc_1E3A6:
 		tst.b   $0025(A0)
 		bne.s   loc_1E3E4
@@ -36140,7 +36204,7 @@ loc_1E404:
 		beq.w    loc_1E4A6
 		moveq   #$02, D3
 loc_1E40E:		
-		bsr.w     J_SingleObjLoad_07   ; loc_1E87C
+		bsr.w     JmpTo8_SingleObjLoad
 		bne.s   loc_1E480
 		_move.b  0(A0), 0(A1)
 		move.b  #$08, $0024(A1)
@@ -36167,14 +36231,14 @@ loc_1E47A:
 		move.w  #$0040, $0010(A1)
 loc_1E480:
 		dbf    D3, loc_1E40E
-		bsr.w     J_SingleObjLoad_07   ; loc_1E87C
+		bsr.w     JmpTo8_SingleObjLoad
 		bne.s   loc_1E4A2
 		_move.b  0(A0), 0(A1)
 		move.b  #$0A, $0024(A1)
 		move.l  $0004(A0), $0004(A1)
 		move.w  #$24E0, $0002(A1)
 loc_1E4A2:
-		bra.w     J_DeleteObject_23       ; loc_1E876
+		bra.w     JmpTo36_DeleteObject
 loc_1E4A6:
 		rts    
 loc_1E4A8:
@@ -36306,31 +36370,31 @@ loc_1E646:
 		move.w  #$FF00, $0010(A0)
 loc_1E6A4:
 		lea     loc_1E4A8(PC), A1
-		bsr.w     J_AnimateSprite_08      ; loc_1E888
+		bsr.w     JmpTo9_AnimateSprite
 		move.w  #$039C, (Water_Level_1).w
 		moveq   #$00, D0
 		move.b  $0025(A0), D0
 		move.w  loc_1E6C4(PC, D0), D1
 		jsr     loc_1E6C4(PC, D1)
-		bra.w     J_MarkObjGone_15        ; loc_1E882
+		bra.w     JmpTo22_MarkObjGone
 loc_1E6C4:
 		dc.w    loc_1E6DC-loc_1E6C4
 		dc.w    loc_1E6F2-loc_1E6C4
 loc_1E6C8:
 		bsr.w     loc_1E404
-		bsr.w     J_ObjectMove_0D         ; loc_1E894
+		bsr.w     JmpTo14_ObjectMove
 		lea     loc_1E4A8(PC), A1
-		bsr.w     J_AnimateSprite_08      ; loc_1E888
-		bra.w     J_MarkObjGone_15        ; loc_1E882
+		bsr.w     JmpTo9_AnimateSprite
+		bra.w     JmpTo22_MarkObjGone
 loc_1E6DC:
-		bsr.w     J_ObjectMove_0D         ; loc_1E894
+		bsr.w     JmpTo14_ObjectMove
 		bsr.w     loc_1E3E6
 		bsr.w     loc_1E72E
 		bsr.w     loc_1E810
 		bsr.w     loc_1E780
 		rts
 loc_1E6F2:
-		bsr.w     J_ObjectMove_0D         ; loc_1E894
+		bsr.w     JmpTo14_ObjectMove
 		bsr.w     loc_1E3E6
 		bsr.w     loc_1E72E
 		bsr.w     loc_1E810
@@ -36390,7 +36454,7 @@ loc_1E780:
 loc_1E7A4:
 		rts
 loc_1E7A6:
-		bsr.w     J_SingleObjLoad_07   ; loc_1E87C
+		bsr.w     JmpTo8_SingleObjLoad
 		bne.s   loc_1E80E
 		_move.b  #$51, 0(A1)
 		move.b  #$04, $0024(A1)
@@ -36454,20 +36518,27 @@ loc_1E86E:
 ; Object 0x51 - Oil Ocean - Aquis (Seahorse)  
 ; [ End ]		         
 ;===============================================================================  
-J_DisplaySprite_0F: ; loc_1E870:
-		jmp     DisplaySprite           ; (loc_D3C2)
-J_DeleteObject_23: ; loc_1E876:
-		jmp     DeleteObject            ; (loc_D3B4)
-J_SingleObjLoad_07: ; loc_1E87C:
-		jmp     SingleObjLoad        ; (loc_E772)
-J_MarkObjGone_15: ; loc_1E882:
-		jmp     MarkObjGone             ; (loc_D2A0)
-J_AnimateSprite_08: ; loc_1E888:
-		jmp     AnimateSprite           ; (loc_D412)
-J_ObjectMoveAndFall_03: ; loc_1E88E:
-		jmp     ObjectMoveAndFall              ; (loc_D24E)
-J_ObjectMove_0D: ; loc_1E894:
-		jmp     ObjectMove              ; (loc_D27A)
+; loc_1E870:
+JmpTo16_DisplaySprite:
+		jmp	(DisplaySprite).l
+; loc_1E876:
+JmpTo36_DeleteObject:
+		jmp	(DeleteObject).l
+; loc_1E87C:
+JmpTo8_SingleObjLoad:
+		jmp	(SingleObjLoad).l
+; loc_1E882:
+JmpTo22_MarkObjGone:
+		jmp	(MarkObjGone).l
+; loc_1E888:
+JmpTo9_AnimateSprite:
+		jmp	(AnimateSprite).l
+; loc_1E88E:
+JmpTo4_ObjectMoveAndFall:
+		jmp	(ObjectMoveAndFall).l
+; loc_1E894:
+JmpTo14_ObjectMove:
+		jmp	(ObjectMove).l
 
 		align 4
 
@@ -36486,14 +36557,14 @@ loc_1E8AA:
 		dc.w    loc_1E8C4-loc_1E8AA
 		dc.w    loc_1E8B2-loc_1E8AA
 loc_1E8B2:
-		bsr.w     J_ObjectMove_0E         ; loc_1EBB0
+		bsr.w     JmpTo15_ObjectMove
 		lea     (loc_1EAF2).l, A1
-		bsr.w     J_AnimateSprite_09      ; loc_1EB98
+		bsr.w     JmpTo10_AnimateSprite
 		bra.w     JmpTo_MarkObjGone_P1
 loc_1E8C4:
 		move.l  $002A(A0), A1
 		tst.b   (A1)
-		beq.w    J_DeleteObject_24       ; loc_1EB8C
+		beq.w    JmpTo37_DeleteObject
 		tst.w   $0030(A1)
 		bmi.s   loc_1E8D6
 		rts
@@ -36503,12 +36574,12 @@ loc_1E8D6:
 		move.b  $0022(A1), $0022(A0)
 		move.b  $0001(A1), $0001(A0)
 		lea     (loc_1EAF2).l, A1
-		bsr.w     J_AnimateSprite_09      ; loc_1EB98
+		bsr.w     JmpTo10_AnimateSprite
 		bra.w     JmpTo_MarkObjGone_P1
 loc_1E8FC:
 		move.l  #Obj4B_MapUnc_1EB0E, $0004(A0) ; Obj4B_MapUnc_1EB0E
 		move.w  #$03E6, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_20 ; loc_1EBAA
+		bsr.w     JmpTo33_Adjust2PArtPointer
 		ori.b   #$04, $0001(A0)
 		move.b  #$0A, $0020(A0)
 		move.b  #$04, $0018(A0)
@@ -36517,13 +36588,13 @@ loc_1E8FC:
 		move.b  #$18, $0017(A0)
 		move.b  #$03, $0018(A0)
 		addq.b  #$02, $0024(A0)
-		bsr.w     J_SingleObjLoad2_0B  ; loc_1EB92
+		bsr.w     JmpTo12_SingleObjLoad2
 		bne.s   loc_1E9A6
 		_move.b  #$4B, 0(A1)
 		move.b  #$04, $0024(A1)
 		move.l  #Obj4B_MapUnc_1EB0E, $0004(A1) ; Obj4B_MapUnc_1EB0E
 		move.w  #$03E6, $0002(A1)
-		bsr.w     J_Adjust2PArtPointer2_03 ; loc_1EB9E
+		bsr.w     JmpTo4_Adjust2PArtPointer2
 		move.b  #$04, $0018(A1)
 		move.b  #$10, $0019(A1)
 		move.b  $0022(A0), $0022(A1)
@@ -36545,7 +36616,7 @@ loc_1E9A8:
 		move.w  loc_1E9C4(PC, D0), D1
 		jsr     loc_1E9C4(PC, D1)
 		lea     (loc_1EAF2).l, A1
-		bsr.w     J_AnimateSprite_09      ; loc_1EB98
+		bsr.w     JmpTo10_AnimateSprite
 		bra.w     JmpTo_MarkObjGone_P1
 loc_1E9C4:
 		dc.w    loc_1E9C8-loc_1E9C4
@@ -36559,7 +36630,7 @@ loc_1E9C8:
 		tst.w   D0
 		bpl.s   loc_1E9EC
 		subq.w  #$01, $002E(A0)
-		bgt.w    J_ObjectMove_0E         ; loc_1EBB0
+		bgt.w    JmpTo15_ObjectMove
 		move.w  #$001E, $0030(A0)
 loc_1E9EC:
 		rts
@@ -36616,7 +36687,7 @@ loc_1EA72:
 		move.b  #$06, $0024(A1)
 		move.l  #Obj4B_MapUnc_1EB0E, $0004(A1) ; Obj4B_MapUnc_1EB0E
 		move.w  #$03E6, $0002(A1)
-		bsr.w     J_Adjust2PArtPointer2_03 ; loc_1EB9E
+		bsr.w     JmpTo4_Adjust2PArtPointer2
 		move.b  #$04, $0018(A1)
 		move.b  #$98, $0020(A1)
 		move.b  #$10, $0019(A1)
@@ -36659,22 +36730,27 @@ Obj4B_MapUnc_1EB0E:	BINCLUDE	"mappings/sprite/obj4B.bin"
 ; [ End ]		         
 ;===============================================================================  
 		align 4
-
-J_DeleteObject_24: ; loc_1EB8C:
-		jmp     DeleteObject            ; (loc_D3B4)
-J_SingleObjLoad2_0B: ; loc_1EB92:
-		jmp     SingleObjLoad2      ; loc_E788
-J_AnimateSprite_09: ; loc_1EB98:
-		jmp     AnimateSprite           ; loc_D412
-J_Adjust2PArtPointer2_03: ; loc_1EB9E:
-		jmp     Adjust2PArtPointer2   ; loc_DC4C
+; loc_1EB8C:
+JmpTo37_DeleteObject:
+		jmp	(DeleteObject).l
+; loc_1EB92:
+JmpTo12_SingleObjLoad2:
+		jmp	(SingleObjLoad2).l
+; loc_1EB98:
+JmpTo10_AnimateSprite:
+		jmp	(AnimateSprite).l
+; loc_1EB9E:
+JmpTo4_Adjust2PArtPointer2:
+		jmp	(Adjust2PArtPointer2).l
 ; loc_1EBA4:
 JmpTo_MarkObjGone_P1:
 		jmp	(MarkObjGone_P1).l
-J_Adjust2PArtPointer_20: ; loc_1EBAA:
-		jmp     Adjust2PArtPointer     ; loc_DC30
-J_ObjectMove_0E: ; loc_1EBB0:
-		jmp     ObjectMove              ; loc_D27A
+; loc_1EBAA:
+JmpTo33_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
+; loc_1EBB0:
+JmpTo15_ObjectMove:
+		jmp	(ObjectMove).l
 
 		align 4
 
@@ -36697,15 +36773,15 @@ loc_1EBCE:
 		bmi.s   loc_1EBD8
 		rts
 loc_1EBD8:
-		bsr.w     J_ObjectMoveAndFall_04         ; loc_1EE60
+		bsr.w     JmpTo5_ObjectMoveAndFall
 loc_1EBDC:
 		lea     (loc_1EDAA).l, A1
-		bsr.w     J_AnimateSprite_0A      ; loc_1EE5A
-		bra.w     J_MarkObjGone_16        ; loc_1EE54
+		bsr.w     JmpTo11_AnimateSprite
+		bra.w     JmpTo23_MarkObjGone
 loc_1EBEA:
 		subq.w  #$01, $002C(A0)
-		beq.w    J_DeleteObject_25       ; loc_1EE4E
-		bra.w     J_DisplaySprite_10      ; loc_1EE48
+		beq.w    JmpTo38_DeleteObject
+		bra.w     JmpTo17_DisplaySprite
 loc_1EBF6:
 		move.l  #Octus_Mappings, $0004(A0) ; loc_1EDBC
 		move.w  #$238A, $0002(A0)
@@ -36715,7 +36791,7 @@ loc_1EBF6:
 		move.b  #$10, $0019(A0)
 		move.b  #$10, $0016(A0)
 		move.b  #$08, $0017(A0)
-		bsr.w     J_ObjectMoveAndFall_04         ; loc_1EE60
+		bsr.w     JmpTo5_ObjectMoveAndFall
 		jsr     ObjHitFloor             ; (loc_13898)
 		tst.w   D1
 		bpl.s   loc_1EC54
@@ -36736,8 +36812,8 @@ loc_1EC5C:
 		move.w  loc_1EC78(PC, D0), D1
 		jsr     loc_1EC78(PC, D1)
 		lea     (loc_1EDAA).l, A1
-		bsr.w     J_AnimateSprite_0A      ; loc_1EE5A
-		bra.w     J_MarkObjGone_16        ; loc_1EE54
+		bsr.w     JmpTo11_AnimateSprite
+		bra.w     JmpTo23_MarkObjGone
 loc_1EC78:
 		dc.w    loc_1EC80-loc_1EC78
 		dc.w    loc_1ECA0-loc_1EC78
@@ -36814,7 +36890,7 @@ loc_1ED94:
 		neg.w   D0
 loc_1EDA2:
 		add.w   D0, $0008(A0)
-		bra.w     J_MarkObjGone_16        ; loc_1EE54  
+		bra.w     JmpTo23_MarkObjGone
 loc_1EDAA:
 		dc.w    loc_1EDB0-loc_1EDAA
 		dc.w    loc_1EDB3-loc_1EDAA
@@ -36862,16 +36938,21 @@ loc_1EE3E:
 ; Object 0x4A - Oil Ocean - Octus
 ; [ End ]		         
 ;===============================================================================    
-J_DisplaySprite_10: ; loc_1EE48:
-		jmp     DisplaySprite           ; (loc_D3C2)
-J_DeleteObject_25: ; loc_1EE4E:
-		jmp     DeleteObject            ; (loc_D3B4)
-J_MarkObjGone_16: ; loc_1EE54:
-		jmp     MarkObjGone             ; (loc_D2A0)
-J_AnimateSprite_0A: ; loc_1EE5A:
-		jmp     AnimateSprite           ; (loc_D412)
-J_ObjectMoveAndFall_04: ; loc_1EE60:
-		jmp     ObjectMoveAndFall              ; (loc_D24E)
+; loc_1EE48:
+JmpTo17_DisplaySprite:
+		jmp	(DisplaySprite).l
+; loc_1EE4E:
+JmpTo38_DeleteObject:
+		jmp	(DeleteObject).l
+; loc_1EE54:
+JmpTo23_MarkObjGone:
+		jmp	(MarkObjGone).l
+; loc_1EE5A:
+JmpTo11_AnimateSprite:
+		jmp	(AnimateSprite).l
+; loc_1EE60:
+JmpTo5_ObjectMoveAndFall:
+		jmp	(ObjectMoveAndFall).l
 
 		align 4
 
@@ -36907,8 +36988,8 @@ loc_1EEBA:
 		jsr     loc_1EEDA(PC, D1)
 		bsr.w     loc_1EEE0
 		lea     (loc_1F0D2).l, A1
-		bsr.w     J_AnimateSprite_0B      ; loc_1F2E2
-		bra.w     J_MarkObjGone_17        ; loc_1F2DC
+		bsr.w     JmpTo12_AnimateSprite
+		bra.w     JmpTo24_MarkObjGone
 loc_1EEDA:
 		dc.w    loc_1F046-loc_1EEDA
 		dc.w    loc_1F07E-loc_1EEDA
@@ -36938,10 +37019,10 @@ loc_1EF28:
 		bsr.w     loc_1F026
 		bsr.w     loc_1EFC8
 		bsr.w     loc_1EF48
-		bsr.w     J_ObjectMove_0F         ; loc_1F2E8
+		bsr.w     JmpTo16_ObjectMove
 		lea     (loc_1F0D2).l, A1
-		bsr.w     J_AnimateSprite_0B      ; loc_1F2E2
-		bra.w     J_MarkObjGone_17        ; loc_1F2DC
+		bsr.w     JmpTo12_AnimateSprite
+		bra.w     JmpTo24_MarkObjGone
 		rts
 loc_1EF48:
 		tst.b   $003D(A0)
@@ -37080,13 +37161,15 @@ loc_1F0FE:
 Obj4C_MapUnc_1F106:	BINCLUDE	"mappings/sprite/obj4C.bin"
 ; ===========================================================================
 		align 4
-
-J_MarkObjGone_17: ; loc_1F2DC:
-		jmp     MarkObjGone             ; loc_D2A0
-J_AnimateSprite_0B: ; loc_1F2E2:
-		jmp     AnimateSprite           ; loc_D412
-J_ObjectMove_0F: ; loc_1F2E8:
-		jmp     ObjectMove              ; loc_D27A
+; loc_1F2DC:
+JmpTo24_MarkObjGone:
+		jmp	(MarkObjGone).l
+; loc_1F2E2:
+JmpTo12_AnimateSprite:
+		jmp	(AnimateSprite).l
+; loc_1F2E8:
+JmpTo16_ObjectMove:
+		jmp	(ObjectMove).l
 
 		align 4
 
@@ -37111,7 +37194,7 @@ loc_1F302:
 		move.b  #$10, $0019(A0)
 		move.b  #$10, $0016(A0)
 		move.b  #$08, $0017(A0)
-		bsr.w     J_ObjectMoveAndFall_05         ; loc_1F5DC
+		bsr.w     JmpTo6_ObjectMoveAndFall
 		jsr     ObjHitFloor             ; (loc_13898)
 		tst.w   D1
 		bpl.s   loc_1F350
@@ -37126,8 +37209,8 @@ loc_1F352:
 		move.w  loc_1F36E(PC, D0), D1
 		jsr     loc_1F36E(PC, D1)
 		lea     (loc_1F406).l, A1
-		bsr.w     J_AnimateSprite_0C      ; loc_1F5D6
-		bra.w     J_MarkObjGone_18        ; loc_1F5D0
+		bsr.w     JmpTo13_AnimateSprite
+		bra.w     JmpTo25_MarkObjGone
 loc_1F36E:
 		dc.w    loc_1F372-loc_1F36E
 		dc.w    loc_1F396-loc_1F36E
@@ -37144,7 +37227,7 @@ loc_1F394:
 		rts
 loc_1F396:
 		bsr.w     loc_1F3CE
-		bsr.w     J_ObjectMove_10         ; loc_1F5E2
+		bsr.w     JmpTo17_ObjectMove
 		jsr     ObjHitFloor             ; (loc_13898)
 		cmpi.w  #$FFF8, D1
 		blt.s   loc_1F3B6
@@ -37255,14 +37338,19 @@ loc_1F5AE:
 ; Object 0x4E - (Desert Level) - Crocobot 
 ; [ End ]		         
 ;===============================================================================		 
-J_MarkObjGone_18: ; loc_1F5D0:
-		jmp     MarkObjGone             ; (loc_D2A0)
-J_AnimateSprite_0C: ; loc_1F5D6:
-		jmp     AnimateSprite           ; (loc_D412)
-J_ObjectMoveAndFall_05: ; loc_1F5DC:
-		jmp     ObjectMoveAndFall              ; (loc_D24E)
-J_ObjectMove_10: ; loc_1F5E2:
-		jmp     ObjectMove              ; (loc_D27A)
+; loc_1F5D0:
+JmpTo25_MarkObjGone:
+		jmp	(MarkObjGone).l
+; loc_1F5D6:
+JmpTo13_AnimateSprite:
+		jmp	(AnimateSprite).l
+; loc_1F5DC:
+JmpTo6_ObjectMoveAndFall:
+		jmp	(ObjectMoveAndFall).l
+; loc_1F5E2:
+JmpTo17_ObjectMove:
+		jmp	(ObjectMove).l
+
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Object 53 - Masher (jumping piranha fish badnik) from GHZ
@@ -37273,7 +37361,7 @@ Obj53:
 		move.b	$24(a0),d0
 		move.w	Obj53_Index(pc,d0.w),d1
 		jsr	Obj53_Index(pc,d1.w)
-		bra.w	JmpTo20_MarkObjGone
+		bra.w	JmpTo26_MarkObjGone
 ; ===========================================================================
 ; off_1F5FA:
 Obj53_Index:
@@ -37333,7 +37421,7 @@ Obj53_MapUnc_1F696:	BINCLUDE	"mappings/sprite/obj53.bin"
 ; ===========================================================================
 		align 4
 ; loc_1F6D0:
-JmpTo20_MarkObjGone:
+JmpTo26_MarkObjGone:
 		jmp	(MarkObjGone).l
 ; loc_1F6D6:
 JmpTo14_AnimateSprite:
@@ -37362,20 +37450,20 @@ loc_1F6F6:
 loc_1F700:
 		move.l  #Obj54_MapUnc_1F938, $0004(A0) ; loc_1F938
 		move.w  #$0402, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_22 ; loc_1F98A
+		bsr.w     JmpTo35_Adjust2PArtPointer
 		ori.b   #$04, $0001(A0)
 		move.b  #$0A, $0020(A0)
 		move.b  #$04, $0018(A0)
 		move.b  #$10, $0019(A0)
 		move.b  #$10, $0016(A0)
 		move.b  #$0E, $0017(A0)
-		bsr.w     J_SingleObjLoad2_0C  ; loc_1F972
+		bsr.w     JmpTo13_SingleObjLoad2
 		bne.s   loc_1F788
 		_move.b  #$54, 0(A1)
 		move.b  #$06, $0024(A1)
 		move.l  #Obj54_MapUnc_1F938, $0004(A1) ; loc_1F938
 		move.w  #$2402, $0002(A1)
-		bsr.w     J_Adjust2PArtPointer2_04 ; loc_1F97E
+		bsr.w     JmpTo5_Adjust2PArtPointer2
 		move.b  #$03, $0018(A1)
 		move.b  #$10, $0019(A1)
 		move.b  $0022(A0), $0022(A1)
@@ -37395,7 +37483,7 @@ loc_1F79A:
 		rts
 loc_1F7A0:
 		bsr.w     loc_1F7E8
-		bsr.w     J_ObjectMove_12         ; loc_1F996
+		bsr.w     JmpTo19_ObjectMove
 		jsr     ObjHitFloor             ; loc_13898
 		cmpi.w  #$FFF8, D1
 		blt.s   loc_1F7CC
@@ -37403,14 +37491,14 @@ loc_1F7A0:
 		bge.s   loc_1F7CC
 		add.w   D1, $000C(A0)
 		lea     (loc_1F92C).l, A1
-		bsr.w     J_AnimateSprite_0E      ; loc_1F978
+		bsr.w     JmpTo15_AnimateSprite
 		bra.w     JmpTo2_MarkObjGone_P1
 loc_1F7CC:
 		addq.b  #$02, $0024(A0)
 		move.w  #$0014, $0030(A0)
 		st      $0034(A0)
 		lea     (loc_1F92C).l, A1
-		bsr.w     J_AnimateSprite_0E      ; loc_1F978
+		bsr.w     JmpTo15_AnimateSprite
 		bra.w     JmpTo2_MarkObjGone_P1
 loc_1F7E8:
 		tst.b   $0035(A0)
@@ -37438,13 +37526,13 @@ loc_1F818:
 loc_1F82A:
 		rts
 loc_1F82C:
-		bsr.w     J_SingleObjLoad2_0C  ; loc_1F972
+		bsr.w     JmpTo13_SingleObjLoad2
 		bne.s   loc_1F888
 		_move.b  #$54, 0(A1)
 		move.b  #$08, $0024(A1)
 		move.l  #Obj4B_MapUnc_1EB0E, $0004(A1) ; Obj4B_MapUnc_1EB0E
 		move.w  #$03E6, $0002(A1)
-		bsr.w     J_Adjust2PArtPointer2_04 ; loc_1F97E
+		bsr.w     JmpTo5_Adjust2PArtPointer2
 		move.b  #$04, $0018(A1)
 		move.b  #$10, $0019(A1)
 		move.b  $0022(A0), $0022(A1)
@@ -37460,9 +37548,9 @@ loc_1F888:
 loc_1F88A:
 		move.l  $002A(A0), A1
 		cmpi.b  #$54, (A1)
-		bne.w    J_DeleteObject_26       ; loc_1F96C
+		bne.w    JmpTo39_DeleteObject
 		tst.b   $0034(A1)
-		bne.w    J_DeleteObject_26       ; loc_1F96C
+		bne.w    JmpTo39_DeleteObject
 		move.w  $0008(A1), $0008(A0)
 		move.w  $000C(A1), $000C(A0)
 		addq.w  #$07, $000C(A0)
@@ -37473,13 +37561,13 @@ loc_1F88A:
 loc_1F8BA:
 		add.w   D0, $0008(A0)
 		lea     (loc_1EAF2).l, A1
-		bsr.w     J_AnimateSprite_0E      ; loc_1F978
+		bsr.w     JmpTo15_AnimateSprite
 		bra.w     JmpTo2_MarkObjGone_P1
 loc_1F8CC:
 		subi.w  #$0001, $0030(A0)
 		bpl.w    JmpTo2_MarkObjGone_P1
 		neg.w   $0010(A0)
-		bsr.w     J_ObjectMoveAndFall_06         ; loc_1F990
+		bsr.w     JmpTo7_ObjectMoveAndFall
 		move.w  $0010(A0), D0
 		asr.w   #$02, D0
 		move.w  D0, $0010(A0)
@@ -37492,7 +37580,7 @@ loc_1F8CC:
 loc_1F904:
 		move.l  $002A(A0), A1
 		cmpi.b  #$54, (A1)
-		bne.w    J_DeleteObject_26       ; loc_1F96C
+		bne.w    JmpTo39_DeleteObject
 		move.w  $0008(A1), $0008(A0)
 		move.w  $000C(A1), $000C(A0)
 		move.b  $0022(A1), $0022(A0)
@@ -37514,23 +37602,31 @@ Obj54_MapUnc_1F938:	BINCLUDE	"mappings/sprite/obj54.bin"
 ; Object 0x54 - Green Hill - Motobug
 ; [ End ]		         
 ;=============================================================================== 
-J_DeleteObject_26: ; loc_1F96C:
-		jmp     DeleteObject            ; loc_D3B4
-J_SingleObjLoad2_0C: ; loc_1F972:
-		jmp     SingleObjLoad2      ; loc_E788
-J_AnimateSprite_0E: ; loc_1F978:
-		jmp     AnimateSprite           ; loc_D412
-J_Adjust2PArtPointer2_04: ; loc_1F97E:
-		jmp     Adjust2PArtPointer2   ; loc_DC4C
+; loc_1F96C:
+JmpTo39_DeleteObject:
+		jmp	(DeleteObject).l
+; loc_1F972:
+JmpTo13_SingleObjLoad2:
+		jmp	(SingleObjLoad2).l
+; loc_1F978:
+JmpTo15_AnimateSprite:
+		jmp	(AnimateSprite).l
+; loc_1F97E:
+JmpTo5_Adjust2PArtPointer2:
+		jmp	(Adjust2PArtPointer2).l
 ; loc_1F984:
 JmpTo2_MarkObjGone_P1:
 		jmp	(MarkObjGone_P1).l
-J_Adjust2PArtPointer_22: ; loc_1F98A:
-		jmp     Adjust2PArtPointer     ; loc_DC30
-J_ObjectMoveAndFall_06: ; loc_1F990:
-		jmp     ObjectMoveAndFall              ; loc_D24E
-J_ObjectMove_12: ; loc_1F996:
-		jmp     ObjectMove              ; loc_D27A   
+; loc_1F98A:
+JmpTo35_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
+; loc_1F990:
+JmpTo7_ObjectMoveAndFall:
+		jmp	(ObjectMoveAndFall).l
+; loc_1F996:
+JmpTo19_ObjectMove:
+		jmp	(ObjectMove).l
+
 ;=============================================================================== 
 ; Object 0x57 - 
 ; [ Begin ]		         
@@ -37552,11 +37648,11 @@ loc_1F9B6:
 		cmpi.w  #$29D0, $0008(A0)
 		ble.s   loc_1F9CE
 		subi.w  #$0001, $0008(A0)
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bra.w     JmpTo18_DisplaySprite
 loc_1F9CE:
 		move.w  #$29D0, $0008(A0)
 		addq.b  #$02, $0025(A0)
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bra.w     JmpTo18_DisplaySprite
 loc_1F9DC:
 		moveq   #$00, D0
 		move.b  $002C(A0), D0
@@ -37569,20 +37665,20 @@ loc_1F9EE:
 		cmpi.w  #$041E, $000C(A0)
 		bge.s   loc_1FA00
 		addi.w  #$0001, $000C(A0)
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bra.w     JmpTo18_DisplaySprite
 loc_1FA00:
 		addq.b  #$02, $002C(A0)
 		bset    #$00, $002D(A0)
 		move.w  #$003C, $002A(A0)
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bra.w     JmpTo18_DisplaySprite
 loc_1FA14:
 		subi.w  #$0001, $002A(A0)
-		bpl.w    J_DisplaySprite_11      ; loc_202DC
+		bpl.w    JmpTo18_DisplaySprite
 		move.w  #$FE00, $0010(A0)
 		addq.b  #$02, $0025(A0)
 		move.b  #$0F, $0020(A0)
 		bset    #$01, $002D(A0)
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bra.w     JmpTo18_DisplaySprite
 loc_1FA38:
 		bsr.w     loc_1FBA8
 		bsr.w     loc_1FB86
@@ -37597,7 +37693,7 @@ loc_1FA38:
 		asl.l   #$08, D0
 		add.l   D0, D2
 		move.l  D2, $0008(A0)
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bra.w     JmpTo18_DisplaySprite
 loc_1FA6A:
 		subq.w  #$01, $003C(A0)
 		dc.w    $6A00, $0000
@@ -37611,29 +37707,29 @@ loc_1FA6A:
 loc_1FA94:
 		addq.w  #$01, $000C(A0)
 		subq.w  #$01, $002A(A0)
-		bpl.w    J_DisplaySprite_11      ; loc_202DC
+		bpl.w    JmpTo18_DisplaySprite
 		addq.b  #$02, $0025(A0)
 		move.b  #$00, $002C(A0)
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bra.w     JmpTo18_DisplaySprite
 loc_1FAAE:
 		moveq   #$00, D0
 		move.b  $002C(A0), D0
 		move.w  loc_1FAC0(PC, D0), D1
 		jsr     loc_1FAC0(PC, D1)
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bra.w     JmpTo18_DisplaySprite
 loc_1FAC0:
 		dc.w    loc_1FAC6-loc_1FAC0
 		dc.w    loc_1FB3E-loc_1FAC0
 		dc.w    loc_1FB58-loc_1FAC0
 loc_1FAC6:
 		bclr    #$00, $002D(A0)
-		bsr.w     J_SingleObjLoad2_0D ; loc_202EE
-		bne.w    J_DisplaySprite_11      ; loc_202DC
+		bsr.w     JmpTo14_SingleObjLoad2
+		bne.w    JmpTo18_DisplaySprite
 		_move.b  #$58, 0(A1)
 		move.l  A0, $0034(A1)
 		move.l  #Obj_0x57_Mappings, $0004(A1) ; loc_20168
 		move.w  #$2540, $0002(A1)
-		bsr.w     J_Adjust2PArtPointer2_05 ; loc_202FA
+		bsr.w     JmpTo6_Adjust2PArtPointer2
 		move.b  #$04, $0001(A1)
 		move.b  #$20, $0019(A1)
 		move.b  #$04, $0018(A1)
@@ -37667,7 +37763,7 @@ loc_1FB58:
 		tst.b   (Boss_defeated_flag).w
 		bne.s   loc_1FB84
 		move.b  #$01, (Boss_defeated_flag).w
-		bra.w     J_DeleteObject_27       ; loc_202E2
+		bra.w     JmpTo40_DeleteObject
 loc_1FB84:
 		rts
 loc_1FB86:
@@ -37737,11 +37833,11 @@ loc_1FC18:
 loc_1FC22:
 		subi.w  #$0001, $000C(A0)
 		subi.w  #$0001, $002A(A0)
-		bpl.w    J_DisplaySprite_11      ; loc_202DC
+		bpl.w    JmpTo18_DisplaySprite
 		move.b  #$00, $0024(A0)
 		lea     (loc_2012E).l, A1
-		bsr.w     J_AnimateSprite_0F      ; loc_202F4
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bsr.w     JmpTo16_AnimateSprite
+		bra.w     JmpTo18_DisplaySprite
 loc_1FC46:
 		moveq   #$00, D0
 		move.b  $0025(A0), D0
@@ -37753,7 +37849,7 @@ loc_1FC54:
 loc_1FC58:
 		move.l  $0034(A0), A1
 		cmpi.b  #$55, (A1)
-		bne.w    J_DeleteObject_27       ; loc_202E2
+		bne.w    JmpTo40_DeleteObject
 		btst    #$00, $002D(A1)
 		beq.s   loc_1FC7C
 		move.b  #$01, $001C(A0)
@@ -37765,25 +37861,25 @@ loc_1FC7C:
 		move.b  $0022(A1), $0022(A0)
 		move.b  $0001(A1), $0001(A0)
 		lea     (loc_2012E).l, A1
-		bsr.w     J_AnimateSprite_0F      ; loc_202F4
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bsr.w     JmpTo16_AnimateSprite
+		bra.w     JmpTo18_DisplaySprite
 loc_1FCA2:
 		subi.w  #$0001, $002A(A0)
 		bpl.s   loc_1FCBE
 		cmpi.w  #$FFF0, $002A(A0)
-		ble.w    J_DeleteObject_27       ; loc_202E2
+		ble.w    JmpTo40_DeleteObject
 		addi.w  #$0001, $000C(A0)
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bra.w     JmpTo18_DisplaySprite
 loc_1FCBE:
 		lea     (loc_2012E).l, A1
-		bsr.w     J_AnimateSprite_0F      ; loc_202F4
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bsr.w     JmpTo16_AnimateSprite
+		bra.w     JmpTo18_DisplaySprite
 loc_1FCCC:
 		move.l  $0034(A0), A1
 		cmpi.b  #$55, (A1)
-		bne.w    J_DeleteObject_27       ; loc_202E2
+		bne.w    JmpTo40_DeleteObject
 		btst    #$01, $002D(A1)
-		beq.w    J_DisplaySprite_11      ; loc_202DC
+		beq.w    JmpTo18_DisplaySprite
 		btst    #$02, $002D(A1)
 		bne.w    loc_1FD0E
 		move.w  $0008(A1), $0008(A0)
@@ -37791,11 +37887,11 @@ loc_1FCCC:
 		addi.w  #$0008, $000C(A0)
 		move.b  $0022(A1), $0022(A0)
 		move.b  $0001(A1), $0001(A0)
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bra.w     JmpTo18_DisplaySprite
 loc_1FD0E:
 		move.b  #$08, $001A(A0)
 		move.b  #$00, $0018(A0)
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bra.w     JmpTo18_DisplaySprite
 loc_1FD1E:
 		moveq   #$00, D0
 		move.b  $0025(A0), D0
@@ -37809,15 +37905,15 @@ loc_1FD2C:
 loc_1FD34:
 		move.l  $0034(A0), A1
 		cmpi.b  #$55, (A1)
-		bne.w    J_DeleteObject_27       ; loc_202E2
+		bne.w    JmpTo40_DeleteObject
 		btst    #$01, $002D(A1)
-		beq.w    J_DisplaySprite_11      ; loc_202DC
+		beq.w    JmpTo18_DisplaySprite
 		addq.b  #$02, $0025(A0)
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bra.w     JmpTo18_DisplaySprite
 loc_1FD52:
 		move.l  $0034(A0), A1
 		cmpi.b  #$55, (A1)
-		bne.w    J_DeleteObject_27       ; loc_202E2
+		bne.w    JmpTo40_DeleteObject
 		move.b  $0022(A1), $0022(A0)
 		move.b  $0001(A1), $0001(A0)
 		tst.b   $0022(A0)
@@ -37825,7 +37921,7 @@ loc_1FD52:
 		addq.b  #$02, $0025(A0)
 loc_1FD74:
 		bsr.w     loc_1FB86
-		bsr.w     J_ObjectMoveAndFall_07         ; loc_20306
+		bsr.w     JmpTo8_ObjectMoveAndFall
 		jsr     ObjHitFloor             ; (loc_13898)
 		tst.w   D1
 		bpl.s   loc_1FD8A
@@ -37839,38 +37935,38 @@ loc_1FD8A:
 		add.w   D0, $002E(A1)
 loc_1FDA4:
 		lea     (loc_2023C).l, A1
-		bsr.w     J_AnimateSprite_0F      ; loc_202F4
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bsr.w     JmpTo16_AnimateSprite
+		bra.w     JmpTo18_DisplaySprite
 loc_1FDB2:
 		subi.w  #$0001, $002A(A0)
-		bpl.w    J_DisplaySprite_11      ; loc_202DC
+		bpl.w    JmpTo18_DisplaySprite
 		addq.b  #$02, $0025(A0)
 		move.w  #$000A, $002A(A0)
 		move.w  #$FD00, $0012(A0)
 		cmpi.b  #$01, $0018(A0)
-		beq.w    J_DisplaySprite_11      ; loc_202DC
+		beq.w    JmpTo18_DisplaySprite
 		neg.w   $0010(A0)
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bra.w     JmpTo18_DisplaySprite
 loc_1FDDE:
 		subq.w  #$01, $002A(A0)
-		bpl.w    J_DisplaySprite_11      ; loc_202DC
-		bsr.w     J_ObjectMoveAndFall_07         ; loc_20306
-		bsr.w     J_ObjHitFloor_01        ; loc_20300
+		bpl.w    JmpTo18_DisplaySprite
+		bsr.w     JmpTo8_ObjectMoveAndFall
+		bsr.w     JmpTo2_ObjHitFloor
 		tst.w   D1
 		bpl.s   loc_1FDFC
 		move.w  #$FE00, $0012(A0)
 		add.w   D1, $000C(A0)
 loc_1FDFC:
-		bra.w     J_MarkObjGone_1A        ; loc_202E8
+		bra.w     JmpTo27_MarkObjGone
 loc_1FE00:
 		move.l  $0034(A0), A1
 		cmpi.b  #$55, (A1)
-		bne.w    J_DeleteObject_27       ; loc_202E2
+		bne.w    JmpTo40_DeleteObject
 		btst    #$03, $002D(A1)
 		bne.s   loc_1FE66
 		bsr.w     loc_1FE86
 		btst    #$01, $002D(A1)
-		beq.w    J_DisplaySprite_11      ; loc_202DC
+		beq.w    JmpTo18_DisplaySprite
 		move.b  #$8B, $0020(A0)
 		move.w  $0008(A1), $0008(A0)
 		move.w  $000C(A1), $000C(A0)
@@ -37884,8 +37980,8 @@ loc_1FE00:
 loc_1FE54:
 		add.w   D0, $0008(A0)
 		lea     (loc_2023C).l, A1
-		bsr.w     J_AnimateSprite_0F      ; loc_202F4
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bsr.w     JmpTo16_AnimateSprite
+		bra.w     JmpTo18_DisplaySprite
 loc_1FE66:
 		move.w  #$FFFD, D0
 		btst    #$00, $0022(A0)
@@ -37894,8 +37990,8 @@ loc_1FE66:
 loc_1FE74:
 		add.w   D0, $0008(A0)
 		lea     (loc_2023C).l, A1
-		bsr.w     J_AnimateSprite_0F      ; loc_202F4
-		bra.w     J_DisplaySprite_11      ; loc_202DC
+		bsr.w     JmpTo16_AnimateSprite
+		bra.w     JmpTo18_DisplaySprite
 loc_1FE86:
 		cmpi.b  #$01, $0021(A1)
 		beq.s   loc_1FE90
@@ -37921,7 +38017,7 @@ loc_1FEB6:
 		move.l  A0, $0034(A1)
 		move.l  #loc_20250, $0004(A1)
 		move.w  #$24C0, $0002(A1)
-		bsr.w     J_Adjust2PArtPointer2_05 ; loc_202FA
+		bsr.w     JmpTo6_Adjust2PArtPointer2
 		move.b  #$04, $0001(A1)
 		move.b  #$10, $0019(A1)
 		move.b  #$01, $0018(A1)
@@ -37943,7 +38039,7 @@ loc_1FF2E:
 		move.l  A0, $0034(A1)
 		move.l  #loc_20250, $0004(A1)
 		move.w  #$24C0, $0002(A1)
-		bsr.w     J_Adjust2PArtPointer2_05 ; loc_202FA
+		bsr.w     JmpTo6_Adjust2PArtPointer2
 		move.b  #$04, $0001(A1)
 		move.b  #$10, $0019(A1)
 		move.b  #$01, $0018(A1)
@@ -37965,7 +38061,7 @@ loc_1FFA6:
 		move.l  A0, $0034(A1)
 		move.l  #loc_20250, $0004(A1)
 		move.w  #$24C0, $0002(A1)
-		bsr.w     J_Adjust2PArtPointer2_05 ; loc_202FA
+		bsr.w     JmpTo6_Adjust2PArtPointer2
 		move.b  #$04, $0001(A1)
 		move.b  #$10, $0019(A1)
 		move.b  #$02, $0018(A1)
@@ -37987,7 +38083,7 @@ loc_2001E:
 		move.l  A0, $0034(A1)
 		move.l  #loc_20250, $0004(A1)
 		move.w  #$24C0, $0002(A1)
-		bsr.w     J_Adjust2PArtPointer2_05 ; loc_202FA
+		bsr.w     JmpTo6_Adjust2PArtPointer2
 		move.b  #$04, $0001(A1)
 		move.b  #$10, $0019(A1)
 		move.b  #$01, $0018(A1)
@@ -38007,7 +38103,7 @@ loc_20080:
 		move.l  A0, $0034(A1)
 		move.l  #loc_20250, $0004(A1)
 		move.w  #$04C0, $0002(A1)
-		bsr.w     J_Adjust2PArtPointer2_05 ; loc_202FA
+		bsr.w     JmpTo6_Adjust2PArtPointer2
 		move.b  #$04, $0001(A1)
 		move.b  #$20, $0019(A1)
 		move.b  #$02, $0018(A1)
@@ -38025,7 +38121,7 @@ loc_200C8:
 		move.l  A0, $0034(A1)
 		move.l  #loc_20168, $0004(A1)
 		move.w  #$2540, $0002(A1)
-		bsr.w     J_Adjust2PArtPointer2_05 ; loc_202FA
+		bsr.w     JmpTo6_Adjust2PArtPointer2
 		move.b  #$04, $0001(A1)
 		move.b  #$20, $0019(A1)
 		move.b  #$04, $0018(A1)
@@ -38139,22 +38235,31 @@ loc_202C2:
 ; Object 0x58 - 
 ; [ End ]		         
 ;===============================================================================    
-J_DisplaySprite_11: ; loc_202DC:
-		jmp     DisplaySprite           ; (loc_D3C2)
-J_DeleteObject_27: ; loc_202E2:
-		jmp     DeleteObject            ; (loc_D3B4)
-J_MarkObjGone_1A: ; loc_202E8:
-		jmp     MarkObjGone             ; (loc_D2A0)
-J_SingleObjLoad2_0D: ; loc_202EE:
-		jmp     SingleObjLoad2      ; (loc_E788)
-J_AnimateSprite_0F: ; loc_202F4:
-		jmp     AnimateSprite           ; (loc_D412)
-J_Adjust2PArtPointer2_05: ; loc_202FA:
-		jmp     Adjust2PArtPointer2   ; (loc_DC4C)
-J_ObjHitFloor_01: ; loc_20300:
-		jmp     ObjHitFloor             ; (loc_13898)
-J_ObjectMoveAndFall_07: ; loc_20306:
-		jmp     ObjectMoveAndFall              ; (loc_D24E)
+; loc_202DC:
+JmpTo18_DisplaySprite:
+		jmp	(DisplaySprite).l
+; loc_202E2:
+JmpTo40_DeleteObject:
+		jmp	(DeleteObject).l
+; loc_202E8:
+JmpTo27_MarkObjGone:
+		jmp	(MarkObjGone).l
+; loc_202EE:
+JmpTo14_SingleObjLoad2:
+		jmp	(SingleObjLoad2).l
+; loc_202F4:
+JmpTo16_AnimateSprite:
+		jmp	(AnimateSprite).l
+; loc_202FA:
+JmpTo6_Adjust2PArtPointer2:
+		jmp	(Adjust2PArtPointer2).l
+; loc_20300:
+JmpTo2_ObjHitFloor:
+		jmp	(ObjHitFloor).l
+; loc_20306:
+JmpTo8_ObjectMoveAndFall:
+		jmp	(ObjectMoveAndFall).l
+
 ;=============================================================================== 
 ; Object 0x55 - Ghz Boss
 ; [ Begin ]		         
@@ -38186,7 +38291,7 @@ loc_20324:
 		bne.s   loc_20370
 		addi.w  #$0060, $0002(A0)
 loc_20370:
-		bsr.w     J_Adjust2PArtPointer_23 ; loc_2073A
+		bsr.w     JmpTo36_Adjust2PArtPointer
 		jsr     SingleObjLoad2      ; (loc_E788)
 		bne.w    loc_20434
 		_move.b  #$55, 0(A1)
@@ -38207,7 +38312,7 @@ loc_20370:
 		bne.s   loc_203D8
 		addi.w  #$0060, $0002(A1)
 loc_203D8:
-		bsr.w     J_Adjust2PArtPointer2_06 ; loc_20734
+		bsr.w     JmpTo7_Adjust2PArtPointer2
 		tst.b   $0028(A0)
 		bmi.s   loc_20434
 		jsr     SingleObjLoad2      ; (loc_E788)
@@ -38216,7 +38321,7 @@ loc_203D8:
 		move.l  A0, $0034(A1)
 		move.l  #Ghz_Boss_Mappings_1, $0004(A1) ; loc_20612
 		move.w  #$04D0, $0002(A1)
-		bsr.w     J_Adjust2PArtPointer2_06 ; loc_20734
+		bsr.w     JmpTo7_Adjust2PArtPointer2
 		move.b  #$01, $001E(A0)
 		move.b  #$04, $0001(A1)
 		move.b  #$20, $0019(A1)
@@ -38284,7 +38389,7 @@ loc_204FC:
 		move.b  D0, $002A(A0)
 loc_20506:
 		cmpi.b  #$FF, $001A(A0)
-		bne.w    J_DisplaySprite_12      ; loc_20728
+		bne.w    JmpTo19_DisplaySprite
 		rts
 loc_20512:
 		move.l  $0034(A0), A1
@@ -38295,7 +38400,7 @@ loc_20520:
 		addq.b  #$02, $0024(A0)
 		move.l  #Ghz_Boss_Mappings_2, $0004(A0) ; loc_2062A
 		move.w  #$04D8, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_23 ; loc_2073A
+		bsr.w     JmpTo36_Adjust2PArtPointer
 		move.b  #$00, $001A(A0)
 		move.b  #$05, $001E(A0)
 		move.l  $0034(A0), A1
@@ -38314,13 +38419,13 @@ loc_20560:
 		move.b  #$00, $001A(A0)
 		move.l  $0034(A0), A1
 		move.b  (A1), D0
-		beq.w    J_DeleteObject_28       ; loc_2072E
+		beq.w    JmpTo41_DeleteObject
 		move.w  $0008(A1), $0008(A0)
 		move.w  $000C(A1), $000C(A0)
 		addi.w  #$0004, $000C(A0)
 		subi.w  #$0028, $0008(A0)
 loc_205A2:
-		bra.w     J_DisplaySprite_12      ; loc_20728
+		bra.w     JmpTo19_DisplaySprite
 ;=============================================================================== 
 ; Object 0x55 - Ghz Boss
 ; [ End ]		         
@@ -38341,7 +38446,7 @@ loc_205B8:
 		addq.b  #$02, $0024(A0)
 		move.l  #Obj_0x56_Mappings, $0004(A0) ; loc_2065A
 		move.w  #$05A0, $0002(A0)
-		bsr.w     J_Adjust2PArtPointer_23 ; loc_2073A
+		bsr.w     JmpTo36_Adjust2PArtPointer
 		move.b  #$04, $0001(A0)
 		move.b  #$01, $0018(A0)
 		move.b  #$00, $0020(A0)
@@ -38355,9 +38460,9 @@ loc_205F4:
 		move.b  #$07, $001E(A0)
 		addq.b  #$01, $001A(A0)
 		cmpi.b  #$07, $001A(A0)
-		beq.w    J_DeleteObject_28       ; loc_2072E
+		beq.w    JmpTo41_DeleteObject
 loc_2060E:
-		bra.w     J_DisplaySprite_12      ; loc_20728
+		bra.w     JmpTo19_DisplaySprite
 Ghz_Boss_Mappings_1: 
 loc_20612:
 		dc.w    loc_20616-loc_20612
@@ -38445,14 +38550,19 @@ loc_20704:
 ; [ End ]		         
 ;===============================================================================		  
 		nop
-J_DisplaySprite_12: ; loc_20728:
-		jmp     DisplaySprite           ; (loc_D3C2)
-J_DeleteObject_28: ; loc_2072E:
-		jmp     DeleteObject            ; (loc_D3B4)
-J_Adjust2PArtPointer2_06: ; loc_20734:
-		jmp     Adjust2PArtPointer2   ; (loc_DC4C)
-J_Adjust2PArtPointer_23: ; loc_2073A:
-		jmp     Adjust2PArtPointer     ; (loc_DC30)
+; loc_20728:
+JmpTo19_DisplaySprite:
+		jmp	(DisplaySprite).l
+; loc_2072E:
+JmpTo41_DeleteObject:
+		jmp	(DeleteObject).l
+; loc_20734:
+JmpTo7_Adjust2PArtPointer2:
+		jmp	(Adjust2PArtPointer2).l
+; loc_2073A:
+JmpTo36_Adjust2PArtPointer:
+		jmp	(Adjust2PArtPointer).l
+
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
 ; Object 8A - "SONIC TEAM PRESENTS"/Credits (leftover from S1)
