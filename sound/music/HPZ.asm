@@ -1,5 +1,5 @@
 Mus_HPZ_Header:
-	smpsHeaderStartSong 2
+	smpsHeaderStartSong 2, 1
 	smpsHeaderVoice     Mus_HPZ_Voices
 	smpsHeaderChan      $06, $03
 	smpsHeaderTempo     $01, $0C

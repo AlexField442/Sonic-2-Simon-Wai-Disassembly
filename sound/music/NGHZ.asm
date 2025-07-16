@@ -112,6 +112,9 @@ Mus_NGHZ_Jump01:
 	dc.b	$03, nF5, nRst, nF5, $06, nRst, $2A
 	smpsAlterVol        $06
 	smpsJump            Mus_NGHZ_Jump01
+	
+; Unreachable
+	smpsStop
 
 ; FM4 Data
 Mus_NGHZ_FM4:
@@ -147,6 +150,9 @@ Mus_NGHZ_Loop07:
 	dc.b	nRst, $2A
 	smpsAlterVol        $FC
 	smpsJump            Mus_NGHZ_Loop06
+	
+; Unreachable
+	smpsStop
 
 ; FM5 Data
 Mus_NGHZ_FM5:
@@ -257,6 +263,9 @@ Mus_NGHZ_Loop0A:
 	dc.b	nRst, $2A
 	smpsAlterVol        $02
 	smpsJump            Mus_NGHZ_Loop0A
+	
+; Unreachable
+	smpsStop
 
 ; PSG2 Data
 Mus_NGHZ_PSG2:

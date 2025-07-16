@@ -918,7 +918,7 @@ loc_129A:
 ; Input our music/sound selection to the sound driver.
 ; loc_12AC:
 sndDriverInput:
-		lea	(Sound_Queue).l,a0
+		lea	(Sound_Queue&$FFFFFF).l,a0
 		lea	(Z80_RAM+$1B80).l,a1
 
 		cmpi.b	#$80,8(a1)	; is the sound driver still processing a request?
@@ -1110,7 +1110,7 @@ ClearScreen:
 
 		; These '+4's shouldn't be here; clearRAM accidentally clears an additional 4 bytes
 		clearRAM Sprite_Table,Sprite_Table_End+$80+4
-		clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End+4
+		clearRAM Horiz_Scroll_Buf,Horiz_Scroll_Buf_End_Padded+4
 
 		startZ80
 		rts
@@ -8946,7 +8946,13 @@ loadLevelPatternsAndPalettes:
 ; [ Begin ]		         
 ;===============================================================================
 Load_Level_Layout: ; loc_7886: ; Load Level Layout
-		clearRAM Level_Layout,Level_Layout_End
+		lea	(Level_Layout).w,a3
+		move.w	#bytesToLcnt((Level_Layout_End-Level_Layout) - ((Level_Layout)&1)),d1
+		moveq	#0,d0
+.loop:
+		move.l	d0,(a3)+
+		dbf	d1,.loop
+
 		lea     (Level_Layout).w, A3 ; Foreground
 		moveq   #$00, D1
 		bsr.w     Interleave_Level_Layout ; loc_78A6
@@ -26054,7 +26060,7 @@ loc_147B4:
 loc_147BA:
 		tst.w	(Sidekick+2).w
 		bpl.s	loc_147C8
-		bset	#7,(Tails_Tails).w
+		bset	#7,(Tails_Tails+2).w
 		bra.s	return_147CE
 
 loc_147C8:
@@ -26165,7 +26171,7 @@ byte_1498E:	dc.b    7,  4,  3,  2,  1,  0,  $FE,  1
 ; ---------------------------------------------------------------------------
 Obj0B_MapUnc_14996:	BINCLUDE	"mappings/sprite/obj0B.bin"
 ; ===========================================================================
-		align 4
+		nop
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -27523,7 +27529,7 @@ Obj16_Wait:
 		move.w	#$200,$10(a0)
 		btst	#0,$22(a0)
 		beq.s	loc_160B4
-		neg.w	$d10(a0)
+		neg.w	$10(a0)
 
 loc_160B4:
 		move.w	#$100,$12(a0)
@@ -35310,7 +35316,7 @@ loc_1D7BA:
 		lea     (MainCharacter).w, A1
 		moveq   #$03, D6
 		movem.l D1-D4, -(A7)
-		bsr.w     JmpTo3_SolidObject_Always_SingleCharacter
+		bsr.w     JmpTo4_SolidObject_Always_SingleCharacter
 		btst    #$03, $0022(A0)
 		beq.s   loc_1D7EA
 		bsr.s   loc_1D862
@@ -35318,7 +35324,7 @@ loc_1D7EA:
 		movem.l (A7)+, D1-D4
 		lea     (Sidekick).w, A1
 		moveq   #$04, D6
-		bsr.w     JmpTo3_SolidObject_Always_SingleCharacter
+		bsr.w     JmpTo4_SolidObject_Always_SingleCharacter
 		btst    #$04, $0022(A0)
 		beq.s   loc_1D802
 		bsr.s   loc_1D862
@@ -42125,7 +42131,7 @@ Debug_OOZ: dbglistheader
 	dbglistobj $46,	Obj46_MapUnc_18CFA,  0, 1, $6354
 	dbglistobj $47,	Obj47_MapUnc_18E3E,  0, 2, $424
 	dbglistobj $15,	Obj15_MapUnc_8AD8, $88, 1, $43E3
-	dbglistobj $3D,	Obj3D_MapUnc_1916E,  0, 0, $6322
+	dbglistobj $3D,	Obj3D_MapUnc_1916E,  0, 0, $6332
 	dbglistobj $48,	Obj48_MapUnc_194CA,$80, 0, $6368
 	dbglistobj $48,	Obj48_MapUnc_194CA,$81, 1, $6368
 	dbglistobj $48,	Obj48_MapUnc_194CA,$82, 2, $6368
@@ -42140,7 +42146,7 @@ Debug_OOZ_End:
 
 Debug_DHZ: dbglistheader
 	dbglistobj $25,	Obj25_MapUnc_B036,   0, 0, $26BC
-	dbglistobj $26,	Obj26_MapUnc_B6D2,   7, 0, $680
+	dbglistobj $26,	Obj26_MapUnc_B6D2,   0, 0, $680
 	dbglistobj $15,	Obj15_MapUnc_8B46, $48, 2, 0
 	dbglistobj $1F,	Obj1A_MapUnc_9942,   0, 0, $63F4
 	dbglistobj $73,	Obj73_MapUnc_1CE1C,$F5, 0, $26BC
@@ -42194,8 +42200,8 @@ Debug_NGHZ: dbglistheader
 	dbglistobj $23,	Pillar_Mappings,     0, 0, $2000
 	dbglistobj $2B,	Breakable_Pillar_Mappings,  0, 0, $2000
 	dbglistobj $2C, Obj31_MapUnc_15612,  0, 0, $8680
-	dbglistobj $2C, Obj31_MapUnc_15612,  0, 1, $8680
-	dbglistobj $2C, Obj31_MapUnc_15612,  0, 2, $8680
+	dbglistobj $2C, Obj31_MapUnc_15612,  1, 1, $8680
+	dbglistobj $2C, Obj31_MapUnc_15612,  2, 2, $8680
 	dbglistobj $40, Obj40_MapUnc_1A58A,  1, 0, $440
 	dbglistobj $41, Spring_Mappings,   $81, 0, $45C
 	dbglistobj $41, Spring_Mappings,   $90, 3, $470
@@ -42255,7 +42261,7 @@ LevelArtPointers:
 	levartptrs PLCID_Wz1,  PLCID_Wz2,  PalID_WZ,   ArtNem_WZ,  BM16_WZ,  BM128_WZ	;   2 ; WZ   ; WOOD ZONE
 	levartptrs PLCID_Ssz1, PLCID_Ssz2, PalID_SSZ,  ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   3 ; SSZ  ; SAND SHOWER ZONE (UNUSED)
 	levartptrs PLCID_Mtz1, PLCID_Mtz2, PalID_MTZ,  ArtNem_MTZ, BM16_MTZ, BM128_MTZ	;   4 ; MTZ  ; METROPOLIS ZONE
-	levartptrs PLCID_Mtz1, PLCID_Mtz2, PalID_MTZ2, ArtNem_MTZ, BM16_MTZ, BM128_MTZ	;   5 ; MTZ  ; METROPOLIS ZONE 2
+	levartptrs PLCID_Mtz1, PLCID_Mtz2, PalID_MTZ,  ArtNem_MTZ, BM16_MTZ, BM128_MTZ	;   5 ; MTZ  ; METROPOLIS ZONE 2
 	levartptrs PLCID_Blz1, PLCID_Blz2, PalID_BLZ,  ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   6 ; BLZ  ; BLUE LAKE ZONE (UNUSED, LATER REPLACED WITH WING FORTRESS)
 	levartptrs PLCID_Htz1, PLCID_Htz2, PalID_HTZ,  ArtNem_GHZ, BM16_GHZ, BM128_GHZ	;   7 ; HTZ  ; HILL TOP ZONE
 	levartptrs PLCID_Hpz1, PLCID_Hpz2, PalID_HPZ,  ArtNem_HPZ, BM16_HPZ, BM128_HPZ	;   8 ; HPZ  ; HIDDEN PALACE ZONE
@@ -48446,7 +48452,7 @@ Snd_Driver_End:
 
 	; actually it only has to fit within one bank, but we'll line it up to the end anyway
 	; because the padding gives the sound driver some room to grow
-	cnop -Size_of_DAC_samples, $8000
+	align $200
 ; ---------------------------------------------------------------------------
 ; DAC samples
 ; ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 Mus_FinalBoss_Header:
-	smpsHeaderStartSong 2
+	smpsHeaderStartSong 2, 1
 	smpsHeaderVoice     Mus_FinalBoss_Voices
 	smpsHeaderChan      $06, $03
 	smpsHeaderTempo     $01, $03
@@ -270,7 +270,7 @@ Mus_FinalBoss_Voices:
 	smpsVcDecayRate2    $01, $00, $00, $00
 	smpsVcDecayLevel    $00, $01, $0F, $01
 	smpsVcReleaseRate   $0F, $0F, $0F, $0F
-	smpsVcTotalLevel    $00, $27, $28, $17
+	smpsVcTotalLevel    $80, $27, $28, $17
 
 ;	Voice $01
 ;	$3D
@@ -288,7 +288,7 @@ Mus_FinalBoss_Voices:
 	smpsVcDecayRate2    $03, $03, $03, $00
 	smpsVcDecayLevel    $01, $01, $01, $01
 	smpsVcReleaseRate   $0F, $0F, $0F, $0F
-	smpsVcTotalLevel    $60, $00, $00, $18
+	smpsVcTotalLevel    $60, $80, $80, $18
 
 ;	Voice $02
 ;	$3D
@@ -306,4 +306,23 @@ Mus_FinalBoss_Voices:
 	smpsVcDecayRate2    $00, $00, $00, $00
 	smpsVcDecayLevel    $01, $02, $02, $02
 	smpsVcReleaseRate   $0F, $0F, $0F, $0F
-	smpsVcTotalLevel    $00, $00, $00, $1E
+	smpsVcTotalLevel    $80, $80, $80, $1E
+
+; unused voice
+;	Voice $03
+;	$3D
+;	$01, $21, $51, $01, 	$12, $14, $14, $0F, 	$07, $05, $05, $05
+;	$00, $00, $00, $00, 	$AF, $2F, $2F, $1F, 	$1E, $80, $80, $80
+	smpsVcAlgorithm     $05
+	smpsVcFeedback      $07
+	smpsVcUnusedBits    $00
+	smpsVcDetune        $00, $05, $02, $00
+	smpsVcCoarseFreq    $01, $01, $01, $01
+	smpsVcRateScale     $00, $00, $00, $00
+	smpsVcAttackRate    $0F, $14, $14, $12
+	smpsVcAmpMod        $00, $00, $00, $00
+	smpsVcDecayRate1    $05, $05, $05, $07
+	smpsVcDecayRate2    $00, $00, $00, $00
+	smpsVcDecayLevel    $01, $02, $02, $0A
+	smpsVcReleaseRate   $0F, $0F, $0F, $0F
+	smpsVcTotalLevel    $80, $80, $80, $1E

@@ -1,15 +1,15 @@
-Mus_Boss_Music:                       
+Mus_Boss_Music:
 	smpsHeaderStartSong 2
 	smpsHeaderVoice	    Mus_Boss_Voice
 	smpsHeaderChan      $06, $03
 	smpsHeaderTempo	    $01, $09
 
 	smpsHeaderDAC	    Mus_Boss_DAC
-	smpsHeaderFM	    Mus_Boss_FM1, $0C, $07 
-	smpsHeaderFM	    Mus_Boss_FM2, $00, $0D 
-	smpsHeaderFM	    Mus_Boss_FM3, $00, $11 
-	smpsHeaderFM	    Mus_Boss_FM4, $00, $11  
-	smpsHeaderFM	    Mus_Boss_FM5, $00, $11 
+	smpsHeaderFM	    Mus_Boss_FM1, $0C, $08
+	smpsHeaderFM	    Mus_Boss_FM2, $00, $0D
+	smpsHeaderFM	    Mus_Boss_FM3, $00, $12
+	smpsHeaderFM	    Mus_Boss_FM4, $00, $12
+	smpsHeaderFM	    Mus_Boss_FM5, $00, $12
 	smpsHeaderPSG	    Mus_Boss_PSG1, $E8, $04, $00, fTone_0C 
 	smpsHeaderPSG	    Mus_Boss_PSG2, $E8, $06, $00, fTone_0C  
 	smpsHeaderPSG	    Mus_Boss_PSG3, $E8, $08, $00, fTone_0C
@@ -183,32 +183,32 @@ Mus_Boss_Voice:
 ; 	$00, $00, $00, $00,  $13, $13, $AA, $08,  $18, $27, $28, $80 
 	smpsVcAlgorithm     $02
 	smpsVcFeedback      $07
-	smpsVcUnusedBits    $00	
+	smpsVcUnusedBits    $00
 	smpsVcDetune        $00, $00, $00, $00
-	smpsVcCoarseFreq    $01, $01, $07, $01	
-	smpsVcRateScale     $03, $03, $03, $02
+	smpsVcCoarseFreq    $01, $01, $07, $01
+	smpsVcRateScale     $01, $02, $02, $02
 	smpsVcAttackRate    $1F, $1F, $1F, $1F
 	smpsVcAmpMod        $00, $00, $00, $00
-	smpsVcDecayRate1    $03, $0E, $0E, $0E	
+	smpsVcDecayRate1    $03, $0E, $0E, $0E
 	smpsVcDecayRate2    $00, $00, $00, $00
-	smpsVcDecayLevel    $00, $0A, $01, $01
-	smpsVcReleaseRate   $08, $0A, $03, $03
-	smpsVcTotalLevel    $00, $28, $27, $18			
+	smpsVcDecayLevel    $00, $01, $0A, $01
+	smpsVcReleaseRate   $08, $03, $0A, $03
+	smpsVcTotalLevel    $00, $27, $28, $18
 
-;	Voice $03		
+;	Voice $03
 ;	$2C
-; 	$70, $32, $74, $34,  $19, $19, $14, $14,  $01, $02, $08, $05 
-; 	$01, $02, $01, $01,  $13, $10, $87, $37,  $17, $19, $80, $85      
+; 	$70, $32, $74, $34,  $19, $19, $14, $14,  $01, $02, $08, $05
+; 	$01, $02, $01, $01,  $13, $10, $87, $37,  $17, $19, $80, $85
 	smpsVcAlgorithm     $04
 	smpsVcFeedback      $05
 	smpsVcUnusedBits    $00
-	smpsVcDetune        $03, $07, $03, $07
-	smpsVcCoarseFreq    $04, $04, $02, $00
+	smpsVcDetune        $03, $03, $07, $07
+	smpsVcCoarseFreq    $04, $02, $04, $00
 	smpsVcRateScale     $00, $00, $00, $00
-	smpsVcAttackRate    $19, $19, $14, $14
+	smpsVcAttackRate    $14, $19, $14, $19
 	smpsVcAmpMod        $00, $00, $00, $00
-	smpsVcDecayRate1    $01, $02, $08, $05
-	smpsVcDecayRate2    $01, $00, $01, $00
-	smpsVcDecayLevel    $03, $08, $01, $01
-	smpsVcReleaseRate   $07, $07, $00, $03
-	smpsVcTotalLevel    $05, $00, $19, $17                    
+	smpsVcDecayRate1    $05, $02, $08, $01
+	smpsVcDecayRate2    $01, $02, $01, $01
+	smpsVcDecayLevel    $03, $01, $08, $01
+	smpsVcReleaseRate   $07, $00, $07, $03
+	smpsVcTotalLevel    $85, $19, $80, $17

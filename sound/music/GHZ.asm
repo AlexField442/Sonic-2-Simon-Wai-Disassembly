@@ -529,3 +529,21 @@ Mus_GHZ_Voices:
 	smpsVcDecayLevel    $02, $02, $02, $02
 	smpsVcReleaseRate   $0F, $0F, $0F, $0F
 	smpsVcTotalLevel    $00, $13, $2D, $24
+
+;	unused Voice $08
+;	$3D
+;	$01, $00, $02, $01, 	$1F, $0E, $0E, $0E, 	$07, $1F, $1F, $1F
+;	$00, $00, $00, $00, 	$1F, $0F, $0F, $0F, 	$17, $8C, $8D, $8C
+	smpsVcAlgorithm     $05
+	smpsVcFeedback      $07
+	smpsVcUnusedBits    $00
+	smpsVcDetune        $00, $00, $00, $00
+	smpsVcCoarseFreq    $01, $00, $02, $01
+	smpsVcRateScale     $00, $00, $00, $00
+	smpsVcAttackRate    $0E, $0E, $0E, $1F
+	smpsVcAmpMod        $00, $00, $00, $00
+	smpsVcDecayRate1    $1F, $1F, $1F, $07
+	smpsVcDecayRate2    $00, $00, $00, $00
+	smpsVcDecayLevel    $00, $00, $00, $00
+	smpsVcReleaseRate   $0F, $0F, $0F, $1F
+	smpsVcTotalLevel    $8C, $8C, $8D, $17

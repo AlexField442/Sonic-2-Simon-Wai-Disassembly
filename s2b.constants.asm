@@ -6,7 +6,7 @@
 ; they are all in units of bytes
 Size_of_DAC_samples =		$2723
 Size_of_SEGA_sound =		$6174
-Size_of_Snd_driver_guess =	$DF3 ; approximate post-compressed size of the Z80 sound driver
+Size_of_Snd_driver_guess =	$DDC ; approximate post-compressed size of the Z80 sound driver
 
 object_size = $40
 ; ---------------------------------------------------------------------------
@@ -349,9 +349,10 @@ Sprite_Table_2:			ds.b	$280	; Sprite attribute table buffer for the bottom split
 				ds.b	$80	; unused, but SAT buffer can spill over into this area when there are too many sprites on-screen
 
 Horiz_Scroll_Buf:		ds.l	224
+Horiz_Scroll_Buf_End:
 				ds.l	16 	; A bug/optimisation in 'SwScrl_CPZ' causes 'Horiz_Scroll_Buf' to overflow into this.
 				ds.b	$40	; unused
-Horiz_Scroll_Buf_End:
+Horiz_Scroll_Buf_End_Padded:
 
 Sonic_Stat_Record_Buf:		ds.b	$100
 
@@ -831,7 +832,6 @@ Oscillating_Numbers:
 Oscillation_Control:		ds.w	1
 Oscillating_variables:
 Oscillating_Data:		ds.w	$20
-Oscillating_Numbers_End
 
 				; Fun Fact: when documenting the last of the ROM, I forgot to add this,
 				; causing the rest to be incorrect
@@ -854,16 +854,17 @@ Ring_spill_anim_counter:	ds.b	1	; scattered rings
 SpecialStage4_anim_frame:
 Ring_spill_anim_frame:		ds.b	1
 Ring_spill_anim_accum:		ds.w	1
-				ds.b	6	; $FFFFFEC9-$FFFFFECF ; seems unused
-Oscillating_variables_End
-				ds.b	$20	; $FFFFFED0-$FFFFFEEF ; seems unused
+				ds.b	$26	; $FFFFFEC9-$FFFFFEEF ; seems unused
 
 Camera_Min_Y_pos_Debug_Copy:	ds.w	1
 Camera_Max_Y_pos_Debug_Copy:	ds.w	1
-				ds.b	$4C	; $FFFFFEF4-$FFFFFF3F ; seems unused
+				ds.b	$C	; unused
+Oscillating_Numbers_End:
+				ds.b	$40	; $FFFFFEF4-$FFFFFF3F ; seems unused
 
 Perfect_rings_left:		ds.w	1
 				ds.b	$3E	; $FFFFFF42-$FFFFFF7F ; seems unused
+Oscillating_variables_End:
 
 LevSel_HoldTimer:		ds.w	1
 Level_select_zone:		ds.w	1

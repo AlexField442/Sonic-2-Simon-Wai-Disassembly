@@ -1,5 +1,5 @@
 sndE0_Header:
-	smpsHeaderStartSong 2
+	smpsHeaderStartSong 2, 1
 	smpsHeaderVoice     sndE0_Voices
 	smpsHeaderTempoSFX  $01
 	smpsHeaderChanSFX   $03
@@ -65,5 +65,5 @@ sndE0_Voices:
 	smpsVcDecayRate2    $08, $0A, $04, $02
 	smpsVcDecayLevel    $0B, $0B, $0B, $0B
 	smpsVcReleaseRate   $0F, $0F, $0F, $0F
-	smpsVcTotalLevel    $00, $1C, $00, $00
+	smpsVcTotalLevel    $80, $1C, $00, $00
 
