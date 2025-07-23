@@ -29,10 +29,6 @@
 ;
 ; For certain bits of information, search for "NOTE:"
 
-
-
-; AniArt_Load, Tails_RollSpeed, Obj_0x4C
-
 ; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; ASSEMBLY OPTIONS:
 ;
@@ -319,8 +315,8 @@ GameClrRAM:
 		bsr.w	VDPSetupGame
 		bsr.w	JmpTo_SoundDriverLoad
 		bsr.w	JoypadInit
-		; Strangely, this loads the title screen, and not the Sega screen,
-		; and the August 21st prototype suggests this was NOT done by the pirates...
+		; Despite what you may assume from the dump originating from a pirated cart
+		; the August 21st build shows that the Sega screen was intentionally disabled
 		move.b	#GameModeID_TitleScreen,(Game_Mode).w
 ; loc_38E:
 MainGameLoop:
