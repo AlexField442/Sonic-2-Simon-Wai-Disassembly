@@ -14,3 +14,4 @@ Credits:
 * Clownacy - Z80 disassembly, taken from SMPS Research Pack v5
 * SuperEgg - ASM files for music
 * OrionNavattan - fixed errors resulting from the switch to AS
+* Filter - additional work in getting a more bit-perfect build
